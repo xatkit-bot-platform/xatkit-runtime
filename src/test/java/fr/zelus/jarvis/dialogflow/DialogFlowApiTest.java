@@ -1,8 +1,13 @@
 package fr.zelus.jarvis.dialogflow;
 
+import org.assertj.core.api.JUnitSoftAssertions;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.text.MessageFormat;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DialogFlowApiTest {
 
@@ -11,6 +16,9 @@ public class DialogFlowApiTest {
     private static String VALID_LANGUAGE_CODE = "en-US";
 
     private DialogFlowApi api;
+
+    @Rule
+    public JUnitSoftAssertions softly = new JUnitSoftAssertions();
 
     @Test(expected = NullPointerException.class)
     public void constructNullProjectId() {
@@ -30,18 +38,14 @@ public class DialogFlowApiTest {
     @Test
     public void constructValid() {
         api = new DialogFlowApi(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
-        assert VALID_PROJECT_ID.equals(api.getProjectId()): MessageFormat.format("Invalid project ID: expected {0}, " +
-                "found {1}", VALID_PROJECT_ID, api.getProjectId());
-        assert VALID_LANGUAGE_CODE.equals(api.getLanguageCode()) : MessageFormat.format("Invalid language code: " +
-                "expected {0}, found {1}", VALID_LANGUAGE_CODE, api.getLanguageCode());
+        softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isNotEqualTo(api.getProjectId());
+        softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isNotEqualTo(api.getLanguageCode());
     }
 
     @Test
     public void constructDefaultLanguageCode() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
-        assert VALID_PROJECT_ID.equals(api.getProjectId()): MessageFormat.format("Invalid project ID: expected {0}, " +
-                "found {1}", VALID_PROJECT_ID, api.getProjectId());
-        assert VALID_LANGUAGE_CODE.equals(api.getLanguageCode()) : MessageFormat.format("Invalid language code: " +
-                "expected {0} (default), found {1}", VALID_LANGUAGE_CODE, api.getLanguageCode());
+        softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
+        softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
     }
 }
