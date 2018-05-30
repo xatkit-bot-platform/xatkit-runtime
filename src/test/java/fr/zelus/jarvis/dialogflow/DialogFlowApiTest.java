@@ -77,6 +77,12 @@ public class DialogFlowApiTest {
     }
 
     @Test(expected = NullPointerException.class)
+    public void getIntentNullSession() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        Intent intent = api.getIntent(SAMPLE_INPUT, null);
+    }
+
+    @Test(expected = NullPointerException.class)
     public void getIntentNullText() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         SessionName session = api.createSession();

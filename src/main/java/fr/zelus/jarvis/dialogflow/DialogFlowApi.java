@@ -126,16 +126,20 @@ public class DialogFlowApi {
      * @param text    a {@link String} representing the textual input to process and extract the {@link Intent} from
      * @param session the client {@link SessionName}
      * @return an {@link Intent} extracted from the provided {@code text}
+     * @throws NullPointerException     if the provided {@code text} or {@code session} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code text} is empty
+     * @throws DialogFlowException      if an exception is thrown by the underlying DialogFlow engine
      */
     public Intent getIntent(String text, SessionName session) {
         checkNotNull(text, "Cannot retrieve the intent from null");
+        checkNotNull(session, "Cannot retrieve the intent using null as a session");
         checkArgument(!text.isEmpty(), "Cannot retrieve the intent from empty string");
         TextInput.Builder textInput = TextInput.newBuilder().setText(text).setLanguageCode(languageCode);
         QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
         DetectIntentResponse response;
         try {
             response = sessionsClient.detectIntent(session, queryInput);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new DialogFlowException(e);
         }
         QueryResult queryResult = response.getQueryResult();
