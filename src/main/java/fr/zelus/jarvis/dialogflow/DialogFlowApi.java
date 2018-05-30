@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 
 /**
  * A wrapper of the DialogFlow API that provides utility methods to connect to a given DialogFlow project, start
@@ -127,9 +128,16 @@ public class DialogFlowApi {
      * @return an {@link Intent} extracted from the provided {@code text}
      */
     public Intent getIntent(String text, SessionName session) {
+        checkNotNull(text, "Cannot retrieve the intent from null");
+        checkArgument(!text.isEmpty(), "Cannot retrieve the intent from empty string");
         TextInput.Builder textInput = TextInput.newBuilder().setText(text).setLanguageCode(languageCode);
         QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
-        DetectIntentResponse response = sessionsClient.detectIntent(session, queryInput);
+        DetectIntentResponse response;
+        try {
+            response = sessionsClient.detectIntent(session, queryInput);
+        } catch(Exception e) {
+            throw new DialogFlowException(e);
+        }
         QueryResult queryResult = response.getQueryResult();
         Log.info("====================\n" +
                 "Query Text: {0} \n" +

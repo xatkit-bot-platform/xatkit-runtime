@@ -1,5 +1,7 @@
 package fr.zelus.jarvis.dialogflow;
 
+import com.google.cloud.dialogflow.v2.Intent;
+import com.google.cloud.dialogflow.v2.SessionName;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Rule;
@@ -14,6 +16,8 @@ public class DialogFlowApiTest {
     private static String VALID_PROJECT_ID = "room-reservation-ee77e";
 
     private static String VALID_LANGUAGE_CODE = "en-US";
+
+    private static String SAMPLE_INPUT = "hello";
 
     private DialogFlowApi api;
 
@@ -38,8 +42,8 @@ public class DialogFlowApiTest {
     @Test
     public void constructValid() {
         api = new DialogFlowApi(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
-        softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isNotEqualTo(api.getProjectId());
-        softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isNotEqualTo(api.getLanguageCode());
+        softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
+        softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
     }
 
     @Test
@@ -47,5 +51,51 @@ public class DialogFlowApiTest {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
+    }
+
+    @Test
+    public void createSessionValidApi() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        SessionName session = api.createSession();
+        assertThat(session.getProject()).as("Valid session project").isEqualTo(VALID_PROJECT_ID);
+    }
+
+    @Test
+    public void getIntentValidSession() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        SessionName session = api.createSession();
+        Intent intent = api.getIntent(SAMPLE_INPUT, session);
+        assertThat(intent).as("Null Intent").isNotNull();
+        assertThat(intent.getDisplayName()).as("Valid Intent").isEqualTo("Default Welcome Intent");
+    }
+
+    @Test(expected = DialogFlowException.class)
+    public void getIntentInvalidSession() {
+        api = new DialogFlowApi("test");
+        SessionName session = api.createSession();
+        Intent intent = api.getIntent(SAMPLE_INPUT, session);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getIntentNullText() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        SessionName session = api.createSession();
+        Intent intent = api.getIntent(null, session);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getIntentEmptyText() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        SessionName session = api.createSession();
+        Intent intent = api.getIntent("", session);
+    }
+
+    @Test
+    public void getIntentUnkownText() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        SessionName session = api.createSession();
+        Intent intent = api.getIntent("azerty", session);
+        assertThat(intent).as("Null Intent").isNotNull();
+        assertThat(intent.getDisplayName()).as("Fallback Intent").isEqualTo("Default Fallback Intent");
     }
 }
