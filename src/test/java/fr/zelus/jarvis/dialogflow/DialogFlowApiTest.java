@@ -18,7 +18,7 @@ public class DialogFlowApiTest {
     private DialogFlowApi api;
 
     @Rule
-    public JUnitSoftAssertions softly = new JUnitSoftAssertions();
+    public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
 
     @Test(expected = NullPointerException.class)
     public void constructNullProjectId() {
