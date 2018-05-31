@@ -1,6 +1,8 @@
 package fr.zelus.jarvis.dialogflow;
 
-public class DialogFlowException extends RuntimeException {
+import fr.zelus.jarvis.core.JarvisException;
+
+public class DialogFlowException extends JarvisException {
 
     public DialogFlowException() {
         super();
@@ -18,9 +20,8 @@ public class DialogFlowException extends RuntimeException {
         super(cause);
     }
 
-    protected DialogFlowException(String message, Throwable cause,
-                               boolean enableSuppression,
-                               boolean writableStackTrace) {
+    protected DialogFlowException(String message, Throwable cause, boolean enableSuppression, boolean
+            writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }
