@@ -2,12 +2,12 @@ package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.SessionName;
+import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.io.VoiceRecorder;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.assertj.core.api.SoftAssertions;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.text.MessageFormat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -103,5 +103,14 @@ public class DialogFlowApiTest {
         Intent intent = api.getIntent("azerty", session);
         assertThat(intent).as("Null Intent").isNotNull();
         assertThat(intent.getDisplayName()).as("Fallback Intent").isEqualTo("Default Fallback Intent");
+    }
+
+    @Ignore
+    @Test
+    public void getIntentFromVoiceRecorder() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        SessionName session = api.createSession();
+        Intent intent = api.getIntentFromAudio(new VoiceRecorder(), session);
+        Log.info("Found intent {0}", intent.getDisplayName());
     }
 }

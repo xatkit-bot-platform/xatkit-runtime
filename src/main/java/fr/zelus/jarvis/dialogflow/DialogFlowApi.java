@@ -2,12 +2,14 @@ package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.*;
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.io.VoiceRecorder;
 
 import java.io.IOException;
 import java.util.UUID;
 
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
  * A wrapper of the DialogFlow API that provides utility methods to connect to a given DialogFlow project, start
@@ -148,6 +150,22 @@ public class DialogFlowApi {
                 "Detected Intent: {1} (confidence: {2})\n" +
                 "Fulfillment Text: {3}", queryResult.getQueryText(), queryResult.getIntent()
                 .getDisplayName(), queryResult.getIntentDetectionConfidence(), queryResult.getFulfillmentText());
+        return queryResult.getIntent();
+    }
+
+    public Intent getIntentFromAudio(VoiceRecorder voiceRecorder, SessionName session) {
+        DialogFlowVoiceRecorderObserver voiceRecorderObserver = new DialogFlowVoiceRecorderObserver(sessionsClient,
+                session);
+        voiceRecorder.addObserver(voiceRecorderObserver);
+        try {
+            voiceRecorder.startRecording();
+        } catch(JarvisException e) {
+            Log.error(e);
+        }
+        Log.info("Before result");
+        QueryResult queryResult = voiceRecorderObserver.getQueryResult();
+        Log.info("After result");
+        voiceRecorder.deleteObserver(voiceRecorderObserver);
         return queryResult.getIntent();
     }
 
