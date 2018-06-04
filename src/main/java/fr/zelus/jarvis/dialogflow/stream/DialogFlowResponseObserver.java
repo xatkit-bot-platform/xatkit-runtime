@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.dialogflow;
+package fr.zelus.jarvis.dialogflow.stream;
 
 import com.google.api.gax.rpc.ApiStreamObserver;
 import com.google.cloud.dialogflow.v2.QueryResult;

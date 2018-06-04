@@ -3,6 +3,7 @@ package fr.zelus.jarvis.dialogflow;
 import com.google.cloud.dialogflow.v2.*;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.dialogflow.stream.DialogFlowVoiceRecorderObserver;
 import fr.zelus.jarvis.io.VoiceRecorder;
 
 import java.io.IOException;

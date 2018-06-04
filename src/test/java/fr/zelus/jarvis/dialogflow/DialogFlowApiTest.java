@@ -13,13 +13,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DialogFlowApiTest {
 
-    private static String VALID_PROJECT_ID = "jarvis-fd96e";
+    protected static String VALID_PROJECT_ID = "jarvis-fd96e";
 
-    private static String VALID_LANGUAGE_CODE = "en-US";
+    protected static String VALID_LANGUAGE_CODE = "en-US";
 
-    private static String SAMPLE_INPUT = "hello";
+    protected static String SAMPLE_INPUT = "hello";
 
-    private DialogFlowApi api;
+    protected DialogFlowApi api;
 
     @Rule
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
@@ -105,12 +105,4 @@ public class DialogFlowApiTest {
         assertThat(intent.getDisplayName()).as("Fallback Intent").isEqualTo("Default Fallback Intent");
     }
 
-    @Ignore
-    @Test
-    public void getIntentFromVoiceRecorder() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
-        SessionName session = api.createSession();
-        Intent intent = api.getIntentFromAudio(new VoiceRecorder(), session);
-        Log.info("Found intent {0}", intent.getDisplayName());
-    }
 }
