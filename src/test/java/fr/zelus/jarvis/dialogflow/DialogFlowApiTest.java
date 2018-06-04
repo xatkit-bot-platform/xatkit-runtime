@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DialogFlowApiTest {
 
-    private static String VALID_PROJECT_ID = "room-reservation-ee77e";
+    private static String VALID_PROJECT_ID = "jarvis-fd96e";
 
     private static String VALID_LANGUAGE_CODE = "en-US";
 
