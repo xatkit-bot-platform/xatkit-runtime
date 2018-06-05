@@ -8,6 +8,7 @@ import fr.zelus.jarvis.io.VoiceRecorder;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -121,6 +122,16 @@ public class DialogFlowApi {
     }
 
     /**
+     * Shuts down the DialogFlow client and invalidates the session.
+     * <p>
+     * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus this class cannot be used to
+     * access DialogFlow API anymore.
+     */
+    public void shutdown() {
+        this.sessionsClient.shutdownNow();
+    }
+
+    /**
      * Returns the {@link Intent} extracted from the provided {@code text}
      * <p>
      * This method uses the provided {@code session} to extract contextual {@link Intent}s, such as follow-up
@@ -160,7 +171,7 @@ public class DialogFlowApi {
         voiceRecorder.addObserver(voiceRecorderObserver);
         try {
             voiceRecorder.startRecording();
-        } catch(JarvisException e) {
+        } catch (JarvisException e) {
             Log.error(e);
         }
         Log.info("Before result");
@@ -170,4 +181,17 @@ public class DialogFlowApi {
         return queryResult.getIntent();
     }
 
+    /**
+     * Closes the DialogFlow session if it is not shutdown yet.
+     *
+     * @throws Throwable
+     */
+    @Override
+    protected void finalize() throws Throwable {
+        if (!sessionsClient.isShutdown()) {
+            Log.warn("DialogFlow session was not closed properly, waiting for automatic shutdown");
+            this.sessionsClient.shutdownNow();
+            this.sessionsClient.awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
 }

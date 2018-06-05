@@ -4,7 +4,6 @@ import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.SessionName;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
-import org.apache.commons.configuration2.Configuration;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -154,6 +153,19 @@ public class JarvisCore {
      */
     public List<JarvisModule> getModules() {
         return Collections.unmodifiableList(modules);
+    }
+
+    /**
+     * Shuts down the underlying {@link DialogFlowApi} and clean the {@link #modules} list.
+     * <p>
+     * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down {@link Intent}
+     * detections and voice recognitions features.
+     *
+     * @see DialogFlowApi#shutdown()
+     */
+    public void shutdown() {
+        this.dialogFlowApi.shutdown();
+        this.clearModules();
     }
 
     /**
