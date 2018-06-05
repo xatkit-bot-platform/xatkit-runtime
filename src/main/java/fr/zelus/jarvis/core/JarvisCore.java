@@ -9,6 +9,8 @@ import org.apache.commons.configuration2.Configuration;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
@@ -37,6 +39,15 @@ public class JarvisCore {
      * @see #handleMessage(String)
      */
     private List<JarvisModule> modules;
+
+    /**
+     * The {@link ExecutorService} used to process {@link JarvisAction}s returned by the registered
+     * {@link JarvisModule}s.
+     *
+     * @see JarvisModule
+     * @see JarvisAction
+     */
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
      * Constructs a new {@link JarvisCore} with the provided {@code projectId} and {@code languageCode}.
@@ -130,11 +141,15 @@ public class JarvisCore {
         boolean handled = false;
         for (JarvisModule module : modules) {
             if (module.acceptIntent(intent)) {
-                module.handleIntent(intent);
+                JarvisAction action = module.handleIntent(intent);
                 /*
                  * There is at least one module that can handle the intent
                  */
                 handled = true;
+                /*
+                 * Submit the action to the executor service and don't wait for its completion.
+                 */
+                executorService.submit(action);
             }
         }
         if (!handled) {
