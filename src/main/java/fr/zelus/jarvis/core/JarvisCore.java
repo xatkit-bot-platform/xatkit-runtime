@@ -67,12 +67,6 @@ public class JarvisCore {
         this(projectId, languageCode, new ArrayList<>());
     }
 
-    // Needs to be tested
-    public JarvisCore(Configuration configuration) {
-        this(configuration.getString("projectId"), configuration.getString("languageCode"), configuration.getList
-                (JarvisModule.class, "modules"));
-    }
-
     /**
      * Constructs a new {@link JarvisCore} with the provided {@code projectId}, {@code languageCode}, and {@code
      * modules}.
