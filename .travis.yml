@@ -1,5 +1,8 @@
 language: java
 
+before_install:
+- openssl aes-256-cbc -K $encrypted_2604663efff4_key -iv $encrypted_2604663efff4_iv -in jarvis-secret.json.enc -out jarvis-secret.json -d
+
 script:
   # Build and test with code coverage
 - mvn -B jacoco:prepare-agent test jacoco:report jacoco:report-aggregate
