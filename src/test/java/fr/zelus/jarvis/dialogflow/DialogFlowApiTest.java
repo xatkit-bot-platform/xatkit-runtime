@@ -2,10 +2,7 @@ package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.SessionName;
-import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.io.VoiceRecorder;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
