@@ -179,7 +179,7 @@ public class JarvisCore {
      * @see DialogFlowApi#shutdown()
      */
     public void shutdown() {
-        if(isShutdown()) {
+        if (isShutdown()) {
             throw new JarvisException("Cannot perform shutdown, JarvisCore is already shutdown");
         }
         // Shutdown the executor first in case there are running tasks using the DialogFlow API.
@@ -208,10 +208,12 @@ public class JarvisCore {
      * notifies all the registered modules of the new {@link Intent}.
      *
      * @param message the input message
+     * @throws NullPointerException if the provided {@code message} is {@code null}
      * @see JarvisModule#handleIntent(Intent)
      * @see JarvisModule#acceptIntent(Intent)
      */
     public void handleMessage(String message) {
+        checkNotNull(message, "Cannot handle null message");
         Intent intent = dialogFlowApi.getIntent(message, sessionName);
         boolean handled = false;
         for (JarvisModule module : modules) {

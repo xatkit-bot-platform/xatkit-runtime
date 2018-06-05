@@ -128,14 +128,14 @@ public class JarvisCoreTest {
     }
 
     @Test(expected = JarvisException.class)
-    public void testShutdownAlreadyShutdown() {
+    public void shutdownAlreadyShutdown() {
         jarvisCore = getValidJarvisCore();
         jarvisCore.shutdown();
         jarvisCore.shutdown();
     }
 
     @Test
-    public void testShutdown() {
+    public void shutdown() {
         JarvisModule stubJarvisModule = new StubJarvisModule();
         jarvisCore = getValidJarvisCore();
         // Register a module to check that the module list has been cleaned after shutdown.
@@ -145,6 +145,32 @@ public class JarvisCoreTest {
         softly.assertThat(jarvisCore.getDialogFlowApi().isShutdown()).as("DialogFlow API is shutdown");
         softly.assertThat(jarvisCore.getSessionName()).as("Null DialogFlow session").isNull();
         softly.assertThat(jarvisCore.getModules()).as("Empty module list").isEmpty();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void handleMessageNullMessage() {
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.handleMessage(null);
+    }
+
+    @Test
+    public void handleMessageValidMessage() {
+        StubJarvisModule stubJarvisModule = new StubJarvisModule();
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.registerModule(stubJarvisModule);
+        jarvisCore.handleMessage("hello");
+        softly.assertThat(stubJarvisModule.isIntentHandled()).as("Intent handled").isTrue();
+        softly.assertThat(stubJarvisModule.isActionProcessed()).as("Action processed").isTrue();
+    }
+
+    @Test
+    public void handleMessageNotHandledMessage() {
+        StubJarvisModule stubJarvisModule = new StubJarvisModule();
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.registerModule(stubJarvisModule);
+        jarvisCore.handleMessage("bye");
+        softly.assertThat(stubJarvisModule.isIntentHandled()).as("Intent not handled").isFalse();
+        softly.assertThat(stubJarvisModule.isActionProcessed()).as("Action not processed").isFalse();
     }
 
     /**
