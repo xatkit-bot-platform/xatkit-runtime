@@ -8,6 +8,7 @@ import org.apache.commons.configuration2.Configuration;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -93,6 +94,32 @@ public class JarvisCore {
     }
 
     /**
+     * Returns the {@link DialogFlowApi} used to query the DialogFlow framework.
+     * <p>
+     * <b>Note:</b> this method is designed to ease debugging and testing, direct interactions with the DialogFlow
+     * API may create consistency issues. In particular, jarvis does not ensure that {@link JarvisAction}s will be
+     * triggered in case of direct queries to the DialogFlow API.
+     *
+     * @return the {@link DialogFlowApi} used to query the DialogFlow framework
+     */
+    public DialogFlowApi getDialogFlowApi() {
+        return dialogFlowApi;
+    }
+
+    /**
+     * Returns the {@link SessionName} representing the current DialogFlow session.
+     * <p>
+     * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications. In
+     * particular, jarvis does not ensure that {@link JarvisAction}s will be triggered in case of direct queries to
+     * the DialogFlow API.
+     *
+     * @return the {@link SessionName} representing the current DialogFlow session
+     */
+    protected SessionName getSessionName() {
+        return sessionName;
+    }
+
+    /**
      * Registers a new {@link JarvisModule} to the {@link #modules} list.
      *
      * @param module the {@link JarvisModule} to register
@@ -124,6 +151,15 @@ public class JarvisCore {
      */
     public void clearModules() {
         this.modules.clear();
+    }
+
+    /**
+     * Returns an unmodifiable {@link List} containing the registered {@link #modules}.
+     *
+     * @return an unmodifiable {@link List} containing the registered {@link #modules}
+     */
+    public List<JarvisModule> getModules() {
+        return Collections.unmodifiableList(modules);
     }
 
     /**
