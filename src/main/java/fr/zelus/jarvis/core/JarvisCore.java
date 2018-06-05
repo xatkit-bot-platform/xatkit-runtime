@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.isNull;
 
 /**
  * A message broker that receives input messages, retrieve their {@link Intent}s, and dispatch them to the registered
@@ -113,6 +114,19 @@ public class JarvisCore {
     }
 
     /**
+     * Returns the {@link ExecutorService} used to process {@link JarvisAction}s.
+     * <p>
+     * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications.
+     * Manipulating {@link JarvisCore}'s {@link ExecutorService} may create consistency issues on currently executed
+     * {@link JarvisAction}s.
+     *
+     * @return the {@link ExecutorService} used to process {@link JarvisAction}s
+     */
+    protected ExecutorService getExecutorService() {
+        return executorService;
+    }
+
+    /**
      * Registers a new {@link JarvisModule} to the {@link #modules} list.
      *
      * @param module the {@link JarvisModule} to register
@@ -156,16 +170,35 @@ public class JarvisCore {
     }
 
     /**
-     * Shuts down the underlying {@link DialogFlowApi} and clean the {@link #modules} list.
+     * Shuts down the underlying {@link DialogFlowApi}, cleans the {@link #modules} list, and shuts down the
+     * {@link #executorService}.
      * <p>
      * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down {@link Intent}
-     * detections and voice recognitions features.
+     * detections and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
      *
      * @see DialogFlowApi#shutdown()
      */
     public void shutdown() {
+        if(isShutdown()) {
+            throw new JarvisException("Cannot perform shutdown, JarvisCore is already shutdown");
+        }
+        // Shutdown the executor first in case there are running tasks using the DialogFlow API.
+        this.executorService.shutdownNow();
         this.dialogFlowApi.shutdown();
+        this.sessionName = null;
         this.clearModules();
+    }
+
+    /**
+     * Returns whether the {@link JarvisCore} client is shutdown.
+     * <p>
+     * This class is considered as shutdown if either its underlying {@link ExecutorService} or {@link DialogFlowApi}
+     * is shutdown, or if its {@link SessionName} is {@code null}.
+     *
+     * @return {@code true} if the {@link JarvisCore} client is shutdown, {@code false} otherwise
+     */
+    public boolean isShutdown() {
+        return executorService.isShutdown() || dialogFlowApi.isShutdown() || isNull(sessionName);
     }
 
     /**

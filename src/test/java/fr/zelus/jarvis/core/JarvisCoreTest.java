@@ -23,13 +23,22 @@ public class JarvisCoreTest {
 
     @After
     public void tearDown() {
-        if(nonNull(jarvisCore)) {
+        if (nonNull(jarvisCore) && !jarvisCore.isShutdown()) {
             jarvisCore.shutdown();
         }
     }
 
     @Rule
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
+
+    /**
+     * Returns a valid {@link JarvisCore} instance.
+     *
+     * @return a valid {@link JarvisCore} instance
+     */
+    private static JarvisCore getValidJarvisCore() {
+        return new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+    }
 
     @Test(expected = NullPointerException.class)
     public void constructNullProjectId() {
@@ -73,7 +82,7 @@ public class JarvisCoreTest {
     @Test
     public void registerModule() {
         JarvisModule stubJarvisModule = new StubJarvisModule();
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        jarvisCore = getValidJarvisCore();
         jarvisCore.registerModule(stubJarvisModule);
         // Don't check whether getModules() is null, it is done in constructor-related tests.
         assertThat(jarvisCore.getModules()).as("Module list contains input module").contains(stubJarvisModule);
@@ -81,21 +90,21 @@ public class JarvisCoreTest {
 
     @Test(expected = NullPointerException.class)
     public void unregisterNullModule() {
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        jarvisCore = getValidJarvisCore();
         jarvisCore.unregisterModule(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void unregisterNotRegisteredModule() {
         JarvisModule stubJarvisModule = new StubJarvisModule();
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        jarvisCore = getValidJarvisCore();
         jarvisCore.unregisterModule(stubJarvisModule);
     }
 
     @Test
     public void unregisterRegisteredModule() {
         JarvisModule stubJarvisModule = new StubJarvisModule();
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        jarvisCore = getValidJarvisCore();
         jarvisCore.registerModule(stubJarvisModule);
         jarvisCore.unregisterModule(stubJarvisModule);
         assertThat(jarvisCore.getModules()).as("Module list does not contain input module").doesNotContain
@@ -104,7 +113,7 @@ public class JarvisCoreTest {
 
     @Test
     public void clearEmptyModuleList() {
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        jarvisCore = getValidJarvisCore();
         jarvisCore.clearModules();
         assertThat(jarvisCore.getModules()).as("Empty module list").isEmpty();
     }
@@ -112,10 +121,30 @@ public class JarvisCoreTest {
     @Test
     public void clearNotEmptyModuleList() {
         JarvisModule stubJarvisModule = new StubJarvisModule();
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        jarvisCore = getValidJarvisCore();
         jarvisCore.registerModule(stubJarvisModule);
         jarvisCore.clearModules();
         assertThat(jarvisCore.getModules()).as("Empty module list").isEmpty();
+    }
+
+    @Test(expected = JarvisException.class)
+    public void testShutdownAlreadyShutdown() {
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.shutdown();
+        jarvisCore.shutdown();
+    }
+
+    @Test
+    public void testShutdown() {
+        JarvisModule stubJarvisModule = new StubJarvisModule();
+        jarvisCore = getValidJarvisCore();
+        // Register a module to check that the module list has been cleaned after shutdown.
+        jarvisCore.registerModule(stubJarvisModule);
+        jarvisCore.shutdown();
+        softly.assertThat(jarvisCore.getExecutorService().isShutdown()).as("ExecutorService is shutdown");
+        softly.assertThat(jarvisCore.getDialogFlowApi().isShutdown()).as("DialogFlow API is shutdown");
+        softly.assertThat(jarvisCore.getSessionName()).as("Null DialogFlow session").isNull();
+        softly.assertThat(jarvisCore.getModules()).as("Empty module list").isEmpty();
     }
 
     /**
@@ -137,6 +166,7 @@ public class JarvisCoreTest {
         softly.assertThat(jarvisCore.getSessionName().getProject()).as("Valid SessionName project ID").isEqualTo
                 (VALID_PROJECT_ID);
         assertThat(jarvisCore.getModules()).as("Not null module list").isNotNull();
+        softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
     }
 
 }

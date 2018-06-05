@@ -132,6 +132,15 @@ public class DialogFlowApi {
     }
 
     /**
+     * Returns whether the DialogFlow client is shutdown.
+     *
+     * @return {@code true} if the DialogFlow client is shutdown, {@code false} otherwise
+     */
+    public boolean isShutdown() {
+        return this.sessionsClient.isShutdown();
+    }
+
+    /**
      * Returns the {@link Intent} extracted from the provided {@code text}
      * <p>
      * This method uses the provided {@code session} to extract contextual {@link Intent}s, such as follow-up
@@ -189,9 +198,8 @@ public class DialogFlowApi {
     @Override
     protected void finalize() throws Throwable {
         if (!sessionsClient.isShutdown()) {
-            Log.warn("DialogFlow session was not closed properly, waiting for automatic shutdown");
+            Log.warn("DialogFlow session was not closed properly, calling automatic shutdown");
             this.sessionsClient.shutdownNow();
-            this.sessionsClient.awaitTermination(5, TimeUnit.SECONDS);
         }
     }
 }
