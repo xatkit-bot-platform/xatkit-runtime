@@ -1,0 +1,9 @@
+language: java
+
+script:
+  # Build and test with code coverage
+- mvn -B jacoco:prepare-agent test jacoco:report jacoco:report-aggregate
+
+after_success:
+  # Publish code coverage in CodeCov
+- bash <(curl -s https://codecov.io/bash) -t $CODECOV_UPLOAD_TOKEN
