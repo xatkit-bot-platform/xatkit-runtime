@@ -63,5 +63,74 @@
 
     </dependencies>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.9.1</version>
+                    <configuration>
+                        <additionalparam>-Xdoclint:none</additionalparam>
+                        <failOnError>false</failOnError>
+                        <quiet>true</quiet>
+                        <notimestamp>true</notimestamp>
+                        <nosince>true</nosince>
+                        <author>false</author>
+                        <tags>
+                            <tag>
+                                <name>generated</name>
+                                <placement>a</placement>
+                                <head>Generated</head>
+                            </tag>
+                            <!-- Ignore @model and @ordered -->
+                            <tag>
+                                <name>model</name>
+                                <placement>X</placement>
+                            </tag>
+                            <tag>
+                                <name>ordered</name>
+                                <placement>X</placement>
+                            </tag>
+                        </tags>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.20.1</version>
+                    <configuration>
+                        <!--<argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>-->
+                        <failIfNoTests>false</failIfNoTests>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.0.2</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>test-jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.7.9</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>**/tests/*</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
 
 </project>
