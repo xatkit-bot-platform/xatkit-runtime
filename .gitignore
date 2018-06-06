@@ -28,3 +28,6 @@ hs_err_pid*
 
 # maven
 target
+
+# Google App
+jarvis-secret.json
