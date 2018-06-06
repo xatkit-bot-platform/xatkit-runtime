@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -154,21 +155,33 @@ public class JarvisCoreTest {
     }
 
     @Test
-    public void handleMessageValidMessage() {
+    public void handleMessageValidMessage() throws InterruptedException {
         StubJarvisModule stubJarvisModule = new StubJarvisModule();
         jarvisCore = getValidJarvisCore();
         jarvisCore.registerModule(stubJarvisModule);
         jarvisCore.handleMessage("hello");
+        /*
+         * Ask the executor to shutdown an await for the termination of the tasks. This ensures that the action
+         * created by the stub module has been executed.
+         */
+        jarvisCore.getExecutorService().shutdown();
+        jarvisCore.getExecutorService().awaitTermination(2, TimeUnit.SECONDS);
         softly.assertThat(stubJarvisModule.isIntentHandled()).as("Intent handled").isTrue();
         softly.assertThat(stubJarvisModule.isActionProcessed()).as("Action processed").isTrue();
     }
 
     @Test
-    public void handleMessageNotHandledMessage() {
+    public void handleMessageNotHandledMessage() throws InterruptedException {
         StubJarvisModule stubJarvisModule = new StubJarvisModule();
         jarvisCore = getValidJarvisCore();
         jarvisCore.registerModule(stubJarvisModule);
         jarvisCore.handleMessage("bye");
+        /*
+         * Ask the executor to shutdown an await for the termination of the tasks. This ensures that any action
+         * created by the stub module has been executed.
+         */
+        jarvisCore.getExecutorService().shutdown();
+        jarvisCore.getExecutorService().awaitTermination(2, TimeUnit.SECONDS);
         softly.assertThat(stubJarvisModule.isIntentHandled()).as("Intent not handled").isFalse();
         softly.assertThat(stubJarvisModule.isActionProcessed()).as("Action not processed").isFalse();
     }
