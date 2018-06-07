@@ -42,6 +42,15 @@ public class JarvisCore {
     private List<JarvisModule> modules;
 
     /**
+     * The {@link OrchestrationService} used to find {@link JarvisAction}s to execute when an {@link Intent} is
+     * received.
+     *
+     * @see #handleMessage(String)
+     * @see JarvisAction
+     */
+    private OrchestrationService orchestrationService;
+
+    /**
      * The {@link ExecutorService} used to process {@link JarvisAction}s returned by the registered
      * {@link JarvisModule}s.
      *
@@ -85,6 +94,7 @@ public class JarvisCore {
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
         this.sessionName = dialogFlowApi.createSession();
         this.modules = modules;
+        this.orchestrationService = new OrchestrationService(modules);
     }
 
     /**
@@ -216,6 +226,7 @@ public class JarvisCore {
         checkNotNull(message, "Cannot handle null message");
         Intent intent = dialogFlowApi.getIntent(message, sessionName);
         boolean handled = false;
+
         for (JarvisModule module : modules) {
             if (module.acceptIntent(intent)) {
                 JarvisAction action = module.handleIntent(intent);

@@ -1,67 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.zelus.jarvis</groupId>
-    <artifactId>core</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>jarvis</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <name>jarvis</name>
+    <description>A generic bot platform</description>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <dialogflow.version>0.46.0-alpha</dialogflow.version>
+        <atlanmod-commons.version>1.0.1</atlanmod-commons.version>
         <log4j.version>2.9.1</log4j.version>
-        <commons-configuration.version>2.2</commons-configuration.version>
+        <junit.version>4.12</junit.version>
+        <assertj.version>3.10.0</assertj.version>
     </properties>
 
-    <dependencies>
+    <modules>
+        <module>core</module>
+    </modules>
 
-        <!-- DialogFlow -->
+    <developers>
+        <developer>
+            <name>Gwendal DANIEL</name>
+            <id>gwendal.daniel</id>
+            <email>gwendal.daniel@gmail.com</email>
+            <roles>
+                <role>admin</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+2</timezone>
+        </developer>
+    </developers>
 
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-dialogflow</artifactId>
-            <version>0.46.0-alpha</version>
-        </dependency>
+    <dependencyManagement>
+        <dependencies>
 
-        <!-- Utils -->
+          <!-- DialogFlow -->
 
-        <dependency>
-            <groupId>fr.inria.atlanmod.commons</groupId>
-            <artifactId>commons-core</artifactId>
-            <version>1.0.1</version>
-        </dependency>
+          <dependency>
+              <groupId>com.google.cloud</groupId>
+              <artifactId>google-cloud-dialogflow</artifactId>
+              <version>${dialogflow.version}</version>
+          </dependency>
 
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
+          <!-- Utils -->
 
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
+          <dependency>
+              <groupId>fr.inria.atlanmod.commons</groupId>
+              <artifactId>commons-core</artifactId>
+              <version>${atlanmod-commons.version}</version>
+          </dependency>
 
-        <!-- Tests -->
+          <dependency>
+              <groupId>org.apache.logging.log4j</groupId>
+              <artifactId>log4j-slf4j-impl</artifactId>
+              <version>${log4j.version}</version>
+          </dependency>
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
+          <dependency>
+              <groupId>org.apache.logging.log4j</groupId>
+              <artifactId>log4j-core</artifactId>
+              <version>${log4j.version}</version>
+          </dependency>
 
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>3.10.0</version>
-            <scope>test</scope>
-        </dependency>
+          <!-- Tests -->
 
-    </dependencies>
+          <dependency>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+              <version>${junit.version}</version>
+              <scope>test</scope>
+          </dependency>
+
+          <dependency>
+              <groupId>org.assertj</groupId>
+              <artifactId>assertj-core</artifactId>
+              <version>${assertj.version}</version>
+              <scope>test</scope>
+          </dependency>
+
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <pluginManagement>
@@ -96,7 +124,7 @@
                     </configuration>
                 </plugin>
 
-                <plugin>
+               <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.20.1</version>
@@ -131,6 +159,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-
 </project>
