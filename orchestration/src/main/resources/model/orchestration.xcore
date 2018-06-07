@@ -1,0 +1,23 @@
+@Ecore(nsURI="fr.zelus.jarvis.orchestration")
+@GenModel(modelDirectory="/orchestration/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
+package fr.zelus.jarvis.orchestration.model
+
+class OrchestrationModel {
+	contains Action[] actions
+	contains OrchestrationLink[] orchestrationLinks
+	contains Intent[] intents
+}
+
+class Action {
+	String ^package
+	String name
+	unique String[] inputVariables
+}
+
+class OrchestrationLink {
+}
+
+class Intent {
+	String name
+	unique String[] outputVariables
+}
