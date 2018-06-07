@@ -3,11 +3,13 @@ package fr.zelus.jarvis.core;
 import java.text.MessageFormat;
 
 /**
- * Represents an action to execute by the {@link JarvisCore} component.
+ * The concrete implementation of an {@link fr.zelus.jarvis.module.Action} definition.
  * <p>
- * {@link JarvisAction}s are created by {@link JarvisModule}s when handling
+ * A {@link JarvisAction} represents an atomic action that can be executed by the {@link JarvisCore} broker.
+ * Instances of this class are created by the associated {@link JarvisModule} to handle DialogFlow's
  * {@link com.google.cloud.dialogflow.v2.Intent}s.
  *
+ * @see fr.zelus.jarvis.module.Action
  * @see JarvisCore
  * @see JarvisModule
  */

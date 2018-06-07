@@ -48,7 +48,7 @@ public class StubJarvisModule implements JarvisModule {
 
     @Override
     public String getName() {
-        return "StubModule";
+        return "StubJarvisModule";
     }
 
     @Override

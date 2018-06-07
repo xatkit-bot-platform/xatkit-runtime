@@ -1,10 +1,10 @@
 package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.orchestration.model.Action;
-import fr.zelus.jarvis.orchestration.model.Intent;
-import fr.zelus.jarvis.orchestration.model.OrchestrationLink;
-import fr.zelus.jarvis.orchestration.model.OrchestrationModel;
+import fr.zelus.jarvis.orchestration.Action;
+import fr.zelus.jarvis.orchestration.Intent;
+import fr.zelus.jarvis.orchestration.OrchestrationLink;
+import fr.zelus.jarvis.orchestration.OrchestrationModel;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

@@ -25,6 +25,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- DialogFlow -->
 
         <dependency>

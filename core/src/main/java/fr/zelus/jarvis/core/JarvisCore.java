@@ -4,10 +4,12 @@ import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.SessionName;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
+import fr.zelus.jarvis.module.Module;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,9 +18,14 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 
 /**
- * A message broker that receives input messages, retrieve their {@link Intent}s, and dispatch them to the registered
+ * A message broker that receives input messages, retrieve their {@link Intent}s, and dispatch them to the loaded
  * {@link JarvisModule}s.
+ * <p>
+ * This class takes care of loading the {@link JarvisModule}s from their {@link Module} definition. {@link Module}
+ * definition are descriptive objects representing the intents, actions, and concrete {@link JarvisModule} class to
+ * load, and are constructed using jarvis' <i>Module DSL</i>.
  *
+ * @see Module
  * @see JarvisModule
  */
 public class JarvisCore {
@@ -36,7 +43,11 @@ public class JarvisCore {
 
     /**
      * The {@link JarvisModule}s used to handle {@link Intent}s extracted from user input.
+     * <p>
+     * These {@link JarvisModule}s are loaded from the {@link Module} model definitions provided in this class'
+     * constructor using the method {@link #loadJarvisModuleFromModuleModel(Module)}.
      *
+     * @see #loadJarvisModuleFromModuleModel(Module)
      * @see #handleMessage(String)
      */
     private List<JarvisModule> modules;
@@ -63,37 +74,68 @@ public class JarvisCore {
      * Constructs a new {@link JarvisCore} with the provided {@code projectId} and {@code languageCode}.
      * <p>
      * Note that this constructor initializes an empty {@link #modules} list. Use
-     * {@link #registerModule(JarvisModule)} to register additional {@link JarvisModule}. See
+     * {@link #loadModule(Module)} to register additional {@link Module}s. See
      * {@link #JarvisCore(String, String, List)} to construct a {@link JarvisCore} instance with preset
-     * {@link JarvisModule}s.
+     * {@link Module}s.
      *
      * @param projectId    the unique identifier of the DialogFlow project
      * @param languageCode the code of the language processed by DialogFlow
-     * @see #registerModule(JarvisModule)
-     * @see #unregisterModule(JarvisModule)
+     * @see #loadModule(Module)
+     * @see #unloadModule(Module)
      */
     public JarvisCore(String projectId, String languageCode) {
         this(projectId, languageCode, new ArrayList<>());
     }
 
     /**
-     * Constructs a new {@link JarvisCore} with the provided {@code projectId}, {@code languageCode}, and {@code
-     * modules}.
+     * Constructs a new {@link JarvisCore} with the provided {@code projectId}, {@code languageCode}, and load the
+     * concrete {@link JarvisModule}s described by the provided {@code moduleModels}.
      *
      * @param projectId    the unique identifier of the DialogFlow project
      * @param languageCode the code of the language processed by DialogFlow
-     * @param modules      the {@link JarvisModule}s used to handle {@link Intent}s extracted from user input.
-     * @throws NullPointerException if the provided {@code projectId}, {@code languageCode}, or {@code modules} is
+     * @param moduleModels the jarvis {@link Module}s to load
+     * @throws NullPointerException if the provided {@code projectId}, {@code languageCode}, or {@code moduleModels} is
      *                              {@code null}
      * @see #handleMessage(String)
      */
-    public JarvisCore(String projectId, String languageCode, List<JarvisModule> modules) {
+    public JarvisCore(String projectId, String languageCode, List<Module> moduleModels) {
         checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
         checkNotNull(languageCode, "Cannot construct a jarvis instance from a null language code");
-        checkNotNull(modules, "Cannot construct a jarvis instance from a null module list");
+        checkNotNull(moduleModels, "Cannot construct a jarvis instance from a null module list");
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
         this.sessionName = dialogFlowApi.createSession();
-        this.modules = modules;
+        this.modules = new ArrayList<>();
+        for (Module module : moduleModels) {
+            this.modules.add(loadJarvisModuleFromModuleModel(module));
+        }
+    }
+
+    /**
+     * Loads the {@link JarvisModule} defined by the provided {@link Module} definition.
+     * <p>
+     * This method searches in the classpath a {@link Class} matching the input {@link Module#getJarvisModulePath()}
+     * value and calls its default constructor.
+     *
+     * @param moduleModel the jarvis {@link Module} definition to load
+     * @return an instance of the loaded {@link JarvisModule}
+     * @throws JarvisException if their is no {@link Class} matching the provided {@code moduleModel} or if the
+     *                         {@link JarvisModule} can not be constructed
+     * @see Module
+     */
+    private JarvisModule loadJarvisModuleFromModuleModel(Module moduleModel) throws JarvisException {
+        try {
+            return (JarvisModule) Class.forName(moduleModel.getJarvisModulePath()).newInstance();
+        } catch (ClassNotFoundException e) {
+            String errorMessage = MessageFormat.format("Cannot load the module {0}, invalid path: {1}", moduleModel
+                    .getName(), moduleModel.getJarvisModulePath());
+            Log.error(errorMessage);
+            throw new JarvisException(errorMessage, e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            String errorMessage = MessageFormat.format("Cannot construct an instance of the module {0}", moduleModel
+                    .getName());
+            Log.error(errorMessage);
+            throw new JarvisException(errorMessage, e);
+        }
     }
 
     /**
@@ -138,27 +180,36 @@ public class JarvisCore {
     /**
      * Registers a new {@link JarvisModule} to the {@link #modules} list.
      *
-     * @param module the {@link JarvisModule} to register
-     * @throws NullPointerException if the provided {@code module} is {@code null}
+     * @param moduleModel the jarvis {@link Module}s to load
+     * @throws NullPointerException if the provided {@code moduleModel} is {@code null}
      */
-    public void registerModule(JarvisModule module) {
-        checkNotNull(module, "Cannot register the module null");
-        this.modules.add(module);
+    public void loadModule(Module moduleModel) {
+        checkNotNull(moduleModel, "Cannot register the module null");
+        this.modules.add(loadJarvisModuleFromModuleModel(moduleModel));
     }
 
     /**
      * Unregisters a {@link JarvisModule} from the {@link #modules} list.
      *
-     * @param module the {@link JarvisModule} to unregister
-     * @throws NullPointerException     if the provided {@code module} is {@code null}
-     * @throws IllegalArgumentException if the provided {@code module} hasn't been removed from the list
+     * @param moduleModel the jarvis {@link Module} to unload
+     * @throws NullPointerException     if the provided {@code moduleModel} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code moduleModel} hasn't been removed from the list
      */
-    public void unregisterModule(JarvisModule module) {
-        checkNotNull(module, "Cannot unregister the module null");
-        boolean removed = this.modules.remove(module);
+    public void unloadModule(Module moduleModel) {
+        checkNotNull(moduleModel, "Cannot unregister the module null");
+        boolean removed = false;
+        Iterator<JarvisModule> moduleIterator = this.modules.iterator();
+        while (moduleIterator.hasNext()) {
+            JarvisModule module = moduleIterator.next();
+            if (module.getName().equals(moduleModel.getName())) {
+                moduleIterator.remove();
+                removed = true;
+                break;
+            }
+        }
         if (!removed) {
             throw new IllegalArgumentException(MessageFormat.format("Cannot remove {0} from the module list, please " +
-                    "ensure that this module is in the list", module));
+                    "ensure that this module is in the list", moduleModel));
         }
     }
 

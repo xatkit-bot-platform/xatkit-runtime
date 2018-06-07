@@ -1,10 +1,10 @@
 package fr.zelus.jarvis.core;
 
+import fr.zelus.jarvis.module.Module;
+import fr.zelus.jarvis.module.ModuleFactory;
 import fr.zelus.jarvis.stubs.StubJarvisModule;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +20,25 @@ public class JarvisCoreTest {
 
     protected static String VALID_LANGUAGE_CODE = "en-US";
 
+    protected static Module VALID_MODULE;
+
+    protected static List<Module> VALID_MODULE_LIST;
+
     protected JarvisCore jarvisCore;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        VALID_MODULE = ModuleFactory.eINSTANCE.createModule();
+        VALID_MODULE.setName("StubJarvisModule");
+        VALID_MODULE.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        VALID_MODULE_LIST = new ArrayList<>();
+        VALID_MODULE_LIST.add(VALID_MODULE);
+    }
+
+    @Before
+    public void setUp() {
+
+    }
 
     @After
     public void tearDown() {
@@ -65,51 +83,47 @@ public class JarvisCoreTest {
 
     @Test
     public void constructValidNotEmptyModuleList() {
-        List<JarvisModule> modules = new ArrayList<>();
-        JarvisModule stubJarvisModule = new StubJarvisModule();
-        modules.add(stubJarvisModule);
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, modules);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_MODULE_LIST);
         checkJarvisCoreDialogFlowFields(jarvisCore);
-        softly.assertThat(jarvisCore.getModules()).as("Not empty module list").isNotEmpty();
-        softly.assertThat(jarvisCore.getModules()).as("Module list contains input module").contains(stubJarvisModule);
+        softly.assertThat(jarvisCore.getModules()).as("Module list size is 1").hasSize(1);
+        softly.assertThat(jarvisCore.getModules().get(0)).as("Module list contains the loaded StubJarvisModule")
+                .isInstanceOf(StubJarvisModule.class);
     }
 
     @Test(expected = NullPointerException.class)
-    public void registerNullModule() {
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
-        jarvisCore.registerModule(null);
+    public void loadNullModule() {
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.loadModule(null);
     }
 
     @Test
-    public void registerModule() {
-        JarvisModule stubJarvisModule = new StubJarvisModule();
+    public void loadModule() {
         jarvisCore = getValidJarvisCore();
-        jarvisCore.registerModule(stubJarvisModule);
+        jarvisCore.loadModule(VALID_MODULE);
         // Don't check whether getModules() is null, it is done in constructor-related tests.
-        assertThat(jarvisCore.getModules()).as("Module list contains input module").contains(stubJarvisModule);
+        softly.assertThat(jarvisCore.getModules()).as("Module list size is 1").hasSize(1);
+        softly.assertThat(jarvisCore.getModules().get(0)).as("Module list contains the loaded StubJarvisModule")
+                .isInstanceOf(StubJarvisModule.class);
     }
 
     @Test(expected = NullPointerException.class)
-    public void unregisterNullModule() {
+    public void unloadNullModule() {
         jarvisCore = getValidJarvisCore();
-        jarvisCore.unregisterModule(null);
+        jarvisCore.unloadModule(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void unregisterNotRegisteredModule() {
-        JarvisModule stubJarvisModule = new StubJarvisModule();
+    public void unloadNotRegisteredModule() {
         jarvisCore = getValidJarvisCore();
-        jarvisCore.unregisterModule(stubJarvisModule);
+        jarvisCore.unloadModule(VALID_MODULE);
     }
 
     @Test
-    public void unregisterRegisteredModule() {
-        JarvisModule stubJarvisModule = new StubJarvisModule();
+    public void unloadRegisteredModule() {
         jarvisCore = getValidJarvisCore();
-        jarvisCore.registerModule(stubJarvisModule);
-        jarvisCore.unregisterModule(stubJarvisModule);
-        assertThat(jarvisCore.getModules()).as("Module list does not contain input module").doesNotContain
-                (stubJarvisModule);
+        jarvisCore.loadModule(VALID_MODULE);
+        jarvisCore.unloadModule(VALID_MODULE);
+        assertThat(jarvisCore.getModules()).as("Module list is empty").isEmpty();
     }
 
     @Test
@@ -121,11 +135,10 @@ public class JarvisCoreTest {
 
     @Test
     public void clearNotEmptyModuleList() {
-        JarvisModule stubJarvisModule = new StubJarvisModule();
         jarvisCore = getValidJarvisCore();
-        jarvisCore.registerModule(stubJarvisModule);
+        jarvisCore.loadModule(VALID_MODULE);
         jarvisCore.clearModules();
-        assertThat(jarvisCore.getModules()).as("Empty module list").isEmpty();
+        assertThat(jarvisCore.getModules()).as("Module list is empty").isEmpty();
     }
 
     @Test(expected = JarvisException.class)
@@ -137,10 +150,9 @@ public class JarvisCoreTest {
 
     @Test
     public void shutdown() {
-        JarvisModule stubJarvisModule = new StubJarvisModule();
         jarvisCore = getValidJarvisCore();
         // Register a module to check that the module list has been cleaned after shutdown.
-        jarvisCore.registerModule(stubJarvisModule);
+        jarvisCore.loadModule(VALID_MODULE);
         jarvisCore.shutdown();
         softly.assertThat(jarvisCore.getExecutorService().isShutdown()).as("ExecutorService is shutdown");
         softly.assertThat(jarvisCore.getDialogFlowApi().isShutdown()).as("DialogFlow API is shutdown");
@@ -156,9 +168,13 @@ public class JarvisCoreTest {
 
     @Test
     public void handleMessageValidMessage() throws InterruptedException {
-        StubJarvisModule stubJarvisModule = new StubJarvisModule();
         jarvisCore = getValidJarvisCore();
-        jarvisCore.registerModule(stubJarvisModule);
+        jarvisCore.loadModule(VALID_MODULE);
+        /*
+         * It is not necessary to check the the module list is not null and contains at least one element, this is
+         * done in loadModule test.
+         */
+        StubJarvisModule stubJarvisModule = (StubJarvisModule) jarvisCore.getModules().get(0);
         jarvisCore.handleMessage("hello");
         /*
          * Ask the executor to shutdown an await for the termination of the tasks. This ensures that the action
@@ -174,7 +190,7 @@ public class JarvisCoreTest {
     public void handleMessageNotHandledMessage() throws InterruptedException {
         StubJarvisModule stubJarvisModule = new StubJarvisModule();
         jarvisCore = getValidJarvisCore();
-        jarvisCore.registerModule(stubJarvisModule);
+        jarvisCore.loadModule(VALID_MODULE);
         jarvisCore.handleMessage("bye");
         /*
          * Ask the executor to shutdown an await for the termination of the tasks. This ensures that any action

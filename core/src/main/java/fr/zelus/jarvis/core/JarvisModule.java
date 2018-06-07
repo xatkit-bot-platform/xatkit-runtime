@@ -5,15 +5,14 @@ import com.google.cloud.dialogflow.v2.Intent;
 import java.util.List;
 
 /**
- * Represents a set of semantically related functions that accepts {@link Intent}s and create {@link JarvisAction}s
- * from them.
+ * The concrete implementation of a {@link fr.zelus.jarvis.module.Module} definition.
  * <p>
- * {@link JarvisModule}s are used to represent action libraries, for example a set of chat-related actions (such as
- * <i>postMessage</i>, <i>postComment</i>, <i>reply</i> actions). Handling an {@link Intent} consist of processing its
- * content (context variables, previous {@link Intent}, etc) and returning a {@link JarvisAction} representing the
- * action to perform. The returned {@link JarvisAction} is then processed by the {@link JarvisCore} component, that
- * orchestrate the different {@link JarvisModule}s.
+ * A {@link JarvisModule} defines a set of {@link JarvisAction}s that are concrete implementation of
+ * {@link fr.zelus.jarvis.module.Module} actions that can be processed by the {@link JarvisCore} broker. It also
+ * provides a set of utility methods to check whether a specific {@link Intent} can be processed, and retrieve
+ * {@link JarvisAction}s to compute from a given {@link Intent}.
  *
+ * @see fr.zelus.jarvis.module.Module
  * @see JarvisCore
  * @see JarvisAction
  */
