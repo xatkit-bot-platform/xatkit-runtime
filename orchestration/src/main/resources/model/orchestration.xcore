@@ -15,6 +15,8 @@ class Action {
 }
 
 class OrchestrationLink {
+    refers Intent intent
+    refers Action[] actions
 }
 
 class Intent {

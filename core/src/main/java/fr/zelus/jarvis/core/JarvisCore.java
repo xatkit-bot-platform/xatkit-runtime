@@ -94,7 +94,6 @@ public class JarvisCore {
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
         this.sessionName = dialogFlowApi.createSession();
         this.modules = modules;
-        this.orchestrationService = new OrchestrationService(modules);
     }
 
     /**

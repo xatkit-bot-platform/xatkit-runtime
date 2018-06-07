@@ -18,6 +18,13 @@
 
     <dependencies>
 
+        <!-- jarvis Internal -->
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>orchestration</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- DialogFlow -->
 
         <dependency>

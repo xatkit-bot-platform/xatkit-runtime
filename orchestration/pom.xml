@@ -19,6 +19,7 @@
     <properties>
         <generated-sources.location>${project.basedir}/src/main/java-gen/</generated-sources.location>
         <models.location>${project.basedir}/src/main/resources/model</models.location>
+        <sourceDirectory>${project.basedir}/src/main/java-gen/</sourceDirectory>
         <emf.version>2.12.0</emf.version>
         <xcore.version>1.1.100</xcore.version>
     </properties>

@@ -2,6 +2,8 @@ package fr.zelus.jarvis.core;
 
 import com.google.cloud.dialogflow.v2.Intent;
 
+import java.util.List;
+
 /**
  * Represents a set of semantically related functions that accepts {@link Intent}s and create {@link JarvisAction}s
  * from them.
@@ -16,6 +18,8 @@ import com.google.cloud.dialogflow.v2.Intent;
  * @see JarvisAction
  */
 public interface JarvisModule {
+
+    String getName();
 
     /**
      * Checks whether the module can process the provided {@code intent}.
@@ -38,5 +42,9 @@ public interface JarvisModule {
      * @param intent
      */
     JarvisAction handleIntent(final Intent intent);
+
+    List<Class<JarvisAction>> getRegisteredActions();
+
+    Class<JarvisAction> getActionWithName(String name);
 
 }
