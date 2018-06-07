@@ -109,8 +109,12 @@ public class DialogFlowApi {
      * be shared between clients.
      *
      * @return a {@link SessionName} identifying the created session
+     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
     public SessionName createSession() {
+        if (isShutdown()) {
+            throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
+        }
         UUID identifier = UUID.randomUUID();
         SessionName session = SessionName.of(projectId, identifier.toString());
         Log.info("New session created with path {0}", session.toString());
@@ -124,6 +128,9 @@ public class DialogFlowApi {
      * access DialogFlow API anymore.
      */
     public void shutdown() {
+        if(isShutdown()) {
+            throw new DialogFlowException("Cannot perform shutdown, DialogFlow API is already shutdown");
+        }
         this.sessionsClient.shutdownNow();
     }
 
@@ -147,9 +154,14 @@ public class DialogFlowApi {
      * @return an {@link Intent} extracted from the provided {@code text}
      * @throws NullPointerException     if the provided {@code text} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code text} is empty
-     * @throws DialogFlowException      if an exception is thrown by the underlying DialogFlow engine
+     * @throws DialogFlowException      if the {@link DialogFlowApi} is shutdown or if an exception is thrown by the
+     *                                  underlying DialogFlow engine
      */
     public Intent getIntent(String text, SessionName session) {
+        if (isShutdown()) {
+            throw new DialogFlowException("Cannot extract an Intent from the provided input, the DialogFlow API is " +
+                    "shutdown");
+        }
         checkNotNull(text, "Cannot retrieve the intent from null");
         checkNotNull(session, "Cannot retrieve the intent using null as a session");
         checkArgument(!text.isEmpty(), "Cannot retrieve the intent from empty string");

@@ -7,6 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class DialogFlowApiTest {
 
@@ -41,6 +42,7 @@ public class DialogFlowApiTest {
         api = new DialogFlowApi(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
+        softly.assertThat(api.isShutdown()).as("Not shutdown").isFalse();
     }
 
     @Test
@@ -55,6 +57,25 @@ public class DialogFlowApiTest {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         SessionName session = api.createSession();
         assertThat(session.getProject()).as("Valid session project").isEqualTo(VALID_PROJECT_ID);
+    }
+
+    @Test(expected = DialogFlowException.class)
+    public void shutdownAlreadyShutdown() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api.shutdown();
+        api.shutdown();
+    }
+
+    @Test
+    public void shutdown() {
+        api = new DialogFlowApi(VALID_PROJECT_ID);
+        SessionName session = api.createSession();
+        api.shutdown();
+        softly.assertThat(api.isShutdown()).as("DialogFlow API is shutdown").isTrue();
+        assertThatExceptionOfType(DialogFlowException.class).isThrownBy(() -> api.getIntent("test", session))
+                .withMessage("Cannot extract an Intent from the provided input, the DialogFlow API is shutdown");
+        assertThatExceptionOfType(DialogFlowException.class).isThrownBy(() -> api.createSession()).withMessage
+                ("Cannot create a new Session, the DialogFlow API is shutdown");
     }
 
     @Test
