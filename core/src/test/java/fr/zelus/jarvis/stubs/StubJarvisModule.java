@@ -16,7 +16,7 @@ import java.util.List;
  * @see #isIntentHandled()
  * @see #isActionProcessed()
  */
-public class StubJarvisModule implements JarvisModule {
+public class StubJarvisModule extends JarvisModule {
 
     /**
      * A flag representing whether an {@link Intent} has been handled by this module.
@@ -44,11 +44,6 @@ public class StubJarvisModule implements JarvisModule {
      */
     public boolean isActionProcessed() {
         return actionProcessed;
-    }
-
-    @Override
-    public String getName() {
-        return "StubJarvisModule";
     }
 
     @Override

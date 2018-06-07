@@ -16,9 +16,11 @@ import java.util.List;
  * @see JarvisCore
  * @see JarvisAction
  */
-public interface JarvisModule {
+public abstract class JarvisModule {
 
-    String getName();
+    public final String getName() {
+        return this.getClass().getSimpleName();
+    }
 
     /**
      * Checks whether the module can process the provided {@code intent}.
@@ -28,7 +30,7 @@ public interface JarvisModule {
      * @param intent the DialogFlow {@link Intent} to check
      * @return {@code true} if the module can process the provided {@code intent}, {@code false} otherwise
      */
-    boolean acceptIntent(final Intent intent);
+    public abstract boolean acceptIntent(final Intent intent);
 
     /**
      * Processes the provided {@code intent}.
@@ -40,10 +42,10 @@ public interface JarvisModule {
      *
      * @param intent
      */
-    JarvisAction handleIntent(final Intent intent);
+    public abstract JarvisAction handleIntent(final Intent intent);
 
-    List<Class<JarvisAction>> getRegisteredActions();
+    public abstract List<Class<JarvisAction>> getRegisteredActions();
 
-    Class<JarvisAction> getActionWithName(String name);
+    public abstract Class<JarvisAction> getActionWithName(String name);
 
 }
