@@ -3,6 +3,8 @@
 package fr.zelus.jarvis.module.model
 
 class Module {
+    String name
+    String jarvisModulePath
 	contains Action[] actions opposite module
 }
 
