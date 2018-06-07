@@ -1,0 +1,18 @@
+@Ecore(nsURI="fr.zelus.jarvis.module")
+@GenModel(modelDirectory="/module/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
+package fr.zelus.jarvis.module.model
+
+class Module {
+	contains Action[] actions opposite module
+}
+
+class Action {
+	String name
+	contains Parameter[] parameters
+	container Module module opposite actions
+}
+
+class Parameter {
+    String key
+    String ^type
+}

@@ -27,6 +27,7 @@
     <modules>
         <module>core</module>
         <module>orchestration</module>
+        <module>module</module>
     </modules>
 
     <developers>
