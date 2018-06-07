@@ -1,6 +1,6 @@
 @Ecore(nsURI="fr.zelus.jarvis.module")
 @GenModel(modelDirectory="/module/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
-package fr.zelus.jarvis.module.model
+package fr.zelus.jarvis.module
 
 class Module {
     String name
