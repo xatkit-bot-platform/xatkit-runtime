@@ -6,6 +6,14 @@ class Module {
     String name
     String jarvisModulePath
 	contains Action[] actions opposite module
+	contains IntentDefinition[] intentDefinitions opposite module
+}
+
+class IntentDefinition {
+    String name
+    contains Parameter[] outContextParameters
+    container Module module opposite intentDefinitions
+    // trainingSentences ...
 }
 
 class Action {
