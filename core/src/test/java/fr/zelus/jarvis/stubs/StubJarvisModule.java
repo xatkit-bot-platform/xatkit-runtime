@@ -4,6 +4,9 @@ import com.google.cloud.dialogflow.v2.Intent;
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisModule;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * A stub {@link JarvisModule} used to check whether {@link Intent}s are handled and {@link JarvisAction} performed.
  * <p>
@@ -44,6 +47,11 @@ public class StubJarvisModule implements JarvisModule {
     }
 
     @Override
+    public String getName() {
+        return "StubModule";
+    }
+
+    @Override
     public boolean acceptIntent(Intent intent) {
         return intent.getDisplayName().equals("Default Welcome Intent");
     }
@@ -57,5 +65,15 @@ public class StubJarvisModule implements JarvisModule {
                 actionProcessed = true;
             }
         };
+    }
+
+    @Override
+    public List<Class<JarvisAction>> getRegisteredActions() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Class<JarvisAction> getActionWithName(String name) {
+        return null;
     }
 }
