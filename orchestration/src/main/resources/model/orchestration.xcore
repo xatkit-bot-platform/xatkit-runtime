@@ -3,7 +3,7 @@
 package fr.zelus.jarvis.orchestration
 
 import fr.zelus.jarvis.module.Action
-import fr.zelus.jarvis.module.IntentDefinition
+import fr.zelus.jarvis.intent.IntentDefinition
 
 class OrchestrationModel {
 	contains OrchestrationLink[] orchestrationLinks

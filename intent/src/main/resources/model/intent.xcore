@@ -1,0 +1,19 @@
+@Ecore(nsURI="fr.zelus.jarvis.intent")
+@GenModel(modelDirectory="/intent/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
+package fr.zelus.jarvis.intent
+
+class IntentDefinition {
+    String name
+    contains IntentParameter[] outContextParameters
+    // trainingSentences ...
+}
+
+class RecognizedIntent {
+    refers IntentDefinition definition
+    String[] outContextValues
+}
+
+class IntentParameter {
+    String key
+    String ^type
+}

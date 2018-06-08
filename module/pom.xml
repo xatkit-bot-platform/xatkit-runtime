@@ -26,6 +26,14 @@
 
     <dependencies>
 
+        <!-- jarvis Internal -->
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>intent</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- EMF -->
 
         <dependency>

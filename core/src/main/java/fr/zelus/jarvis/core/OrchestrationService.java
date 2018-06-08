@@ -2,9 +2,10 @@ package fr.zelus.jarvis.core;
 
 import com.google.cloud.dialogflow.v2.Intent;
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.intent.IntentDefinition;
+import fr.zelus.jarvis.intent.IntentParameter;
 import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.IntentDefinition;
-import fr.zelus.jarvis.module.Parameter;
+import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 
@@ -48,8 +49,8 @@ public class OrchestrationService {
 
     private JarvisAction getJarvisAction(IntentDefinition intentDefinition, Intent dialogFlowIntent, Action action) {
         for(JarvisModule module: modules) {
-            if(module.getName().equals(action.getModule().getName())) {
-                List<Parameter> outContextParameters = intentDefinition.getOutContextParameters();
+            if(module.getName().equals(((Module)action.eContainer()).getName())) {
+                List<IntentParameter> outContextParameters = intentDefinition.getOutContextParameters();
                 Class<JarvisAction> jarvisActionClass = module.getActionWithName(action.getName());
                 Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
                 for(int i = 0; i < constructorList.length; i++) {

@@ -10,11 +10,11 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>orchestration</artifactId>
+    <artifactId>intent</artifactId>
 
     <packaging>jar</packaging>
 
-    <name>jarvis orchestration model</name>
+    <name>jarvis intent model</name>
 
     <properties>
         <generated-sources.location>${project.basedir}/src/main/java-gen/</generated-sources.location>
@@ -25,20 +25,6 @@
     </properties>
 
     <dependencies>
-
-        <!-- jarvis Internal -->
-
-        <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>intent</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!-- EMF -->
 
