@@ -1,8 +1,10 @@
 package fr.zelus.jarvis.core;
 
+import com.google.cloud.dialogflow.v2.Intent;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.orchestration.Action;
-import fr.zelus.jarvis.orchestration.Intent;
+import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.IntentDefinition;
+import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 
@@ -25,38 +27,42 @@ public class OrchestrationService {
     }
 
     // This should be an Intent from the common Intent metamodel, but it is not available yet
-    public List<JarvisAction> getActionsFromIntent(com.google.cloud.dialogflow.v2.Intent intent) {
+    public List<JarvisAction> getActionsFromIntent(com.google.cloud.dialogflow.v2.Intent dialogFlowIntent) {
         List<JarvisAction> jarvisActions = new ArrayList<>();
         for(OrchestrationLink link: orchestrationModel.getOrchestrationLinks()) {
-            if(link.getIntent().getName().equals(intent.getDisplayName())) {
+            if(link.getIntent().getName().equals(dialogFlowIntent.getDisplayName())) {
                 // The link refers to this Intent
                 for(Action modelAction: link.getActions()) {
-                    JarvisAction action = getJarvisAction(link.getIntent(), modelAction);
+                    JarvisAction action = getJarvisAction(link.getIntent(), dialogFlowIntent, modelAction);
                     if(nonNull(action)) {
                         jarvisActions.add(action);
                     } else {
                         Log.warn("Null JarvisAction returned from intent {0} and model Action {1}", link.getIntent()
                                 .getName(), modelAction.getName());
                     }
-                    jarvisActions.add(getJarvisAction(link.getIntent(), modelAction));
                 }
             }
         }
         return jarvisActions;
     }
 
-    private JarvisAction getJarvisAction(Intent intent, Action action) {
+    private JarvisAction getJarvisAction(IntentDefinition intentDefinition, Intent dialogFlowIntent, Action action) {
         for(JarvisModule module: modules) {
-            if(module.getName().equals(action.getPackage())) {
-                List<String> intentOutputVariables = intent.getOutputVariables();
+            if(module.getName().equals(action.getModule().getName())) {
+                List<Parameter> outContextParameters = intentDefinition.getOutContextParameters();
                 Class<JarvisAction> jarvisActionClass = module.getActionWithName(action.getName());
                 Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
                 for(int i = 0; i < constructorList.length; i++) {
                     Constructor<?> constructor = constructorList[i];
-                    if(constructor.getParameterCount() == intentOutputVariables.size()) {
+                    if(constructor.getParameterCount() == outContextParameters.size()) {
                         // Here we assume that all the parameters are String, this should be fixed
                         try {
-                            return (JarvisAction) constructor.newInstance(intentOutputVariables.toArray());
+                            if(constructor.getParameterCount() > 0) {
+                                return (JarvisAction) constructor.newInstance(dialogFlowIntent.getOutputContexts(0)
+                                        .getParameters().getAllFields().values().toArray());
+                            } else {
+                                return (JarvisAction) constructor.newInstance();
+                            }
                         } catch(InstantiationException | IllegalAccessException | InvocationTargetException e) {
                             Log.error("Cannot construct the JarvisAction {0}", jarvisActionClass.getSimpleName(), e);
                             // There isn't another constructor that match the provided output variables
@@ -66,7 +72,7 @@ public class OrchestrationService {
                 }
             }
         }
-        Log.warn("Cannot find a JarvisAction corresponding to the provided Intent {0} and model Action {1}", intent
+        Log.warn("Cannot find a JarvisAction corresponding to the provided Intent {0} and model Action {1}", intentDefinition
                 .getName(), action.getName());
         return null;
     }
