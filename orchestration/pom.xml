@@ -26,6 +26,16 @@
 
     <dependencies>
 
+        <!-- jarvis Internal -->
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- EMF -->
+
         <dependency>
             <groupId>org.eclipse.emf</groupId>
             <artifactId>org.eclipse.emf.common</artifactId>
@@ -43,6 +53,8 @@
             <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
             <version>${xcore.version}</version>
         </dependency>
+
+        <!-- Tests -->
 
         <dependency>
             <groupId>junit</groupId>

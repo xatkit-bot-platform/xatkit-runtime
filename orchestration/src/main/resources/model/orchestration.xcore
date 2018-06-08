@@ -2,24 +2,14 @@
 @GenModel(modelDirectory="/orchestration/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
 package fr.zelus.jarvis.orchestration
 
-class OrchestrationModel {
-	contains Action[] actions
-	contains OrchestrationLink[] orchestrationLinks
-	contains Intent[] intents
-}
+import fr.zelus.jarvis.module.Action
+import fr.zelus.jarvis.module.IntentDefinition
 
-class Action {
-	String ^package
-	String name
-	unique String[] inputVariables
+class OrchestrationModel {
+	contains OrchestrationLink[] orchestrationLinks
 }
 
 class OrchestrationLink {
-    refers Intent intent
+    refers IntentDefinition intent
     refers Action[] actions
-}
-
-class Intent {
-	String name
-	unique String[] outputVariables
 }

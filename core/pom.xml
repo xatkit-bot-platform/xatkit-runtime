@@ -19,6 +19,7 @@
     <dependencies>
 
         <!-- jarvis Internal -->
+
         <dependency>
             <groupId>fr.zelus.jarvis</groupId>
             <artifactId>orchestration</artifactId>
