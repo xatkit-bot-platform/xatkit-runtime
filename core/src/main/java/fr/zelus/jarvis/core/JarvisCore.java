@@ -1,37 +1,64 @@
 package fr.zelus.jarvis.core;
 
-import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.SessionName;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
+import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
+import fr.zelus.jarvis.orchestration.OrchestrationLink;
+import fr.zelus.jarvis.orchestration.OrchestrationModel;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
- * A message broker that receives input messages, retrieve their {@link Intent}s, and dispatch them to the loaded
- * {@link JarvisModule}s.
+ * The core component of the jarvis framework.
  * <p>
- * This class takes care of loading the {@link JarvisModule}s from their {@link Module} definition. {@link Module}
- * definition are descriptive objects representing the intents, actions, and concrete {@link JarvisModule} class to
- * load, and are constructed using jarvis' <i>Module DSL</i>.
+ * This class is constructed from an {@link OrchestrationModel}, that defines the Intent to Action bindings that are
+ * executed by the application. Constructing an instance of this class will load the {@link JarvisModule}s used by
+ * the provided {@link OrchestrationModel}, and enable the corresponding {@link JarvisAction}s. It also creates an
+ * instance of {@link IntentDefinitionRegistry} that can be accessed to retrieve and manage
+ * {@link fr.zelus.jarvis.intent.IntentDefinition} .
+ * <p>
+ * Once constructed, this class can be globally accessed through the {@link JarvisCore#getInstance()} static method.
+ * Easing the access to {@link IntentDefinitionRegistry}, {@link JarvisModuleRegistry}, and
+ * {@link OrchestrationService} from the other jarvis components.
  *
- * @see Module
+ * @see IntentDefinitionRegistry
+ * @see JarvisModuleRegistry
+ * @see OrchestrationService
  * @see JarvisModule
  */
 public class JarvisCore {
 
     /**
-     * The {@link DialogFlowApi} used to access the DialogFlow framework and send user input for {@link Intent}
+     * The globally registered instance of this class.
+     */
+    private static JarvisCore INSTANCE = null;
+
+    /**
+     * Returns the globally registered instance of this class, if it exists.
+     *
+     * @return the globally registered instance of this class
+     * @throws NullPointerException if there is no instance of this class that is globally registered
+     */
+    public static JarvisCore getInstance() {
+        if (isNull(INSTANCE)) {
+            throw new NullPointerException("Cannot retrieve the JarvisCore instance, make sure to initialize it first");
+        }
+        return INSTANCE;
+    }
+
+    /**
+     * The {@link DialogFlowApi} used to access the DialogFlow framework and send user input for
+     * {@link RecognizedIntent}
      * extraction.
      */
     private DialogFlowApi dialogFlowApi;
@@ -42,19 +69,25 @@ public class JarvisCore {
     private SessionName sessionName;
 
     /**
-     * The {@link JarvisModule}s used to handle {@link Intent}s extracted from user input.
-     * <p>
-     * These {@link JarvisModule}s are loaded from the {@link Module} model definitions provided in this class'
-     * constructor using the method {@link #loadJarvisModuleFromModuleModel(Module)}.
+     * The {@link JarvisModuleRegistry} used to cache loaded module, and provides utility method to retrieve,
+     * unregister,
+     * and clear them.
      *
-     * @see #loadJarvisModuleFromModuleModel(Module)
-     * @see #handleMessage(String)
+     * @see #getJarvisModuleRegistry()
      */
-    private List<JarvisModule> modules;
+    private JarvisModuleRegistry jarvisModuleRegistry;
 
     /**
-     * The {@link OrchestrationService} used to find {@link JarvisAction}s to execute when an {@link Intent} is
-     * received.
+     * The {@link IntentDefinitionRegistry} used to cache {@link fr.zelus.jarvis.intent.IntentDefinition} from the input
+     * {@link OrchestrationModel} and provides utility methods to retrieve specific
+     * {@link fr.zelus.jarvis.intent.IntentDefinition} and clear the cache.
+     *
+     * @see #getIntentDefinitionRegistry()
+     */
+    private IntentDefinitionRegistry intentDefinitionRegistry;
+
+    /**
+     * The {@link OrchestrationService} used to find {@link JarvisAction}s to execute from the received textual inputs.
      *
      * @see #handleMessage(String)
      * @see JarvisAction
@@ -71,43 +104,63 @@ public class JarvisCore {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
-     * Constructs a new {@link JarvisCore} with the provided {@code projectId} and {@code languageCode}.
+     * Constructs a new {@link JarvisCore} instance with the provided {@code projectId}, {@code languageCode}, and
+     * {@code orchestrationModel}.
      * <p>
-     * Note that this constructor initializes an empty {@link #modules} list. Use
-     * {@link #loadModule(Module)} to register additional {@link Module}s. See
-     * {@link #JarvisCore(String, String, List)} to construct a {@link JarvisCore} instance with preset
-     * {@link Module}s.
+     * The provided {@link OrchestrationModel} defines the Intent to Action bindings that are executed by the
+     * application. This constructor takes care of loading the {@link JarvisModule}s associated to the provided
+     * {@code orchestrationModel} and enables the corresponding {@link JarvisAction}s.
+     * <p>
+     * Once constructed, this class can be globally retrieved by using {@link JarvisCore#getInstance()} method.
+     * <p>
+     * <b>Note:</b> the {@link JarvisModule}s associated to the provided {@code orchestrationModel} have to be in the
+     * classpath in order to be dynamically loaded and instantiated.
      *
-     * @param projectId    the unique identifier of the DialogFlow project
-     * @param languageCode the code of the language processed by DialogFlow
-     * @see #loadModule(Module)
-     * @see #unloadModule(Module)
+     * @param projectId          the unique identifier of the DialogFlow project
+     * @param languageCode       the code of the language processed by DialogFlow
+     * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
+     * @throws NullPointerException if the provided {@code projectId}, {@code languageCode}, or {@code
+     *                              orchestrationModel} is {@code null}
+     * @see OrchestrationModel
      */
-    public JarvisCore(String projectId, String languageCode) {
-        this(projectId, languageCode, new ArrayList<>());
-    }
-
-    /**
-     * Constructs a new {@link JarvisCore} with the provided {@code projectId}, {@code languageCode}, and load the
-     * concrete {@link JarvisModule}s described by the provided {@code moduleModels}.
-     *
-     * @param projectId    the unique identifier of the DialogFlow project
-     * @param languageCode the code of the language processed by DialogFlow
-     * @param moduleModels the jarvis {@link Module}s to load
-     * @throws NullPointerException if the provided {@code projectId}, {@code languageCode}, or {@code moduleModels} is
-     *                              {@code null}
-     * @see #handleMessage(String)
-     */
-    public JarvisCore(String projectId, String languageCode, List<Module> moduleModels) {
+    public JarvisCore(String projectId, String languageCode, OrchestrationModel orchestrationModel) {
         checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
         checkNotNull(languageCode, "Cannot construct a jarvis instance from a null language code");
-        checkNotNull(moduleModels, "Cannot construct a jarvis instance from a null module list");
+        checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
         this.sessionName = dialogFlowApi.createSession();
-        this.modules = new ArrayList<>();
-        for (Module module : moduleModels) {
-            this.modules.add(loadJarvisModuleFromModuleModel(module));
+        /*
+         * The OrchestrationService instance should be available through a getter for testing purposes.
+         */
+        this.orchestrationService = new OrchestrationService(orchestrationModel);
+        this.jarvisModuleRegistry = new JarvisModuleRegistry();
+        this.intentDefinitionRegistry = new IntentDefinitionRegistry();
+        for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
+            /*
+             * Extracts the IntentDefinitions
+             */
+            this.intentDefinitionRegistry.registerIntentDefinition(link.getIntent());
+            /*
+             * Load the action modules
+             */
+            for (Action action : link.getActions()) {
+                Module module = (Module) action.eContainer();
+                JarvisModule jarvisModule = this.jarvisModuleRegistry.getJarvisModule(module.getName());
+                if (isNull(jarvisModule)) {
+                    jarvisModule = loadJarvisModuleFromModuleModel(module);
+                    this.jarvisModuleRegistry.registerJarvisModule(jarvisModule);
+                }
+                jarvisModule.enableAction(action);
+            }
         }
+        /*
+         * The instance is correctly constructed, set it as the global instance of this class.
+         */
+        if (nonNull(INSTANCE)) {
+            Log.warn("Globally registering the constructed JarvisCore instance ({0}) will erase the stored one {1}",
+                    this, INSTANCE);
+        }
+        INSTANCE = this;
     }
 
     /**
@@ -123,6 +176,7 @@ public class JarvisCore {
      * @see Module
      */
     private JarvisModule loadJarvisModuleFromModuleModel(Module moduleModel) throws JarvisException {
+        Log.info("Loading JarvisModule {0}", moduleModel.getName());
         try {
             return (JarvisModule) Class.forName(moduleModel.getJarvisModulePath()).newInstance();
         } catch (ClassNotFoundException e) {
@@ -152,6 +206,31 @@ public class JarvisCore {
     }
 
     /**
+     * Returns the {@link IntentDefinitionRegistry} associated to this instance.
+     * <p>
+     * This registry is used to cache {@link fr.zelus.jarvis.intent.IntentDefinition} from the input
+     * {@link OrchestrationModel} and provides utility methods to retrieve specific
+     * {@link fr.zelus.jarvis.intent.IntentDefinition} and clear the cache.
+     *
+     * @return the {@link IntentDefinitionRegistry} associated to this instance
+     */
+    public IntentDefinitionRegistry getIntentDefinitionRegistry() {
+        return intentDefinitionRegistry;
+    }
+
+    /**
+     * Returns the {@link JarvisModuleRegistry} associated to this instance.
+     * <p>
+     * This registry is used to cache loaded module, and provides utility method to retrieve, unregister, and clear
+     * them.
+     *
+     * @return the {@link JarvisModuleRegistry} associated to this instance
+     */
+    public JarvisModuleRegistry getJarvisModuleRegistry() {
+        return jarvisModuleRegistry;
+    }
+
+    /**
      * Returns the {@link SessionName} representing the current DialogFlow session.
      * <p>
      * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications. In
@@ -178,63 +257,17 @@ public class JarvisCore {
     }
 
     /**
-     * Registers a new {@link JarvisModule} to the {@link #modules} list.
-     *
-     * @param moduleModel the jarvis {@link Module}s to load
-     * @throws NullPointerException if the provided {@code moduleModel} is {@code null}
-     */
-    public void loadModule(Module moduleModel) {
-        checkNotNull(moduleModel, "Cannot register the module null");
-        this.modules.add(loadJarvisModuleFromModuleModel(moduleModel));
-    }
-
-    /**
-     * Unregisters a {@link JarvisModule} from the {@link #modules} list.
-     *
-     * @param moduleModel the jarvis {@link Module} to unload
-     * @throws NullPointerException     if the provided {@code moduleModel} is {@code null}
-     * @throws IllegalArgumentException if the provided {@code moduleModel} hasn't been removed from the list
-     */
-    public void unloadModule(Module moduleModel) {
-        checkNotNull(moduleModel, "Cannot unregister the module null");
-        boolean removed = false;
-        Iterator<JarvisModule> moduleIterator = this.modules.iterator();
-        while (moduleIterator.hasNext()) {
-            JarvisModule module = moduleIterator.next();
-            if (module.getName().equals(moduleModel.getName())) {
-                moduleIterator.remove();
-                removed = true;
-                break;
-            }
-        }
-        if (!removed) {
-            throw new IllegalArgumentException(MessageFormat.format("Cannot remove {0} from the module list, please " +
-                    "ensure that this module is in the list", moduleModel));
-        }
-    }
-
-    /**
-     * Unregisters all the {@link JarvisModule}s.
-     */
-    public void clearModules() {
-        this.modules.clear();
-    }
-
-    /**
-     * Returns an unmodifiable {@link List} containing the registered {@link #modules}.
-     *
-     * @return an unmodifiable {@link List} containing the registered {@link #modules}
-     */
-    public List<JarvisModule> getModules() {
-        return Collections.unmodifiableList(modules);
-    }
-
-    /**
-     * Shuts down the underlying {@link DialogFlowApi}, cleans the {@link #modules} list, and shuts down the
-     * {@link #executorService}.
+     * Shuts down the {@link JarvisCore} and the underlying engines.
      * <p>
-     * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down {@link Intent}
-     * detections and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
+     * This method shuts down the underlying {@link DialogFlowApi}, unloads all the {@link JarvisModule}s associated to
+     * this instance, unregisters the {@link fr.zelus.jarvis.intent.IntentDefinition} from the associated
+     * {@link IntentDefinitionRegistry}, and shuts down the {@link #executorService}.
+     * <p>
+     * Once shutdown, the {@link JarvisCore} instance can not be retrieved using {@link JarvisCore#getInstance()}
+     * static method.
+     * <p>
+     * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down intent detections
+     * and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
      *
      * @see DialogFlowApi#shutdown()
      */
@@ -246,7 +279,14 @@ public class JarvisCore {
         this.executorService.shutdownNow();
         this.dialogFlowApi.shutdown();
         this.sessionName = null;
-        this.clearModules();
+        this.getJarvisModuleRegistry().clearJarvisModules();
+        this.getIntentDefinitionRegistry().clearIntentDefinitions();
+        if (INSTANCE.equals(this)) {
+            INSTANCE = null;
+        } else {
+            Log.warn("The globally registered JarvisCore instance ({0}) is different from this one ({1}), skipping " +
+                    "global instance reset", INSTANCE, this);
+        }
     }
 
     /**
@@ -262,42 +302,30 @@ public class JarvisCore {
     }
 
     /**
-     * Handles a new input message and dispatch it through the registered {@code modules}.
+     * Handles an input {@code message} by executing the associated {@link JarvisAction}s.
      * <p>
-     * This method relies on the {@link DialogFlowApi} to retrieve the {@link Intent} of the input message, and
-     * notifies all the registered modules of the new {@link Intent}.
+     * The input {@code message} is forwarded to the underlying {@link DialogFlowApi} that takes care of retrieving
+     * the corresponding intent (if any).
+     * <p>
+     * This method relies on the {@link OrchestrationService} instance to retrieve the {@link JarvisAction}
+     * associated to the extracted intent. These {@link JarvisAction}s are then submitted to the local
+     * {@link #executorService} that takes care of executing them in a separated thread.
      *
-     * @param message the input message
+     * @param message the textual input to process
      * @throws NullPointerException if the provided {@code message} is {@code null}
-     * @see JarvisModule#handleIntent(Intent)
-     * @see JarvisModule#acceptIntent(Intent)
+     * @see JarvisAction
      */
     public void handleMessage(String message) {
         checkNotNull(message, "Cannot handle null message");
-        Intent intent = dialogFlowApi.getIntent(message, sessionName);
+        RecognizedIntent intent = dialogFlowApi.getIntent(message, sessionName);
         boolean handled = false;
 
-        for (JarvisModule module : modules) {
-            if (module.acceptIntent(intent)) {
-                JarvisAction action = module.handleIntent(intent);
-                /*
-                 * There is at least one module that can handle the intent
-                 */
-                handled = true;
-                /*
-                 * Submit the action to the executor service and don't wait for its completion.
-                 */
-                executorService.submit(action);
-            }
+        List<JarvisAction> jarvisActions = orchestrationService.getActionsFromIntent(intent);
+        if (jarvisActions.isEmpty()) {
+            Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());
         }
-        if (!handled) {
-            /*
-             * Log an error if the intent hasn't been handled. Note that not handling an intent is not a text
-             * recognition issue on the DialogFlow side (the framework was able to detect an intent), but a jarvis
-             * issue: there is no registered module that can handle the intent returned by DialogFlow.
-             */
-            Log.warn("The intent {0} hasn't been handled, make sure that the corresponding JarvisModule is loaded " +
-                    "and registered", intent.getDisplayName());
+        for (JarvisAction action : jarvisActions) {
+            executorService.submit(action);
         }
     }
 }

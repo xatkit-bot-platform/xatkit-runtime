@@ -2,16 +2,24 @@ package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.*;
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.intent.IntentDefinition;
+import fr.zelus.jarvis.intent.IntentFactory;
+import fr.zelus.jarvis.intent.RecognizedIntent;
 
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.UUID;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * A wrapper of the DialogFlow API that provides utility methods to connect to a given DialogFlow project, start
- * sessions, and detect {@link Intent}s from textual inputs.
+ * sessions, and detect intents from textual inputs.
  * <p>
  * This class is used to easily setup a connection to a given DialogFlow project. Note that in addition to the
  * constructor parameters, the {@code GOOGLE_APPLICATION_CREDENTIALS} environment variable must be set and point to
@@ -43,6 +51,12 @@ public class DialogFlowApi {
      * detection queries to the DialogFlow engine.
      */
     private SessionsClient sessionsClient;
+
+    /**
+     * The {@link IntentFactory} used to create {@link RecognizedIntent} instances from DialogFlow computed
+     * {@link Intent}s.
+     */
+    private IntentFactory intentFactory;
 
     /**
      * Constructs a {@link DialogFlowApi} with the provided {@code projectId} and sets its language to
@@ -79,6 +93,7 @@ public class DialogFlowApi {
             this.projectId = projectId;
             this.languageCode = languageCode;
             this.sessionsClient = SessionsClient.create();
+            this.intentFactory = IntentFactory.eINSTANCE;
         } catch (IOException e) {
             throw new DialogFlowException("Cannot construct the DialogFlow API", e);
         }
@@ -144,20 +159,25 @@ public class DialogFlowApi {
     }
 
     /**
-     * Returns the {@link Intent} extracted from the provided {@code text}
+     * Returns the {@link RecognizedIntent} extracted from the provided {@code text}
+     * <p>
+     * The returned {@link RecognizedIntent} is constructed from the raw {@link Intent} returned by the DialogFlow
+     * API, using the mapping defined in {@link #convertDialogFlowIntent(Intent)}. {@link RecognizedIntent}s are used
+     * to wrap the Intents returned by the Intent Recognition APIs and decouple the application from the concrete API
+     * used.
      * <p>
      * This method uses the provided {@code session} to extract contextual {@link Intent}s, such as follow-up
      * or context-based {@link Intent}s.
      *
      * @param text    a {@link String} representing the textual input to process and extract the {@link Intent} from
      * @param session the client {@link SessionName}
-     * @return an {@link Intent} extracted from the provided {@code text}
+     * @return a {@link RecognizedIntent} extracted from the provided input {@code text}
      * @throws NullPointerException     if the provided {@code text} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code text} is empty
      * @throws DialogFlowException      if the {@link DialogFlowApi} is shutdown or if an exception is thrown by the
      *                                  underlying DialogFlow engine
      */
-    public Intent getIntent(String text, SessionName session) {
+    public RecognizedIntent getIntent(String text, SessionName session) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot extract an Intent from the provided input, the DialogFlow API is " +
                     "shutdown");
@@ -179,7 +199,50 @@ public class DialogFlowApi {
                 "Detected Intent: {1} (confidence: {2})\n" +
                 "Fulfillment Text: {3}", queryResult.getQueryText(), queryResult.getIntent()
                 .getDisplayName(), queryResult.getIntentDetectionConfidence(), queryResult.getFulfillmentText());
-        return queryResult.getIntent();
+        return convertDialogFlowIntent(queryResult.getIntent());
+    }
+
+    private RecognizedIntent convertDialogFlowIntent(Intent intent) {
+        if(nonNull(intent)) {
+            RecognizedIntent recognizedIntent = intentFactory.createRecognizedIntent();
+            /*
+             * Retrieve the IntentDefinition corresponding to this Intent.
+             */
+            IntentDefinition intentDefinition = JarvisCore.getInstance().getIntentDefinitionRegistry()
+                    .getIntentDefinition(intent.getDisplayName());
+            if(isNull(intentDefinition)) {
+                String errorMessage = MessageFormat.format("Cannot retrieve the IntentDefinition associated to the " +
+                        "provided DialogFlow Intent {0}", intent.getDisplayName());
+                Log.error(errorMessage);
+                throw new DialogFlowException(errorMessage);
+            }
+            recognizedIntent.setDefinition(intentDefinition);
+            /*
+             * Set the output context values.
+             */
+            if(intent.getOutputContextsCount() > 0) {
+                if(intent.getOutputContextsCount() > 1) {
+                    Log.warn("Multiple output contexts are not supported for now, proceeding with the first context " +
+                            "found");
+                }
+                Context outContext = intent.getOutputContexts(0);
+                Collection<Object> outContextValues = outContext.getParameters().getAllFields().values();
+                for(Object value : outContextValues) {
+                    if(value instanceof String) {
+                        recognizedIntent.getOutContextValues().add((String) value);
+                    } else {
+                        throw new UnsupportedOperationException("Only String output context values are supported for " +
+                                "now");
+                    }
+                }
+                return recognizedIntent;
+            } else {
+                return recognizedIntent;
+            }
+        } else {
+            Log.warn("Cannot convert null to a RecognizedIntent");
+            return null;
+        }
     }
 
     /**

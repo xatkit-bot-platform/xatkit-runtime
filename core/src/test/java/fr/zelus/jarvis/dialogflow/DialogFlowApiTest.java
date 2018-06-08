@@ -1,8 +1,18 @@
 package fr.zelus.jarvis.dialogflow;
 
-import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.SessionName;
+import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.intent.IntentDefinition;
+import fr.zelus.jarvis.intent.IntentFactory;
+import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.Module;
+import fr.zelus.jarvis.module.ModuleFactory;
+import fr.zelus.jarvis.orchestration.OrchestrationFactory;
+import fr.zelus.jarvis.orchestration.OrchestrationLink;
+import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import org.assertj.core.api.JUnitSoftAssertions;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -18,6 +28,30 @@ public class DialogFlowApiTest {
     protected static String SAMPLE_INPUT = "hello";
 
     protected DialogFlowApi api;
+
+    // not tested here, only instantiated to enable IntentDefinition registration and Module retrieval
+    protected static JarvisCore jarvisCore;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        Module stubModule = ModuleFactory.eINSTANCE.createModule();
+        stubModule.setName("StubJarvisModule");
+        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        Action stubAction = ModuleFactory.eINSTANCE.createAction();
+        stubAction.setName("StubJarvisAction");
+        // No parameters, keep it simple
+        stubModule.getActions().add(stubAction);
+        IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        stubIntentDefinition.setName("Default Welcome Intent");
+        // No parameters, keep it simple
+        stubModule.getIntentDefinitions().add(stubIntentDefinition);
+        OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
+        OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
+        link.setIntent(stubIntentDefinition);
+        link.getActions().add(stubAction);
+        orchestrationModel.getOrchestrationLinks().add(link);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel);
+    }
 
     @Rule
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
@@ -82,45 +116,45 @@ public class DialogFlowApiTest {
     public void getIntentValidSession() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         SessionName session = api.createSession();
-        Intent intent = api.getIntent(SAMPLE_INPUT, session);
+        RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
+        IntentDefinition intentDefinition = intent.getDefinition();
         assertThat(intent).as("Null Intent").isNotNull();
-        assertThat(intent.getDisplayName()).as("Valid Intent").isEqualTo("Default Welcome Intent");
+        assertThat(intentDefinition).as("Null Intent Definition").isNotNull();
+        assertThat(intentDefinition.getName()).as("Valid Intent").isEqualTo("Default Welcome Intent");
     }
 
     @Test(expected = DialogFlowException.class)
     public void getIntentInvalidSession() {
         api = new DialogFlowApi("test");
         SessionName session = api.createSession();
-        Intent intent = api.getIntent(SAMPLE_INPUT, session);
+        RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
     }
 
     @Test(expected = NullPointerException.class)
     public void getIntentNullSession() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
-        Intent intent = api.getIntent(SAMPLE_INPUT, null);
+        RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, null);
     }
 
     @Test(expected = NullPointerException.class)
     public void getIntentNullText() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         SessionName session = api.createSession();
-        Intent intent = api.getIntent(null, session);
+        RecognizedIntent intent = api.getIntent(null, session);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getIntentEmptyText() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         SessionName session = api.createSession();
-        Intent intent = api.getIntent("", session);
+        RecognizedIntent intent = api.getIntent("", session);
     }
 
-    @Test
+    @Test(expected = DialogFlowException.class)
     public void getIntentUnkownText() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         SessionName session = api.createSession();
-        Intent intent = api.getIntent("azerty", session);
-        assertThat(intent).as("Null Intent").isNotNull();
-        assertThat(intent.getDisplayName()).as("Fallback Intent").isEqualTo("Default Fallback Intent");
+        RecognizedIntent intent = api.getIntent("azerty", session);
     }
 
 }

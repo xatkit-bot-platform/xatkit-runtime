@@ -3,9 +3,9 @@ package fr.zelus.jarvis.stubs;
 import com.google.cloud.dialogflow.v2.Intent;
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisModule;
-
-import java.util.Collections;
-import java.util.List;
+import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.stubs.action.StubJarvisAction;
 
 /**
  * A stub {@link JarvisModule} used to check whether {@link Intent}s are handled and {@link JarvisAction} performed.
@@ -18,57 +18,20 @@ import java.util.List;
  */
 public class StubJarvisModule extends JarvisModule {
 
-    /**
-     * A flag representing whether an {@link Intent} has been handled by this module.
-     */
-    private boolean intentHandled = false;
+    private StubJarvisAction jarvisAction;
 
-    /**
-     * A flag representing whether a {@link JarvisAction} created by this module has been processed.
-     */
-    private boolean actionProcessed = false;
-
-    /**
-     * Returns whether an {@link Intent} has been handled by this module.
-     *
-     * @return whether an {@link Intent} has been handled by this module
-     */
-    public boolean isIntentHandled() {
-        return intentHandled;
+    public StubJarvisModule() {
+        super();
+        this.jarvisAction = new StubJarvisAction();
     }
 
-    /**
-     * Returns whether a {@link JarvisAction} created by this module has been processed.
-     *
-     * @return whether a {@link JarvisAction} created by this module has been processed
-     */
-    public boolean isActionProcessed() {
-        return actionProcessed;
+    public StubJarvisAction getAction() {
+        return jarvisAction;
     }
 
     @Override
-    public boolean acceptIntent(Intent intent) {
-        return intent.getDisplayName().equals("Default Welcome Intent");
+    public JarvisAction createJarvisAction(Action action, RecognizedIntent intent) {
+        return jarvisAction;
     }
 
-    @Override
-    public JarvisAction handleIntent(Intent intent) {
-        intentHandled = true;
-        return new JarvisAction("StubAction") {
-            @Override
-            public void run() {
-                actionProcessed = true;
-            }
-        };
-    }
-
-    @Override
-    public List<Class<JarvisAction>> getRegisteredActions() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Class<JarvisAction> getActionWithName(String name) {
-        return null;
-    }
 }
