@@ -51,7 +51,7 @@ public abstract class JarvisModule {
      * Returns the name of the module.
      * <p>
      * This method returns the value of {@link Class#getSimpleName()}, and can not be overridden by concrete
-     * subclasses. {@link JarvisModule}'s name are part of jarvis' naming convention, and are used to dynamically
+     * subclasses. {@link JarvisModule}'s names are part of jarvis' naming convention, and are used to dynamically
      * load modules and actions.
      *
      * @return the name of the module.

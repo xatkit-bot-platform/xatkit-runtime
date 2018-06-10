@@ -20,6 +20,15 @@ import java.text.MessageFormat;
  */
 public abstract class JarvisAction implements Runnable {
 
+    /**
+     * Returns the name of the action.
+     * <p>
+     * This method returns the value of {@link Class#getName()}, and can not be overridden by concrete subclasses.
+     * {@link JarvisAction}'s names are part of jarvis' naming convention, and are used to dynamically load modules
+     * and actions.
+     *
+     * @return the name of the action.
+     */
     public final String getName() {
         return this.getClass().getSimpleName();
     }
