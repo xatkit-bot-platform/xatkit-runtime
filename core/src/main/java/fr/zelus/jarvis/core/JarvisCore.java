@@ -131,6 +131,7 @@ public class JarvisCore {
         this.sessionName = dialogFlowApi.createSession();
         /*
          * The OrchestrationService instance should be available through a getter for testing purposes.
+         * See https://github.com/gdaniel/jarvis/issues/6.
          */
         this.orchestrationService = new OrchestrationService(orchestrationModel);
         this.jarvisModuleRegistry = new JarvisModuleRegistry();

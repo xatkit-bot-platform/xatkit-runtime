@@ -95,13 +95,15 @@ public abstract class JarvisModule {
         List<String> outContextValues = intent.getOutContextValues();
         if(actionParameters.size() == outContextValues.size()) {
             /*
-             * Here some additional checks are needed (parameter types and order)
+             * Here some additional checks are needed (parameter types and order).
+             * See https://github.com/gdaniel/jarvis/issues/4.
              */
             return outContextValues.toArray();
         }
         /*
          * It should be possible to return an array if the provided intent contains more context values than the
          * Action signature.
+         * See https://github.com/gdaniel/jarvis/issues/5.
          */
         String errorMessage = MessageFormat.format("The intent does not define the good amount of context values: " +
                 "expected {0}, found {1}", actionParameters.size(), outContextValues.size());
