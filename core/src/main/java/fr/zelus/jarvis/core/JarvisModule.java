@@ -4,6 +4,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Parameter;
+import fr.zelus.jarvis.module.PresetParameter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -12,6 +13,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.util.Objects.isNull;
 
@@ -167,7 +170,8 @@ public abstract class JarvisModule {
      * @see #createJarvisAction(Action, RecognizedIntent)
      */
     private Object[] getParameterValues(Action action, RecognizedIntent intent) {
-        List<Parameter> actionParameters = action.getParameters();
+        List<Parameter> actionParameters = StreamSupport.stream(action.getParameters().spliterator(), false).filter
+                (param -> !(param instanceof PresetParameter)).collect(Collectors.toList());
         List<String> outContextValues = intent.getOutContextValues();
         if (actionParameters.size() == outContextValues.size()) {
             /*
