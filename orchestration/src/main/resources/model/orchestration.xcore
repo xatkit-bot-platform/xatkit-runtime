@@ -3,6 +3,7 @@
 package fr.zelus.jarvis.orchestration
 
 import fr.zelus.jarvis.module.Action
+import fr.zelus.jarvis.module.Parameter
 import fr.zelus.jarvis.intent.IntentDefinition
 
 class OrchestrationModel {
@@ -11,5 +12,15 @@ class OrchestrationModel {
 
 class OrchestrationLink {
     refers IntentDefinition intent
-    refers Action[] actions
+    contains ActionInstance[] actions
+}
+
+class ActionInstance {
+    refers Action action
+    contains ParameterValue[] values
+}
+
+class ParameterValue {
+    refers Parameter parameter
+    String value
 }

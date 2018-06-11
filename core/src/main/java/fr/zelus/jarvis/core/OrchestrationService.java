@@ -5,6 +5,7 @@ import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
+import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 
@@ -62,12 +63,13 @@ public class OrchestrationService {
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             if (link.getIntent().getName().equals(intentDefinition.getName())) {
                 // The link refers to this Intent
-                for (Action modelAction : link.getActions()) {
+                for (ActionInstance actionInstance : link.getActions()) {
+                    Action baseAction = actionInstance.getAction();
                     JarvisModule jarvisModule = JarvisCore.getInstance().getJarvisModuleRegistry().getJarvisModule(
-                            (Module) modelAction.eContainer());
-                    JarvisAction jarvisAction = jarvisModule.createJarvisAction(modelAction, recognizedIntent);
+                            (Module) baseAction.eContainer());
+                    JarvisAction jarvisAction = jarvisModule.createJarvisAction(actionInstance, recognizedIntent);
                     if (isNull(jarvisAction)) {
-                        Log.warn("Create Action with the provided parameters ({0}, {1}) returned null", modelAction,
+                        Log.warn("Create Action with the provided parameters ({0}, {1}) returned null", actionInstance,
                                 recognizedIntent);
                     }
                     jarvisActions.add(jarvisAction);

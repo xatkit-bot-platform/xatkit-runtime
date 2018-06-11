@@ -6,6 +6,7 @@ import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
+import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import org.apache.commons.configuration2.Configuration;
@@ -252,7 +253,8 @@ public class JarvisCore {
             /*
              * Load the action modules
              */
-            for (Action action : link.getActions()) {
+            for (ActionInstance actionInstance : link.getActions()) {
+                Action action = actionInstance.getAction();
                 Module module = (Module) action.eContainer();
                 JarvisModule jarvisModule = this.jarvisModuleRegistry.getJarvisModule(module.getName());
                 if (isNull(jarvisModule)) {

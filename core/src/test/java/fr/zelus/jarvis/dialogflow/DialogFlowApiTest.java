@@ -8,6 +8,7 @@ import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModuleFactory;
+import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
@@ -48,7 +49,9 @@ public class DialogFlowApiTest {
         OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
         OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
         link.setIntent(stubIntentDefinition);
-        link.getActions().add(stubAction);
+        ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        actionInstance.setAction(stubAction);
+        link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
         jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel);
     }

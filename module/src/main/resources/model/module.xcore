@@ -20,7 +20,3 @@ class Parameter {
     String key
     String ^type
 }
-
-class PresetParameter extends Parameter {
-    String value
-}
