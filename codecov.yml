@@ -3,9 +3,15 @@
 coverage:
   precision: 2
   round: down
-  range: 0...100
+  range: 30...100
 
   status:
     changes: false
     patch: true
-project: true
+    project: true
+
+  ignore:
+    # Ignore Exceptions instances
+    - "**/*Exception.java"
+
+comment: false
