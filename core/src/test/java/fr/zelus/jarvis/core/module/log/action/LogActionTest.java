@@ -52,7 +52,7 @@ public abstract class LogActionTest<T extends LogAction> {
          * The underlying logger is asynchronous, wait to ensure that the message has been processed at the logger
          * level.
          */
-        Thread.sleep(200);
+        Thread.sleep(500);
         /**
          * Read from the ByteArrayOutputStream used to print logs.
          */
