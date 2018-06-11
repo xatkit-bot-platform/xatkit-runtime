@@ -53,8 +53,7 @@ public class JarvisException extends RuntimeException {
      *
      * @param message            the exception's message
      * @param cause              the exception's cause
-     * @param enableSuppression  whether or not suppression is enabled
-     *                           *                          or disabled
+     * @param enableSuppression  whether or not suppression is enabled or disabled
      * @param writableStackTrace whether or not the stack trace should be writable
      * @see RuntimeException#RuntimeException(String, Throwable, boolean, boolean)
      */
