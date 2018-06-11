@@ -11,7 +11,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 
 /**
@@ -35,9 +37,9 @@ public abstract class JarvisModule {
      *
      * @see #enableAction(Action)
      * @see #disableAction(Action)
-     * @see #createJarvisAction(ActionInstance, RecognizedIntent) 
+     * @see #createJarvisAction(ActionInstance, RecognizedIntent)
      */
-    protected Map<String, Class<JarvisAction>> actionMap;
+    protected Map<String, Class<? extends JarvisAction>> actionMap;
 
     /**
      * Constructs a new {@link JarvisModule} and initializes its {@link #actionMap}.
@@ -100,7 +102,7 @@ public abstract class JarvisModule {
      * @return all the {@link JarvisAction} {@link Class}es associated to this {@link JarvisModule}
      * @see #createJarvisAction(ActionInstance, RecognizedIntent)
      */
-    public final Collection<Class<JarvisAction>> getActions() {
+    public final Collection<Class<? extends JarvisAction>> getActions() {
         return actionMap.values();
     }
 
@@ -120,10 +122,13 @@ public abstract class JarvisModule {
      * @see #getParameterValues(ActionInstance, RecognizedIntent)
      */
     public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent) {
+        checkNotNull(actionInstance, "Cannot construct a JarvisAction from a null ActionInstance");
         Action action = actionInstance.getAction();
-        Class<JarvisAction> jarvisActionClass = actionMap.get(action.getName());
+        checkNotNull(intent, "Cannot construct a %s action from a null RecognizedIntent", action.getName());
+        Class<? extends JarvisAction> jarvisActionClass = actionMap.get(action.getName());
         if (isNull(jarvisActionClass)) {
-            throw new JarvisException("Cannot create the JarvisAction {0}, the action is not loaded in the module");
+            throw new JarvisException(MessageFormat.format("Cannot create the JarvisAction {0}, the action is not loaded " +
+                    "in the module", action.getName()));
         }
         Object[] parameterValues = getParameterValues(actionInstance, intent);
         Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
@@ -136,8 +141,10 @@ public abstract class JarvisModule {
                  */
                 try {
                     if (constructor.getParameterCount() > 0) {
+                        Log.info("Constructing {0} with the parameters {1}", jarvisActionClass.getSimpleName(), parameterValues);
                         return (JarvisAction) constructor.newInstance(parameterValues);
                     } else {
+                        Log.info("Constructing {0}", jarvisActionClass.getSimpleName());
                         return (JarvisAction) constructor.newInstance();
                     }
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -179,8 +186,11 @@ public abstract class JarvisModule {
              * See https://github.com/gdaniel/jarvis/issues/4.
              */
             int parameterLength = actionInstanceParameterValues.size() + outContextValues.size();
-            Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValues.toArray(), parameterLength);
-            System.arraycopy(outContextValues.toArray(), 0, parameterArray, actionInstanceParameterValues.size(), parameterLength);
+            Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
+                    .spliterator(), false).map(param -> param.getValue()).toArray();
+            Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValuesArray, parameterLength);
+            System.arraycopy(outContextValues.toArray(), 0, parameterArray, actionInstanceParameterValues.size(),
+                    parameterLength -1);
             return parameterArray;
         }
         /*

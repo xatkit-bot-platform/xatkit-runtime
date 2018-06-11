@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ASCII"?>
+<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="LogModule" jarvisModulePath="fr.zelus.jarvis.core.module.log.LogModule">
+  <actions name="LogInfo">
+    <parameters key="message" type="String"/>
+  </actions>
+  <actions name="LogWarning">
+    <parameters key="message" type="String"/>
+  </actions>
+  <actions name="LogError">
+    <parameters key="message" type="String"/>
+  </actions>
+</module:Module>
