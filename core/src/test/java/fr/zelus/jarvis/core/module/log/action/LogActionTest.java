@@ -1,10 +1,13 @@
 package fr.zelus.jarvis.core.module.log.action;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.test.appender.ListAppender;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,19 +15,22 @@ public abstract class LogActionTest<T extends LogAction> {
 
     protected static String VALID_MESSAGE = "test";
 
-    protected ByteArrayOutputStream outContent;
-
-    protected PrintStream outPrintStream;
+    private ListAppender listAppender;
 
     @Before
     public void setUp() {
-        outContent = new ByteArrayOutputStream();
-        outPrintStream = new PrintStream(outContent);
+        LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
+        listAppender = loggerContext.getConfiguration().getAppender("List");
+        /*
+         * Clear before the test, this logger is used by all the test cases and may contain messages before the first
+         * test of this class.
+         */
+        listAppender.clear();
     }
 
     @After
     public void tearDown() {
-        System.setOut(System.out);
+        listAppender.clear();
     }
 
     protected abstract T createLogAction(String message);
@@ -32,7 +38,7 @@ public abstract class LogActionTest<T extends LogAction> {
     protected abstract String expectedLogTag();
 
     @Test(expected = NullPointerException.class)
-    public void constructLogActionNullMessage() {
+    public void constructLogActionNullMessage() throws Exception {
         createLogAction(null);
     }
 
@@ -45,26 +51,16 @@ public abstract class LogActionTest<T extends LogAction> {
 
     @Test
     public void runValidLogAction() throws IOException, InterruptedException {
-        System.setOut(outPrintStream);
         LogAction logAction = createLogAction(VALID_MESSAGE);
         logAction.run();
         /*
          * The underlying logger is asynchronous, wait to ensure that the message has been processed at the logger
          * level.
          */
-        Thread.sleep(500);
-        /**
-         * Read from the ByteArrayOutputStream used to print logs.
-         */
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outContent
-                .toByteArray())));
-        String line = reader.readLine();
-        /*
-         * Reset the default System.out to enable assertion error print.
-         */
-        System.setOut(System.out);
-        assertThat(line).as(expectedLogTag() + " tag").contains(expectedLogTag());
-        assertThat(line).as("Action message in log").contains(VALID_MESSAGE);
+        Thread.sleep(200);
+        assertThat(listAppender.getMessages()).as("Logger contains a single message").hasSize(1);
+        assertThat(listAppender.getMessages().get(0)).as(expectedLogTag() + " tag").contains(expectedLogTag());
+        assertThat(listAppender.getMessages().get(0)).as("Action message in log").contains(VALID_MESSAGE);
     }
 
 }
