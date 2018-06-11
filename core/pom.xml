@@ -16,7 +16,19 @@
 
     <name>jarvis core infrastructure</name>
 
+    <properties>
+        <emf.version>2.12.0</emf.version>
+    </properties>
+
+
     <dependencies>
+
+        <!-- EMF -->
+        <dependency>
+            <groupId>org.eclipse.emf</groupId>
+            <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+            <version>${emf.version}</version>
+        </dependency>
 
         <!-- jarvis Internal -->
 
@@ -60,6 +72,11 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-configuration2</artifactId>
         </dependency>
 
         <!-- Tests -->
