@@ -43,7 +43,7 @@ public class LogModuleTest {
         EPackage.Registry.INSTANCE.put(OrchestrationPackage.eINSTANCE.getNsURI(), OrchestrationPackage.eINSTANCE);
         ResourceSet resourceSet = new ResourceSetImpl();
         resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
-        String file = LogModuleTest.class.getClassLoader().getResource("/modules/LogModule.xmi").getFile();
+        String file = LogModuleTest.class.getClassLoader().getResource("modules/LogModule.xmi").getFile();
         Resource moduleResource = resourceSet.getResource(URI.createURI(file), true);
         loadedModule = (Module) moduleResource.getContents().get(0);
 
