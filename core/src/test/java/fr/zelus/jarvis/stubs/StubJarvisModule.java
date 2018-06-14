@@ -5,14 +5,14 @@ import fr.zelus.jarvis.core.JarvisModule;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.stubs.action.StubJarvisAction;
-import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 
 public class StubJarvisModule extends JarvisModule {
 
     private StubJarvisAction jarvisAction;
 
-    public StubJarvisModule() {
-        super(new BaseConfiguration());
+    public StubJarvisModule(Configuration configuration) {
+        super(configuration);
         this.jarvisAction = new StubJarvisAction();
     }
 

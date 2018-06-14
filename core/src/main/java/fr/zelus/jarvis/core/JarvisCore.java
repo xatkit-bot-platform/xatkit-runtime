@@ -266,8 +266,8 @@ public class JarvisCore {
      * Retrieves the {@link OrchestrationModel} from the provided {@code property}.
      * <p>
      * This method checks if the provided {@code property} is already an in-memory {@link OrchestrationModel}
-     * instance, or if it is defined by a {@link String} representing the path of the model. In that case, the method
-     * attempts to load the model at the provided location and returns it.
+     * instance, or if it is defined by a {@link String} or an {@link URI} representing the path of the model. In
+     * that case, the method attempts to load the model at the provided location and returns it.
      * <p>
      * This method supports loading of model path defined by {@link String}s. Support for additional types is planned
      * in the next releases.
@@ -280,15 +280,27 @@ public class JarvisCore {
                 "set in the %s property of the jarvis configuration", ORCHESTRATION_MODEL_KEY);
         if (property instanceof OrchestrationModel) {
             return (OrchestrationModel) property;
-        } else if (property instanceof String) {
-            String orchestrationModelUri = (String) property;
+        } else {
+            URI uri;
+            if (property instanceof String) {
+                uri = URI.createURI((String) property);
+            } else if (property instanceof URI) {
+                uri = (URI) property;
+            } else {
+                // Unknown property type
+                String errorMessage = MessageFormat.format("Cannot retrieve the OrchestrationModel from the provided " +
+                        "property {0}, the property type ({1}) is not supported", property, property.getClass()
+                        .getSimpleName());
+                Log.error(errorMessage);
+                throw new JarvisException(errorMessage);
+            }
             ResourceSet resourceSet = new ResourceSetImpl();
             resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
                     ());
-            Resource orchestrationModelResource = resourceSet.getResource(URI.createURI(orchestrationModelUri), true);
+            Resource orchestrationModelResource = resourceSet.getResource(uri, true);
             if (isNull(orchestrationModelResource)) {
                 String errorMessage = MessageFormat.format("Cannot load the provided orchestration model (uri: {0})",
-                        orchestrationModelUri);
+                        uri);
                 Log.error(errorMessage);
                 throw new JarvisException(errorMessage);
             }
@@ -309,14 +321,9 @@ public class JarvisCore {
                 throw new JarvisException(errorMessage, e);
             }
             return orchestrationModel;
-        } else {
-            // Unknown property type
-            String errorMessage = MessageFormat.format("Cannot retrieve the OrchestrationModel from the provided " +
-                    "property %s, the property type is not supported", property);
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage);
         }
     }
+
 
     /**
      * Loads the {@link JarvisModule} defined by the provided {@link Module} definition.
