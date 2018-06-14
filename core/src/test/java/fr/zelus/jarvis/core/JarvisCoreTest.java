@@ -136,7 +136,7 @@ public class JarvisCoreTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
         configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL.eResource().getURI());
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
         JarvisCore jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
     }
@@ -229,6 +229,9 @@ public class JarvisCoreTest {
                 (VALID_PROJECT_ID);
         softly.assertThat(jarvisCore.getDialogFlowApi().getLanguageCode()).as("Valid DialogFlowAPI language code")
                 .isEqualTo(VALID_LANGUAGE_CODE);
+        assertThat(jarvisCore.getOrchestrationModel()).as("Not null OrchestrationModel").isNotNull();
+        softly.assertThat(jarvisCore.getOrchestrationModel()).as("Valid OrchestrationModel").isEqualTo
+                (VALID_ORCHESTRATION_MODEL);
         assertThat(jarvisCore.getSessionName()).as("Not null SessionName").isNotNull();
         softly.assertThat(jarvisCore.getSessionName().getProject()).as("Valid SessionName project ID").isEqualTo
                 (VALID_PROJECT_ID);

@@ -45,6 +45,15 @@ public class OrchestrationService {
     }
 
     /**
+     * Returns the {@link OrchestrationModel} associated to this class.
+     *
+     * @return the {@link OrchestrationModel} associated to this class
+     */
+    public OrchestrationModel getOrchestrationModel() {
+        return orchestrationModel;
+    }
+
+    /**
      * Retrieves and instantiate the {@link JarvisAction}s associated to the provided {@code recognizedIntent}.
      * <p>
      * This class navigates the underlying {@link OrchestrationModel} and retrieves the {@link Action} associated to

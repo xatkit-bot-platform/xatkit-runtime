@@ -395,6 +395,18 @@ public class JarvisCore {
     }
 
     /**
+     * Returns the {@link OrchestrationModel} associated to this class' {@link OrchestrationService}.
+     * <p>
+     * This method eases the access to the underlying {@link OrchestrationModel} for client applications.
+     *
+     * @return the {@link OrchestrationModel} associated to this class' {@link OrchestrationService}
+     * @see OrchestrationService#getOrchestrationModel()
+     */
+    public OrchestrationModel getOrchestrationModel() {
+        return orchestrationService.getOrchestrationModel();
+    }
+
+    /**
      * Returns the {@link SessionName} representing the current DialogFlow session.
      * <p>
      * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications. In
