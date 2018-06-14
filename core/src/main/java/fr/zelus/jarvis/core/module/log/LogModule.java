@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core.module.log;
 
 import fr.zelus.jarvis.core.JarvisModule;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * A {@link JarvisModule} concrete implementation providing logging capabilities.
@@ -14,4 +15,13 @@ import fr.zelus.jarvis.core.JarvisModule;
  * @see fr.zelus.jarvis.core.module.log.action.LogAction
  */
 public class LogModule extends JarvisModule {
+
+    /**
+     * Constructs a new {@link LogModule} instance from the provided {@link Configuration}.
+     *
+     * @param configuration the {@link Configuration} used to initialize the {@link LogModule}
+     */
+    public LogModule(Configuration configuration) {
+        super(configuration);
+    }
 }

@@ -6,6 +6,7 @@ import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.ParameterValue;
+import org.apache.commons.configuration2.Configuration;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -41,10 +42,27 @@ public abstract class JarvisModule {
      */
     protected Map<String, Class<? extends JarvisAction>> actionMap;
 
+
     /**
-     * Constructs a new {@link JarvisModule} and initializes its {@link #actionMap}.
+     * Constructs a new {@link JarvisModule} from the provided {@link Configuration}.
+     * <p>
+     * <b>Note</b>: a similar constructor has to be implemented in every subclass to enable reflective loading and
+     * invocation of {@link JarvisModule}s.
+     *
+     * @param configuration the {@link Configuration} used to initialize the {@link JarvisModule}
      */
-    public JarvisModule() {
+    public JarvisModule(Configuration configuration) {
+        /*
+         * Do nothing with the configuration, it can be used by subclasses that require additional initialization
+         * information.
+         */
+        this();
+    }
+
+    /**
+     * Disables the default constructor to force {@link Configuration}-based constructor usage.
+     */
+    private JarvisModule() {
         this.actionMap = new HashMap<>();
     }
 
@@ -114,7 +132,7 @@ public abstract class JarvisModule {
      * {@link ActionInstance#getValues()}.
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link JarvisAction} to create
-     * @param intent the {@link RecognizedIntent} containing the extracted variables
+     * @param intent         the {@link RecognizedIntent} containing the extracted variables
      * @return a new {@link JarvisAction} instance from the provided {@link RecognizedIntent}
      * @throws JarvisException if the provided {@link Action} does not match any {@link JarvisAction}, or if the
      *                         provided {@link RecognizedIntent} does not define all the parameters required by the
@@ -127,7 +145,8 @@ public abstract class JarvisModule {
         checkNotNull(intent, "Cannot construct a %s action from a null RecognizedIntent", action.getName());
         Class<? extends JarvisAction> jarvisActionClass = actionMap.get(action.getName());
         if (isNull(jarvisActionClass)) {
-            throw new JarvisException(MessageFormat.format("Cannot create the JarvisAction {0}, the action is not loaded " +
+            throw new JarvisException(MessageFormat.format("Cannot create the JarvisAction {0}, the action is not " +
+                    "loaded " +
                     "in the module", action.getName()));
         }
         Object[] parameterValues = getParameterValues(actionInstance, intent);
@@ -141,7 +160,8 @@ public abstract class JarvisModule {
                  */
                 try {
                     if (constructor.getParameterCount() > 0) {
-                        Log.info("Constructing {0} with the parameters {1}", jarvisActionClass.getSimpleName(), parameterValues);
+                        Log.info("Constructing {0} with the parameters {1}", jarvisActionClass.getSimpleName(),
+                                parameterValues);
                         return (JarvisAction) constructor.newInstance(parameterValues);
                     } else {
                         Log.info("Constructing {0}", jarvisActionClass.getSimpleName());
@@ -169,7 +189,7 @@ public abstract class JarvisModule {
      * returns them.
      *
      * @param actionInstance the {@link Action} definition to match the parameters from
-     * @param intent the {@link RecognizedIntent} to match the variables from
+     * @param intent         the {@link RecognizedIntent} to match the variables from
      * @return an array containing the {@link Action}'s parameters
      * @throws JarvisException if the provided {@link RecognizedIntent} does not define all the parameters required
      *                         by the action's constructor
@@ -190,7 +210,7 @@ public abstract class JarvisModule {
                     .spliterator(), false).map(param -> param.getValue()).toArray();
             Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValuesArray, parameterLength);
             System.arraycopy(outContextValues.toArray(), 0, parameterArray, actionInstanceParameterValues.size(),
-                    parameterLength -1);
+                    parameterLength - 1);
             return parameterArray;
         }
         /*

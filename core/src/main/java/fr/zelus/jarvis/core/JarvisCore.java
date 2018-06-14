@@ -17,6 +17,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -110,6 +111,16 @@ public class JarvisCore {
     }
 
     /**
+     * The {@link Configuration} used to initialize this class.
+     * <p>
+     * This {@link Configuration} is used to load and initialize modules, see
+     * {@link #loadJarvisModuleFromModuleModel(Module)} for more information on module loading.
+     *
+     * @see #loadJarvisModuleFromModuleModel(Module)
+     */
+    private Configuration configuration;
+
+    /**
      * The {@link DialogFlowApi} used to access the DialogFlow framework and send user input for
      * {@link RecognizedIntent}
      * extraction.
@@ -183,6 +194,7 @@ public class JarvisCore {
      */
     public JarvisCore(Configuration configuration) {
         checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
+        this.configuration = configuration;
         String projectId = configuration.getString(PROJECT_ID_KEY);
         String languageCode = configuration.getString(LANGUAGE_CODE_KEY);
         OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
@@ -321,13 +333,15 @@ public class JarvisCore {
     private JarvisModule loadJarvisModuleFromModuleModel(Module moduleModel) throws JarvisException {
         Log.info("Loading JarvisModule {0}", moduleModel.getName());
         try {
-            return (JarvisModule) Class.forName(moduleModel.getJarvisModulePath()).newInstance();
+            return (JarvisModule) Class.forName(moduleModel.getJarvisModulePath()).getConstructor(Configuration.class)
+                    .newInstance(this.configuration);
         } catch (ClassNotFoundException e) {
             String errorMessage = MessageFormat.format("Cannot load the module {0}, invalid path: {1}", moduleModel
                     .getName(), moduleModel.getJarvisModulePath());
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException
+                e) {
             String errorMessage = MessageFormat.format("Cannot construct an instance of the module {0}", moduleModel
                     .getName());
             Log.error(errorMessage);
