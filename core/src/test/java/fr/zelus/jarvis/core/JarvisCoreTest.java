@@ -111,7 +111,7 @@ public class JarvisCoreTest {
     public void constructMissingProjectIdInConfiguration() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL.eResource().getURI());
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
         new JarvisCore(configuration);
     }
 
@@ -119,7 +119,7 @@ public class JarvisCoreTest {
     public void constructMissingLanguageCodeInConfiguration() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL.eResource().getURI());
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
         new JarvisCore(configuration);
     }
 

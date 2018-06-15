@@ -196,11 +196,11 @@ public class JarvisCore {
         checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
         this.configuration = configuration;
         String projectId = configuration.getString(PROJECT_ID_KEY);
+        checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
         String languageCode = configuration.getString(LANGUAGE_CODE_KEY);
+        checkNotNull(languageCode, "Cannot construct a jarvis instance from a null language code");
         OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
                 (ORCHESTRATION_MODEL_KEY));
-        checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
-        checkNotNull(languageCode, "Cannot construct a jarvis instance from a null language code");
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
         this.sessionName = dialogFlowApi.createSession();
