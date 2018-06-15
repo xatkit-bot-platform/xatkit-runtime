@@ -162,6 +162,33 @@ public class JarvisCoreTest {
         checkJarvisCore(jarvisCore);
     }
 
+    @Test
+    public void constructValidDefaultModuleConstructor() {
+        /*
+         * Use another OrchestrationModel linking to the StubJarvisModuleDefaultConstructor stub class, that only
+         * defines a default constructor.
+         */
+        Module stubModule = ModuleFactory.eINSTANCE.createModule();
+        stubModule.setName("StubJarvisModuleDefaultConstructor");
+        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModuleDefaultConstructor");
+        Action stubAction = ModuleFactory.eINSTANCE.createAction();
+        stubAction.setName("StubJarvisAction");
+        // No parameters, keep it simple
+        stubModule.getActions().add(stubAction);
+        IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        stubIntentDefinition.setName("Default Welcome Intent");
+        // No parameters, keep it simple
+        stubModule.getIntentDefinitions().add(stubIntentDefinition);
+        OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
+        OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
+        link.setIntent(stubIntentDefinition);
+        ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        actionInstance.setAction(stubAction);
+        link.getActions().add(actionInstance);
+        orchestrationModel.getOrchestrationLinks().add(link);
+        JarvisCore jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel);
+    }
+
     @Test(expected = JarvisException.class)
     public void shutdownAlreadyShutdown() {
         jarvisCore = getValidJarvisCore();

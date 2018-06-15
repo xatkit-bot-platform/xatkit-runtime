@@ -339,20 +339,35 @@ public class JarvisCore {
      */
     private JarvisModule loadJarvisModuleFromModuleModel(Module moduleModel) throws JarvisException {
         Log.info("Loading JarvisModule {0}", moduleModel.getName());
+        Class<?> jarvisModuleClass = null;
         try {
-            return (JarvisModule) Class.forName(moduleModel.getJarvisModulePath()).getConstructor(Configuration.class)
-                    .newInstance(this.configuration);
+            jarvisModuleClass = Class.forName(moduleModel.getJarvisModulePath());
+            return (JarvisModule) jarvisModuleClass.getConstructor(Configuration.class).newInstance(this.configuration);
         } catch (ClassNotFoundException e) {
             String errorMessage = MessageFormat.format("Cannot load the module {0}, invalid path: {1}", moduleModel
                     .getName(), moduleModel.getJarvisModulePath());
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException
-                e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             String errorMessage = MessageFormat.format("Cannot construct an instance of the module {0}", moduleModel
                     .getName());
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
+        } catch(NoSuchMethodException e) {
+            // The configuration constructor does not exist, try to initialize the module using its default constructor
+            Log.warn("Cannot find the method {0}({1}), trying to initialize the module using its default " +
+                    "constructor", jarvisModuleClass.getSimpleName(), Configuration.class.getSimpleName());
+            try {
+                JarvisModule loadedModule = (JarvisModule) jarvisModuleClass.newInstance();
+                Log.warn("Module {0} loaded with its default constructor, the module will not be initialized with " +
+                        "jarvis configuration", jarvisModuleClass.getSimpleName());
+                return loadedModule;
+            } catch(IllegalAccessException | InstantiationException e1) {
+                String errorMessage = MessageFormat.format("Cannot construct an instance of the module {0} with the " +
+                        "default constructor", moduleModel.getName());
+                Log.error(errorMessage);
+                throw new JarvisException(e1);
+            }
         }
     }
 

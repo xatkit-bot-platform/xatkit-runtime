@@ -46,10 +46,12 @@ public abstract class JarvisModule {
     /**
      * Constructs a new {@link JarvisModule} from the provided {@link Configuration}.
      * <p>
-     * <b>Note</b>: a similar constructor has to be implemented in every subclass to enable reflective loading and
-     * invocation of {@link JarvisModule}s.
+     * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
+     * {@link JarvisModule}s. Subclasses implementing this constructor typically need additional parameters to be
+     * initialized, that can be provided in the {@code configuration}.
      *
      * @param configuration the {@link Configuration} used to initialize the {@link JarvisModule}
+     * @see #JarvisModule()
      */
     public JarvisModule(Configuration configuration) {
         /*
@@ -60,9 +62,14 @@ public abstract class JarvisModule {
     }
 
     /**
-     * Disables the default constructor to force {@link Configuration}-based constructor usage.
+     * Constructs a new {@link JarvisModule}.
+     * <p>
+     * <b>Note</b>: this constructor should be used by {@link JarvisModule}s that do not require additional
+     * parameters to be initialized. In that case see {@link #JarvisModule(Configuration)}.
+     *
+     * @see #JarvisModule(Configuration)
      */
-    private JarvisModule() {
+    public JarvisModule() {
         this.actionMap = new HashMap<>();
     }
 
