@@ -297,7 +297,13 @@ public class JarvisCore {
             ResourceSet resourceSet = new ResourceSetImpl();
             resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
                     ());
-            Resource orchestrationModelResource = resourceSet.getResource(uri, true);
+            Resource orchestrationModelResource;
+            try {
+                orchestrationModelResource = resourceSet.getResource(uri, true);
+            } catch(Exception e) {
+                throw new JarvisException(MessageFormat.format("Cannot load the OrchestrationModel at the given location: " +
+                        "{0}", uri.toString()), e);
+            }
             if (isNull(orchestrationModelResource)) {
                 String errorMessage = MessageFormat.format("Cannot load the provided orchestration model (uri: {0})",
                         uri);

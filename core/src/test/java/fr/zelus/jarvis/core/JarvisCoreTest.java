@@ -190,6 +190,57 @@ public class JarvisCoreTest {
     }
 
     @Test(expected = JarvisException.class)
+    public void getOrchestrationModelInvalidType() {
+        JarvisCore jarvisCore = getValidJarvisCore();
+        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(new Integer(2));
+    }
+
+    @Test(expected = JarvisException.class)
+    public void getOrchestrationModelFromInvalidString() {
+        JarvisCore jarvisCore = getValidJarvisCore();
+        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel("/tmp/test.xmi");
+    }
+
+    @Test(expected = JarvisException.class)
+    public void getOrchestrationModelFromInvalidURI() {
+        JarvisCore jarvisCore = getValidJarvisCore();
+        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(URI.createURI("/tmp/test.xmi"));
+    }
+
+    @Test
+    public void getOrchestrationModelFromValidInMemory() {
+        JarvisCore jarvisCore = getValidJarvisCore();
+        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL);
+        assertThat(orchestrationModel).as("Valid OrchestrationModel").isEqualTo(VALID_ORCHESTRATION_MODEL);
+    }
+
+    @Test
+    public void getOrchestrationModelFromValidString() {
+        JarvisCore jarvisCore = getValidJarvisCore();
+        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL.eResource
+                ().getURI().toString());
+        assertThat(orchestrationModel).as("Not null OrchestrationModel").isNotNull();
+        /*
+         * Not enough, but comparing the entire content of the model is more complicated than it looks like.
+         */
+        assertThat(orchestrationModel.getOrchestrationLinks()).as("Valid OrchestrationLink size").hasSize
+                (VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().size());
+    }
+
+    @Test
+    public void getOrchestrationModelFromValidURI() {
+        JarvisCore jarvisCore = getValidJarvisCore();
+        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL.eResource
+                ().getURI());
+        assertThat(orchestrationModel).as("Not null OrchestrationModel").isNotNull();
+        /*
+         * Not enough, but comparing the entire content of the model is more complicated than it looks like.
+         */
+        assertThat(orchestrationModel.getOrchestrationLinks()).as("Valid OrchestrationLink size").hasSize
+                (VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().size());
+    }
+
+    @Test(expected = JarvisException.class)
     public void shutdownAlreadyShutdown() {
         jarvisCore = getValidJarvisCore();
         jarvisCore.shutdown();
