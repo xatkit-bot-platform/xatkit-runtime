@@ -274,6 +274,11 @@ public class JarvisCore {
      *
      * @param property the {@link Object} representing the {@link OrchestrationModel} to extract
      * @return the {@link OrchestrationModel} from the provided {@code property}
+     * @throws JarvisException      if the provided {@code property} type is not handled, if the
+     *                              underlying {@link Resource} cannot be loaded or if it does not contain an
+     *                              {@link OrchestrationModel} top-level
+     *                              element, or if the loaded {@link OrchestrationModel} is empty.
+     * @throws NullPointerException if the provided {@code property} is {@code null}
      */
     protected OrchestrationModel getOrchestrationModel(Object property) {
         checkNotNull(property, "Cannot retrieve the OrchestrationModel from the property null, please ensure it is " +
@@ -300,8 +305,9 @@ public class JarvisCore {
             Resource orchestrationModelResource;
             try {
                 orchestrationModelResource = resourceSet.getResource(uri, true);
-            } catch(Exception e) {
-                throw new JarvisException(MessageFormat.format("Cannot load the OrchestrationModel at the given location: " +
+            } catch (Exception e) {
+                throw new JarvisException(MessageFormat.format("Cannot load the OrchestrationModel at the given " +
+                        "location: " +
                         "{0}", uri.toString()), e);
             }
             if (isNull(orchestrationModelResource)) {
@@ -359,7 +365,7 @@ public class JarvisCore {
                     .getName());
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
-        } catch(NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             // The configuration constructor does not exist, try to initialize the module using its default constructor
             Log.warn("Cannot find the method {0}({1}), trying to initialize the module using its default " +
                     "constructor", jarvisModuleClass.getSimpleName(), Configuration.class.getSimpleName());
@@ -368,7 +374,7 @@ public class JarvisCore {
                 Log.warn("Module {0} loaded with its default constructor, the module will not be initialized with " +
                         "jarvis configuration", jarvisModuleClass.getSimpleName());
                 return loadedModule;
-            } catch(IllegalAccessException | InstantiationException e1) {
+            } catch (IllegalAccessException | InstantiationException e1) {
                 String errorMessage = MessageFormat.format("Cannot construct an instance of the module {0} with the " +
                         "default constructor", moduleModel.getName());
                 Log.error(errorMessage);
