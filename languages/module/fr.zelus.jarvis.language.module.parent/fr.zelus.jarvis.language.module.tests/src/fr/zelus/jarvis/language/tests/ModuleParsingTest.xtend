@@ -20,9 +20,13 @@ import java.util.Collections
 class ModuleParsingTest {
 	@Inject
 	ParseHelper<Module> parseHelper
-	
+
 	@Test
 	def void loadModel() {
+		/*
+		 * This test case fails by trying to load a resource with the URI classpath:/fr/zelus/jarvis/language/Module.xmi 
+		 * that does not exist (see https://github.com/gdaniel/jarvis/issues/14)
+		 */
 //		val result = parseHelper.parse('''
 //			Hello Xtext!
 //		''')
