@@ -29,5 +29,9 @@ hs_err_pid*
 # maven
 target
 
+# Eclipse
+.project
+.settings
+
 # Google App
 jarvis-secret.json
