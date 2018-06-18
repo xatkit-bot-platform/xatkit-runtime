@@ -29,5 +29,14 @@ hs_err_pid*
 # maven
 target
 
+# Eclipse
+*.classpath
+*.project
+*.settings
+build.properties
+**/MANIFEST.MF
+plugin.properties
+plugin.xml
+
 # Google App
 jarvis-secret.json

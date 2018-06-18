@@ -12,7 +12,7 @@
 
     <artifactId>intent</artifactId>
 
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
 
     <name>jarvis intent model</name>
 
@@ -57,6 +57,30 @@
 
     <build>
         <plugins>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.groupId}.intent</Bundle-SymbolicName>
+                        <Export-Package>
+                            fr.zelus.jarvis.intent.*
+                        </Export-Package>
+                        <Embed-Dependency><!-- Inherited -->
+                            *;
+                            scope=compile|runtime;
+                            type=!pom;
+                            groupId=!${project.groupId}|fr.inria.atlanmod.commons|org.eclipse.emf|org.apache.logging.log4j
+                        </Embed-Dependency>
+                        <Require-Bundle>
+                            fr.zelus.jarvis.intent;visibility:=reexport,
+                            org.eclipse.emf.ecore;visibility:=reexport
+                        </Require-Bundle>
+                    </instructions>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>

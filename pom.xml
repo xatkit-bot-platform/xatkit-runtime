@@ -112,6 +112,29 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>3.3.0</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <instructions>
+                            <Bundle-Version>
+                                1.0.0.${maven.build.timestamp}
+                            </Bundle-Version>
+                            <Bundle-ClassPath>.,{maven-dependencies}</Bundle-ClassPath>
+                            <Import-Package />
+                            <Embed-Dependency><!-- Inherited -->
+                                *;
+                                scope=compile|runtime;
+                                type=!pom;
+                                groupId=!${project.groupId}|fr.inria.atlanmod.commons|org.eclipse.emf
+                            </Embed-Dependency>
+                            <Embed-Transitive>true</Embed-Transitive>
+                        </instructions>
+                    </configuration>
+                </plugin>
+
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>2.9.1</version>
