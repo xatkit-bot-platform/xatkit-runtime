@@ -5,8 +5,7 @@ Bundle-Vendor: My Company
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: fr.zelus.jarvis.language.module.ui.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: fr.zelus.jarvis.language.module.ui,
- org.junit;bundle-version="4.12.0",
+Require-Bundle: org.junit;bundle-version="4.12.0",
  org.eclipse.xtext.testing,
  org.eclipse.xtext.xbase.testing,
  org.eclipse.xtext.junit4,
@@ -14,7 +13,8 @@ Require-Bundle: fr.zelus.jarvis.language.module.ui,
  org.eclipse.core.runtime,
  org.eclipse.ui.workbench;resolution:=optional,
  fr.zelus.jarvis.intent;bundle-version="1.0.0",
- fr.zelus.jarvis.module;bundle-version="1.0.0"
+ fr.zelus.jarvis.module;bundle-version="1.0.0",
+ fr.zelus.jarvis.language.module.ui;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: fr.zelus.jarvis.language.ui.tests;x-internal=true
 Import-Package: org.hamcrest.core,
