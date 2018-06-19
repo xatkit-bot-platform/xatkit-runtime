@@ -30,7 +30,6 @@ hs_err_pid*
 target
 
 # Eclipse
-.project
 .settings
 
 # Google App
