@@ -6,7 +6,7 @@
 		<artifactId>fr.zelus.jarvis.language.module.parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
-	
+
 	<artifactId>fr.zelus.jarvis.language.module</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
@@ -24,22 +24,18 @@
 		<dependency>
 			<groupId>org.eclipse.emf</groupId>
 			<artifactId>org.eclipse.emf.ecore.xcore</artifactId>
-			<version>1.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.emf</groupId>
 			<artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
-			<version>1.1.100</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.xtext</groupId>
 			<artifactId>org.eclipse.xtext.ecore</artifactId>
-			<version>${xtextVersion}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.emf</groupId>
 			<artifactId>org.eclipse.emf.codegen.ecore.xtext</artifactId>
-			<version>1.2.0</version>
 		</dependency>
 	</dependencies>
 
@@ -101,7 +97,7 @@
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>xtend-maven-plugin</artifactId>
 			</plugin>
-	
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-clean-plugin</artifactId>
