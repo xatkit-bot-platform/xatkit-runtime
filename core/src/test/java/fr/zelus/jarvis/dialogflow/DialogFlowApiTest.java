@@ -5,6 +5,7 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModuleFactory;
@@ -12,6 +13,7 @@ import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import fr.zelus.jarvis.stubs.StubInputProvider;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -27,6 +29,8 @@ public class DialogFlowApiTest {
     protected static String VALID_LANGUAGE_CODE = "en-US";
 
     protected static String SAMPLE_INPUT = "hello";
+
+    protected static InputProvider VALID_INPUT_PROVIDER = new StubInputProvider();
 
     protected DialogFlowApi api;
 
@@ -53,7 +57,7 @@ public class DialogFlowApiTest {
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel, VALID_INPUT_PROVIDER);
     }
 
     @Rule

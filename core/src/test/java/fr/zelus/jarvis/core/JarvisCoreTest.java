@@ -3,6 +3,7 @@ package fr.zelus.jarvis.core;
 import fr.zelus.jarvis.dialogflow.DialogFlowException;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
+import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModuleFactory;
@@ -10,6 +11,8 @@ import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import fr.zelus.jarvis.stubs.StubInputProvider;
+import fr.zelus.jarvis.stubs.StubInputProviderDefaultConstructor;
 import fr.zelus.jarvis.stubs.StubJarvisModule;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -35,6 +38,8 @@ public class JarvisCoreTest {
     protected static String VALID_LANGUAGE_CODE = "en-US";
 
     protected static OrchestrationModel VALID_ORCHESTRATION_MODEL;
+
+    protected StubInputProvider VALID_INPUT_PROVIDER;
 
     protected JarvisCore jarvisCore;
 
@@ -80,7 +85,7 @@ public class JarvisCoreTest {
 
     @Before
     public void setUp() {
-
+        VALID_INPUT_PROVIDER = new StubInputProvider();
     }
 
     @After
@@ -98,8 +103,8 @@ public class JarvisCoreTest {
      *
      * @return a valid {@link JarvisCore} instance
      */
-    private static JarvisCore getValidJarvisCore() {
-        return new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL);
+    private JarvisCore getValidJarvisCore() {
+        return new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
@@ -137,28 +142,35 @@ public class JarvisCoreTest {
         configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
         configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
         configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
-        JarvisCore jarvisCore = new JarvisCore(configuration);
+        configuration.addProperty(JarvisCore.INPUT_PROVIDER_KEY, VALID_INPUT_PROVIDER);
+        jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullProjectId() {
-        new JarvisCore(null, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL);
+        new JarvisCore(null, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullLanguageCode() {
-        new JarvisCore(VALID_PROJECT_ID, null, VALID_ORCHESTRATION_MODEL);
+        new JarvisCore(VALID_PROJECT_ID, null, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullOrchestrationModel() {
-        new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, null);
+        new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, null, VALID_INPUT_PROVIDER);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructNullInputProvider() {
+        new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, null);
     }
 
     @Test
     public void constructValid() {
-        JarvisCore jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL,
+                VALID_INPUT_PROVIDER);
         checkJarvisCore(jarvisCore);
     }
 
@@ -186,12 +198,13 @@ public class JarvisCoreTest {
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
-        JarvisCore jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel,
+                VALID_INPUT_PROVIDER);
     }
 
     @Test(expected = JarvisException.class)
     public void getOrchestrationModelInvalidType() {
-        JarvisCore jarvisCore = getValidJarvisCore();
+        jarvisCore = getValidJarvisCore();
         OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(new Integer(2));
     }
 
@@ -209,7 +222,7 @@ public class JarvisCoreTest {
 
     @Test
     public void getOrchestrationModelFromValidInMemory() {
-        JarvisCore jarvisCore = getValidJarvisCore();
+        jarvisCore = getValidJarvisCore();
         OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL);
         assertThat(orchestrationModel).as("Valid OrchestrationModel").isEqualTo(VALID_ORCHESTRATION_MODEL);
     }
@@ -227,9 +240,52 @@ public class JarvisCoreTest {
                 (VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().size());
     }
 
+    @Test(expected = JarvisException.class)
+    public void getInputProviderInvalidType() {
+        JarvisCore jarvisCore = getValidJarvisCore();
+        InputProvider inputProvider = jarvisCore.getInputProvider(new Integer(2));
+    }
+
+    @Test(expected = JarvisException.class)
+    public void getInputProviderFromInvalidString() {
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.getInputProvider("test");
+    }
+
+    @Test
+    public void getInputProviderFromValidInMemory() {
+        jarvisCore = getValidJarvisCore();
+        InputProvider inputProvider = jarvisCore.getInputProvider(VALID_INPUT_PROVIDER);
+        assertThat(inputProvider).as("Valid InputProvider").isEqualTo(VALID_INPUT_PROVIDER);
+    }
+
+    @Test
+    public void getInputProviderFromValidStringConfigurationConstructor() {
+        jarvisCore = getValidJarvisCore();
+        InputProvider inputProvider = jarvisCore.getInputProvider("fr.zelus.jarvis.stubs.StubInputProvider");
+        assertThat(inputProvider).as("Not null InputProvider").isNotNull();
+        assertThat(inputProvider.getClass()).as("Valid InputProvider").isEqualTo(StubInputProvider.class);
+    }
+
+    @Test
+    public void getInputProviderFromValidStringDefaultConstructor() {
+        jarvisCore = getValidJarvisCore();
+        InputProvider inputProvider = jarvisCore.getInputProvider("fr.zelus.jarvis.stubs" +
+                ".StubInputProviderDefaultConstructor");
+        assertThat(inputProvider).as("Not null InputProvider").isNotNull();
+        assertThat(inputProvider.getClass()).as("Valid InputProvider").isEqualTo(StubInputProviderDefaultConstructor
+                .class);
+    }
+
+    @Test(expected = JarvisException.class)
+    public void getInputProviderFromValidStringInvalidType() {
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.getInputProvider("fr.zelus.jarvis.stubs.StubJarvisModule");
+    }
+
     @Test
     public void getOrchestrationModelFromValidURI() {
-        JarvisCore jarvisCore = getValidJarvisCore();
+        jarvisCore = getValidJarvisCore();
         OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL.eResource
                 ().getURI());
         assertThat(orchestrationModel).as("Not null OrchestrationModel").isNotNull();
@@ -257,6 +313,7 @@ public class JarvisCoreTest {
         softly.assertThatThrownBy(() -> JarvisCore.getInstance()).as("Null JarvisCore Instance").isInstanceOf
                 (NullPointerException.class).hasMessage("Cannot retrieve the JarvisCore instance, make sure to " +
                 "initialize it first");
+        softly.assertThat(jarvisCore.getInputConsumerThread().isAlive()).as("Not alive InputConsumer Thread").isFalse();
     }
 
     @Test(expected = NullPointerException.class)
@@ -314,6 +371,11 @@ public class JarvisCoreTest {
         softly.assertThat(jarvisCore.getSessionName().getProject()).as("Valid SessionName project ID").isEqualTo
                 (VALID_PROJECT_ID);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
+        assertThat(jarvisCore.getInputConsumer()).as("Not null InputConsumer").isNotNull();
+        softly.assertThat(jarvisCore.getInputConsumer().getInputProvider()).as("Valid InputProvider").isEqualTo
+                (VALID_INPUT_PROVIDER);
+        assertThat(jarvisCore.getInputConsumerThread()).as("Not null InputConsumer thread").isNotNull();
+        softly.assertThat(jarvisCore.getInputConsumerThread().isAlive()).as("Input consumer thread started").isTrue();
     }
 
 }
