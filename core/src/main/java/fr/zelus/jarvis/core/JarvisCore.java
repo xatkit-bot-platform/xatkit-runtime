@@ -169,6 +169,14 @@ public class JarvisCore {
     private OrchestrationService orchestrationService;
 
     /**
+     * The {@link InputProvider} used to collect inputs.
+     * <p>
+     * This {@code inputProvider}'s instance is connected to the {@link #inputConsumer}, closing it should invalidate
+     * the consumer's stream and close it has well.
+     */
+    private InputProvider inputProvider;
+
+    /**
      * The {@link LineInputConsumer} used to retrieve input from the provided {@link InputProvider}.
      * <p>
      * This instance is initialized by {@link JarvisCore} constructor, and wrapped in the
@@ -232,7 +240,7 @@ public class JarvisCore {
         OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
                 (ORCHESTRATION_MODEL_KEY));
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
-        InputProvider inputProvider = getInputProvider(configuration.getProperty(INPUT_PROVIDER_KEY));
+        inputProvider = getInputProvider(configuration.getProperty(INPUT_PROVIDER_KEY));
         checkNotNull(inputProvider, "Cannot construct a jarvis instance from a null InputProvider");
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
         this.sessionName = dialogFlowApi.createSession();
@@ -546,7 +554,18 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link LineInputConsumer} associated to this class
+     * Returns the {@link InputProvider} associated to this class.
+     * <p>
+     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
+     *
+     * @return the {@link InputProvider} associated to this class
+     */
+    protected InputProvider getInputProvider() {
+        return inputProvider;
+    }
+
+    /**
+     * Returns the {@link LineInputConsumer} associated to this class.
      * <p>
      * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
      *
@@ -598,8 +617,8 @@ public class JarvisCore {
      * <p>
      * This method shuts down the underlying {@link DialogFlowApi}, unloads all the {@link JarvisModule}s associated to
      * this instance, unregisters the {@link fr.zelus.jarvis.intent.IntentDefinition} from the associated
-     * {@link IntentDefinitionRegistry}, shuts down the {@link #executorService}, and interrupt the
-     * {@link #inputConsumerThread}.
+     * {@link IntentDefinitionRegistry}, shuts down the {@link #executorService}, closes the {@link #inputProvider},
+     * and interrupts the {@link #inputConsumerThread}.
      * <p>
      * Once shutdown, the {@link JarvisCore} instance can not be retrieved using {@link JarvisCore#getInstance()}
      * static method.
@@ -615,10 +634,11 @@ public class JarvisCore {
         }
         // Shutdown the executor first in case there are running tasks using the DialogFlow API.
         this.executorService.shutdownNow();
+        inputProvider.close();
         inputConsumerThread.interrupt();
         try {
             inputConsumerThread.join(1000);
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             Log.warn("Received an InterruptedException when waiting for InputConsumer Thread to finish");
         }
         this.dialogFlowApi.shutdown();

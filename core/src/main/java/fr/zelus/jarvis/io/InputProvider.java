@@ -1,7 +1,11 @@
 package fr.zelus.jarvis.io;
 
+import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.JarvisException;
+import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
+import java.io.IOException;
 import java.io.PipedOutputStream;
 
 /**
@@ -28,7 +32,7 @@ public abstract class InputProvider {
      * parameters to be initialized. In that case see {@link #InputProvider(Configuration)}.
      */
     public InputProvider() {
-        outputStream = new PipedOutputStream();
+        this(new BaseConfiguration());
     }
 
     /**
@@ -46,7 +50,7 @@ public abstract class InputProvider {
          * Do nothing with the configuration, it can be used by subclasses that require additional initialization
          * information.
          */
-        this();
+        outputStream = new PipedOutputStream();
     }
 
     /**
@@ -59,5 +63,21 @@ public abstract class InputProvider {
      */
     public PipedOutputStream getOutputStream() {
         return outputStream;
+    }
+
+    /**
+     * Closes the {@link InputProvider} and release its resources.
+     * <p>
+     * This method closes the underlying {@link #outputStream}. Subclasses must override this method to close
+     * additional resources such as message handlers, websockets, or additional threads.
+     */
+    public void close() {
+        try {
+            this.outputStream.close();
+        } catch (IOException e) {
+            String errorMessage = "Cannot close the InputProvider's output stream";
+            Log.error(errorMessage);
+            throw new JarvisException(errorMessage, e);
+        }
     }
 }

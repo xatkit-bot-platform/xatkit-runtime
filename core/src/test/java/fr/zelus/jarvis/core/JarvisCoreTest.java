@@ -371,6 +371,8 @@ public class JarvisCoreTest {
         softly.assertThat(jarvisCore.getSessionName().getProject()).as("Valid SessionName project ID").isEqualTo
                 (VALID_PROJECT_ID);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
+        assertThat(jarvisCore.getInputProvider()).as("Not null InputProvider").isNotNull();
+        softly.assertThat(jarvisCore.getInputProvider()).as("Valid InputProvider").isEqualTo(VALID_INPUT_PROVIDER);
         assertThat(jarvisCore.getInputConsumer()).as("Not null InputConsumer").isNotNull();
         softly.assertThat(jarvisCore.getInputConsumer().getInputProvider()).as("Valid InputProvider").isEqualTo
                 (VALID_INPUT_PROVIDER);
