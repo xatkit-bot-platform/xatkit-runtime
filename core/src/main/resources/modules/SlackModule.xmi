@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ASCII"?>
+<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="SlackModule" jarvisModulePath="fr.zelus.jarvis.slack.module.SlackModule">
+  <actions name="PostMessage">
+    <parameters key="message" type="String"/>
+    <parameters key="channel" type="String"/>
+  </actions>
+</module:Module>
