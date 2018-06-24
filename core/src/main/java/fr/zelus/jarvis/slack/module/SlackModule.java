@@ -25,6 +25,9 @@ public class SlackModule extends JarvisModule {
      * <p>
      * This token is retrieved from this class' {@link Configuration} constructor parameter, and is used to
      * authenticate  the bot and post messages through the Slack API.
+     * <p>
+     * This field should not be {@code public} nor {@code static}, see the
+     * <a href="https://github.com/gdaniel/jarvis/issues/16">corresponding issue on GitHub</a>
      *
      * @see #SlackModule(Configuration)
      */
@@ -32,6 +35,9 @@ public class SlackModule extends JarvisModule {
 
     /**
      * The {@link Slack} API client used to post messages.
+     * <p>
+     * This field should not be {@code public} nor {@code static}, see the
+     * <a href="https://github.com/gdaniel/jarvis/issues/16">corresponding issue on GitHub</a>
      */
     public static Slack slack;
 
