@@ -34,3 +34,6 @@ target
 
 # Google App
 jarvis-secret.json
+
+# Test Variables
+**/test-variables.properties
