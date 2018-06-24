@@ -74,4 +74,36 @@ public class ModuleCreatorUtil {
         }
         return resource;
     }
+
+    public static Resource createSlackModule() {
+        ModuleFactory moduleFactory = ModuleFactory.eINSTANCE;
+        Module module = moduleFactory.createModule();
+        module.setName("Slack");
+        module.setJarvisModulePath("fr.zelus.jarvis.slack.module.SlackModule");
+        Action postMessageAction = moduleFactory.createAction();
+        postMessageAction.setName("PostMessage");
+        Parameter messageParam = moduleFactory.createParameter();
+        messageParam.setKey("message");
+        messageParam.setType("String");
+        Parameter channelParam = moduleFactory.createParameter();
+        channelParam.setKey("channel");
+        channelParam.setType("String");
+        postMessageAction.getParameters().add(messageParam);
+        postMessageAction.getParameters().add(channelParam);
+
+        module.getActions().add(postMessageAction);
+
+        ResourceSet rSet = new ResourceSetImpl();
+        rSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
+        Resource resource = rSet.createResource(URI.createURI("/tmp/jarvis/test/slackModule.xmi"));
+        resource.getContents().clear();
+        resource.getContents().add(module);
+        try {
+            resource.save(Collections.emptyMap());
+        } catch (IOException e) {
+            Log.warn("Cannot save the LogModule resource (uri={0}), returning an in-memory instance", resource.getURI
+                    ());
+        }
+        return resource;
+    }
 }
