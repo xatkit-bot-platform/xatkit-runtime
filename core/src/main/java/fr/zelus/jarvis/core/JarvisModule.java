@@ -216,8 +216,13 @@ public abstract class JarvisModule {
             Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
                     .spliterator(), false).map(param -> param.getValue()).toArray();
             Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValuesArray, parameterLength);
-            System.arraycopy(outContextValues.toArray(), 0, parameterArray, actionInstanceParameterValues.size(),
-                    parameterLength - 1);
+            if(outContextValues.size() > 0) {
+                /*
+                 * Do not copy if there is nothing to copy (need to be tested)
+                 */
+                System.arraycopy(outContextValues.toArray(), 0, parameterArray, actionInstanceParameterValues.size(),
+                        parameterLength - 1);
+            }
             return parameterArray;
         }
         /*
