@@ -5,7 +5,7 @@ package fr.zelus.jarvis.intent
 class IntentDefinition {
     String name
     contains IntentParameter[] outContextParameters
-    // trainingSentences ...
+    String[] trainingSentences
 }
 
 class RecognizedIntent {
