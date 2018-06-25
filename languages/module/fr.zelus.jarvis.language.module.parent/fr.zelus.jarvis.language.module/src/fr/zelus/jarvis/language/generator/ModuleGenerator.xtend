@@ -3,6 +3,7 @@
  */
 package fr.zelus.jarvis.language.generator
 
+import java.util.Collections
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
@@ -16,10 +17,14 @@ import org.eclipse.xtext.generator.IGeneratorContext
 class ModuleGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//		fsa.generateFile('greetings.txt', 'People to greet: ' + 
-//			resource.allContents
-//				.filter(Greeting)
-//				.map[name]
-//				.join(', '))
+		val uri = resource.URI
+		var rr = resource.resourceSet.createResource(uri.trimFileExtension.appendFileExtension("xmi"))
+		/*
+		 * Clear the content of the resource, the output resource is created each time save is called, and may already 
+		 * contain elements from a previous save.
+		 */
+		rr.contents.clear
+		rr.contents.addAll(resource.contents)
+		rr.save(Collections.emptyMap())
 	}
 }
