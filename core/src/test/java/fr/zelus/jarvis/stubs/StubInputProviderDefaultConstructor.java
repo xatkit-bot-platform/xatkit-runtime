@@ -1,16 +1,21 @@
 package fr.zelus.jarvis.stubs;
 
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.io.InputProvider;
-
-import java.io.PrintWriter;
 
 public class StubInputProviderDefaultConstructor extends InputProvider {
 
-    private PrintWriter writer;
+    public StubInputProviderDefaultConstructor(JarvisCore jarvisCore) {
+        super(jarvisCore);
+    }
 
-    public StubInputProviderDefaultConstructor() {
-        super();
-        writer = new PrintWriter(outputStream, true);
+    public void write(String message) {
+        jarvisCore.handleMessage(message);
+    }
+
+    @Override
+    public void run() {
+        // do nothing
     }
 
 }

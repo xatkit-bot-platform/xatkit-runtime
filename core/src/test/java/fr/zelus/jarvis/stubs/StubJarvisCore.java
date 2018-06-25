@@ -1,7 +1,6 @@
 package fr.zelus.jarvis.stubs;
 
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 
@@ -23,7 +22,8 @@ public class StubJarvisCore extends JarvisCore {
     protected static OrchestrationModel VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE
             .createOrchestrationModel();
 
-    protected static InputProvider VALID_INPUT_PROVIDER = new StubInputProvider();
+    protected static Class<StubInputProvider> VALID_INPUT_PROVIDER_CLAZZ = StubInputProvider.class;
+
 
     /**
      * The {@link List} of messages that have been handled by this instance.
@@ -36,7 +36,7 @@ public class StubJarvisCore extends JarvisCore {
      * Constructs a valid {@link StubJarvisCore} instance.
      */
     public StubJarvisCore() {
-        super(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER);
+        super(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER_CLAZZ);
         this.handledMessages = new ArrayList<>();
     }
 

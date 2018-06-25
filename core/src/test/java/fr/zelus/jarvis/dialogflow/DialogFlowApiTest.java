@@ -5,7 +5,6 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.intent.RecognizedIntent;
-import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModuleFactory;
@@ -30,7 +29,7 @@ public class DialogFlowApiTest {
 
     protected static String SAMPLE_INPUT = "hello";
 
-    protected static InputProvider VALID_INPUT_PROVIDER = new StubInputProvider();
+    protected static Class<StubInputProvider> VALID_INPUT_PROVIDER_CLAZZ = StubInputProvider.class;
 
     protected DialogFlowApi api;
 
@@ -57,7 +56,7 @@ public class DialogFlowApiTest {
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel, VALID_INPUT_PROVIDER);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel, VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Rule

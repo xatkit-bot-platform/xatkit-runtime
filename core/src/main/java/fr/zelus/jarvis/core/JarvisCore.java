@@ -5,7 +5,6 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.io.InputProvider;
-import fr.zelus.jarvis.io.LineInputConsumer;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.orchestration.ActionInstance;
@@ -98,25 +97,25 @@ public class JarvisCore {
      * Builds a {@link Configuration} holding the provided {@code projectId}, {@code languageCode}, and {@code
      * orchestrationModel}.
      * <p>
-     * This method is called by {@link #JarvisCore(String, String, OrchestrationModel, InputProvider)} to setup the
+     * This method is called by {@link #JarvisCore(String, String, OrchestrationModel, Class)} to setup the
      * {@link Configuration} that is forwarded to the base constructor {@link #JarvisCore(Configuration)}.
      *
      * @param projectId          the unique identifier of the DialogFlow project
      * @param languageCode       the code of the language processed by DialogFlow
      * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
-     * @param inputProvider      the {@link InputProvider} to receive input from
+     * @param inputProviderClazz      the {@link InputProvider}'s {@link Class} to instantiate to receive inputs from
      * @return the {@link Configuration} holding the provided {@code projectId}, {@code languageCode}, and {@code
      * orchestrationModel}
      * @see #JarvisCore(Configuration)
-     * @see #JarvisCore(String, String, OrchestrationModel, InputProvider)
+     * @see #JarvisCore(String, String, OrchestrationModel, Class)
      */
     protected static Configuration buildConfiguration(String projectId, String languageCode, OrchestrationModel
-            orchestrationModel, InputProvider inputProvider) {
+            orchestrationModel, Class<? extends InputProvider> inputProviderClazz) {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(PROJECT_ID_KEY, projectId);
         configuration.addProperty(LANGUAGE_CODE_KEY, languageCode);
         configuration.addProperty(ORCHESTRATION_MODEL_KEY, orchestrationModel);
-        configuration.addProperty(INPUT_PROVIDER_KEY, inputProvider);
+        configuration.addProperty(INPUT_PROVIDER_KEY, inputProviderClazz);
         return configuration;
     }
 
@@ -171,26 +170,22 @@ public class JarvisCore {
     /**
      * The {@link InputProvider} used to collect inputs.
      * <p>
-     * This {@code inputProvider}'s instance is connected to the {@link #inputConsumer}, closing it should invalidate
-     * the consumer's stream and close it has well.
+     * The {@link InputProvider} instance runs in a dedicated {@link Thread} {@link #inputProviderThread} that can be
+     * interrupted using {@link JarvisCore#shutdown()}.
+     *
+     * @see #shutdown()
      */
     private InputProvider inputProvider;
 
-    /**
-     * The {@link LineInputConsumer} used to retrieve input from the provided {@link InputProvider}.
-     * <p>
-     * This instance is initialized by {@link JarvisCore} constructor, and wrapped in the
-     * {@link #inputConsumerThread} that takes care of running the consumer.
-     *
-     * @see #JarvisCore(Configuration)
-     */
-    private LineInputConsumer inputConsumer;
 
     /**
-     * The {@link Thread} used to run the {@link LineInputConsumer} instance and retrieve input from the provided
-     * {@link InputProvider}.
+     * The {@link Thread} used to run the {@link InputProvider} instance.
+     * <p>
+     * This {@link Thread} is automatically interrupted when calling {@link JarvisCore#shutdown()}.
+     *
+     * @see #shutdown()
      */
-    private Thread inputConsumerThread;
+    private Thread inputProviderThread;
 
     /**
      * The {@link ExecutorService} used to process {@link JarvisAction}s returned by the registered
@@ -217,7 +212,7 @@ public class JarvisCore {
      * application. This constructor takes care of loading the {@link JarvisModule}s associated to the provided
      * {@code orchestrationModel} and enables the corresponding {@link JarvisAction}s.
      * <p>
-     * The provided {@link InputProvider} is bound to the local {@link LineInputConsumer} and used to retrieve user
+     * The provided {@link InputProvider} is run in a dedicated {@link Thread} and uses this class to provide user
      * inputs.
      * <p>
      * Once constructed, this class can be globally retrieved by using {@link JarvisCore#getInstance()} method.
@@ -242,6 +237,7 @@ public class JarvisCore {
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
         inputProvider = getInputProvider(configuration.getProperty(INPUT_PROVIDER_KEY));
         checkNotNull(inputProvider, "Cannot construct a jarvis instance from a null InputProvider");
+        this.inputProviderThread = new Thread(inputProvider);
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
         this.sessionName = dialogFlowApi.createSession();
         /*
@@ -270,8 +266,6 @@ public class JarvisCore {
                 jarvisModule.enableAction(action);
             }
         }
-        this.inputConsumer = new LineInputConsumer(this, inputProvider);
-        this.inputConsumerThread = new Thread(inputConsumer);
         /*
          * The instance is correctly constructed, set it as the global instance of this class.
          */
@@ -280,7 +274,7 @@ public class JarvisCore {
                     this, INSTANCE);
         }
         INSTANCE = this;
-        this.inputConsumerThread.start();
+        this.inputProviderThread.start();
     }
 
     /**
@@ -299,7 +293,7 @@ public class JarvisCore {
      * @param projectId          the unique identifier of the DialogFlow project
      * @param languageCode       the code of the language processed by DialogFlow
      * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
-     * @param inputProvider      the {@link InputProvider} to receive input from
+     * @param inputProviderClazz      the {@link InputProvider}'s {@link Class} to instantiate to receive inputs from
      * @throws NullPointerException if the provided {@code projectId}, {@code languageCode}, {@code
      *                              orchestrationModel}, or {@code inputProvider} is {@code null}
      * @throws JarvisException      if the framework is not able to retrieve the {@link OrchestrationModel}
@@ -307,9 +301,9 @@ public class JarvisCore {
      * @see OrchestrationModel
      * @see InputProvider
      */
-    public JarvisCore(String projectId, String languageCode, OrchestrationModel orchestrationModel, InputProvider
-            inputProvider) {
-        this(buildConfiguration(projectId, languageCode, orchestrationModel, inputProvider));
+    public JarvisCore(String projectId, String languageCode, OrchestrationModel orchestrationModel, Class<
+            ? extends InputProvider> inputProviderClazz) {
+        this(buildConfiguration(projectId, languageCode, orchestrationModel, inputProviderClazz));
     }
 
     /**
@@ -389,7 +383,7 @@ public class JarvisCore {
     /**
      * Retrieves the {@link InputProvider} from the provided {@code property}.
      * <p>
-     * This method checks if the provided {@code property} is alread an in-memory {@link InputProvider} instance, or
+     * This method checks if the provided {@code property} is a loaded {@link InputProvider}'s {@link Class}, or
      * if it is defined by a {@link String} representing the fully qualified name of the {@link InputProvider}
      * subclass to load. In that case, the method attempts to load the class using its {@link ClassLoader}, and
      * constructs a new instance of it using the provided {@code configuration}. If there is no constructor with a
@@ -405,48 +399,18 @@ public class JarvisCore {
         checkNotNull(property, "Cannot retrieve the InputProvider from the property null, please ensure it is set in " +
                 "the %s property of the jarvis configuration", INPUT_PROVIDER_KEY);
         checkNotNull(configuration, "Cannot create an InputProvider instance from a null configuration");
-        if (property instanceof InputProvider) {
-            return (InputProvider) property;
-        } else if (property instanceof String) {
-            Class<? extends InputProvider> clazz = null;
+        Class<? extends InputProvider> clazz = null;
+        if(property instanceof String) {
             try {
                 clazz = (Class<? extends InputProvider>) this.getClass().getClassLoader().loadClass((String) property);
-                Log.info("Loading {0} InputProvider", clazz.getSimpleName());
-                Constructor<? extends InputProvider> constructor = clazz.getConstructor(Configuration.class);
-                return constructor.newInstance(configuration);
             } catch (ClassNotFoundException e) {
                 String errorMessage = MessageFormat.format("Cannot find the InputProvider with the name {0}", property);
                 Log.error(errorMessage);
                 throw new JarvisException(errorMessage, e);
-            } catch (ClassCastException e) {
-                String errorMessage = MessageFormat.format("The class {0} is not a subclass of InputProvider",
-                        property);
-                Log.error(errorMessage);
-                throw new JarvisException(errorMessage, e);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                String errorMessage = MessageFormat.format("An error occured when calling {0}({1}), see attached " +
-                        "exception", clazz.getSimpleName(), Configuration.class.getSimpleName());
-                Log.error(errorMessage);
-                throw new JarvisException(errorMessage, e);
-            } catch (NoSuchMethodException e) {
-                /*
-                 * The configuration constructor does not exist, try to initialize the InputProvider using its
-                 * default constructor.
-                 */
-                Log.warn("Cannot find the method {0}({1}), trying to initialize the InputProvider using its default " +
-                        "constructor", clazz.getSimpleName(), Configuration.class.getSimpleName());
-                try {
-                    InputProvider inputProvider = clazz.newInstance();
-                    Log.warn("{0} loaded with its default constructor, the InputProvider will not be initialized with" +
-                            " the jarvis configuration", clazz.getSimpleName());
-                    return inputProvider;
-                } catch (InstantiationException | IllegalAccessException e1) {
-                    String errorMessage = MessageFormat.format("Cannot construct an instance of {0} with its default " +
-                            "constructor", clazz.getSimpleName());
-                    Log.error(errorMessage);
-                    throw new JarvisException(errorMessage, e1);
-                }
             }
+        } else if(property instanceof Class) {
+            clazz = (Class<? extends InputProvider>) property;
+            ;
         } else {
             // Unknown property type
             String errorMessage = MessageFormat.format("Cannot retrieve the InputProvider from the provided " +
@@ -454,6 +418,48 @@ public class JarvisCore {
                     .getSimpleName());
             Log.error(errorMessage);
             throw new JarvisException(errorMessage);
+        }
+        try {
+            Log.info("Loading {0} InputProvider", clazz.getSimpleName());
+            Constructor<? extends InputProvider> constructor = clazz.getConstructor(JarvisCore.class, Configuration
+                    .class);
+            return constructor.newInstance(this, configuration);
+        } catch (ClassCastException e) {
+            String errorMessage = MessageFormat.format("The class {0} is not a subclass of InputProvider",
+                    property);
+            Log.error(errorMessage);
+            throw new JarvisException(errorMessage, e);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            String errorMessage = MessageFormat.format("An error occured when calling {0}({1},{2}), see attached " +
+                    "exception", clazz.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration.class
+                    .getSimpleName());
+            Log.error(errorMessage);
+            throw new JarvisException(errorMessage, e);
+        } catch (NoSuchMethodException e) {
+            /*
+             * The configuration constructor does not exist, try to initialize the InputProvider using its
+             * default constructor.
+             */
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the InputProvider using its " +
+                    "{0}({1}) constructor", clazz.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
+                    .class.getSimpleName());
+            try {
+                Constructor<? extends InputProvider> constructor = clazz.getConstructor(JarvisCore.class);
+                InputProvider inputProvider = (InputProvider) constructor.newInstance(this);
+                Log.warn("{0} loaded with its {0}({1}) constructor, the InputProvider will not be initialized " +
+                        "with the jarvis configuration", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
+                return inputProvider;
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e1) {
+                String errorMessage = MessageFormat.format("Cannot construct an instance of {0} with the " +
+                        "{0}({1}) constructor", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
+                Log.error(errorMessage);
+                throw new JarvisException(errorMessage, e1);
+            } catch (NoSuchMethodException e1) {
+                String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+                        "not exist", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
+                Log.error(errorMessage);
+                throw new JarvisException(errorMessage, e1);
+            }
         }
     }
 
@@ -565,25 +571,14 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link LineInputConsumer} associated to this class.
+     * Returns the {@link Thread} used to run the {@link InputProvider}.
      * <p>
      * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
      *
-     * @return the {@link LineInputConsumer} associated to this class
+     * @return the {@link Thread} used to run the {@link InputProvider}
      */
-    protected LineInputConsumer getInputConsumer() {
-        return inputConsumer;
-    }
-
-    /**
-     * Returns the {@link Thread} running the {@link LineInputConsumer} associated to this class
-     * <p>
-     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
-     *
-     * @return the {@link Thread} running the {@link LineInputConsumer} associated to this class
-     */
-    protected Thread getInputConsumerThread() {
-        return inputConsumerThread;
+    protected Thread getInputProviderThread() {
+        return inputProviderThread;
     }
 
     /**
@@ -618,7 +613,7 @@ public class JarvisCore {
      * This method shuts down the underlying {@link DialogFlowApi}, unloads all the {@link JarvisModule}s associated to
      * this instance, unregisters the {@link fr.zelus.jarvis.intent.IntentDefinition} from the associated
      * {@link IntentDefinitionRegistry}, shuts down the {@link #executorService}, closes the {@link #inputProvider},
-     * and interrupts the {@link #inputConsumerThread}.
+     * and interrupts the {@link #inputProviderThread}.
      * <p>
      * Once shutdown, the {@link JarvisCore} instance can not be retrieved using {@link JarvisCore#getInstance()}
      * static method.
@@ -635,11 +630,11 @@ public class JarvisCore {
         // Shutdown the executor first in case there are running tasks using the DialogFlow API.
         this.executorService.shutdownNow();
         inputProvider.close();
-        inputConsumerThread.interrupt();
+        inputProviderThread.interrupt();
         try {
-            inputConsumerThread.join(1000);
+            inputProviderThread.join(1000);
         } catch (InterruptedException e) {
-            Log.warn("Received an InterruptedException when waiting for InputConsumer Thread to finish");
+            Log.warn("Received an InterruptedException when waiting for InputProvider Thread to finish");
         }
         this.dialogFlowApi.shutdown();
         this.sessionName = null;

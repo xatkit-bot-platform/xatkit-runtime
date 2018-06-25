@@ -39,7 +39,7 @@ public class JarvisCoreTest {
 
     protected static OrchestrationModel VALID_ORCHESTRATION_MODEL;
 
-    protected StubInputProvider VALID_INPUT_PROVIDER;
+    protected Class<StubInputProvider> VALID_INPUT_PROVIDER_CLAZZ;
 
     protected JarvisCore jarvisCore;
 
@@ -85,7 +85,7 @@ public class JarvisCoreTest {
 
     @Before
     public void setUp() {
-        VALID_INPUT_PROVIDER = new StubInputProvider();
+        VALID_INPUT_PROVIDER_CLAZZ = StubInputProvider.class;
     }
 
     @After
@@ -104,7 +104,8 @@ public class JarvisCoreTest {
      * @return a valid {@link JarvisCore} instance
      */
     private JarvisCore getValidJarvisCore() {
-        return new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER);
+        return new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL,
+                VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Test(expected = NullPointerException.class)
@@ -142,24 +143,24 @@ public class JarvisCoreTest {
         configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
         configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
         configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
-        configuration.addProperty(JarvisCore.INPUT_PROVIDER_KEY, VALID_INPUT_PROVIDER);
+        configuration.addProperty(JarvisCore.INPUT_PROVIDER_KEY, VALID_INPUT_PROVIDER_CLAZZ);
         jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullProjectId() {
-        new JarvisCore(null, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER);
+        new JarvisCore(null, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullLanguageCode() {
-        new JarvisCore(VALID_PROJECT_ID, null, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER);
+        new JarvisCore(VALID_PROJECT_ID, null, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullOrchestrationModel() {
-        new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, null, VALID_INPUT_PROVIDER);
+        new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, null, VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Test(expected = NullPointerException.class)
@@ -170,7 +171,7 @@ public class JarvisCoreTest {
     @Test
     public void constructValid() {
         jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL,
-                VALID_INPUT_PROVIDER);
+                VALID_INPUT_PROVIDER_CLAZZ);
         checkJarvisCore(jarvisCore);
     }
 
@@ -199,7 +200,7 @@ public class JarvisCoreTest {
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
         jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel,
-                VALID_INPUT_PROVIDER);
+                VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Test(expected = JarvisException.class)
@@ -255,8 +256,8 @@ public class JarvisCoreTest {
     @Test
     public void getInputProviderFromValidInMemory() {
         jarvisCore = getValidJarvisCore();
-        InputProvider inputProvider = jarvisCore.getInputProvider(VALID_INPUT_PROVIDER);
-        assertThat(inputProvider).as("Valid InputProvider").isEqualTo(VALID_INPUT_PROVIDER);
+        InputProvider inputProvider = jarvisCore.getInputProvider(VALID_INPUT_PROVIDER_CLAZZ);
+        assertThat(inputProvider).as("Valid InputProvider").isInstanceOf(VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Test
@@ -313,7 +314,7 @@ public class JarvisCoreTest {
         softly.assertThatThrownBy(() -> JarvisCore.getInstance()).as("Null JarvisCore Instance").isInstanceOf
                 (NullPointerException.class).hasMessage("Cannot retrieve the JarvisCore instance, make sure to " +
                 "initialize it first");
-        softly.assertThat(jarvisCore.getInputConsumerThread().isAlive()).as("Not alive InputConsumer Thread").isFalse();
+        softly.assertThat(jarvisCore.getInputProviderThread().isAlive()).as("Not alive InputProvider Thread").isFalse();
     }
 
     @Test(expected = NullPointerException.class)
@@ -372,12 +373,10 @@ public class JarvisCoreTest {
                 (VALID_PROJECT_ID);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
         assertThat(jarvisCore.getInputProvider()).as("Not null InputProvider").isNotNull();
-        softly.assertThat(jarvisCore.getInputProvider()).as("Valid InputProvider").isEqualTo(VALID_INPUT_PROVIDER);
-        assertThat(jarvisCore.getInputConsumer()).as("Not null InputConsumer").isNotNull();
-        softly.assertThat(jarvisCore.getInputConsumer().getInputProvider()).as("Valid InputProvider").isEqualTo
-                (VALID_INPUT_PROVIDER);
-        assertThat(jarvisCore.getInputConsumerThread()).as("Not null InputConsumer thread").isNotNull();
-        softly.assertThat(jarvisCore.getInputConsumerThread().isAlive()).as("Input consumer thread started").isTrue();
+        softly.assertThat(jarvisCore.getInputProvider()).as("Valid InputProvider").isInstanceOf
+                (VALID_INPUT_PROVIDER_CLAZZ);
+        assertThat(jarvisCore.getInputProviderThread()).as("Not null InputProvider Thread").isNotNull();
+        softly.assertThat(jarvisCore.getInputProviderThread().isAlive()).as("Input provider Thread started").isTrue();
     }
 
 }
