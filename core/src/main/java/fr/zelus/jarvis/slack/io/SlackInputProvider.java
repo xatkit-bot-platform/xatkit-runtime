@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.slack.JarvisSlackUtils;
@@ -13,14 +14,11 @@ import org.apache.commons.configuration2.Configuration;
 
 import javax.websocket.DeploymentException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.MessageFormat;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static fr.zelus.jarvis.slack.JarvisSlackUtils.HELLO_TYPE;
-import static fr.zelus.jarvis.slack.JarvisSlackUtils.MESSAGE_TYPE;
-import static fr.zelus.jarvis.slack.JarvisSlackUtils.SLACK_TOKEN_KEY;
+import static fr.zelus.jarvis.slack.JarvisSlackUtils.*;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -58,16 +56,11 @@ public class SlackInputProvider extends InputProvider {
     private JsonParser jsonParser;
 
     /**
-     * The {@link PrintWriter} used to write received messages to the {@link #outputStream}.
-     */
-    private PrintWriter writer;
-
-
-    /**
-     * Constructs a new {@link SlackInputProvider} from the provided {@link Configuration}.
+     * Constructs a new {@link SlackInputProvider} from the provided {@link JarvisCore} and {@link Configuration}.
      * <p>
      * This constructor initializes the underlying RTM connection and creates a message listener that forwards to
-     * the output stream not empty direct messages sent by users (not bots) to the Slack bot associated to this class.
+     * the {@code jarvisCore} instance not empty direct messages sent by users (not bots) to the Slack bot associated
+     * to this class.
      * <p>
      * <b>Note:</b> {@link SlackInputProvider} requires a valid Slack bot API token to be initialized, and calling
      * the default constructor will throw a {@link IllegalArgumentException} when looking for the Slack bot API token.
@@ -76,14 +69,13 @@ public class SlackInputProvider extends InputProvider {
      * @throws NullPointerException     if the provided {@link Configuration} is {@code null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
      */
-    public SlackInputProvider(Configuration configuration) {
-        super(configuration);
+    public SlackInputProvider(JarvisCore jarvisCore, Configuration configuration) {
+        super(jarvisCore, configuration);
         checkNotNull(configuration, "Cannot construct a SlackInputProvider from a null configuration");
         this.slackToken = configuration.getString(SLACK_TOKEN_KEY);
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackInputProvider from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SLACK_TOKEN_KEY);
-        this.writer = new PrintWriter(outputStream, true);
         Slack slack = new Slack();
         try {
             this.rtmClient = slack.rtm(slackToken);
@@ -117,7 +109,7 @@ public class SlackInputProvider extends InputProvider {
                                     String text = textObject.getAsString();
                                     if (!text.isEmpty()) {
                                         Log.info("Received message {0}", text);
-                                        this.writer.println(text);
+                                        jarvisCore.handleMessage(text);
                                     } else {
                                         Log.warn("Received an empty message, skipping it");
                                     }
@@ -153,6 +145,21 @@ public class SlackInputProvider extends InputProvider {
      */
     protected RTMClient getRtmClient() {
         return rtmClient;
+    }
+
+    @Override
+    public void run() {
+        /*
+         * Required because the RTM listener is started in another thread, and if this thread terminates the main
+         * application terminates.
+         */
+        synchronized (this) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+
+            }
+        }
     }
 
     /**
