@@ -3,6 +3,7 @@ package fr.zelus.jarvis.core;
 import com.google.cloud.dialogflow.v2.SessionName;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
+import fr.zelus.jarvis.dialogflow.DialogFlowException;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.module.Action;
@@ -252,6 +253,13 @@ public class JarvisCore {
              * Extracts the IntentDefinitions
              */
             this.intentDefinitionRegistry.registerIntentDefinition(link.getIntent());
+            try {
+                this.dialogFlowApi.registerIntentDefinition(link.getIntent());
+            }catch(DialogFlowException e) {
+                Log.warn("The Intent {0} is already registered in the DialogFlow project, skipping its registration",
+                        link.getIntent().getName());
+                Log.warn("Intent {0} won't be updated on the DialogFlow project", link.getIntent().getName());
+            }
             /*
              * Load the action modules
              */
