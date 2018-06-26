@@ -169,7 +169,7 @@ public class DialogFlowApiTest {
                 "Intent").isTrue();
     }
 
-    @Test
+    @Test(expected = DialogFlowException.class)
     public void registerIntentDefinitionAlreadyRegistered() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
@@ -215,8 +215,8 @@ public class DialogFlowApiTest {
         api.registerIntentDefinition(registeredIntentDefinition);
         api.deleteIntentDefinition(registeredIntentDefinition);
         Intent foundIntent = null;
-        for(Intent intent : api.getRegisteredIntents()) {
-            if(intent.getDisplayName().equals(intentName)) {
+        for (Intent intent : api.getRegisteredIntents()) {
+            if (intent.getDisplayName().equals(intentName)) {
                 foundIntent = intent;
             }
         }
