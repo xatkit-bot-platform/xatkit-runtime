@@ -20,6 +20,13 @@
         <emf.version>2.12.0</emf.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
+
 
     <dependencies>
 
@@ -68,6 +75,14 @@
             <groupId>org.glassfish.tyrus.bundles</groupId>
             <artifactId>tyrus-standalone-client</artifactId>
             <version>1.13</version>
+        </dependency>
+
+        <!-- Discord -->
+
+        <dependency>
+            <groupId>net.dv8tion</groupId>
+            <artifactId>JDA</artifactId>
+            <version>3.6.0_376</version>
         </dependency>
 
         <!-- DialogFlow -->
