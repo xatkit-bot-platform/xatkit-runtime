@@ -8,6 +8,7 @@ import fr.zelus.jarvis.intent.IntentDefinition
 
 class OrchestrationModel {
 	contains OrchestrationLink[] orchestrationLinks
+	String[] imports
 }
 
 class OrchestrationLink {
