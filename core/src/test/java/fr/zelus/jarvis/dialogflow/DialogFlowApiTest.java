@@ -87,6 +87,15 @@ public class DialogFlowApiTest {
          * Reset the variable value to null to avoid unnecessary deletion calls.
          */
         registeredIntentDefinition = null;
+        if(nonNull(api)) {
+            try {
+                api.shutdown();
+            } catch(DialogFlowException e) {
+                /*
+                 * Already shutdown, ignore
+                 */
+            }
+        }
     }
 
     @Rule

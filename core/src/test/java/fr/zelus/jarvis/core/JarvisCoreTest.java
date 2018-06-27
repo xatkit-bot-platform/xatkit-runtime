@@ -1,6 +1,5 @@
 package fr.zelus.jarvis.core;
 
-import fr.zelus.jarvis.dialogflow.DialogFlowException;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.io.InputProvider;
@@ -342,12 +341,13 @@ public class JarvisCoreTest {
         softly.assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action processed").isTrue();
     }
 
-    @Test(expected = DialogFlowException.class)
-    public void handleMessageNotHandledMessage() throws InterruptedException {
+    @Test
+    public void handleMessageNotHandledMessage() {
         jarvisCore = getValidJarvisCore();
         StubJarvisModule stubJarvisModule = (StubJarvisModule) jarvisCore.getJarvisModuleRegistry().getJarvisModule
                 ("StubJarvisModule");
         jarvisCore.handleMessage("bye");
+        assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action not processed").isFalse();
     }
 
     /**
