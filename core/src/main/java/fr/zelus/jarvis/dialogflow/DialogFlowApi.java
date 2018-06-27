@@ -42,6 +42,20 @@ public class DialogFlowApi {
     private static String DEFAULT_LANGUAGE_CODE = "en-US";
 
     /**
+     * The DialogFlow Default Fallback Intent that is returned when the user input does not match any registered Intent.
+     *
+     * @see #convertDialogFlowIntentToIntentDefinition(Intent)
+     */
+    private static IntentDefinition DEFAULT_FALLBACK_INTENT = IntentFactory.eINSTANCE.createIntentDefinition();
+
+    /**
+     * Initializes the {@link #DEFAULT_FALLBACK_INTENT}'s name.
+     */
+    static {
+        DEFAULT_FALLBACK_INTENT.setName("Default Fallback Intent");
+    }
+
+    /**
      * The unique identifier of the DialogFlow project.
      */
     private String projectId;
@@ -420,7 +434,12 @@ public class DialogFlowApi {
 
     private IntentDefinition convertDialogFlowIntentToIntentDefinition(Intent intent) {
         if (nonNull(intent)) {
-            return JarvisCore.getInstance().getIntentDefinitionRegistry().getIntentDefinition(intent.getDisplayName());
+            IntentDefinition result = JarvisCore.getInstance().getIntentDefinitionRegistry().getIntentDefinition(intent
+                    .getDisplayName());
+            if(isNull(result)) {
+                result = DEFAULT_FALLBACK_INTENT;
+            }
+            return result;
             /*
              * The code below build an IntentDefinition from scratch, but does not check that the intent is
              * registered. We should move to something like that in the future, in order to let modelers design their
@@ -452,7 +471,7 @@ public class DialogFlowApi {
                 String errorMessage = MessageFormat.format("Cannot retrieve the IntentDefinition associated to the " +
                         "provided DialogFlow Intent {0}", intent.getDisplayName());
                 Log.error(errorMessage);
-                throw new DialogFlowException(errorMessage);
+                return null;
             }
             recognizedIntent.setDefinition(intentDefinition);
             /*
