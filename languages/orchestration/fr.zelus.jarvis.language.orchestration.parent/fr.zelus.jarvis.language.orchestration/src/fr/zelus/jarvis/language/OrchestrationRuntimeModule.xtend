@@ -3,9 +3,13 @@
  */
 package fr.zelus.jarvis.language
 
-
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 class OrchestrationRuntimeModule extends AbstractOrchestrationRuntimeModule {
+	
+	override bindILinkingService() {
+		return OrchestrationLinkingService
+	}
+	
 }

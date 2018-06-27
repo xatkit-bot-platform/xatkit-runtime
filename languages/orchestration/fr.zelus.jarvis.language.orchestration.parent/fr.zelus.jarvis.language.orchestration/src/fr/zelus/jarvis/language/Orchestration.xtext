@@ -2,77 +2,43 @@
 grammar fr.zelus.jarvis.language.Orchestration with org.eclipse.xtext.common.Terminals
 
 import "fr.zelus.jarvis.orchestration" 
+import "fr.zelus.jarvis.intent" as intent
+import "fr.zelus.jarvis.module" as module
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+
+
 
 OrchestrationModel returns OrchestrationModel:
 	{OrchestrationModel}
-	'OrchestrationModel'
-	'{'
-		('orchestrationLinks' '{' orchestrationLinks+=OrchestrationLink ( "," orchestrationLinks+=OrchestrationLink)* '}' )?
-	'}';
-
-
-
-
-
-
-
+	('import' imports+=STRING ('import' imports+=STRING)*)?
+	(orchestrationLinks+=OrchestrationLink
+	(orchestrationLinks+=OrchestrationLink)*)?
+;
 
 OrchestrationLink returns OrchestrationLink:
 	{OrchestrationLink}
-	'OrchestrationLink'
-	'{'
-		//('intent' intent=[intent::IntentDefinition|EString])?
-		//('actions' '{' actions+=ActionInstance ( "," actions+=ActionInstance)* '}' )?
-	'}';
+		'on' 'intent' intent=[intent::IntentDefinition|ID] 'do'
+		actions+=ActionInstance (actions+=ActionInstance)*
+	;
+	
+ActionInstance returns ActionInstance:
+	action=[module::Action|ID]
+	('(' values+=ParameterValue (',' values+=ParameterValue)* ')')?
+;
 
-//IntentDefinition returns intent::IntentDefinition:
-//	{intent::IntentDefinition}
-//	'IntentDefinition'
-//	name=EString
-//	'{'
-//		('outContextParameters' '{' outContextParameters+=IntentParameter ( "," outContextParameters+=IntentParameter)* '}' )?
-//	'}';
+ParameterValue returns ParameterValue:
+	parameter=[module::Parameter|ID] ':'
+	value=STRING
+;
 
-//ActionInstance returns ActionInstance:
-//	{ActionInstance}
-//	'ActionInstance'
-//	'{'
-//		('action' action=[module::Action|EString])?
-//		('values' '{' values+=ParameterValue ( "," values+=ParameterValue)* '}' )?
-//	'}';
+Parameter returns module::Parameter: {module::Parameter}
+	
+;
+	
+QualifiedName returns ecore::EString:
+ID ('.'ID)*;
 
-//EString returns ecore::EString:
-//	STRING | ID;
-
-//IntentParameter returns intent::IntentParameter:
-//	{intent::IntentParameter}
-//	'IntentParameter'
-//	'{'
-//		('key' key=EString)?
-//		('type' type=EString)?
-//	'}';
-//
-//Action returns module::Action:
-//	{module::Action}
-//	'Action'
-//	name=EString
-//	'{'
-//		('parameters' '{' parameters+=Parameter ( "," parameters+=Parameter)* '}' )?
-//	'}';
-//
-//ParameterValue returns ParameterValue:
-//	{ParameterValue}
-//	'ParameterValue'
-//	'{'
-//		('value' value=EString)?
-//		('parameter' parameter=[module::Parameter|EString])?
-//	'}';
-//
-//Parameter returns module::Parameter:
-//	{module::Parameter}
-//	'Parameter'
-//	'{'
-//		('key' key=EString)?
-//		('type' type=EString)?
-//	'}';
+IntentDefinition returns intent::IntentDefinition:
+	{intent::IntentDefinition}
+;

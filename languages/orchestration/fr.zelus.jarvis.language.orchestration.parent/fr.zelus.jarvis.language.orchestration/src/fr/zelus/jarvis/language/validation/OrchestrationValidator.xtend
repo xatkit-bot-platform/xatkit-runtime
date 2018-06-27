@@ -3,6 +3,11 @@
  */
 package fr.zelus.jarvis.language.validation
 
+import fr.zelus.jarvis.orchestration.OrchestrationModel
+import org.eclipse.xtext.validation.Check
+import fr.zelus.jarvis.language.util.ModuleRegistry
+import java.io.IOException
+import fr.zelus.jarvis.orchestration.OrchestrationPackage
 
 /**
  * This class contains custom validation rules. 
@@ -11,15 +16,20 @@ package fr.zelus.jarvis.language.validation
  */
 class OrchestrationValidator extends AbstractOrchestrationValidator {
 	
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					OrchestrationPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
-	
+	@Check
+	def checkOrchestrationModelValidImports(OrchestrationModel model) {
+		model.imports.forEach[i | 
+			println("Checking import " + i)
+			try {
+				/*
+				 * Remove the quotes at the beginning and at the end of the import string
+				 */
+				ModuleRegistry.instance.loadModule(i)
+			} catch(IOException e) {
+				println("Import checking failed")
+				e.printStackTrace
+				error('Module ' + i + "does not exist", OrchestrationPackage.Literals.ORCHESTRATION_MODEL__IMPORTS)
+			}
+		]
+	}
 }

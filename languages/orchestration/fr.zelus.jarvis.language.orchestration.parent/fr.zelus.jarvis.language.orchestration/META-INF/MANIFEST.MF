@@ -14,13 +14,14 @@ Require-Bundle: fr.zelus.jarvis.orchestration,
  org.eclipse.xtext.util,
  org.eclipse.xtend.lib
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Export-Package: fr.zelus.jarvis.language.serializer,
- fr.zelus.jarvis.language,
- fr.zelus.jarvis.language.parser.antlr,
+Export-Package: fr.zelus.jarvis.language,
  fr.zelus.jarvis.language.formatting2,
- fr.zelus.jarvis.language.validation,
+ fr.zelus.jarvis.language.generator,
+ fr.zelus.jarvis.language.parser.antlr,
  fr.zelus.jarvis.language.parser.antlr.internal,
  fr.zelus.jarvis.language.scoping,
+ fr.zelus.jarvis.language.serializer,
  fr.zelus.jarvis.language.services,
- fr.zelus.jarvis.language.generator
+ fr.zelus.jarvis.language.util,
+ fr.zelus.jarvis.language.validation
 Import-Package: org.apache.log4j
