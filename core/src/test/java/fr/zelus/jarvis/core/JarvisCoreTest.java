@@ -103,13 +103,14 @@ public class JarvisCoreTest {
      * @return a valid {@link JarvisCore} instance
      */
     private JarvisCore getValidJarvisCore() {
-        return new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL,
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL,
                 VALID_INPUT_PROVIDER_CLAZZ);
+        return jarvisCore;
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        new JarvisCore(null);
+        jarvisCore = new JarvisCore(null);
     }
 
     @Test(expected = NullPointerException.class)
@@ -117,7 +118,7 @@ public class JarvisCoreTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
         configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
-        new JarvisCore(configuration);
+        jarvisCore = new JarvisCore(configuration);
     }
 
     @Test(expected = NullPointerException.class)
@@ -125,7 +126,7 @@ public class JarvisCoreTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
         configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
-        new JarvisCore(configuration);
+        jarvisCore = new JarvisCore(configuration);
     }
 
     @Test(expected = NullPointerException.class)
@@ -133,7 +134,7 @@ public class JarvisCoreTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
         configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
-        new JarvisCore(configuration);
+        jarvisCore = new JarvisCore(configuration);
     }
 
     @Test
@@ -154,17 +155,17 @@ public class JarvisCoreTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullLanguageCode() {
-        new JarvisCore(VALID_PROJECT_ID, null, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER_CLAZZ);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, null, VALID_ORCHESTRATION_MODEL, VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullOrchestrationModel() {
-        new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, null, VALID_INPUT_PROVIDER_CLAZZ);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, null, VALID_INPUT_PROVIDER_CLAZZ);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullInputProvider() {
-        new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, null);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL, null);
     }
 
     @Test
@@ -210,13 +211,13 @@ public class JarvisCoreTest {
 
     @Test(expected = JarvisException.class)
     public void getOrchestrationModelFromInvalidString() {
-        JarvisCore jarvisCore = getValidJarvisCore();
+        jarvisCore = getValidJarvisCore();
         OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel("/tmp/test.xmi");
     }
 
     @Test(expected = JarvisException.class)
     public void getOrchestrationModelFromInvalidURI() {
-        JarvisCore jarvisCore = getValidJarvisCore();
+        jarvisCore = getValidJarvisCore();
         OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(URI.createURI("/tmp/test.xmi"));
     }
 
