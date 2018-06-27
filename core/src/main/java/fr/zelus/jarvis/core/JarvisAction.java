@@ -2,6 +2,8 @@ package fr.zelus.jarvis.core;
 
 import java.text.MessageFormat;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+
 /**
  * The concrete implementation of an {@link fr.zelus.jarvis.module.Action} definition.
  * <p>
@@ -14,11 +16,37 @@ import java.text.MessageFormat;
  * <i>MyAction</i> defined in the module <i>myModulePackage.MyModule</i> should be stored in the package
  * <i>myModulePackage.action</i>
  *
+ * @param <T> the concrete {@link JarvisModule} subclass type containing the action
  * @see fr.zelus.jarvis.module.Action
  * @see JarvisCore
  * @see JarvisModule
  */
-public abstract class JarvisAction implements Runnable {
+public abstract class JarvisAction<T extends JarvisModule> implements Runnable {
+
+    /**
+     * The {@link JarvisModule} subclass containing this action.
+     */
+    protected T module;
+
+    /**
+     * Constructs a new {@link JarvisModule} with the provided {@code containingModule}.
+     *
+     * @param containingModule the {@link JarvisModule} containing this action
+     */
+    public JarvisAction(T containingModule) {
+        checkNotNull(containingModule, "Cannot construct a {0} with a null {1}", this.getClass().getSimpleName(),
+                containingModule.getClass().getSimpleName());
+        this.module = containingModule;
+    }
+
+    /**
+     * Disable the default constructor, JarvisActions must be constructed with their containing module.
+     */
+    private JarvisAction() {
+        /*
+         * Disable the default constructor, JarvisActions must be constructed with their containing module.
+         */
+    }
 
     /**
      * Returns the name of the action.

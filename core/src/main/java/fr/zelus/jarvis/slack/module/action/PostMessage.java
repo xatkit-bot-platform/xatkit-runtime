@@ -23,7 +23,7 @@ import static java.util.Objects.nonNull;
  * <b>Note:</b> this class requires that its containing {@link SlackModule} has been loaded with a valid Slack bot API
  * token in order to authenticate the bot and post messages.
  */
-public class PostMessage extends JarvisAction {
+public class PostMessage extends JarvisAction<SlackModule> {
 
     /**
      * The message to post.
@@ -38,12 +38,13 @@ public class PostMessage extends JarvisAction {
     /**
      * Constructs a new {@link PostMessage} with the provided {@code message} and {@code channel}.
      *
-     * @param message the message to post
-     * @param channel the Slack channel to post the message to
+     * @param containingModule the {@link SlackModule} containing this action
+     * @param message          the message to post
+     * @param channel          the Slack channel to post the message to
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null} or empty.
      */
-    public PostMessage(String message, String channel) {
-        super();
+    public PostMessage(SlackModule containingModule, String message, String channel) {
+        super(containingModule);
         checkArgument(nonNull(message) && !message.isEmpty(), "Cannot construct a {0} action with the provided " +
                 "message {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
         checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a {0} action with the provided " +
@@ -64,12 +65,12 @@ public class PostMessage extends JarvisAction {
     @Override
     public void run() {
         ChatPostMessageRequest request = ChatPostMessageRequest.builder()
-                .token(SlackModule.slackToken)
+                .token(module.getSlackToken())
                 .channel(channel)
                 .text(message)
                 .build();
         try {
-            ChatPostMessageResponse response = SlackModule.slack.methods().chatPostMessage(request);
+            ChatPostMessageResponse response = module.getSlack().methods().chatPostMessage(request);
             if (response.isOk()) {
                 Log.trace("Message {0} successfully sent to the Slack API", request);
             } else {

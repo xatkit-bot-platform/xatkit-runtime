@@ -6,7 +6,7 @@ public class LogErrorTest extends LogActionTest {
 
     @Override
     protected LogAction createLogAction(String message) {
-        return new LogError(message);
+        return new LogError(logModule, message);
     }
 
     @Override

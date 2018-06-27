@@ -26,14 +26,11 @@ public class DiscordModule extends JarvisModule {
      * <p>
      * The {@link JDA} client is created from the Discord bot token stored in this class' {@link Configuration}
      * constructor parameter, and is used to authenticate the bot and post messages through the Discord API.
-     * <p>
-     * This field should not be {@code public} nor {@code static}, see the <a href="https://github
-     * .com/gdaniel/jarvis/issues/29">corresponding issue on GitHub</a>
      *
      * @see #DiscordModule(Configuration)
      * @see JarvisDiscordUtils
      */
-    public static JDA jda;
+    private JDA jdaClient;
 
     /**
      * Constructs a new {@link DiscordModule} from the provided {@link Configuration}.
@@ -56,6 +53,15 @@ public class DiscordModule extends JarvisModule {
         checkArgument(nonNull(discordToken) && !discordToken.isEmpty(), "Cannot construct a DiscordModule from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Discord bot API " +
                 "token associated to the key %s", discordToken, DISCORD_TOKEN_KEY);
-        jda = JarvisDiscordUtils.getJDA(discordToken);
+        jdaClient = JarvisDiscordUtils.getJDA(discordToken);
+    }
+
+    /**
+     * Returns the {@link JDA} client managing the Discord connection.
+     *
+     * @return the {@link JDA} client managing the Discord connection
+     */
+    public JDA getJdaClient() {
+        return jdaClient;
     }
 }

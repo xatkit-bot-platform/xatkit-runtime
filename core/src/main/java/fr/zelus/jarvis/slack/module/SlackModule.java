@@ -25,21 +25,16 @@ public class SlackModule extends JarvisModule {
      * <p>
      * This token is retrieved from this class' {@link Configuration} constructor parameter, and is used to
      * authenticate the bot and post messages through the Slack API.
-     * <p>
-     * This field should not be {@code public} nor {@code static}, see the
-     * <a href="https://github.com/gdaniel/jarvis/issues/16">corresponding issue on GitHub</a>
      *
+     * @see #getSlackToken()
      * @see #SlackModule(Configuration)
      */
-    public static String slackToken;
+    private String slackToken;
 
     /**
      * The {@link Slack} API client used to post messages.
-     * <p>
-     * This field should not be {@code public} nor {@code static}, see the
-     * <a href="https://github.com/gdaniel/jarvis/issues/16">corresponding issue on GitHub</a>
      */
-    public static Slack slack;
+    private Slack slack;
 
     /**
      * Constructs a new {@link SlackModule} from the provided {@link Configuration}.
@@ -62,5 +57,23 @@ public class SlackModule extends JarvisModule {
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SLACK_TOKEN_KEY);
         slack = new Slack();
+    }
+
+    /**
+     * Returns the Slack bot API token used to initialize this class.
+     *
+     * @return the Slack bot API token used to initialize this class
+     */
+    public String getSlackToken() {
+        return slackToken;
+    }
+
+    /**
+     * Returns the Slack API client used to post messages.
+     *
+     * @return the Slack API client used to post messages
+     */
+    public Slack getSlack() {
+        return slack;
     }
 }

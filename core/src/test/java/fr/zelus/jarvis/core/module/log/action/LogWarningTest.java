@@ -6,7 +6,7 @@ public class LogWarningTest extends LogActionTest {
 
     @Override
     protected LogAction createLogAction(String message) {
-        return new LogWarning(message);
+        return new LogWarning(logModule, message);
     }
 
     @Override

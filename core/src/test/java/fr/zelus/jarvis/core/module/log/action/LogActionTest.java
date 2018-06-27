@@ -1,5 +1,7 @@
 package fr.zelus.jarvis.core.module.log.action;
 
+import fr.zelus.jarvis.core.module.log.LogModule;
+import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.test.appender.ListAppender;
@@ -17,6 +19,8 @@ public abstract class LogActionTest<T extends LogAction> {
 
     private ListAppender listAppender;
 
+    protected LogModule logModule;
+
     @Before
     public void setUp() {
         LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
@@ -26,6 +30,7 @@ public abstract class LogActionTest<T extends LogAction> {
          * test of this class.
          */
         listAppender.clear();
+        logModule = new LogModule(new BaseConfiguration());
     }
 
     @After

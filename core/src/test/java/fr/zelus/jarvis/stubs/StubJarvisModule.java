@@ -13,7 +13,7 @@ public class StubJarvisModule extends JarvisModule {
 
     public StubJarvisModule(Configuration configuration) {
         super(configuration);
-        this.jarvisAction = new StubJarvisAction();
+        this.jarvisAction = new StubJarvisAction(this);
     }
 
     public StubJarvisAction getAction() {

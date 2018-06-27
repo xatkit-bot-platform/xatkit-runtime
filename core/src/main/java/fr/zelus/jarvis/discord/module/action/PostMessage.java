@@ -16,7 +16,7 @@ import static java.util.Objects.nonNull;
  * <b>Note:</b> this class requires that its containing {@link DiscordModule} has been loaded with a valid Discord
  * bot token in order to authenticate the bot and post messages.
  */
-public class PostMessage extends JarvisAction {
+public class PostMessage extends JarvisAction<DiscordModule> {
 
     /**
      * The message to post.
@@ -31,12 +31,13 @@ public class PostMessage extends JarvisAction {
     /**
      * Constructs a new {@link PostMessage} with the provided {@code message} and {@code channel}.
      *
-     * @param message the message to post
-     * @param channel the Discord channel to post the message to
+     * @param containingModule the {@link DiscordModule} containing this action
+     * @param message          the message to post
+     * @param channel          the Discord channel to post the message to
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null} or empty
      */
-    public PostMessage(String message, String channel) {
-        super();
+    public PostMessage(DiscordModule containingModule, String message, String channel) {
+        super(containingModule);
         checkArgument(nonNull(message) && !message.isEmpty(), "Cannot construct a {0} action with the provided " +
                 "message {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
         checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a {0} action with the provided " +
@@ -53,7 +54,7 @@ public class PostMessage extends JarvisAction {
      */
     @Override
     public void run() {
-        MessageChannel messageChannel = DiscordModule.jda.getPrivateChannelById(channel);
+        MessageChannel messageChannel = module.getJdaClient().getPrivateChannelById(channel);
         messageChannel.sendMessage(message).queue();
     }
 }

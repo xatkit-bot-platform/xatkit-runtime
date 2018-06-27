@@ -6,7 +6,7 @@ public class LogInfoTest extends LogActionTest {
 
     @Override
     protected LogAction createLogAction(String message) {
-        return new LogInfo(message);
+        return new LogInfo(logModule, message);
     }
 
     @Override

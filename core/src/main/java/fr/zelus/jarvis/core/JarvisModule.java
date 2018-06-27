@@ -160,19 +160,30 @@ public abstract class JarvisModule {
         Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
         for (int i = 0; i < constructorList.length; i++) {
             Constructor<?> constructor = constructorList[i];
-            if (constructor.getParameterCount() == parameterValues.length) {
+            /*
+             * We use constructor.getParameterCount() -1 because the first parameter of JarvisAction constructors
+             * must be their containing JarvisModule
+             */
+            if (constructor.getParameterCount() -1 == parameterValues.length) {
                 /*
                  * The following code assumes that all the Action parameters are instances of String, this should be
                  * fixed by supporting the types returned by the DialogFlow API.
                  */
                 try {
                     if (constructor.getParameterCount() > 0) {
+                        /*
+                         * Construct the full parameter array, that contains this as its first element, followed by
+                         * the parameterValues.
+                         */
+                        Object[] fullParameters = new Object[parameterValues.length + 1];
+                        fullParameters[0] = this;
+                        System.arraycopy(parameterValues, 0, fullParameters, 1, parameterValues.length);
                         Log.info("Constructing {0} with the parameters {1}", jarvisActionClass.getSimpleName(),
                                 parameterValues);
-                        return (JarvisAction) constructor.newInstance(parameterValues);
+                        return (JarvisAction) constructor.newInstance(fullParameters);
                     } else {
-                        Log.info("Constructing {0}", jarvisActionClass.getSimpleName());
-                        return (JarvisAction) constructor.newInstance();
+                        Log.info("Constructing {0}({1})", jarvisActionClass.getSimpleName(), this.getClass().getSimpleName());
+                        return (JarvisAction) constructor.newInstance(this);
                     }
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     String errorMessage = MessageFormat.format("Cannot construct the JarvisAction {0}",
