@@ -288,11 +288,14 @@ public class DialogFlowApiTest {
         RecognizedIntent intent = api.getIntent("", session);
     }
 
-    @Test(expected = DialogFlowException.class)
-    public void getIntentUnkownText() {
+    @Test
+    public void getIntentUnknownText() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
         SessionName session = api.createSession();
         RecognizedIntent intent = api.getIntent("azerty", session);
+        assertThat(intent.getDefinition()).as("IntentDefinition is not null").isNotNull();
+        assertThat(intent.getDefinition().getName()).as("IntentDefinition is the Default Fallback Intent").isEqualTo
+                ("Default Fallback Intent");
     }
 
 }
