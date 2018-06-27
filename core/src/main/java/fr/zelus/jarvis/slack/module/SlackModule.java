@@ -10,7 +10,7 @@ import static fr.zelus.jarvis.slack.JarvisSlackUtils.SLACK_TOKEN_KEY;
 import static java.util.Objects.nonNull;
 
 /**
- * A {@link JarvisModule} class that connect and interact with the Slack API.
+ * A {@link JarvisModule} class that connect and interacts with the Slack API.
  * <p>
  * This module manages a connection to the Slack API, and provides a single {@link fr.zelus.jarvis.core.JarvisAction}
  * to post messages on a given channel.
@@ -24,7 +24,7 @@ public class SlackModule extends JarvisModule {
      * The {@link String} representing the Slack bot API token.
      * <p>
      * This token is retrieved from this class' {@link Configuration} constructor parameter, and is used to
-     * authenticate  the bot and post messages through the Slack API.
+     * authenticate the bot and post messages through the Slack API.
      * <p>
      * This field should not be {@code public} nor {@code static}, see the
      * <a href="https://github.com/gdaniel/jarvis/issues/16">corresponding issue on GitHub</a>
@@ -48,7 +48,7 @@ public class SlackModule extends JarvisModule {
      * the {@link Configuration}.
      * <p>
      * <b>Note:</b> {@link SlackModule} requires a valid Slack bot API token to be initialized, and calling the
-     * default constructor will throw a {@link IllegalArgumentException} when looking for the Slack bot API token.
+     * default constructor will throw an {@link IllegalArgumentException} when looking for the Slack bot API token.
      *
      * @param configuration the {@link Configuration} used to retrieve the Slack bot API token
      * @throws NullPointerException     if the provided {@link Configuration} is {@code null}

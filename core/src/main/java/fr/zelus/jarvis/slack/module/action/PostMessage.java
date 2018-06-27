@@ -18,7 +18,7 @@ import static java.util.Objects.nonNull;
  * A {@link JarvisAction} that posts a {@code message} to a given Slack {@code channel}.
  * <p>
  * This class relies on the {@link SlackModule}'s {@link com.github.seratch.jslack.Slack} client and Slack bot API token
- * to connect to the Slack API and post a message.
+ * to connect to the Slack API and post messages.
  * <p>
  * <b>Note:</b> this class requires that its containing {@link SlackModule} has been loaded with a valid Slack bot API
  * token in order to authenticate the bot and post messages.
@@ -31,7 +31,7 @@ public class PostMessage extends JarvisAction {
     private String message;
 
     /**
-     * The Slack channel to post the message in.
+     * The Slack channel to post the message to.
      */
     private String channel;
 

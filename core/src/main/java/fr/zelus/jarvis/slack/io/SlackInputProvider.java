@@ -30,10 +30,9 @@ import static java.util.Objects.nonNull;
  * <p>
  * Instances of this class must be configured with a {@link Configuration} instance holding the Slack bot API token
  * in the property {@link JarvisSlackUtils#SLACK_TOKEN_KEY}. This token is used to authenticate the bot and receive
- * messages
- * through
- * the RTM API.
+ * messages through the RTM API.
  *
+ * @see JarvisSlackUtils
  * @see InputProvider
  */
 public class SlackInputProvider extends InputProvider {
@@ -63,8 +62,9 @@ public class SlackInputProvider extends InputProvider {
      * to this class.
      * <p>
      * <b>Note:</b> {@link SlackInputProvider} requires a valid Slack bot API token to be initialized, and calling
-     * the default constructor will throw a {@link IllegalArgumentException} when looking for the Slack bot API token.
+     * the default constructor will throw an {@link IllegalArgumentException} when looking for the Slack bot API token.
      *
+     * @param jarvisCore the {@link JarvisCore} instance used to handle messages
      * @param configuration the {@link Configuration} used to retrieve the Slack bot API token
      * @throws NullPointerException     if the provided {@link Configuration} is {@code null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
@@ -163,7 +163,7 @@ public class SlackInputProvider extends InputProvider {
     }
 
     /**
-     * Disconnects the underlying Slack RTM client and closes the message output stream.
+     * Disconnects the underlying Slack RTM client.
      */
     @Override
     public void close() {
