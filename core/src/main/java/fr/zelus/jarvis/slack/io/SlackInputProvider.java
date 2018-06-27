@@ -175,9 +175,5 @@ public class SlackInputProvider extends InputProvider {
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
         }
-        /*
-         * Close parent-related elements (such as the output stream).
-         */
-        super.close();
     }
 }

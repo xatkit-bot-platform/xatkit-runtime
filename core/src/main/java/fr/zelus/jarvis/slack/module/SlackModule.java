@@ -58,7 +58,7 @@ public class SlackModule extends JarvisModule {
         super(configuration);
         checkNotNull(configuration, "Cannot construct a SlackModule from a null configuration");
         slackToken = configuration.getString(SLACK_TOKEN_KEY);
-        checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackInputProvider from the " +
+        checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackModule from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SLACK_TOKEN_KEY);
         slack = new Slack();
