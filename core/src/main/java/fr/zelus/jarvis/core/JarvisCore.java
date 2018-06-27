@@ -4,16 +4,20 @@ import com.google.cloud.dialogflow.v2.SessionName;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.dialogflow.DialogFlowException;
+import fr.zelus.jarvis.intent.IntentPackage;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
+import fr.zelus.jarvis.module.ModulePackage;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import fr.zelus.jarvis.orchestration.OrchestrationPackage;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -248,6 +252,7 @@ public class JarvisCore {
         this.orchestrationService = new OrchestrationService(orchestrationModel);
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
         this.intentDefinitionRegistry = new IntentDefinitionRegistry();
+        boolean intentRegistered = false;
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             /*
              * Extracts the IntentDefinitions
@@ -255,6 +260,7 @@ public class JarvisCore {
             this.intentDefinitionRegistry.registerIntentDefinition(link.getIntent());
             try {
                 this.dialogFlowApi.registerIntentDefinition(link.getIntent());
+                intentRegistered = true;
             }catch(DialogFlowException e) {
                 Log.warn("The Intent {0} is already registered in the DialogFlow project, skipping its registration",
                         link.getIntent().getName());
@@ -272,6 +278,13 @@ public class JarvisCore {
                     this.jarvisModuleRegistry.registerJarvisModule(jarvisModule);
                 }
                 jarvisModule.enableAction(action);
+            }
+            if(intentRegistered) {
+                /*
+                 * New intents have been registered in the DialogFlow project, we should explicitly ask the ML Engine
+                  * to train in order to take them into account
+                 */
+                dialogFlowApi.trainMLEngine();
             }
         }
         /*
@@ -335,6 +348,12 @@ public class JarvisCore {
     protected OrchestrationModel getOrchestrationModel(Object property) {
         checkNotNull(property, "Cannot retrieve the OrchestrationModel from the property null, please ensure it is " +
                 "set in the %s property of the jarvis configuration", ORCHESTRATION_MODEL_KEY);
+        /*
+         * Register the EPackages used in the OrchestrationModel
+         */
+        EPackage.Registry.INSTANCE.put(OrchestrationPackage.eINSTANCE.getNsURI(), OrchestrationPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(IntentPackage.eINSTANCE.getNsURI(), IntentPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(ModulePackage.eINSTANCE.getNsURI(), ModulePackage.eINSTANCE);
         if (property instanceof OrchestrationModel) {
             return (OrchestrationModel) property;
         } else {
