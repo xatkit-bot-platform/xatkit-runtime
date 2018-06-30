@@ -50,7 +50,7 @@ public abstract class InputProvider implements Runnable {
          * Do nothing with the configuration, it can be used by subclasses that require additional initialization
          * information.
          */
-        checkNotNull(jarvisCore, "Cannot construct an instance of {0} with a null JarvisCore", this.getClass()
+        checkNotNull(jarvisCore, "Cannot construct an instance of %s with a null JarvisCore", this.getClass()
                 .getSimpleName());
         this.jarvisCore = jarvisCore;
     }

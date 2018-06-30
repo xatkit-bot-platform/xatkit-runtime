@@ -25,9 +25,14 @@ public class SlackInputProviderTest {
     }
 
     public void tearDown() {
-        if(nonNull(slackInputProvider)) {
+        if (nonNull(slackInputProvider)) {
             slackInputProvider.close();
         }
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructNullJarvisCore() {
+        slackInputProvider = new SlackInputProvider(null, new BaseConfiguration());
     }
 
     @Test(expected = NullPointerException.class)
