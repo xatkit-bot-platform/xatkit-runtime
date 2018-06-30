@@ -5,11 +5,6 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.io.InputProvider;
 import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import org.apache.commons.configuration2.Configuration;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -46,10 +41,11 @@ public class DiscordInputProvider extends InputProvider {
     private JDA jdaClient;
 
     /**
-     * Constructs a new {@link DiscordInputProvider} frmo the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link DiscordInputProvider} from the provided {@link JarvisCore} and {@link Configuration}.
      * <p>
-     * This constructor initializes the underlying {@link JDA} client and creates a message listener that forwars to
-     * the {@code jarvisCore} isntance not empty direct messages sent by users (not bots) to the bot private channel.
+     * This constructor initializes the underlying {@link JDA} client and creates a message listener that forwards to
+     * the {@code jarvisCore} instance not empty direct messages sent by users (not bots) to the bot private channel
+     * (see {@link PrivateMessageListener}.
      * <p>
      * <b>Note:</b> {@link DiscordInputProvider} requires a valid Discord bot API token to be initialized, and
      * calling the default constructor will throw an {@link IllegalArgumentException} when looking for the Discord
@@ -60,6 +56,7 @@ public class DiscordInputProvider extends InputProvider {
      * @throws NullPointerException     if the provided {@link Configuration} is {@code null}
      * @throws IllegalArgumentException if the provided Discord bot token is {@code null} or empty
      * @see JarvisDiscordUtils
+     * @see PrivateMessageListener
      */
     public DiscordInputProvider(JarvisCore jarvisCore, Configuration configuration) {
         super(jarvisCore, configuration);
@@ -70,26 +67,7 @@ public class DiscordInputProvider extends InputProvider {
                 "API token associated to the key %s", discordToken, DISCORD_TOKEN_KEY);
         jdaClient = JarvisDiscordUtils.getJDA(discordToken);
         Log.info("Starting to listen jarvis Discord direct messages");
-        jdaClient.addEventListener(new ListenerAdapter() {
-
-            @Override
-            public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
-                User author = event.getAuthor();
-                if (author.isBot()) {
-                    return;
-                }
-                MessageChannel channel = event.getChannel();
-                String channelName = channel.getName();
-                Message message = event.getMessage();
-                String content = message.getContentRaw();
-                if (content.isEmpty()) {
-                    Log.trace("Skipping {0}, the message is empty");
-                    return;
-                }
-                Log.info("Received message {0}", content);
-                jarvisCore.handleMessage(content);
-            }
-        });
+        jdaClient.addEventListener(new PrivateMessageListener(jarvisCore));
     }
 
     /**
