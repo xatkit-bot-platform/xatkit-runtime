@@ -35,6 +35,9 @@ public class SlackInputProviderTest {
         if (nonNull(slackInputProvider)) {
             slackInputProvider.close();
         }
+        if(nonNull(stubJarvisCore)) {
+            stubJarvisCore.shutdown();
+        }
     }
 
     @Rule

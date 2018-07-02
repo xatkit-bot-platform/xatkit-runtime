@@ -19,35 +19,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PrivateMessageListenerTest {
 
-    private static StubJarvisCore stubJarvisCore;
+    private StubJarvisCore stubJarvisCore;
 
     private DiscordInputProvider discordInputProvider;
 
     private PrivateMessageListener listener;
 
-    @BeforeClass
-    public static void setUpBeforeClass() {
-        stubJarvisCore = new StubJarvisCore();
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        if (nonNull(stubJarvisCore)) {
-            stubJarvisCore.shutdown();
-        }
-    }
-
     @Before
     public void setUp() {
-        if (nonNull(stubJarvisCore)) {
-            stubJarvisCore.clearHandledMessages();
-        }
+        stubJarvisCore = new StubJarvisCore();
+
     }
 
     @After
     public void tearDown() {
         if (nonNull(discordInputProvider)) {
             discordInputProvider.close();
+        }
+        if (nonNull(stubJarvisCore)) {
+            stubJarvisCore.shutdown();
         }
     }
 
