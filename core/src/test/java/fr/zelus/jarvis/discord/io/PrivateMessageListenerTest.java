@@ -92,7 +92,7 @@ public class PrivateMessageListenerTest {
         assertThat(contextChannel).as("Not null channel context variable").isNotNull();
         softly.assertThat(contextChannel).as("Channel context variable is a String").isInstanceOf(String.class);
         softly.assertThat(contextChannel).as("Valid channel context variable").isEqualTo(StubPrivateChannel
-                .PRIVATE_CHANNEL_NAME);
+                .PRIVATE_CHANNEL_ID);
     }
 
     private DiscordInputProvider createValidDiscordInputProvider() {

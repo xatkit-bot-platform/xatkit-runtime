@@ -11,6 +11,8 @@ public class StubPrivateChannel implements PrivateChannel {
 
     public static String PRIVATE_CHANNEL_NAME = "private-test";
 
+    public static String PRIVATE_CHANNEL_ID = "1";
+
     @Override
     public boolean isFake() {
         return true;
@@ -28,7 +30,7 @@ public class StubPrivateChannel implements PrivateChannel {
 
     @Override
     public long getIdLong() {
-        return 1;
+        return Long.parseLong(PRIVATE_CHANNEL_ID);
     }
 
     @Override
