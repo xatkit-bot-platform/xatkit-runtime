@@ -53,7 +53,7 @@ public class StubPrivateChannel implements PrivateChannel {
 
     @Override
     public String getName() {
-        return "test channel";
+        return PRIVATE_CHANNEL_NAME;
     }
 
     @Override

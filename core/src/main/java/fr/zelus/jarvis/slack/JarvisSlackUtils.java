@@ -28,4 +28,14 @@ public interface JarvisSlackUtils {
      * The Slack API answer type representing a successful authentication.
      */
     String HELLO_TYPE = "hello";
+
+    /**
+     * The {@link fr.zelus.jarvis.core.session.JarvisContext} key used to store slack-related information.
+     */
+    String SLACK_CONTEXT_KEY = "slack";
+
+    /**
+     * The {@link fr.zelus.jarvis.core.session.JarvisContext} variable key used to store slack channel information.
+     */
+    String SLACK_CHANNEL_CONTEXT_KEY = "channel";
 }

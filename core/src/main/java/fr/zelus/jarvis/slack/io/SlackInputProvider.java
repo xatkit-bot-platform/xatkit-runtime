@@ -65,7 +65,7 @@ public class SlackInputProvider extends InputProvider {
      * <b>Note:</b> {@link SlackInputProvider} requires a valid Slack bot API token to be initialized, and calling
      * the default constructor will throw an {@link IllegalArgumentException} when looking for the Slack bot API token.
      *
-     * @param jarvisCore the {@link JarvisCore} instance used to handle messages
+     * @param jarvisCore    the {@link JarvisCore} instance used to handle messages
      * @param configuration the {@link Configuration} used to retrieve the Slack bot API token
      * @throws NullPointerException     if the provided {@link Configuration} is {@code null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
@@ -107,7 +107,7 @@ public class SlackInputProvider extends InputProvider {
                                  * The message hasn't been sent by a bot
                                  */
                                 JsonElement channelObject = json.get("channel");
-                                if(nonNull(channelObject)) {
+                                if (nonNull(channelObject)) {
                                     /*
                                      * The message channel is set
                                      */
@@ -118,6 +118,9 @@ public class SlackInputProvider extends InputProvider {
                                         if (!text.isEmpty()) {
                                             Log.info("Received message {0} (channel: {1})", text, channel);
                                             JarvisSession session = jarvisCore.getOrCreateJarvisSession(channel);
+                                            session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                                    .SLACK_CONTEXT_KEY, JarvisSlackUtils.SLACK_CHANNEL_CONTEXT_KEY,
+                                                    channel);
                                             jarvisCore.handleMessage(text, session);
                                         } else {
                                             Log.warn("Received an empty message, skipping it");

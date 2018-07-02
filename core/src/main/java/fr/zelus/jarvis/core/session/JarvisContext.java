@@ -29,7 +29,7 @@ public class JarvisContext {
         if(contexts.containsKey(context)) {
             return Collections.unmodifiableMap(contexts.get(context));
         } else {
-            return null; // ?
+            return Collections.emptyMap();
         }
     }
 
@@ -38,7 +38,7 @@ public class JarvisContext {
         if(nonNull(contextVariables)) {
             return contextVariables.get(key);
         } else {
-            return null; // ?
+            return null;
         }
     }
 }

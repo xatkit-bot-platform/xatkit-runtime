@@ -27,6 +27,16 @@ public class JarvisDiscordUtils {
     public static String DISCORD_TOKEN_KEY = "jarvis.discord.token";
 
     /**
+     * The {@link fr.zelus.jarvis.core.session.JarvisContext} key used to store discord-related information.
+     */
+    public static String DISCORD_CONTEXT_KEY = "discord";
+
+    /**
+     * The {@link fr.zelus.jarvis.core.session.JarvisContext} variable key used to store discord channel information.
+     */
+    public static String DISCORD_CHANNEL_CONTEXT_KEY = "channel";
+
+    /**
      * The reusable {@link JDA} client.
      * <p>
      * This field ensures that there is only one {@link JDA} instance, that can be accessed using

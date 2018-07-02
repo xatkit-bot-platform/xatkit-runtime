@@ -680,24 +680,35 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link JarvisSession} associated to the provided {@code userId}.
+     * Retrieves or creates the {@link JarvisSession} associated to the provided {@code sessionId}.
      * <p>
      * If the {@link JarvisSession} does not exist a new one is created using
      * {@link DialogFlowApi#createSession(String)}.
      *
-     * @param sessionId the identifier to get or retrieve a session for
-     * @return the {@link JarvisSession} associated to the provided {@code userId}
-     * @throws NullPointerException if the provided {@code userId} is {@code null}
+     * @param sessionId the identifier to get or retrieve a session from
+     * @return the {@link JarvisSession} associated to the provided {@code sessionId}
+     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
     public JarvisSession getOrCreateJarvisSession(String sessionId) {
-        checkNotNull(sessionId, "Cannot create or retrieve a session for null");
-        if (sessions.containsKey(sessionId)) {
-            return sessions.get(sessionId);
-        } else {
-            JarvisSession session = this.dialogFlowApi.createSession(sessionId);
+        checkNotNull(sessionId, "Cannot create or retrieve a session from null as the session ID");
+        JarvisSession session = getJarvisSession(sessionId);
+        if (isNull(session)) {
+            session = this.dialogFlowApi.createSession(sessionId);
             sessions.put(sessionId, session);
-            return session;
         }
+        return session;
+    }
+
+    /**
+     * Returns the {@link JarvisSession} associated to the provided {@code sessionId}
+     *
+     * @param sessionId the identifier to retrieve the session from
+     * @return the {@link JarvisSession} associated to the provided {@code sessionId}
+     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
+     */
+    public JarvisSession getJarvisSession(String sessionId) {
+        checkNotNull(sessionId, "Cannot retrieve a session from null as the session ID");
+        return sessions.get(sessionId);
     }
 
     /**
