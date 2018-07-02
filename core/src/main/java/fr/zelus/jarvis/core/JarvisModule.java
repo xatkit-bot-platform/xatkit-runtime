@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Parameter;
@@ -140,13 +141,15 @@ public abstract class JarvisModule {
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link JarvisAction} to create
      * @param intent         the {@link RecognizedIntent} containing the extracted variables
+     * @param context        the {@link JarvisContext} associated to the action
      * @return a new {@link JarvisAction} instance from the provided {@link RecognizedIntent}
      * @throws JarvisException if the provided {@link Action} does not match any {@link JarvisAction}, or if the
      *                         provided {@link RecognizedIntent} does not define all the parameters required by the
      *                         action's constructor
      * @see #getParameterValues(ActionInstance, RecognizedIntent)
      */
-    public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent) {
+    public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent, JarvisContext
+            context) {
         checkNotNull(actionInstance, "Cannot construct a JarvisAction from a null ActionInstance");
         Action action = actionInstance.getAction();
         checkNotNull(intent, "Cannot construct a %s action from a null RecognizedIntent", action.getName());
@@ -161,10 +164,10 @@ public abstract class JarvisModule {
         for (int i = 0; i < constructorList.length; i++) {
             Constructor<?> constructor = constructorList[i];
             /*
-             * We use constructor.getParameterCount() -1 because the first parameter of JarvisAction constructors
-             * must be their containing JarvisModule
+             * We use constructor.getParameterCount() -2 because the two first parameters of JarvisAction constructors
+             * must be their containing JarvisModule and the associated JarvisContext.
              */
-            if (constructor.getParameterCount() -1 == parameterValues.length) {
+            if (constructor.getParameterCount() - 2 == parameterValues.length) {
                 /*
                  * The following code assumes that all the Action parameters are instances of String, this should be
                  * fixed by supporting the types returned by the DialogFlow API.
@@ -175,15 +178,17 @@ public abstract class JarvisModule {
                          * Construct the full parameter array, that contains this as its first element, followed by
                          * the parameterValues.
                          */
-                        Object[] fullParameters = new Object[parameterValues.length + 1];
+                        Object[] fullParameters = new Object[parameterValues.length + 2];
                         fullParameters[0] = this;
-                        System.arraycopy(parameterValues, 0, fullParameters, 1, parameterValues.length);
+                        fullParameters[1] = context;
+                        System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
                         Log.info("Constructing {0} with the parameters {1}", jarvisActionClass.getSimpleName(),
                                 parameterValues);
                         return (JarvisAction) constructor.newInstance(fullParameters);
                     } else {
-                        Log.info("Constructing {0}({1})", jarvisActionClass.getSimpleName(), this.getClass().getSimpleName());
-                        return (JarvisAction) constructor.newInstance(this);
+                        Log.info("Constructing {0}({1}, {2})", jarvisActionClass.getSimpleName(), this.getClass()
+                                .getSimpleName(), context);
+                        return (JarvisAction) constructor.newInstance(this, context);
                     }
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     String errorMessage = MessageFormat.format("Cannot construct the JarvisAction {0}",
@@ -227,7 +232,7 @@ public abstract class JarvisModule {
             Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
                     .spliterator(), false).map(param -> param.getValue()).toArray();
             Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValuesArray, parameterLength);
-            if(outContextValues.size() > 0) {
+            if (outContextValues.size() > 0) {
                 /*
                  * Do not copy if there is nothing to copy (need to be tested)
                  */

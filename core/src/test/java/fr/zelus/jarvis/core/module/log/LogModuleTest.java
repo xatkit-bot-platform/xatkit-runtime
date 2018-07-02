@@ -3,6 +3,7 @@ package fr.zelus.jarvis.core.module.log;
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.module.log.action.LogInfo;
+import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.intent.RecognizedIntent;
@@ -133,21 +134,21 @@ public class LogModuleTest {
 
     @Test(expected = NullPointerException.class)
     public void createJarvisActionNullActionInstance() {
-        logModule.createJarvisAction(null, VALID_RECOGNIZED_INTENT);
+        logModule.createJarvisAction(null, VALID_RECOGNIZED_INTENT, new JarvisContext());
     }
 
     @Test(expected = NullPointerException.class)
     public void createJarvisActionNullRecognizedIntent() {
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(getInfoAction());
-        logModule.createJarvisAction(actionInstance, null);
+        logModule.createJarvisAction(actionInstance, null, new JarvisContext());
     }
 
     @Test(expected = JarvisException.class)
     public void createJarvisActionNotEnabledAction() {
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(getInfoAction());
-        logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT);
+        logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisContext());
     }
 
     @Test
@@ -160,7 +161,7 @@ public class LogModuleTest {
         parameterValue.setParameter(getInfoAction().getParameters().get(0));
         parameterValue.setValue(validLogMessage);
         actionInstance.getValues().add(parameterValue);
-        JarvisAction action = logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT);
+        JarvisAction action = logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisContext());
         assertThat(action).as("LogInfo action").isInstanceOf(LogInfo.class);
         LogInfo logAction = (LogInfo) action;
         assertThat(logAction.getMessage()).as("Not null message").isNotNull();

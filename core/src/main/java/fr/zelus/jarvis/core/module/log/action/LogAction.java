@@ -4,6 +4,7 @@ import fr.inria.atlanmod.commons.log.Level;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.module.log.LogModule;
+import fr.zelus.jarvis.core.session.JarvisContext;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
@@ -30,12 +31,13 @@ public abstract class LogAction extends JarvisAction<LogModule> {
      * Constructs a new {@link LogAction} with the provided {@code message} and {@code logLevel}.
      *
      * @param containingModule the {@link LogModule} containing this action
+     * @param context          the {@link JarvisContext} associated to this action
      * @param message          the message to log
      * @param logLevel         the severity {@link Level} of the message to log
      * @throws NullPointerException if the provided {@code message} or {@code logLevel} is {@code null}
      */
-    public LogAction(LogModule containingModule, String message, Level logLevel) {
-        super(containingModule);
+    public LogAction(LogModule containingModule, JarvisContext context, String message, Level logLevel) {
+        super(containingModule, context);
         checkNotNull(message, "Cannot construct a {0} action with null as its message", this.getClass().getSimpleName
                 ());
         checkNotNull(logLevel, "Cannot construct a {0} action with null as its level", this.getClass().getSimpleName());

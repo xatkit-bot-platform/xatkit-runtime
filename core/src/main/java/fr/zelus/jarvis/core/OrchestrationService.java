@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
@@ -61,12 +62,13 @@ public class OrchestrationService {
      * instantiated by using the {@code recognizedIntent}'s values.
      *
      * @param recognizedIntent the {@link RecognizedIntent} to retrieve the {@link JarvisAction}s from
+     * @param context          the {@link JarvisContext} associated to the action to create
      * @return a {@link List} containing the instantiated {@link JarvisAction}s associated to the provided {@code
      * recognizedIntent}.
      * @see JarvisModuleRegistry#getJarvisModule(String)
-     * @see JarvisModule#createJarvisAction(Action, RecognizedIntent)
+     * @see JarvisModule#createJarvisAction(ActionInstance, RecognizedIntent, JarvisContext)
      */
-    public List<JarvisAction> getActionsFromIntent(RecognizedIntent recognizedIntent) {
+    public List<JarvisAction> getActionsFromIntent(RecognizedIntent recognizedIntent, JarvisContext context) {
         IntentDefinition intentDefinition = recognizedIntent.getDefinition();
         List<JarvisAction> jarvisActions = new ArrayList<>();
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
@@ -76,7 +78,8 @@ public class OrchestrationService {
                     Action baseAction = actionInstance.getAction();
                     JarvisModule jarvisModule = JarvisCore.getInstance().getJarvisModuleRegistry().getJarvisModule(
                             (Module) baseAction.eContainer());
-                    JarvisAction jarvisAction = jarvisModule.createJarvisAction(actionInstance, recognizedIntent);
+                    JarvisAction jarvisAction = jarvisModule.createJarvisAction(actionInstance, recognizedIntent,
+                            context);
                     if (isNull(jarvisAction)) {
                         Log.warn("Create Action with the provided parameters ({0}, {1}) returned null", actionInstance,
                                 recognizedIntent);

@@ -740,7 +740,7 @@ public class JarvisCore {
         checkNotNull(message, "Cannot handle null message");
         checkNotNull(session, "Cannot handle the message %s, the provided session is null", message);
         RecognizedIntent intent = dialogFlowApi.getIntent(message, session);
-        List<JarvisAction> jarvisActions = orchestrationService.getActionsFromIntent(intent);
+        List<JarvisAction> jarvisActions = orchestrationService.getActionsFromIntent(intent, session.getJarvisContext());
         if (jarvisActions.isEmpty()) {
             Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());
         }

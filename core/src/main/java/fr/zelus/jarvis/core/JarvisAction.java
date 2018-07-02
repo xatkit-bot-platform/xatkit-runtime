@@ -1,5 +1,7 @@
 package fr.zelus.jarvis.core;
 
+import fr.zelus.jarvis.core.session.JarvisContext;
+
 import java.text.MessageFormat;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -29,14 +31,24 @@ public abstract class JarvisAction<T extends JarvisModule> implements Runnable {
     protected T module;
 
     /**
+     * The {@link JarvisContext} associated to this action.
+     */
+    protected JarvisContext context;
+
+    /**
      * Constructs a new {@link JarvisModule} with the provided {@code containingModule}.
      *
      * @param containingModule the {@link JarvisModule} containing this action
+     * @param context          the {@link JarvisContext} associated to this action
+     * @throws NullPointerException if the provided {@code containingModule} or {@code context} is {@code null}
      */
-    public JarvisAction(T containingModule) {
-        checkNotNull(containingModule, "Cannot construct a {0} with a null {1}", this.getClass().getSimpleName(),
-                containingModule.getClass().getSimpleName());
+    public JarvisAction(T containingModule, JarvisContext context) {
+        checkNotNull(containingModule, "Cannot construct a {0} with a null containing module", this.getClass()
+                .getSimpleName());
+        checkNotNull(context, "Cannot construct a %s with a null %s", this.getClass().getSimpleName(), JarvisContext
+                .class.getSimpleName());
         this.module = containingModule;
+        this.context = context;
     }
 
     /**
