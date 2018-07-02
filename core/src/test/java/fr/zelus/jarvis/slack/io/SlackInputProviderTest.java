@@ -107,6 +107,14 @@ public class SlackInputProviderTest {
     }
 
     @Test
+    public void sendSlackMessageNullUser() {
+        slackInputProvider = getValidSlackInputProvider();
+        slackInputProvider.getRtmClient().onMessage(getMessageNullUser());
+        assertThat(stubJarvisCore.getHandledMessages()).as("Empty handled messages").isEmpty();
+        assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
+    }
+
+    @Test
     public void sendSlackMessageEmptyMessage() {
         slackInputProvider = getValidSlackInputProvider();
         slackInputProvider.getRtmClient().onMessage(getMessageEmptyText());
@@ -121,24 +129,31 @@ public class SlackInputProviderTest {
     }
 
     private String getValidMessage() {
-        return MessageFormat.format("'{'\"type\":\"message\",\"text\":\"hello\", \"channel\":\"{0}\"'}'", SLACK_CHANNEL);
+        return MessageFormat.format("'{'\"type\":\"message\",\"text\":\"hello\", \"channel\":\"{0}\", " +
+                        "\"user\":\"123\"'}'", SLACK_CHANNEL);
     }
 
     private String getMessageInvalidType() {
-        return MessageFormat.format("'{'\"type\":\"invalid\",\"text\":\"hello\", \"channel\":\"{0}\"'}'",
-                SLACK_CHANNEL);
+        return MessageFormat.format("'{'\"type\":\"invalid\",\"text\":\"hello\", \"channel\":\"{0}\", " +
+                        "\"user\":\"123\"'}'", SLACK_CHANNEL);
     }
 
     private String getMessageNullText() {
-        return MessageFormat.format("'{'\"type\":\"message\", \"channel\":\"{0}\"'}'", SLACK_CHANNEL);
+        return MessageFormat.format("'{'\"type\":\"message\", \"channel\":\"{0}\", \"user\":\"123\"'}'",
+                 SLACK_CHANNEL);
     }
 
     private String getMessageNullChannel() {
+        return "{\"type\":\"message\", \"user\":\"123\"}";
+    }
+
+    private String getMessageNullUser() {
         return "{\"type\":\"message\"}";
     }
 
     private String getMessageEmptyText() {
-        return MessageFormat.format("'{'\"type\":\"message\",\"text\":\"\", \"channel\":\"{0}\"'}'", SLACK_CHANNEL);
+        return MessageFormat.format( "'{'\"type\":\"message\",\"text\":\"\", \"channel\":\"{0}\", " +
+                "\"user\":\"123\"'}'", SLACK_CHANNEL);
     }
 
 }

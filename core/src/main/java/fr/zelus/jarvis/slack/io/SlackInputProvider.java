@@ -4,6 +4,7 @@ import com.github.seratch.jslack.Slack;
 import com.github.seratch.jslack.api.methods.SlackApiException;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
+import com.github.seratch.jslack.api.model.User;
 import com.github.seratch.jslack.api.rtm.RTMClient;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -198,8 +199,15 @@ public class SlackInputProvider extends InputProvider {
                 .build();
         try {
             UsersInfoResponse response = slack.methods().usersInfo(usersInfoRequest);
-            username = response.getUser().getProfile().getDisplayName();
-            Log.info("Found username {0}", username);
+            User user = response.getUser();
+            if(nonNull(user)) {
+                username = response.getUser().getProfile().getDisplayName();
+                Log.info("Found username {0}", username);
+            }
+            else {
+                Log.error("Cannot retrieve the username for {0}, returning the default username {1}", userId,
+                        DEFAULT_USERNAME);
+            }
         } catch (IOException | SlackApiException e) {
             Log.error("Cannot retrieve the username for {0}, returning the default username {1}", userId,
                     DEFAULT_USERNAME);
