@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.util;
 
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.log.module.LogModule;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModuleFactory;
@@ -23,19 +24,19 @@ import java.util.Collections;
 public class ModuleCreatorUtil {
 
     /**
-     * Creates an instance of the {@link fr.zelus.jarvis.core.module.log.LogModule} model
+     * Creates an instance of the {@link LogModule} model
      * <p>
      * This method attempts to save the created model in the {@code /tmp/jarvis/test} folder. If the model can not be
      * saved (because of permission restrictions or invalid path) the in-memory {@link Resource} is returned and a
      * warning log message is displayed.
      *
-     * @return an instance of the {@link fr.zelus.jarvis.core.module.log.LogModule} model
+     * @return an instance of the {@link LogModule} model
      */
     public static Resource createLogModule() {
         ModuleFactory moduleFactory = ModuleFactory.eINSTANCE;
         Module module = moduleFactory.createModule();
         module.setName("Log");
-        module.setJarvisModulePath("fr.zelus.jarvis.core.module.log.LogModule");
+        module.setJarvisModulePath("fr.zelus.jarvis.log.module.LogModule");
         Action infoAction = moduleFactory.createAction();
         infoAction.setName("LogInfo");
         Parameter infoParam = moduleFactory.createParameter();

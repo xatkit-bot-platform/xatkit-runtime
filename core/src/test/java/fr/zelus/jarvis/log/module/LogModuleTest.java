@@ -1,8 +1,8 @@
-package fr.zelus.jarvis.core.module.log;
+package fr.zelus.jarvis.log.module;
 
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.module.log.action.LogInfo;
+import fr.zelus.jarvis.log.module.action.LogInfo;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
