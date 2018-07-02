@@ -38,6 +38,17 @@ public class PrivateMessageListener extends ListenerAdapter {
     }
 
     /**
+     * Returns the {@link JarvisCore} instance used to handled received messages.
+     * <p>
+     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
+     *
+     * @return the {@link JarvisCore} instance used to handle received messages
+     */
+    protected JarvisCore getJarvisCore() {
+        return this.jarvisCore;
+    }
+
+    /**
      * Handles the received private message event and forward it to the {@link JarvisCore}.
      * <p>
      * Empty and {@code null} messages are filtered in order to avoid useless calls to the underlying DialogFlow API.
@@ -48,6 +59,7 @@ public class PrivateMessageListener extends ListenerAdapter {
      */
     @Override
     public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
+        checkNotNull(event, "Cannot handle a null %s", PrivateMessageReceivedEvent.class.getSimpleName());
         User author = event.getAuthor();
         if (author.isBot()) {
             return;

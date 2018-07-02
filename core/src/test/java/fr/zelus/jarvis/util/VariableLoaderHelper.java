@@ -19,8 +19,14 @@ public class VariableLoaderHelper {
 
     private static String JARVIS_SLACK_TOKEN_KEY = "JARVIS_SLACK_TOKEN";
 
+    private static String JARVIS_DISCORD_TOKEN = "JARVIS_DISCORD_TOKEN";
+
     public static String getJarvisSlackToken() {
         return getVariable(JARVIS_SLACK_TOKEN_KEY);
+    }
+
+    public static String getJarvisDiscordToken() {
+        return getVariable(JARVIS_DISCORD_TOKEN);
     }
 
     private static String getVariable(String key) {
