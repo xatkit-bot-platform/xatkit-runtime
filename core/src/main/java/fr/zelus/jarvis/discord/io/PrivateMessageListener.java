@@ -76,7 +76,7 @@ public class PrivateMessageListener extends ListenerAdapter {
         }
         JarvisSession jarvisSession = jarvisCore.getOrCreateJarvisSession(channelName);
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
-                .DISCORD_CHANNEL_CONTEXT_KEY, channelName);
+                .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
         Log.info("Received message {0}", content);
         jarvisCore.handleMessage(content, jarvisSession);
     }
