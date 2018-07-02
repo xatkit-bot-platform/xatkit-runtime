@@ -323,7 +323,7 @@ public class DialogFlowApi {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot train the ML Engine, the DialogFlow API is shutdown");
         }
-        Log.info("Starting ML Engine Training (this make take a few minutes)");
+        Log.info("Starting ML Engine Training (this may take a few minutes)");
         TrainAgentRequest request = TrainAgentRequest.newBuilder()
                 .setParent(projectName.toString())
                 .build();
