@@ -24,21 +24,22 @@ public abstract class JarvisMessageAction<T extends JarvisModule> extends Jarvis
     protected String fillContextValues(String message) {
         Log.info("Processing message {0}", message);
         String outMessage = message;
-        Matcher m = Pattern.compile("\\$\\S+").matcher(message);
+        Matcher m = Pattern.compile("\\{\\$\\S+\\}").matcher(message);
         while(m.find()) {
             String group = m.group();
             Log.info("Found context variable {0}", group);
             /*
              * Cannot be empty.
              */
-            String filteredGroup = group.substring(1);
+            String filteredGroup = group.substring(2);
             String[] splitGroup = filteredGroup.split("\\.");
             if(splitGroup.length == 2) {
                 Log.info("Looking for context \"{0}\"", splitGroup[0]);
                 Map<String, Object> variables = this.context.getContextVariables(splitGroup[0]);
                 if(nonNull(variables)) {
-                    Object value = variables.get(splitGroup[1]);
-                    Log.info("Looking for variable \"{0}\"", splitGroup[1]);
+                    String variableIdentifier = splitGroup[1].substring(0, splitGroup[1].length() -1);
+                    Object value = variables.get(variableIdentifier);
+                    Log.info("Looking for variable \"{0}\"", variableIdentifier);
                     if(nonNull(value)) {
                         outMessage = outMessage.replace(group, (String) value);
                     } else {
