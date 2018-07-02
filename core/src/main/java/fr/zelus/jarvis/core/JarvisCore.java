@@ -684,17 +684,17 @@ public class JarvisCore {
      * If the {@link JarvisSession} does not exist a new one is created using
      * {@link DialogFlowApi#createSession(String)}.
      *
-     * @param userId the user identifier to get a session for
+     * @param sessionId the identifier to get or retrieve a session for
      * @return the {@link JarvisSession} associated to the provided {@code userId}
      * @throws NullPointerException if the provided {@code userId} is {@code null}
      */
-    public JarvisSession getOrCreateJarvisSession(String userId) {
-        checkNotNull(userId, "Cannot create or retrieve a session for null");
-        if (sessions.containsKey(userId)) {
-            return sessions.get(userId);
+    public JarvisSession getOrCreateJarvisSession(String sessionId) {
+        checkNotNull(sessionId, "Cannot create or retrieve a session for null");
+        if (sessions.containsKey(sessionId)) {
+            return sessions.get(sessionId);
         } else {
-            JarvisSession session = this.dialogFlowApi.createSession(userId);
-            sessions.put(userId, session);
+            JarvisSession session = this.dialogFlowApi.createSession(sessionId);
+            sessions.put(sessionId, session);
             return session;
         }
     }

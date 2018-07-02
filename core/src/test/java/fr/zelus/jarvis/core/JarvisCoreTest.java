@@ -305,6 +305,24 @@ public class JarvisCoreTest {
         jarvisCore.shutdown();
     }
 
+    @Test(expected = NullPointerException.class)
+    public void getOrCreateJarvisSessionNullSessionId() {
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.getOrCreateJarvisSession(null);
+    }
+
+    @Test
+    public void getOrCreateJarvisSessionValidSessionId() {
+        jarvisCore = getValidJarvisCore();
+        JarvisSession session = jarvisCore.getOrCreateJarvisSession("sessionID");
+        assertThat(session).as("Not null JarvisSession").isNotNull();
+        /*
+         * Use contains because the underlying DialogFlow API add additional identification information in the
+         * returned JarvisSession.
+         */
+        assertThat(session.getSessionId()).as("Valid session ID").contains("sessionID");
+    }
+
     @Test
     public void shutdown() {
         jarvisCore = getValidJarvisCore();

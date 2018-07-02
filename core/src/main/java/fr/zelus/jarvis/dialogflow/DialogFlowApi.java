@@ -351,15 +351,16 @@ public class DialogFlowApi {
      * The created session wraps the internal DialogFlow session that is used on the DialogFlow project to retrieve
      * conversation parts from a given user.
      *
+     * @param sessionId the identifier to create a session for
      * @return a new {@link JarvisSession} for the provided {@code userId}
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
-    public JarvisSession createSession(String userId) {
+    public JarvisSession createSession(String sessionId) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
         }
         UUID identifier = UUID.randomUUID();
-        SessionName sessionName = SessionName.of(projectId, userId);
+        SessionName sessionName = SessionName.of(projectId, sessionId);
         Log.info("New session created with path {0}", sessionName.toString());
         return new DialogFlowSession(sessionName);
     }
