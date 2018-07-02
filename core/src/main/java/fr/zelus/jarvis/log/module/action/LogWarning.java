@@ -1,7 +1,7 @@
-package fr.zelus.jarvis.core.module.log.action;
+package fr.zelus.jarvis.log.module.action;
 
 import fr.inria.atlanmod.commons.log.Level;
-import fr.zelus.jarvis.core.module.log.LogModule;
+import fr.zelus.jarvis.log.module.LogModule;
 import fr.zelus.jarvis.core.session.JarvisContext;
 
 /**
