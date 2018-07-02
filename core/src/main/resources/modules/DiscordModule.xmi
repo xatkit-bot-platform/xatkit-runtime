@@ -4,4 +4,7 @@
     <parameters key="message" type="String"/>
     <parameters key="channel" type="String"/>
   </actions>
+  <actions name="Reply">
+    <parameters key="message" type="String"/>
+  </actions>
 </module:Module>
