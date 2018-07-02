@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="DiscordModule" jarvisModulePath="">
+<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="CoreModule" jarvisModulePath="">
   <intentDefinitions name="Default_Fallback_Intent">
     <trainingSentences></trainingSentences>
   </intentDefinitions>
