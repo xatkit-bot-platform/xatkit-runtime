@@ -1,6 +1,9 @@
 package fr.zelus.jarvis.slack.io;
 
 import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.methods.SlackApiException;
+import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
+import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.rtm.RTMClient;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -39,6 +42,13 @@ import static java.util.Objects.nonNull;
 public class SlackInputProvider extends InputProvider {
 
     /**
+     * The default username returned by {@link #getUsernameFromUserId(String)}.
+     *
+     * @see #getUsernameFromUserId(String)
+     */
+    private static String DEFAULT_USERNAME = "unknown user";
+
+    /**
      * The {@link String} representing the Slack bot API token.
      * <p>
      * This token is used to authenticate the bot and receive messages through the RTM API.
@@ -49,6 +59,11 @@ public class SlackInputProvider extends InputProvider {
      * The {@link RTMClient} managing the RTM connection to the Slack API.
      */
     private RTMClient rtmClient;
+
+    /**
+     * The Slack API client used to retrieve Slack-related information.
+     */
+    private Slack slack;
 
     /**
      * The {@link JsonParser} used to manipulate Slack API answers.
@@ -77,7 +92,7 @@ public class SlackInputProvider extends InputProvider {
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackInputProvider from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SLACK_TOKEN_KEY);
-        Slack slack = new Slack();
+        slack = new Slack();
         try {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
@@ -113,7 +128,7 @@ public class SlackInputProvider extends InputProvider {
                                      */
                                     String channel = channelObject.getAsString();
                                     JsonElement userObject = json.get("user");
-                                    if(nonNull(userObject)) {
+                                    if (nonNull(userObject)) {
                                         /*
                                          * The name of the user that sent the message
                                          */
@@ -130,7 +145,7 @@ public class SlackInputProvider extends InputProvider {
                                                         .SLACK_CHANNEL_CONTEXT_KEY, channel);
                                                 session.getJarvisContext().setContextValue(JarvisSlackUtils
                                                         .SLACK_CONTEXT_KEY, JarvisSlackUtils
-                                                        .SLACK_USERNAME_CONTEXT_KEY, user);
+                                                        .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
                                                 jarvisCore.handleMessage(text, session);
                                             } else {
                                                 Log.warn("Received an empty message, skipping it");
@@ -163,6 +178,33 @@ public class SlackInputProvider extends InputProvider {
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
         }
+    }
+
+    /**
+     * Returns the Slack username associated to the provided {@code userId}.
+     * <p>
+     * This method returns {@link #DEFAULT_USERNAME} if the Slack API is not reachable or if the provided {@code
+     * userId} does not match any known user.
+     *
+     * @param userId the user identifier to retrieve the username from
+     * @return the Slack username associated to the provided {@code userId}
+     */
+    private String getUsernameFromUserId(String userId) {
+        Log.info("Retrieving username for {0}", userId);
+        String username = DEFAULT_USERNAME;
+        UsersInfoRequest usersInfoRequest = UsersInfoRequest.builder()
+                .token(slackToken)
+                .user(userId)
+                .build();
+        try {
+            UsersInfoResponse response = slack.methods().usersInfo(usersInfoRequest);
+            username = response.getUser().getProfile().getDisplayName();
+            Log.info("Found username {0}", username);
+        } catch (IOException | SlackApiException e) {
+            Log.error("Cannot retrieve the username for {0}, returning the default username {1}", userId,
+                    DEFAULT_USERNAME);
+        }
+        return username;
     }
 
     /**
