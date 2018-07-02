@@ -712,6 +712,13 @@ public class JarvisCore {
     }
 
     /**
+     * Invalidates all the {@link JarvisSession}s and clear the session registry.
+     */
+    public void clearJarvisSessions() {
+        this.sessions.clear();
+    }
+
+    /**
      * Handles an input {@code message} by executing the associated {@link JarvisAction}s.
      * <p>
      * The input {@code message} is forwarded to the underlying {@link DialogFlowApi} that takes care of retrieving
