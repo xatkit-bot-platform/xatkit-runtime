@@ -9,13 +9,15 @@ public class StubInputProviderDefaultConstructor extends InputProvider {
         super(jarvisCore);
     }
 
-    public void write(String message) {
-        jarvisCore.handleMessage(message);
-    }
-
     @Override
     public void run() {
-        // do nothing
+        synchronized(this) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+
+            }
+        }
     }
 
 }

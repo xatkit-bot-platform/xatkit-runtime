@@ -2,6 +2,7 @@ package fr.zelus.jarvis.core;
 
 import com.google.cloud.dialogflow.v2.SessionName;
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.dialogflow.DialogFlowException;
 import fr.zelus.jarvis.intent.IntentPackage;
@@ -26,7 +27,9 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -108,7 +111,7 @@ public class JarvisCore {
      * @param projectId          the unique identifier of the DialogFlow project
      * @param languageCode       the code of the language processed by DialogFlow
      * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
-     * @param inputProviderClazz      the {@link InputProvider}'s {@link Class} to instantiate to receive inputs from
+     * @param inputProviderClazz the {@link InputProvider}'s {@link Class} to instantiate to receive inputs from
      * @return the {@link Configuration} holding the provided {@code projectId}, {@code languageCode}, and {@code
      * orchestrationModel}
      * @see #JarvisCore(Configuration)
@@ -142,11 +145,6 @@ public class JarvisCore {
     private DialogFlowApi dialogFlowApi;
 
     /**
-     * The DialogFlow session associated to this {@link JarvisCore} instance.
-     */
-    private SessionName sessionName;
-
-    /**
      * The {@link JarvisModuleRegistry} used to cache loaded module, and provides utility method to retrieve,
      * unregister,
      * and clear them.
@@ -167,7 +165,7 @@ public class JarvisCore {
     /**
      * The {@link OrchestrationService} used to find {@link JarvisAction}s to execute from the received textual inputs.
      *
-     * @see #handleMessage(String)
+     * @see #handleMessage(String, JarvisSession)
      * @see JarvisAction
      */
     private OrchestrationService orchestrationService;
@@ -200,6 +198,13 @@ public class JarvisCore {
      * @see JarvisAction
      */
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    /**
+     * The {@link Map} used to store and retrieve {@link JarvisSession}s associated to users.
+     *
+     * @see #getOrCreateJarvisSession(String)
+     */
+    private Map<String, JarvisSession> sessions;
 
     /**
      * Constructs a new {@link JarvisCore} instance from the provided {@code configuration}.
@@ -244,7 +249,7 @@ public class JarvisCore {
         checkNotNull(inputProvider, "Cannot construct a jarvis instance from a null InputProvider");
         this.inputProviderThread = new Thread(inputProvider);
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
-        this.sessionName = dialogFlowApi.createSession();
+        this.sessions = new HashMap<>();
         /*
          * The OrchestrationService instance should be available through a getter for testing purposes.
          * See https://github.com/gdaniel/jarvis/issues/6.
@@ -261,7 +266,7 @@ public class JarvisCore {
             try {
                 this.dialogFlowApi.registerIntentDefinition(link.getIntent());
                 intentRegistered = true;
-            }catch(DialogFlowException e) {
+            } catch (DialogFlowException e) {
                 Log.warn("The Intent {0} is already registered in the DialogFlow project, skipping its registration",
                         link.getIntent().getName());
                 Log.warn("Intent {0} won't be updated on the DialogFlow project", link.getIntent().getName());
@@ -279,10 +284,10 @@ public class JarvisCore {
                 }
                 jarvisModule.enableAction(action);
             }
-            if(intentRegistered) {
+            if (intentRegistered) {
                 /*
                  * New intents have been registered in the DialogFlow project, we should explicitly ask the ML Engine
-                  * to train in order to take them into account
+                 * to train in order to take them into account
                  */
                 dialogFlowApi.trainMLEngine();
             }
@@ -314,7 +319,7 @@ public class JarvisCore {
      * @param projectId          the unique identifier of the DialogFlow project
      * @param languageCode       the code of the language processed by DialogFlow
      * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
-     * @param inputProviderClazz      the {@link InputProvider}'s {@link Class} to instantiate to receive inputs from
+     * @param inputProviderClazz the {@link InputProvider}'s {@link Class} to instantiate to receive inputs from
      * @throws NullPointerException if the provided {@code projectId}, {@code languageCode}, {@code
      *                              orchestrationModel}, or {@code inputProvider} is {@code null}
      * @throws JarvisException      if the framework is not able to retrieve the {@link OrchestrationModel}
@@ -427,7 +432,7 @@ public class JarvisCore {
                 "the %s property of the jarvis configuration", INPUT_PROVIDER_KEY);
         checkNotNull(configuration, "Cannot create an InputProvider instance from a null configuration");
         Class<? extends InputProvider> clazz = null;
-        if(property instanceof String) {
+        if (property instanceof String) {
             try {
                 clazz = (Class<? extends InputProvider>) this.getClass().getClassLoader().loadClass((String) property);
             } catch (ClassNotFoundException e) {
@@ -435,7 +440,7 @@ public class JarvisCore {
                 Log.error(errorMessage);
                 throw new JarvisException(errorMessage, e);
             }
-        } else if(property instanceof Class) {
+        } else if (property instanceof Class) {
             clazz = (Class<? extends InputProvider>) property;
             ;
         } else {
@@ -609,19 +614,6 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link SessionName} representing the current DialogFlow session.
-     * <p>
-     * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications. In
-     * particular, jarvis does not ensure that {@link JarvisAction}s will be triggered in case of direct queries to
-     * the DialogFlow API.
-     *
-     * @return the {@link SessionName} representing the current DialogFlow session
-     */
-    protected SessionName getSessionName() {
-        return sessionName;
-    }
-
-    /**
      * Returns the {@link ExecutorService} used to process {@link JarvisAction}s.
      * <p>
      * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications.
@@ -664,7 +656,6 @@ public class JarvisCore {
             Log.warn("Received an InterruptedException when waiting for InputProvider Thread to finish");
         }
         this.dialogFlowApi.shutdown();
-        this.sessionName = null;
         this.getJarvisModuleRegistry().clearJarvisModules();
         this.getIntentDefinitionRegistry().clearIntentDefinitions();
         if (INSTANCE.equals(this)) {
@@ -684,7 +675,28 @@ public class JarvisCore {
      * @return {@code true} if the {@link JarvisCore} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
-        return executorService.isShutdown() || dialogFlowApi.isShutdown() || isNull(sessionName);
+        return executorService.isShutdown() || dialogFlowApi.isShutdown();
+    }
+
+    /**
+     * Returns the {@link JarvisSession} associated to the provided {@code userId}.
+     * <p>
+     * If the {@link JarvisSession} does not exist a new one is created using
+     * {@link DialogFlowApi#createSession(String)}.
+     *
+     * @param userId the user identifier to get a session for
+     * @return the {@link JarvisSession} associated to the provided {@code userId}
+     * @throws NullPointerException if the provided {@code userId} is {@code null}
+     */
+    public JarvisSession getOrCreateJarvisSession(String userId) {
+        checkNotNull(userId, "Cannot create or retrieve a session for null");
+        if (sessions.containsKey(userId)) {
+            return sessions.get(userId);
+        } else {
+            JarvisSession session = this.dialogFlowApi.createSession(userId);
+            sessions.put(userId, session);
+            return session;
+        }
     }
 
     /**
@@ -693,17 +705,22 @@ public class JarvisCore {
      * The input {@code message} is forwarded to the underlying {@link DialogFlowApi} that takes care of retrieving
      * the corresponding intent (if any).
      * <p>
+     * The message is handled for a specific user, and can access the {@code session} information to retrieve stored
+     * context variables, extracted information, are additional information stored by the {@link InputProvider}.
+     * <p>
      * This method relies on the {@link OrchestrationService} instance to retrieve the {@link JarvisAction}
      * associated to the extracted intent. These {@link JarvisAction}s are then submitted to the local
      * {@link #executorService} that takes care of executing them in a separated thread.
      *
      * @param message the textual input to process
+     * @param session the {@link JarvisSession} associated to the input user
      * @throws NullPointerException if the provided {@code message} is {@code null}
      * @see JarvisAction
      */
-    public void handleMessage(String message) {
+    public void handleMessage(String message, JarvisSession session) {
         checkNotNull(message, "Cannot handle null message");
-        RecognizedIntent intent = dialogFlowApi.getIntent(message, sessionName);
+        checkNotNull(session, "Cannot handle the message %s, the provided session is null", message);
+        RecognizedIntent intent = dialogFlowApi.getIntent(message, session);
         List<JarvisAction> jarvisActions = orchestrationService.getActionsFromIntent(intent);
         if (jarvisActions.isEmpty()) {
             Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());

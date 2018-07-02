@@ -88,7 +88,7 @@ public class SlackInputProviderTest {
     }
 
     private String getValidMessage() {
-        return "{\"type\":\"message\",\"text\":\"hello\"}";
+        return "{\"type\":\"message\",\"text\":\"hello\", \"channel\":\"test\"}";
     }
 
     private String getMessageInvalidType() {

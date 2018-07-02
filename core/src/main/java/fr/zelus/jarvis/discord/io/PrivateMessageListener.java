@@ -2,6 +2,7 @@ package fr.zelus.jarvis.discord.io;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.User;
@@ -66,6 +67,7 @@ public class PrivateMessageListener extends ListenerAdapter {
         }
         MessageChannel channel = event.getChannel();
         String channelName = channel.getName();
+        JarvisSession jarvisSession = jarvisCore.getOrCreateJarvisSession(channelName);
         Message message = event.getMessage();
         String content = message.getContentRaw();
         if (content.isEmpty()) {
@@ -73,6 +75,6 @@ public class PrivateMessageListener extends ListenerAdapter {
             return;
         }
         Log.info("Received message {0}", content);
-        jarvisCore.handleMessage(content);
+        jarvisCore.handleMessage(content, jarvisSession);
     }
 }

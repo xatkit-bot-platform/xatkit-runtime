@@ -14,10 +14,6 @@ public class StubInputProvider extends InputProvider {
         this(jarvisCore);
     }
 
-    public void write(String message) {
-        jarvisCore.handleMessage(message);
-    }
-
     @Override
     public void run() {
         synchronized(this) {

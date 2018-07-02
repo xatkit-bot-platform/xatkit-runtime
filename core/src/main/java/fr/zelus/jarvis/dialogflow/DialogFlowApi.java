@@ -7,6 +7,7 @@ import com.google.cloud.dialogflow.v2.*;
 import com.google.longrunning.Operation;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.intent.RecognizedIntent;
@@ -110,7 +111,7 @@ public class DialogFlowApi {
     /**
      * The client instance managing DialogFlow sessions.
      * <p>
-     * This instance is used to initiate new sessions (see {@link #createSession()}) and send {@link Intent}
+     * This instance is used to initiate new sessions (see {@link #createSession(String)}) and send {@link Intent}
      * detection queries to the DialogFlow engine.
      */
     private SessionsClient sessionsClient;
@@ -345,22 +346,22 @@ public class DialogFlowApi {
     }
 
     /**
-     * Creates a new DialogFlow session.
+     * Creates a new {@link JarvisSession} for the provided {@code userId}.
      * <p>
-     * A DialogFlow session contains contextual information and previous answers for a given client, and should not
-     * be shared between clients.
+     * The created session wraps the internal DialogFlow session that is used on the DialogFlow project to retrieve
+     * conversation parts from a given user.
      *
-     * @return a {@link SessionName} identifying the created session
+     * @return a new {@link JarvisSession} for the provided {@code userId}
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
-    public SessionName createSession() {
+    public JarvisSession createSession(String userId) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
         }
         UUID identifier = UUID.randomUUID();
-        SessionName session = SessionName.of(projectId, identifier.toString());
-        Log.info("New session created with path {0}", session.toString());
-        return session;
+        SessionName sessionName = SessionName.of(projectId, userId);
+        Log.info("New session created with path {0}", sessionName.toString());
+        return new DialogFlowSession(sessionName);
     }
 
     /**
@@ -400,14 +401,14 @@ public class DialogFlowApi {
      * or context-based {@link Intent}s.
      *
      * @param text    a {@link String} representing the textual input to process and extract the {@link Intent} from
-     * @param session the client {@link SessionName}
+     * @param session the {@link JarvisSession} wrapping the underlying DialogFlow session
      * @return a {@link RecognizedIntent} extracted from the provided input {@code text}
      * @throws NullPointerException     if the provided {@code text} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code text} is empty
      * @throws DialogFlowException      if the {@link DialogFlowApi} is shutdown or if an exception is thrown by the
      *                                  underlying DialogFlow engine
      */
-    public RecognizedIntent getIntent(String text, SessionName session) {
+    public RecognizedIntent getIntent(String text, JarvisSession session) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot extract an Intent from the provided input, the DialogFlow API is " +
                     "shutdown");
@@ -415,11 +416,13 @@ public class DialogFlowApi {
         checkNotNull(text, "Cannot retrieve the intent from null");
         checkNotNull(session, "Cannot retrieve the intent using null as a session");
         checkArgument(!text.isEmpty(), "Cannot retrieve the intent from empty string");
+        checkArgument(session instanceof DialogFlowSession, "Cannot handle the message, expected session type to be " +
+                "%s, found %s", DialogFlowSession.class.getSimpleName(), session.getClass().getSimpleName());
         TextInput.Builder textInput = TextInput.newBuilder().setText(text).setLanguageCode(languageCode);
         QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
         DetectIntentResponse response;
         try {
-            response = sessionsClient.detectIntent(session, queryInput);
+            response = sessionsClient.detectIntent(((DialogFlowSession) session).getSessionName(), queryInput);
         } catch (Exception e) {
             throw new DialogFlowException(e);
         }
@@ -436,7 +439,7 @@ public class DialogFlowApi {
         if (nonNull(intent)) {
             IntentDefinition result = JarvisCore.getInstance().getIntentDefinitionRegistry().getIntentDefinition(intent
                     .getDisplayName());
-            if(isNull(result)) {
+            if (isNull(result)) {
                 result = DEFAULT_FALLBACK_INTENT;
             }
             return result;

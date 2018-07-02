@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.stubs;
 
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 
@@ -47,9 +48,10 @@ public class StubJarvisCore extends JarvisCore {
      * {@link fr.zelus.jarvis.core.JarvisAction}s from the provided {@code message}.
      *
      * @param message the textual input to store in the {@link #handledMessages} list
+     * @param session the user session to use to process the message
      */
     @Override
-    public void handleMessage(String message) {
+    public void handleMessage(String message, JarvisSession session) {
         this.handledMessages.add(message);
     }
 

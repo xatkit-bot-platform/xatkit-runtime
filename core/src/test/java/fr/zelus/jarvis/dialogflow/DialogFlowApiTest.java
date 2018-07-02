@@ -1,8 +1,8 @@
 package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
-import com.google.cloud.dialogflow.v2.SessionName;
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.intent.RecognizedIntent;
@@ -87,10 +87,10 @@ public class DialogFlowApiTest {
          * Reset the variable value to null to avoid unnecessary deletion calls.
          */
         registeredIntentDefinition = null;
-        if(nonNull(api)) {
+        if (nonNull(api)) {
             try {
                 api.shutdown();
-            } catch(DialogFlowException e) {
+            } catch (DialogFlowException e) {
                 /*
                  * Already shutdown, ignore
                  */
@@ -236,8 +236,13 @@ public class DialogFlowApiTest {
     @Test
     public void createSessionValidApi() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
-        SessionName session = api.createSession();
-        assertThat(session.getProject()).as("Valid session project").isEqualTo(VALID_PROJECT_ID);
+        JarvisSession session = api.createSession("sessionID");
+        assertThat(session).as("Not null session").isNotNull();
+        assertThat(session).as("The session is a DialogFlowSession instance").isInstanceOf(DialogFlowSession.class);
+        DialogFlowSession dialogFlowSession = (DialogFlowSession) session;
+        assertThat(dialogFlowSession.getSessionName()).as("Not null SessionName").isNotNull();
+        assertThat(dialogFlowSession.getSessionName().getProject()).as("Valid session project").isEqualTo
+                (VALID_PROJECT_ID);
     }
 
     @Test(expected = DialogFlowException.class)
@@ -250,19 +255,20 @@ public class DialogFlowApiTest {
     @Test
     public void shutdown() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
-        SessionName session = api.createSession();
+        JarvisSession session = api.createSession("sessionID");
         api.shutdown();
         softly.assertThat(api.isShutdown()).as("DialogFlow API is shutdown").isTrue();
         assertThatExceptionOfType(DialogFlowException.class).isThrownBy(() -> api.getIntent("test", session))
                 .withMessage("Cannot extract an Intent from the provided input, the DialogFlow API is shutdown");
-        assertThatExceptionOfType(DialogFlowException.class).isThrownBy(() -> api.createSession()).withMessage
+        assertThatExceptionOfType(DialogFlowException.class).isThrownBy(() -> api.createSession("sessionID"))
+                .withMessage
                 ("Cannot create a new Session, the DialogFlow API is shutdown");
     }
 
     @Test
     public void getIntentValidSession() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
-        SessionName session = api.createSession();
+        JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
         IntentDefinition intentDefinition = intent.getDefinition();
         assertThat(intent).as("Null Intent").isNotNull();
@@ -273,7 +279,7 @@ public class DialogFlowApiTest {
     @Test(expected = DialogFlowException.class)
     public void getIntentInvalidSession() {
         api = new DialogFlowApi("test");
-        SessionName session = api.createSession();
+        JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
     }
 
@@ -286,21 +292,21 @@ public class DialogFlowApiTest {
     @Test(expected = NullPointerException.class)
     public void getIntentNullText() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
-        SessionName session = api.createSession();
+        JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(null, session);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getIntentEmptyText() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
-        SessionName session = api.createSession();
+        JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent("", session);
     }
 
     @Test
     public void getIntentUnknownText() {
         api = new DialogFlowApi(VALID_PROJECT_ID);
-        SessionName session = api.createSession();
+        JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent("azerty", session);
         assertThat(intent.getDefinition()).as("IntentDefinition is not null").isNotNull();
         assertThat(intent.getDefinition().getName()).as("IntentDefinition is the Default Fallback Intent").isEqualTo

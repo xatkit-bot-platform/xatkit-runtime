@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.core;
 
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.io.InputProvider;
@@ -310,7 +311,6 @@ public class JarvisCoreTest {
         jarvisCore.shutdown();
         softly.assertThat(jarvisCore.getExecutorService().isShutdown()).as("ExecutorService is shutdown");
         softly.assertThat(jarvisCore.getDialogFlowApi().isShutdown()).as("DialogFlow API is shutdown");
-        softly.assertThat(jarvisCore.getSessionName()).as("Null DialogFlow session").isNull();
         softly.assertThatThrownBy(() -> JarvisCore.getInstance()).as("Null JarvisCore Instance").isInstanceOf
                 (NullPointerException.class).hasMessage("Cannot retrieve the JarvisCore instance, make sure to " +
                 "initialize it first");
@@ -320,7 +320,13 @@ public class JarvisCoreTest {
     @Test(expected = NullPointerException.class)
     public void handleMessageNullMessage() {
         jarvisCore = getValidJarvisCore();
-        jarvisCore.handleMessage(null);
+        jarvisCore.handleMessage(null, new JarvisSession("sessionID"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void handleMessageNullSession() {
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.handleMessage("hello", null);
     }
 
     @Test
@@ -332,7 +338,7 @@ public class JarvisCoreTest {
          */
         StubJarvisModule stubJarvisModule = (StubJarvisModule) jarvisCore.getJarvisModuleRegistry().getJarvisModule
                 ("StubJarvisModule");
-        jarvisCore.handleMessage("hello");
+        jarvisCore.handleMessage("hello", jarvisCore.getOrCreateJarvisSession("sessionID"));
         /*
          * Ask the executor to shutdown an await for the termination of the tasks. This ensures that the action
          * created by the stub module has been executed.
@@ -347,7 +353,7 @@ public class JarvisCoreTest {
         jarvisCore = getValidJarvisCore();
         StubJarvisModule stubJarvisModule = (StubJarvisModule) jarvisCore.getJarvisModuleRegistry().getJarvisModule
                 ("StubJarvisModule");
-        jarvisCore.handleMessage("bye");
+        jarvisCore.handleMessage("bye", jarvisCore.getOrCreateJarvisSession("sessionID"));
         assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action not processed").isFalse();
     }
 
@@ -369,9 +375,6 @@ public class JarvisCoreTest {
         assertThat(jarvisCore.getOrchestrationModel()).as("Not null OrchestrationModel").isNotNull();
         softly.assertThat(jarvisCore.getOrchestrationModel()).as("Valid OrchestrationModel").isEqualTo
                 (VALID_ORCHESTRATION_MODEL);
-        assertThat(jarvisCore.getSessionName()).as("Not null SessionName").isNotNull();
-        softly.assertThat(jarvisCore.getSessionName().getProject()).as("Valid SessionName project ID").isEqualTo
-                (VALID_PROJECT_ID);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
         assertThat(jarvisCore.getInputProvider()).as("Not null InputProvider").isNotNull();
         softly.assertThat(jarvisCore.getInputProvider()).as("Valid InputProvider").isInstanceOf

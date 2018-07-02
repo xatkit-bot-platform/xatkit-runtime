@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.slack.JarvisSlackUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -93,6 +94,7 @@ public class SlackInputProvider extends InputProvider {
                         /*
                          * The message has a type, this should always be true
                          */
+                        Log.info("received {0}", json);
                         if (json.get("type").getAsString().equals(HELLO_TYPE)) {
                             Log.info("Slack listener connected");
                         }
@@ -104,17 +106,27 @@ public class SlackInputProvider extends InputProvider {
                                 /*
                                  * The message hasn't been sent by a bot
                                  */
-                                JsonElement textObject = json.get("text");
-                                if (nonNull(textObject)) {
-                                    String text = textObject.getAsString();
-                                    if (!text.isEmpty()) {
-                                        Log.info("Received message {0}", text);
-                                        jarvisCore.handleMessage(text);
+                                JsonElement channelObject = json.get("channel");
+                                if(nonNull(channelObject)) {
+                                    /*
+                                     * The message channel is set
+                                     */
+                                    String channel = channelObject.getAsString();
+                                    JsonElement textObject = json.get("text");
+                                    if (nonNull(textObject)) {
+                                        String text = textObject.getAsString();
+                                        if (!text.isEmpty()) {
+                                            Log.info("Received message {0} (channel: {1})", text, channel);
+                                            JarvisSession session = jarvisCore.getOrCreateJarvisSession(channel);
+                                            jarvisCore.handleMessage(text, session);
+                                        } else {
+                                            Log.warn("Received an empty message, skipping it");
+                                        }
                                     } else {
-                                        Log.warn("Received an empty message, skipping it");
+                                        Log.warn("The message does not contain a \"text\" field, skipping it");
                                     }
                                 } else {
-                                    Log.warn("The message does not contain a \"text\" field, skipping it");
+                                    Log.warn("Skipping {0}, the message does not contain a \"channel\" field", json);
                                 }
                             } else {
                                 Log.trace("Skipping {0}, the message has been sent by a bot", json);
