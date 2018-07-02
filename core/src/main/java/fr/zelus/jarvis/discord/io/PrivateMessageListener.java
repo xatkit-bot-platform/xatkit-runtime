@@ -63,6 +63,7 @@ public class PrivateMessageListener extends ListenerAdapter {
     public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
         checkNotNull(event, "Cannot handle a null %s", PrivateMessageReceivedEvent.class.getSimpleName());
         User author = event.getAuthor();
+        checkNotNull(author, "Cannot handle a message from a null author");
         if (author.isBot()) {
             return;
         }
@@ -77,6 +78,8 @@ public class PrivateMessageListener extends ListenerAdapter {
         JarvisSession jarvisSession = jarvisCore.getOrCreateJarvisSession(channelName);
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
                 .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
+        jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
+                .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
         Log.info("Received message {0}", content);
         jarvisCore.handleMessage(content, jarvisSession);
     }

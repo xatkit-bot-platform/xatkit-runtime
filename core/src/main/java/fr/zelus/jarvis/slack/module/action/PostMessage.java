@@ -6,6 +6,7 @@ import com.github.seratch.jslack.api.methods.response.chat.ChatPostMessageRespon
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.core.JarvisMessageAction;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.slack.module.SlackModule;
 
@@ -24,12 +25,7 @@ import static java.util.Objects.nonNull;
  * <b>Note:</b> this class requires that its containing {@link SlackModule} has been loaded with a valid Slack bot API
  * token in order to authenticate the bot and post messages.
  */
-public class PostMessage extends JarvisAction<SlackModule> {
-
-    /**
-     * The message to post.
-     */
-    private String message;
+public class PostMessage extends JarvisMessageAction<SlackModule> {
 
     /**
      * The Slack channel to post the message to.
@@ -46,14 +42,14 @@ public class PostMessage extends JarvisAction<SlackModule> {
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null} or empty.
      */
     public PostMessage(SlackModule containingModule, JarvisContext context, String message, String channel) {
-        super(containingModule, context);
-        checkArgument(nonNull(message) && !message.isEmpty(), "Cannot construct a {0} action with the provided " +
-                "message {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
+        super(containingModule, context, message);
+
         checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a {0} action with the provided " +
                 "channel {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), channel);
-        this.message = message;
         this.channel = channel;
     }
+
+
 
     /**
      * Posts the provided {@code message} to the given {@code channel}.

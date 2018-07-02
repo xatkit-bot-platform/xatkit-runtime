@@ -38,4 +38,9 @@ public interface JarvisSlackUtils {
      * The {@link fr.zelus.jarvis.core.session.JarvisContext} variable key used to store slack channel information.
      */
     String SLACK_CHANNEL_CONTEXT_KEY = "channel";
+
+    /**
+     * The {@link fr.zelus.jarvis.core.session.JarvisContext} variable key used to store slack username information.
+     */
+    String SLACK_USERNAME_CONTEXT_KEY = "username";
 }

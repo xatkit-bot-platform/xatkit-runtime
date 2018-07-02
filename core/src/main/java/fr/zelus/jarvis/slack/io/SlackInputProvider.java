@@ -112,21 +112,35 @@ public class SlackInputProvider extends InputProvider {
                                      * The message channel is set
                                      */
                                     String channel = channelObject.getAsString();
-                                    JsonElement textObject = json.get("text");
-                                    if (nonNull(textObject)) {
-                                        String text = textObject.getAsString();
-                                        if (!text.isEmpty()) {
-                                            Log.info("Received message {0} (channel: {1})", text, channel);
-                                            JarvisSession session = jarvisCore.getOrCreateJarvisSession(channel);
-                                            session.getJarvisContext().setContextValue(JarvisSlackUtils
-                                                    .SLACK_CONTEXT_KEY, JarvisSlackUtils.SLACK_CHANNEL_CONTEXT_KEY,
-                                                    channel);
-                                            jarvisCore.handleMessage(text, session);
+                                    JsonElement userObject = json.get("user");
+                                    if(nonNull(userObject)) {
+                                        /*
+                                         * The name of the user that sent the message
+                                         */
+                                        String user = userObject.getAsString();
+                                        JsonElement textObject = json.get("text");
+                                        if (nonNull(textObject)) {
+                                            String text = textObject.getAsString();
+                                            if (!text.isEmpty()) {
+                                                Log.info("Received message {0} from user {1} (channel: {2})", text,
+                                                        user, channel);
+                                                JarvisSession session = jarvisCore.getOrCreateJarvisSession(channel);
+                                                session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                                        .SLACK_CONTEXT_KEY, JarvisSlackUtils
+                                                        .SLACK_CHANNEL_CONTEXT_KEY, channel);
+                                                session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                                        .SLACK_CONTEXT_KEY, JarvisSlackUtils
+                                                        .SLACK_USERNAME_CONTEXT_KEY, user);
+                                                jarvisCore.handleMessage(text, session);
+                                            } else {
+                                                Log.warn("Received an empty message, skipping it");
+                                            }
                                         } else {
-                                            Log.warn("Received an empty message, skipping it");
+                                            Log.warn("The message does not contain a \"text\" field, skipping it");
                                         }
                                     } else {
-                                        Log.warn("The message does not contain a \"text\" field, skipping it");
+                                        Log.warn("Skipping {0}, the message does not contain a \"user\" field",
+                                                json);
                                     }
                                 } else {
                                     Log.warn("Skipping {0}, the message does not contain a \"channel\" field", json);
