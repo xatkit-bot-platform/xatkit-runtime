@@ -284,13 +284,13 @@ public class JarvisCore {
                 }
                 jarvisModule.enableAction(action);
             }
-            if (intentRegistered) {
-                /*
-                 * New intents have been registered in the DialogFlow project, we should explicitly ask the ML Engine
-                 * to train in order to take them into account
-                 */
-                dialogFlowApi.trainMLEngine();
-            }
+        }
+        if (intentRegistered) {
+            /*
+             * New intents have been registered in the DialogFlow project, we should explicitly ask the ML Engine
+             * to train in order to take them into account
+             */
+            dialogFlowApi.trainMLEngine();
         }
         /*
          * The instance is correctly constructed, set it as the global instance of this class.
@@ -301,6 +301,7 @@ public class JarvisCore {
         }
         INSTANCE = this;
         this.inputProviderThread.start();
+        Log.info("Jarvis bot started");
     }
 
     /**
