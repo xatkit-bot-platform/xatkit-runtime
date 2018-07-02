@@ -265,8 +265,8 @@ public class DialogFlowApi {
             dialogFlowTrainingPhrases.add(Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part
                     .newBuilder().setText(trainingSentence).build()).build());
         }
-        Intent intent = Intent.newBuilder().setDisplayName(intentDefinition.getName()).addAllTrainingPhrases
-                (dialogFlowTrainingPhrases).build();
+        Intent intent = Intent.newBuilder().setDisplayName(adaptIntentDefinitionNameToDialogFlow(intentDefinition
+                .getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases).build();
         try {
             Intent response = intentsClient.createIntent(projectAgentName, intent);
             Log.info("Intent {0} successfully registered", response.getDisplayName());
@@ -278,6 +278,19 @@ public class DialogFlowApi {
                 throw new DialogFlowException(errorMessage, e);
             }
         }
+    }
+
+    /**
+     * Adapts the provided {@code intentDefinitionName} by replacing its {@code _} by spaces.
+     * <p>
+     * This method is used to deserialize names that have been serialized by
+     * {@link fr.zelus.jarvis.core.IntentDefinitionRegistry#adaptIntentName(String)}.
+     *
+     * @param intentDefinitionName the {@link IntentDefinition} name to adapt
+     * @return the adapted {@code intentDefinitionName}
+     */
+    private String adaptIntentDefinitionNameToDialogFlow(String intentDefinitionName) {
+        return intentDefinitionName.replaceAll("_", " ");
     }
 
     /**

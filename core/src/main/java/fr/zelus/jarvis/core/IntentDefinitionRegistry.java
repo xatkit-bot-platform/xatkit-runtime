@@ -32,10 +32,11 @@ public class IntentDefinitionRegistry {
      * @param intentDefinition the {@link IntentDefinition} to register
      */
     public void registerIntentDefinition(IntentDefinition intentDefinition) {
-        if (this.intentDefinitionMap.containsKey(intentDefinition.getName())) {
-            Log.warn("Another IntentDefinition is stored with the key {0}, overriding it", intentDefinition.getName());
+        String adaptedName = adaptIntentName(intentDefinition.getName());
+        if (this.intentDefinitionMap.containsKey(adaptedName)) {
+            Log.warn("Another IntentDefinition is stored with the key {0}, overriding it", adaptedName);
         }
-        this.intentDefinitionMap.put(intentDefinition.getName(), intentDefinition);
+        this.intentDefinitionMap.put(adaptedName, intentDefinition);
     }
 
     /**
@@ -45,7 +46,7 @@ public class IntentDefinitionRegistry {
      * @return the {@link IntentDefinition} matching the provided {@code name}
      */
     public IntentDefinition getIntentDefinition(String name) {
-        return this.intentDefinitionMap.get(name);
+        return this.intentDefinitionMap.get(adaptIntentName(name));
     }
 
     /**
@@ -53,5 +54,15 @@ public class IntentDefinitionRegistry {
      */
     public void clearIntentDefinitions() {
         this.intentDefinitionMap.clear();
+    }
+
+    /**
+     * Adapts the provided {@code intentName} by replacing its spaces by {@code _}.
+     *
+     * @param intentName the intent name to adapt
+     * @return the adapted name
+     */
+    private String adaptIntentName(String intentName) {
+        return intentName.replaceAll(" ", "_");
     }
 }
