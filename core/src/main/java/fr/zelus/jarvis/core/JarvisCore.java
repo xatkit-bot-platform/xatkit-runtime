@@ -5,6 +5,8 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.dialogflow.DialogFlowException;
+import fr.zelus.jarvis.intent.Context;
+import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.intent.IntentPackage;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.io.InputProvider;
@@ -740,6 +742,15 @@ public class JarvisCore {
         checkNotNull(message, "Cannot handle null message");
         checkNotNull(session, "Cannot handle the message %s, the provided session is null", message);
         RecognizedIntent intent = dialogFlowApi.getIntent(message, session);
+        /*
+         * Register the returned context values
+         */
+        for(ContextParameterValue contextParameterValue : intent.getOutContextValues()) {
+            String contextName = ((Context) contextParameterValue.getContextParameter().eContainer()).getName();
+            String parameterName = contextParameterValue.getContextParameter().getName();
+            String parameterValue = contextParameterValue.getValue();
+            session.getJarvisContext().setContextValue(contextName, parameterName, parameterValue);
+        }
         List<JarvisAction> jarvisActions = orchestrationService.getActionsFromIntent(intent, session.getJarvisContext());
         if (jarvisActions.isEmpty()) {
             Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());

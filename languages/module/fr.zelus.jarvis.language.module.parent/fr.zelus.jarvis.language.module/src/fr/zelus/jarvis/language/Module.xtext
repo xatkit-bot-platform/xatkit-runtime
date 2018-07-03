@@ -25,12 +25,27 @@ IntentDefinition returns intent::IntentDefinition:
 		'inputs' '{'
 			trainingSentences+=EString (trainingSentences+=EString)*
 		'}'
+		(outContexts+=OutContextDefinition)?
 	'}'
 	;
 
 IntentParameter returns intent::IntentParameter:
 	{intent::IntentParameter}
 	key=EString ':' type=EString;
+	
+OutContextDefinition returns intent::Context:
+	{intent::Context}
+	'outContext' name=EString '{'
+		'params' '{'
+			(parameters+=ContextParameter)+
+		'}'
+	'}'
+;
+
+ContextParameter returns intent::ContextParameter:
+	{intent::ContextParameter}
+	name=EString '<-' textFragment=EString '('entityType=EString')'
+;
 
 Action returns Action:
 	{Action}

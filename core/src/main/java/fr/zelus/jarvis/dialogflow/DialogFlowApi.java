@@ -4,20 +4,20 @@ import com.google.api.core.ApiFuture;
 import com.google.api.gax.rpc.FailedPreconditionException;
 import com.google.cloud.ProjectName;
 import com.google.cloud.dialogflow.v2.*;
+import com.google.cloud.dialogflow.v2.Context;
 import com.google.longrunning.Operation;
+import com.google.protobuf.Value;
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.IntentDefinitionRegistry;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.intent.*;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -262,11 +262,15 @@ public class DialogFlowApi {
         List<String> trainingSentences = intentDefinition.getTrainingSentences();
         List<Intent.TrainingPhrase> dialogFlowTrainingPhrases = new ArrayList<>();
         for (String trainingSentence : trainingSentences) {
-            dialogFlowTrainingPhrases.add(Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part
-                    .newBuilder().setText(trainingSentence).build()).build());
+            dialogFlowTrainingPhrases.add(createTrainingPhrase(trainingSentence, intentDefinition.getOutContexts()));
         }
+
+        List<Context> contexts = createContexts(intentDefinition.getOutContexts());
+        List<Intent.Parameter> parameters = createParameters(intentDefinition.getOutContexts());
+
         Intent intent = Intent.newBuilder().setDisplayName(adaptIntentDefinitionNameToDialogFlow(intentDefinition
-                .getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases).build();
+                .getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases).addAllOutputContexts(contexts)
+                .addAllParameters(parameters).build();
         try {
             Intent response = intentsClient.createIntent(projectAgentName, intent);
             Log.info("Intent {0} successfully registered", response.getDisplayName());
@@ -278,6 +282,71 @@ public class DialogFlowApi {
                 throw new DialogFlowException(errorMessage, e);
             }
         }
+    }
+
+    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<fr.zelus.jarvis.intent
+            .Context> outContexts) {
+        if (outContexts.isEmpty()) {
+            return Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part.newBuilder().setText
+                    (trainingSentence).build()).build();
+        } else {
+            // prepare the string
+            String preparedTrainingSentence = trainingSentence;
+            for (fr.zelus.jarvis.intent.Context context : outContexts) {
+                for (ContextParameter parameter : context.getParameters()) {
+                    if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
+                        preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(), "#"
+                                + parameter
+                                .getTextFragment() + "#");
+                    }
+                }
+            }
+            // process the string
+            String[] splitTrainingSentence = preparedTrainingSentence.split("#");
+            Intent.TrainingPhrase.Builder trainingPhraseBuilder = Intent.TrainingPhrase.newBuilder();
+            for (int i = 0; i < splitTrainingSentence.length; i++) {
+                String sentencePart = splitTrainingSentence[i];
+                Intent.TrainingPhrase.Part.Builder partBuilder = Intent.TrainingPhrase.Part.newBuilder().setText
+                        (sentencePart);
+                for (fr.zelus.jarvis.intent.Context context : outContexts) {
+                    for (ContextParameter parameter : context.getParameters()) {
+                        if (sentencePart.equals(parameter.getTextFragment())) {
+                            partBuilder.setEntityType(parameter.getEntityType()).setAlias(parameter.getName());
+                        }
+                    }
+                }
+                trainingPhraseBuilder.addParts(partBuilder.build());
+            }
+            return trainingPhraseBuilder.build();
+        }
+    }
+
+    protected List<Context> createContexts(List<fr.zelus.jarvis.intent.Context> contexts) {
+        List<Context> results = new ArrayList<>();
+        for (fr.zelus.jarvis.intent.Context context : contexts) {
+            /*
+             * Use a dummy session to create the context
+             */
+            ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
+                    context.getName());
+            Context dialogFlowContext = Context.newBuilder().setName(contextName.toString()).setLifespanCount(2)
+                    .build();
+            results.add(dialogFlowContext);
+        }
+        return results;
+    }
+
+    protected List<Intent.Parameter> createParameters(List<fr.zelus.jarvis.intent.Context> contexts) {
+        List<Intent.Parameter> results = new ArrayList<>();
+        for (fr.zelus.jarvis.intent.Context context : contexts) {
+            for (ContextParameter contextParameter : context.getParameters()) {
+                Intent.Parameter parameter = Intent.Parameter.newBuilder().setDisplayName(contextParameter.getName())
+                        .setEntityTypeDisplayName(contextParameter.getEntityType()).setValue("$" + contextParameter
+                                .getName()).build();
+                results.add(parameter);
+            }
+        }
+        return results;
     }
 
     /**
@@ -372,7 +441,6 @@ public class DialogFlowApi {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
         }
-        UUID identifier = UUID.randomUUID();
         SessionName sessionName = SessionName.of(projectId, sessionId);
         Log.info("New session created with path {0}", sessionName.toString());
         return new DialogFlowSession(sessionName);
@@ -406,7 +474,7 @@ public class DialogFlowApi {
      * Returns the {@link RecognizedIntent} extracted from the provided {@code text}
      * <p>
      * The returned {@link RecognizedIntent} is constructed from the raw {@link Intent} returned by the DialogFlow
-     * API, using the mapping defined in {@link #convertDialogFlowIntentToRecognizedIntent(Intent)}.
+     * API, using the mapping defined in {@link #convertDialogFlowIntentToRecognizedIntent(QueryResult)}.
      * {@link RecognizedIntent}s are used
      * to wrap the Intents returned by the Intent Recognition APIs and decouple the application from the concrete API
      * used.
@@ -446,7 +514,7 @@ public class DialogFlowApi {
                 "Detected Intent: {1} (confidence: {2})\n" +
                 "Fulfillment Text: {3}", queryResult.getQueryText(), queryResult.getIntent()
                 .getDisplayName(), queryResult.getIntentDetectionConfidence(), queryResult.getFulfillmentText());
-        return convertDialogFlowIntentToRecognizedIntent(queryResult.getIntent());
+        return convertDialogFlowIntentToRecognizedIntent(queryResult);
     }
 
     private IntentDefinition convertDialogFlowIntentToIntentDefinition(Intent intent) {
@@ -477,7 +545,30 @@ public class DialogFlowApi {
         }
     }
 
-    private RecognizedIntent convertDialogFlowIntentToRecognizedIntent(Intent intent) {
+    private ContextParameter getContextParameter(String contextName, String parameterName) {
+        IntentDefinitionRegistry intentDefinitionRegistry = JarvisCore.getInstance().getIntentDefinitionRegistry();
+        for(IntentDefinition intentDefinition : intentDefinitionRegistry.getAllIntentDefinitions()) {
+            for (fr.zelus.jarvis.intent.Context context : intentDefinition.getOutContexts()) {
+                /*
+                 * Use toLowerCase() because context are stored in lower case by DialogFlow
+                 */
+                if (context.getName().toLowerCase().equals(contextName)) {
+                    for (ContextParameter parameter : context.getParameters()) {
+                        if (parameter.getName().equals(parameterName)) {
+                            return parameter;
+                        }
+                    }
+                }
+            }
+        }
+        String errorMessage = MessageFormat.format("Unable to find the context parameter {0}.{1}", contextName,
+                parameterName);
+        Log.error(errorMessage);
+        throw new DialogFlowException(errorMessage);
+    }
+
+    private RecognizedIntent convertDialogFlowIntentToRecognizedIntent(QueryResult result) {
+        Intent intent = result.getIntent();
         if (nonNull(intent)) {
             RecognizedIntent recognizedIntent = intentFactory.createRecognizedIntent();
             /*
@@ -494,25 +585,24 @@ public class DialogFlowApi {
             /*
              * Set the output context values.
              */
-            if (intent.getOutputContextsCount() > 0) {
-                if (intent.getOutputContextsCount() > 1) {
-                    Log.warn("Multiple output contexts are not supported for now, proceeding with the first context " +
-                            "found");
-                }
-                Context outContext = intent.getOutputContexts(0);
-                Collection<Object> outContextValues = outContext.getParameters().getAllFields().values();
-                for (Object value : outContextValues) {
-                    if (value instanceof String) {
-                        recognizedIntent.getOutContextValues().add((String) value);
-                    } else {
-                        throw new UnsupportedOperationException("Only String output context values are supported for " +
-                                "now");
+            for (Context context : result.getOutputContextsList()) {
+                String contextName = ContextName.parse(context.getName()).getContext();
+                Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
+                for (String key : parameterValues.keySet()) {
+                    /*
+                     * Ignore original: this variable contains the raw parsed value, we don't need this.
+                     * Ignore "given-name", it is set by the Default Welcome Intent and bound to the wrong context
+                     */
+                    if (!key.contains(".original") && !key.contains("given-name")) {
+                        String parameterValue = parameterValues.get(key).getStringValue();
+                        ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
+                        contextParameterValue.setValue(parameterValue);
+                        contextParameterValue.setContextParameter(getContextParameter(contextName, key));
+                        recognizedIntent.getOutContextValues().add(contextParameterValue);
                     }
                 }
-                return recognizedIntent;
-            } else {
-                return recognizedIntent;
             }
+            return recognizedIntent;
         } else {
             Log.warn("Cannot convert null to a RecognizedIntent");
             return null;

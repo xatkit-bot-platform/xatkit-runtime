@@ -12,7 +12,10 @@ import org.apache.commons.configuration2.Configuration;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -222,32 +225,19 @@ public abstract class JarvisModule {
         Action action = actionInstance.getAction();
         List<Parameter> actionParameters = action.getParameters();
         List<ParameterValue> actionInstanceParameterValues = actionInstance.getValues();
-        List<String> outContextValues = intent.getOutContextValues();
-        if ((actionParameters.size() - actionInstanceParameterValues.size()) == outContextValues.size()) {
+        if ((actionParameters.size() == actionInstanceParameterValues.size())) {
             /*
              * Here some additional checks are needed (parameter types and order).
              * See https://github.com/gdaniel/jarvis/issues/4.
              */
-            int parameterLength = actionInstanceParameterValues.size() + outContextValues.size();
+            int parameterLength = actionInstanceParameterValues.size();
             Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
                     .spliterator(), false).map(param -> param.getValue()).toArray();
-            Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValuesArray, parameterLength);
-            if (outContextValues.size() > 0) {
-                /*
-                 * Do not copy if there is nothing to copy (need to be tested)
-                 */
-                System.arraycopy(outContextValues.toArray(), 0, parameterArray, actionInstanceParameterValues.size(),
-                        parameterLength - 1);
-            }
-            return parameterArray;
+//            Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValuesArray, parameterLength);
+            return actionInstanceParameterValuesArray;
         }
-        /*
-         * It should be possible to return an array if the provided intent contains more context values than the
-         * Action signature.
-         * See https://github.com/gdaniel/jarvis/issues/5.
-         */
-        String errorMessage = MessageFormat.format("The intent does not define the good amount of context values: " +
-                "expected {0}, found {1}", actionParameters.size(), outContextValues.size());
+        String errorMessage = MessageFormat.format("The action does not define the good amount of parameters: " +
+                "expected {0}, found {1}", actionParameters.size(), actionInstanceParameterValues.size());
         Log.error(errorMessage);
         throw new JarvisException(errorMessage);
     }

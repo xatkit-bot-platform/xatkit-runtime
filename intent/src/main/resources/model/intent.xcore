@@ -5,15 +5,35 @@ package fr.zelus.jarvis.intent
 class IntentDefinition {
     String name
     contains IntentParameter[] outContextParameters
+    contains Context[] outContexts
+    contains Context[] inContexts
     String[] trainingSentences
 }
 
-class RecognizedIntent {
-    refers IntentDefinition definition
-    String[] outContextValues
+class Context {
+    String name
+    contains ContextParameter[] parameters
+}
+
+class ContextParameter {
+    String name
+    String textFragment
+    String entityType
 }
 
 class IntentParameter {
     String key
     String ^type
 }
+
+class RecognizedIntent {
+    refers IntentDefinition definition
+    contains ContextParameterValue[] outContextValues
+}
+
+class ContextParameterValue {
+    refers ContextParameter contextParameter
+    String value
+}
+
+
