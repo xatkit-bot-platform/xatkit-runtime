@@ -592,6 +592,7 @@ public class DialogFlowApi {
                     /*
                      * Ignore original: this variable contains the raw parsed value, we don't need this.
                      * Ignore "given-name", it is set by the Default Welcome Intent and bound to the wrong context
+                     * (see #40)
                      */
                     if (!key.contains(".original") && !key.contains("given-name")) {
                         String parameterValue = parameterValues.get(key).getStringValue();
