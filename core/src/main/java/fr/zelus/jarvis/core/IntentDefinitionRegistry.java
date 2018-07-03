@@ -3,6 +3,8 @@ package fr.zelus.jarvis.core;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.intent.IntentDefinition;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,9 +46,21 @@ public class IntentDefinitionRegistry {
      *
      * @param name the name of the {@link IntentDefinition} to retrieve
      * @return the {@link IntentDefinition} matching the provided {@code name}
+     * @see #getAllIntentDefinitions()
      */
     public IntentDefinition getIntentDefinition(String name) {
         return this.intentDefinitionMap.get(adaptIntentName(name));
+    }
+
+    /**
+     * Returns an unmodifiable {@link Collection} containing all the registered {@link IntentDefinition}s.
+     * <p>
+     * To retrieve a single {@link IntentDefinition} from its {@code name} see {@link #getIntentDefinition(String)}.
+     *
+     * @return an unmodifiable {@link Collection} containing all the registered {@link IntentDefinition}s
+     */
+    public Collection<IntentDefinition> getAllIntentDefinitions() {
+        return Collections.unmodifiableCollection(this.intentDefinitionMap.values());
     }
 
     /**
