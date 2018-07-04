@@ -2,7 +2,6 @@ package fr.zelus.jarvis.dialogflow;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.rpc.FailedPreconditionException;
-import com.google.cloud.ProjectName;
 import com.google.cloud.dialogflow.v2.*;
 import com.google.cloud.dialogflow.v2.Context;
 import com.google.longrunning.Operation;
