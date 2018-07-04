@@ -41,11 +41,11 @@ InContextDefinition returns intent::Context:
 	
 OutContextDefinition returns intent::Context:
 	{intent::Context}
-	'outContext' name=EString '{'
+	'outContext' name=EString ('{'
 		'params' '{'
 			(parameters+=ContextParameter)+
 		'}'
-	'}'
+	'}')?
 ;
 
 ContextParameter returns intent::ContextParameter:
