@@ -265,7 +265,7 @@ public class DialogFlowApi {
             dialogFlowTrainingPhrases.add(createTrainingPhrase(trainingSentence, intentDefinition.getOutContexts()));
         }
 
-        List<Context> contexts = createContexts(intentDefinition.getOutContexts());
+        List<Context> contexts = createOutContexts(intentDefinition.getOutContexts());
         List<Intent.Parameter> parameters = createParameters(intentDefinition.getOutContexts());
 
         Intent intent = Intent.newBuilder().setDisplayName(adaptIntentDefinitionNameToDialogFlow(intentDefinition
@@ -321,7 +321,7 @@ public class DialogFlowApi {
         }
     }
 
-    protected List<Context> createContexts(List<fr.zelus.jarvis.intent.Context> contexts) {
+    protected List<Context> createOutContexts(List<fr.zelus.jarvis.intent.Context> contexts) {
         List<Context> results = new ArrayList<>();
         for (fr.zelus.jarvis.intent.Context context : contexts) {
             /*
