@@ -1,7 +1,7 @@
-package fr.zelus.jarvis.slack.io;
+package fr.zelus.jarvis.plugins.slack.io;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.slack.JarvisSlackUtils;
+import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;

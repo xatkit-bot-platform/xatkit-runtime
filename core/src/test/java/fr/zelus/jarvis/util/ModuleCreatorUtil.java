@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.util;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.log.module.LogModule;
+import fr.zelus.jarvis.plugins.log.module.LogModule;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModuleFactory;
@@ -36,7 +36,7 @@ public class ModuleCreatorUtil {
         ModuleFactory moduleFactory = ModuleFactory.eINSTANCE;
         Module module = moduleFactory.createModule();
         module.setName("Log");
-        module.setJarvisModulePath("fr.zelus.jarvis.log.module.LogModule");
+        module.setJarvisModulePath("fr.zelus.jarvis.plugins.log.module.LogModule");
         Action infoAction = moduleFactory.createAction();
         infoAction.setName("LogInfo");
         Parameter infoParam = moduleFactory.createParameter();
@@ -80,7 +80,7 @@ public class ModuleCreatorUtil {
         ModuleFactory moduleFactory = ModuleFactory.eINSTANCE;
         Module module = moduleFactory.createModule();
         module.setName("Slack");
-        module.setJarvisModulePath("fr.zelus.jarvis.slack.module.SlackModule");
+        module.setJarvisModulePath("fr.zelus.jarvis.plugins.slack.module.SlackModule");
         Action postMessageAction = moduleFactory.createAction();
         postMessageAction.setName("PostMessage");
         Parameter messageParam = moduleFactory.createParameter();

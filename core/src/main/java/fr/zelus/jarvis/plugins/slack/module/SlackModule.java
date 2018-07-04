@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.slack.module;
+package fr.zelus.jarvis.plugins.slack.module;
 
 import com.github.seratch.jslack.Slack;
 import fr.zelus.jarvis.core.JarvisModule;
@@ -6,7 +6,7 @@ import org.apache.commons.configuration2.Configuration;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
-import static fr.zelus.jarvis.slack.JarvisSlackUtils.SLACK_TOKEN_KEY;
+import static fr.zelus.jarvis.plugins.slack.JarvisSlackUtils.SLACK_TOKEN_KEY;
 import static java.util.Objects.nonNull;
 
 /**

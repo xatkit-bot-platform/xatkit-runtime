@@ -1,7 +1,7 @@
-package fr.zelus.jarvis.discord.io;
+package fr.zelus.jarvis.plugins.discord.io;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.discord.JarvisDiscordUtils;
+import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.discord.StubMessage;
 import fr.zelus.jarvis.stubs.discord.StubPrivateChannel;

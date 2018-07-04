@@ -1,6 +1,6 @@
-package fr.zelus.jarvis.discord.io;
+package fr.zelus.jarvis.plugins.discord.io;
 
-import fr.zelus.jarvis.discord.JarvisDiscordUtils;
+import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
