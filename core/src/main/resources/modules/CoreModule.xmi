@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="CoreModule" jarvisModulePath="fr.zelus.jarvis.plugins.core.module.CoreModule">
   <actions name="GetTime"/>
+  <actions name="GetDate"/>
   <intentDefinitions name="Default_Fallback_Intent">
     <trainingSentences></trainingSentences>
   </intentDefinitions>
@@ -8,7 +9,13 @@
     <trainingSentences></trainingSentences>
   </intentDefinitions>
   <intentDefinitions name="WhatTimeIsIt">
+    <outContexts name="WhatTimeIsIt"/>
     <trainingSentences>what time is it?</trainingSentences>
     <trainingSentences>what time</trainingSentences>
+  </intentDefinitions>
+  <intentDefinitions name="WhatDateIsIt">
+    <outContexts name="WhatDateIsIt"/>
+    <trainingSentences>what is today's date?</trainingSentences>
+    <trainingSentences>what day is it?</trainingSentences>
   </intentDefinitions>
 </module:Module>

@@ -7,14 +7,14 @@ import fr.zelus.jarvis.plugins.core.module.CoreModule;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class GetTime extends JarvisAction<CoreModule> {
+public class GetDate extends JarvisAction<CoreModule> {
 
-    public GetTime(CoreModule containingModule, JarvisContext context) {
+    public GetDate(CoreModule containingModule, JarvisContext context) {
         super(containingModule, context);
     }
 
     @Override
     public Object call() {
-        return new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+        return new SimpleDateFormat("dd/MM/yyyy").format(Calendar.getInstance().getTime());
     }
 }
