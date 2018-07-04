@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="ASCII"?>
-<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="CoreModule" jarvisModulePath="">
+<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="CoreModule" jarvisModulePath="fr.zelus.jarvis.plugins.core.module.CoreModule">
+  <actions name="GetTime"/>
   <intentDefinitions name="Default_Fallback_Intent">
     <trainingSentences></trainingSentences>
   </intentDefinitions>
   <intentDefinitions name="Default_Welcome_Intent">
     <trainingSentences></trainingSentences>
+  </intentDefinitions>
+  <intentDefinitions name="WhatTimeIsIt">
+    <trainingSentences>what time is it?</trainingSentences>
+    <trainingSentences>what time</trainingSentences>
   </intentDefinitions>
 </module:Module>
