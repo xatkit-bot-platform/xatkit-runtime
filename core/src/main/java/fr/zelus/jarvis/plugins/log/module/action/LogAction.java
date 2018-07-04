@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.log.module.action;
+package fr.zelus.jarvis.plugins.log.module.action;
 
 import fr.inria.atlanmod.commons.log.Level;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisAction;
-import fr.zelus.jarvis.log.module.LogModule;
+import fr.zelus.jarvis.plugins.log.module.LogModule;
 import fr.zelus.jarvis.core.session.JarvisContext;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;

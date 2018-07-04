@@ -1,15 +1,15 @@
-package fr.zelus.jarvis.discord.io;
+package fr.zelus.jarvis.plugins.discord.io;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.discord.JarvisDiscordUtils;
+import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.io.InputProvider;
 import net.dv8tion.jda.core.JDA;
 import org.apache.commons.configuration2.Configuration;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static fr.zelus.jarvis.discord.JarvisDiscordUtils.DISCORD_TOKEN_KEY;
+import static fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils.DISCORD_TOKEN_KEY;
 import static java.util.Objects.nonNull;
 
 /**

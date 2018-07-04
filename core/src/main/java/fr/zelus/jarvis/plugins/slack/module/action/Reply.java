@@ -1,8 +1,8 @@
-package fr.zelus.jarvis.slack.module.action;
+package fr.zelus.jarvis.plugins.slack.module.action;
 
 import fr.zelus.jarvis.core.session.JarvisContext;
-import fr.zelus.jarvis.slack.JarvisSlackUtils;
-import fr.zelus.jarvis.slack.module.SlackModule;
+import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
+import fr.zelus.jarvis.plugins.slack.module.SlackModule;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;

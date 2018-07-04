@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.slack.io;
+package fr.zelus.jarvis.plugins.slack.io;
 
 import com.github.seratch.jslack.Slack;
 import com.github.seratch.jslack.api.methods.SlackApiException;
@@ -14,7 +14,7 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.io.InputProvider;
-import fr.zelus.jarvis.slack.JarvisSlackUtils;
+import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.websocket.DeploymentException;
@@ -23,7 +23,7 @@ import java.text.MessageFormat;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static fr.zelus.jarvis.slack.JarvisSlackUtils.*;
+import static fr.zelus.jarvis.plugins.slack.JarvisSlackUtils.*;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 

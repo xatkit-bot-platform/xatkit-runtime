@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.discord.module.action;
+package fr.zelus.jarvis.plugins.discord.module.action;
 
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisMessageAction;
 import fr.zelus.jarvis.core.session.JarvisContext;
-import fr.zelus.jarvis.discord.module.DiscordModule;
+import fr.zelus.jarvis.plugins.discord.module.DiscordModule;
 import net.dv8tion.jda.core.entities.MessageChannel;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;

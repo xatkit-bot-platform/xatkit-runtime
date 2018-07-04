@@ -1,6 +1,6 @@
-package fr.zelus.jarvis.log.module.action;
+package fr.zelus.jarvis.plugins.log.module.action;
 
-import fr.zelus.jarvis.log.module.LogModule;
+import fr.zelus.jarvis.plugins.log.module.LogModule;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;

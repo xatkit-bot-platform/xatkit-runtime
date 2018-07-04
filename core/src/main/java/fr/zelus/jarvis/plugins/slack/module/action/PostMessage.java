@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.slack.module.action;
+package fr.zelus.jarvis.plugins.slack.module.action;
 
 import com.github.seratch.jslack.api.methods.SlackApiException;
 import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
@@ -8,7 +8,7 @@ import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.JarvisMessageAction;
 import fr.zelus.jarvis.core.session.JarvisContext;
-import fr.zelus.jarvis.slack.module.SlackModule;
+import fr.zelus.jarvis.plugins.slack.module.SlackModule;
 
 import java.io.IOException;
 import java.text.MessageFormat;

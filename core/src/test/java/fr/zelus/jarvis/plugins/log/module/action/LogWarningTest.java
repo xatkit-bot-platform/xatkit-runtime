@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.log.module.action;
+package fr.zelus.jarvis.plugins.log.module.action;
 
 import fr.zelus.jarvis.core.session.JarvisContext;
 

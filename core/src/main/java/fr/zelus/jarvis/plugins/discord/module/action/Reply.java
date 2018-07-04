@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.discord.module.action;
+package fr.zelus.jarvis.plugins.discord.module.action;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisContext;
-import fr.zelus.jarvis.discord.JarvisDiscordUtils;
-import fr.zelus.jarvis.discord.module.DiscordModule;
+import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
+import fr.zelus.jarvis.plugins.discord.module.DiscordModule;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;

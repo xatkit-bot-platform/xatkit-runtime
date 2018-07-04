@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.discord.io;
+package fr.zelus.jarvis.plugins.discord.io;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.discord.JarvisDiscordUtils;
+import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.User;
