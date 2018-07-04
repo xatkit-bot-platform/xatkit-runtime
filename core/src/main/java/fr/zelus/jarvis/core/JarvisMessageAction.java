@@ -3,7 +3,10 @@ package fr.zelus.jarvis.core;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisContext;
 
+import java.text.MessageFormat;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +44,21 @@ public abstract class JarvisMessageAction<T extends JarvisModule> extends Jarvis
                     Object value = variables.get(variableIdentifier);
                     Log.info("Looking for variable \"{0}\"", variableIdentifier);
                     if(nonNull(value)) {
-                        outMessage = outMessage.replace(group, (String) value);
+                        String printedValue = null;
+                        if(value instanceof Future) {
+                            try {
+                                printedValue = ((Future) value).get().toString();
+                            } catch(InterruptedException | ExecutionException e) {
+                                String errorMessage = MessageFormat.format("An error occured when retrieving the " +
+                                        "value of the variable {0}", variableIdentifier);
+                                Log.error(errorMessage);
+                                throw new JarvisException(e);
+                            }
+                        }
+                        else {
+                            printedValue = value.toString();
+                        }
+                        outMessage = outMessage.replace(group, printedValue);
                     } else {
                         Log.error("The context variable {0} is null", group);
                     }
