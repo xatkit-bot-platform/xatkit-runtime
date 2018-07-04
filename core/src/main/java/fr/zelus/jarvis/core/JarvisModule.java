@@ -7,6 +7,7 @@ import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.ParameterValue;
+import fr.zelus.jarvis.orchestration.VariableAccess;
 import org.apache.commons.configuration2.Configuration;
 
 import java.lang.reflect.Constructor;
@@ -16,11 +17,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.StreamSupport;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static fr.zelus.jarvis.utils.LogUtils.prettyPrint;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * The concrete implementation of a {@link fr.zelus.jarvis.module.Module} definition.
@@ -122,6 +126,10 @@ public abstract class JarvisModule {
         actionMap.clear();
     }
 
+    public final Class<? extends JarvisAction> getAction(String actionName) {
+        return actionMap.get(actionName);
+    }
+
     /**
      * Returns all the {@link JarvisAction} {@link Class}es associated to this {@link JarvisModule}.
      * <p>
@@ -150,7 +158,7 @@ public abstract class JarvisModule {
      * @throws JarvisException if the provided {@link Action} does not match any {@link JarvisAction}, or if the
      *                         provided {@link RecognizedIntent} does not define all the parameters required by the
      *                         action's constructor
-     * @see #getParameterValues(ActionInstance, RecognizedIntent)
+     * @see #getParameterValues(ActionInstance, RecognizedIntent, JarvisContext)
      */
     public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent, JarvisContext
             context) {
@@ -162,8 +170,9 @@ public abstract class JarvisModule {
             throw new JarvisException(MessageFormat.format("Cannot create the JarvisAction {0}, the action is not " +
                     "loaded in the module", action.getName()));
         }
-        Object[] parameterValues = getParameterValues(actionInstance, intent);
+        Object[] parameterValues = getParameterValues(actionInstance, intent, context);
         Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
+        JarvisAction jarvisAction;
         for (int i = 0; i < constructorList.length; i++) {
             Constructor<?> constructor = constructorList[i];
             /*
@@ -187,11 +196,11 @@ public abstract class JarvisModule {
                         System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
                         Log.info("Constructing {0} with the parameters ({1})", jarvisActionClass.getSimpleName(),
                                 prettyPrint(parameterValues));
-                        return (JarvisAction) constructor.newInstance(fullParameters);
+                        jarvisAction = (JarvisAction) constructor.newInstance(fullParameters);
                     } else {
                         Log.info("Constructing {0}({1}, {2})", jarvisActionClass.getSimpleName(), this.getClass()
                                 .getSimpleName(), context);
-                        return (JarvisAction) constructor.newInstance(this, context);
+                        jarvisAction = (JarvisAction) constructor.newInstance(this, context);
                     }
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     String errorMessage = MessageFormat.format("Cannot construct the JarvisAction {0}",
@@ -199,6 +208,14 @@ public abstract class JarvisModule {
                     Log.error(errorMessage);
                     throw new JarvisException(errorMessage, e);
                 }
+                /*
+                 * The ActionInstance defines a return variable, we record it in the JarvisAction in order to store
+                 * it in the global context.
+                 */
+                if(nonNull(actionInstance.getReturnVariable())) {
+                    jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
+                }
+                return jarvisAction;
             }
         }
         String errorMessage = MessageFormat.format("Cannot find a {0} constructor matching the provided parameters " +
@@ -221,7 +238,7 @@ public abstract class JarvisModule {
      *                         by the action's constructor
      * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisContext)
      */
-    private Object[] getParameterValues(ActionInstance actionInstance, RecognizedIntent intent) {
+    private Object[] getParameterValues(ActionInstance actionInstance, RecognizedIntent intent, JarvisContext context) {
         Action action = actionInstance.getAction();
         List<Parameter> actionParameters = action.getParameters();
         List<ParameterValue> actionInstanceParameterValues = actionInstance.getValues();
@@ -232,7 +249,19 @@ public abstract class JarvisModule {
              */
             int parameterLength = actionInstanceParameterValues.size();
             Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
-                    .spliterator(), false).map(param -> param.getValue()).toArray();
+                    .spliterator(), false).map(param -> {
+                        if(param instanceof VariableAccess) {
+                            String variableName = ((VariableAccess)param).getReferredVariable().getName();
+                            Future<Object> value = (Future<Object>)context.getContextValue("variables", variableName);
+                            try {
+                                return value.get().toString();
+                            } catch(InterruptedException | ExecutionException e) {
+                                throw new JarvisException(e);
+                            }
+                        } else {
+                            return param.getValue();
+                        }
+                    }).toArray();
 //            Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValuesArray, parameterLength);
             return actionInstanceParameterValuesArray;
         }

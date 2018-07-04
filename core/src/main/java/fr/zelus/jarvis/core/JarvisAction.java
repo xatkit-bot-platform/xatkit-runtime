@@ -3,6 +3,7 @@ package fr.zelus.jarvis.core;
 import fr.zelus.jarvis.core.session.JarvisContext;
 
 import java.text.MessageFormat;
+import java.util.concurrent.Callable;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
@@ -23,7 +24,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * @see JarvisCore
  * @see JarvisModule
  */
-public abstract class JarvisAction<T extends JarvisModule> implements Runnable {
+public abstract class JarvisAction<T extends JarvisModule> implements Callable<Object> {
 
     /**
      * The {@link JarvisModule} subclass containing this action.
@@ -34,6 +35,8 @@ public abstract class JarvisAction<T extends JarvisModule> implements Runnable {
      * The {@link JarvisContext} associated to this action.
      */
     protected JarvisContext context;
+
+    protected String returnVariable;
 
     /**
      * Constructs a new {@link JarvisModule} with the provided {@code containingModule}.
@@ -49,6 +52,14 @@ public abstract class JarvisAction<T extends JarvisModule> implements Runnable {
                 .class.getSimpleName());
         this.module = containingModule;
         this.context = context;
+    }
+
+    public final void setReturnVariable(String variableName) {
+        this.returnVariable = variableName;
+    }
+
+    public final String getReturnVariable() {
+        return returnVariable;
     }
 
     /**
@@ -74,15 +85,16 @@ public abstract class JarvisAction<T extends JarvisModule> implements Runnable {
     }
 
     /**
-     * Runs the action.
+     * Runs the action and returns its result.
      * <p>
      * This method should not be called manually, and is handled by the {@link JarvisCore} component, that
      * orchestrates the {@link JarvisAction}s returned by the registered {@link JarvisModule}s.
      *
+     * @return
      * @see JarvisCore
      */
     @Override
-    public abstract void run();
+    public abstract Object call();
 
     @Override
     public String toString() {

@@ -14,14 +14,24 @@ class OrchestrationModel {
 class OrchestrationLink {
     refers IntentDefinition intent
     contains ActionInstance[] actions
+    contains Variable[] variables
 }
 
 class ActionInstance {
     refers Action action
     contains ParameterValue[] values
+    contains VariableAccess returnVariable
 }
 
 class ParameterValue {
     refers Parameter parameter
     String value
+}
+
+class Variable {
+    String name
+}
+
+class VariableAccess extends ParameterValue {
+    refers Variable referredVariable
 }

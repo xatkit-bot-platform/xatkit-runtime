@@ -19,12 +19,28 @@ OrchestrationModel returns OrchestrationModel:
 OrchestrationLink returns OrchestrationLink:
 	{OrchestrationLink}
 		'on' 'intent' intent=[intent::IntentDefinition|ID] 'do'
+		('var' variables+=VariableDefinition (',' variables+=VariableDefinition)*)?
 		actions+=ActionInstance (actions+=ActionInstance)*
 	;
 	
+VariableDefinition returns Variable: 
+	{Variable}
+		name=ID
+;
+	
 ActionInstance returns ActionInstance:
+	((returnVariable=VariableAccess) '=')?
 	action=[module::Action|ID]
-	('(' values+=ParameterValue (',' values+=ParameterValue)* ')')?
+	('(' values+=AbstractParameterValue (',' values+=AbstractParameterValue)* ')')?
+;
+
+AbstractParameterValue returns ParameterValue:
+	VariableAccess | ParameterValue
+;
+
+VariableAccess returns VariableAccess:
+	{VariableAccess}
+	referredVariable=[Variable|ID]
 ;
 
 ParameterValue returns ParameterValue:

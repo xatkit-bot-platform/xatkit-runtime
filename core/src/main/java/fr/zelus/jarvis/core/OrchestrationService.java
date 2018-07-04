@@ -1,19 +1,15 @@
 package fr.zelus.jarvis.core;
 
-import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
-import static java.util.Objects.isNull;
 
 /**
  * Reads an {@link OrchestrationModel} and returns the {@link JarvisAction}s associated to the provided
@@ -68,26 +64,30 @@ public class OrchestrationService {
      * @see JarvisModuleRegistry#getJarvisModule(String)
      * @see JarvisModule#createJarvisAction(ActionInstance, RecognizedIntent, JarvisContext)
      */
-    public List<JarvisAction> getActionsFromIntent(RecognizedIntent recognizedIntent, JarvisContext context) {
+    public List<ActionInstance> getActionsFromIntent(RecognizedIntent recognizedIntent, JarvisContext
+            context) {
         IntentDefinition intentDefinition = recognizedIntent.getDefinition();
-        List<JarvisAction> jarvisActions = new ArrayList<>();
+//        List<Class<? extends JarvisAction>> jarvisActions = new ArrayList<>();
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             if (link.getIntent().getName().equals(intentDefinition.getName())) {
+                return link.getActions();
                 // The link refers to this Intent
-                for (ActionInstance actionInstance : link.getActions()) {
-                    Action baseAction = actionInstance.getAction();
-                    JarvisModule jarvisModule = JarvisCore.getInstance().getJarvisModuleRegistry().getJarvisModule(
-                            (Module) baseAction.eContainer());
-                    JarvisAction jarvisAction = jarvisModule.createJarvisAction(actionInstance, recognizedIntent,
-                            context);
-                    if (isNull(jarvisAction)) {
-                        Log.warn("Create Action with the provided parameters ({0}, {1}) returned null", actionInstance,
-                                recognizedIntent);
-                    }
-                    jarvisActions.add(jarvisAction);
-                }
+//                for (ActionInstance actionInstance : link.getActions()) {
+//                    Action baseAction = actionInstance.getAction();
+//                    JarvisModule jarvisModule = JarvisCore.getInstance().getJarvisModuleRegistry().getJarvisModule(
+//                            (Module) baseAction.eContainer());
+////                    JarvisAction jarvisAction = jarvisModule.createJarvisAction(actionInstance, recognizedIntent,
+////                            context);
+//                    Class<? extends JarvisAction> jarvisActionClass = jarvisModule.getAction(actionInstance.getAction
+//                            ().getName());
+//                    if (isNull(jarvisActionClass)) {
+//                        Log.warn("Cannot retrieve the JarvisAction", actionInstance,
+//                                recognizedIntent);
+//                    }
+//                    jarvisActions.add(jarvisActionClass);
+//                }
             }
         }
-        return jarvisActions;
+        return Collections.emptyList();
     }
 }

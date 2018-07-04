@@ -57,7 +57,7 @@ public abstract class LogActionTest<T extends LogAction> {
     @Test
     public void runValidLogAction() throws IOException, InterruptedException {
         LogAction logAction = createLogAction(VALID_MESSAGE);
-        logAction.run();
+        logAction.call();
         /*
          * The underlying logger is asynchronous, wait to ensure that the message has been processed at the logger
          * level.

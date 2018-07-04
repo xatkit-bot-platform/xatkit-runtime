@@ -17,7 +17,8 @@ public class StubJarvisAction extends JarvisAction {
     }
 
     @Override
-    public void run() {
+    public Object call() {
         this.actionProcessed = true;
+        return null;
     }
 }

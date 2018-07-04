@@ -48,8 +48,9 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
      * to authenticate the bot and post the {@code message} to the given {@code channel}.
      */
     @Override
-    public void run() {
+    public Object call() {
         MessageChannel messageChannel = module.getJdaClient().getPrivateChannelById(channel);
         messageChannel.sendMessage(message).queue();
+        return null;
     }
 }

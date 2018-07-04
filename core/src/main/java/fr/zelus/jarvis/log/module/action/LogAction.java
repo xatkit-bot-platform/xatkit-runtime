@@ -55,7 +55,8 @@ public abstract class LogAction extends JarvisAction<LogModule> {
     }
 
     @Override
-    public void run() {
+    public Object call() {
         Log.log(this.logLevel, this.message);
+        return null;
     }
 }

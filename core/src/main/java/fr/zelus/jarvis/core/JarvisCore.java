@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
@@ -751,12 +752,23 @@ public class JarvisCore {
             String parameterValue = contextParameterValue.getValue();
             session.getJarvisContext().setContextValue(contextName, parameterName, parameterValue);
         }
-        List<JarvisAction> jarvisActions = orchestrationService.getActionsFromIntent(intent, session.getJarvisContext());
-        if (jarvisActions.isEmpty()) {
+        List<ActionInstance> actionInstances = orchestrationService.getActionsFromIntent(intent, session
+                .getJarvisContext());
+        if (actionInstances.isEmpty()) {
             Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());
         }
-        for (JarvisAction action : jarvisActions) {
-            executorService.submit(action);
+        for (ActionInstance actionInstance : actionInstances) {
+            JarvisModule jarvisModule = JarvisCore.getInstance().getJarvisModuleRegistry().getJarvisModule(
+                            (Module) actionInstance.getAction().eContainer());
+            JarvisAction action = jarvisModule.createJarvisAction(actionInstance, intent, session.getJarvisContext());
+            Future<Object> result = executorService.submit(action);
+            if(nonNull(action.getReturnVariable())) {
+                /*
+                 * Store the Future, so we can run concurrently JarvisActions that are not related.
+                 */
+                Log.info("Registering context variable {0} with value {1}", action.getReturnVariable(), result);
+                session.getJarvisContext().setContextValue("variables", action.getReturnVariable(), result);
+            }
         }
     }
 }
