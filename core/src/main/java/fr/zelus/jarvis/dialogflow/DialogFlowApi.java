@@ -265,12 +265,13 @@ public class DialogFlowApi {
             dialogFlowTrainingPhrases.add(createTrainingPhrase(trainingSentence, intentDefinition.getOutContexts()));
         }
 
-        List<Context> contexts = createOutContexts(intentDefinition.getOutContexts());
+        List<String> inContextNames = createInContextNames(intentDefinition.getInContexts());
+        List<Context> outContexts = createOutContexts(intentDefinition.getOutContexts());
         List<Intent.Parameter> parameters = createParameters(intentDefinition.getOutContexts());
 
         Intent intent = Intent.newBuilder().setDisplayName(adaptIntentDefinitionNameToDialogFlow(intentDefinition
-                .getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases).addAllOutputContexts(contexts)
-                .addAllParameters(parameters).build();
+                .getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases).addAllInputContextNames(inContextNames)
+                .addAllOutputContexts(outContexts).addAllParameters(parameters).build();
         try {
             Intent response = intentsClient.createIntent(projectAgentName, intent);
             Log.info("Intent {0} successfully registered", response.getDisplayName());
@@ -321,11 +322,27 @@ public class DialogFlowApi {
         }
     }
 
+    protected List<String> createInContextNames(List<fr.zelus.jarvis.intent.Context> contexts) {
+        List<String> results = new ArrayList<>();
+        for(fr.zelus.jarvis.intent.Context context : contexts) {
+            /*
+             * Use a dummy session to create the context.
+             */
+            ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
+                    context.getName());
+            results.add(contextName.toString());
+            /*
+             * Ignore the context parameters, they are not taken into account by DialogFlow for input contexts.
+             */
+        }
+        return results;
+    }
+
     protected List<Context> createOutContexts(List<fr.zelus.jarvis.intent.Context> contexts) {
         List<Context> results = new ArrayList<>();
         for (fr.zelus.jarvis.intent.Context context : contexts) {
             /*
-             * Use a dummy session to create the context
+             * Use a dummy session to create the context.
              */
             ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
                     context.getName());

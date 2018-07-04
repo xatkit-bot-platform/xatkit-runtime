@@ -25,6 +25,7 @@ IntentDefinition returns intent::IntentDefinition:
 		'inputs' '{'
 			trainingSentences+=EString (trainingSentences+=EString)*
 		'}'
+		(inContexts+=InContextDefinition)*
 		(outContexts+=OutContextDefinition)?
 	'}'
 	;
@@ -32,6 +33,11 @@ IntentDefinition returns intent::IntentDefinition:
 IntentParameter returns intent::IntentParameter:
 	{intent::IntentParameter}
 	key=EString ':' type=EString;
+	
+InContextDefinition returns intent::Context:
+	{intent::Context}
+	'inContext' name=EString
+;
 	
 OutContextDefinition returns intent::Context:
 	{intent::Context}
