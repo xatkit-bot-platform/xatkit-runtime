@@ -17,7 +17,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <dialogflow.version>0.46.0-alpha</dialogflow.version>
+        <dialogflow.version>0.53.0-alpha</dialogflow.version>
         <atlanmod-commons.version>1.0.1</atlanmod-commons.version>
         <log4j.version>2.9.1</log4j.version>
         <commons-configuration.version>2.2</commons-configuration.version>
