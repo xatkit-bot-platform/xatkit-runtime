@@ -262,7 +262,6 @@ public abstract class JarvisModule {
                             return param.getValue();
                         }
                     }).toArray();
-//            Object[] parameterArray = Arrays.copyOf(actionInstanceParameterValuesArray, parameterLength);
             return actionInstanceParameterValuesArray;
         }
         String errorMessage = MessageFormat.format("The action does not define the good amount of parameters: " +
