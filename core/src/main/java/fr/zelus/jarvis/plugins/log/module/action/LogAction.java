@@ -28,13 +28,15 @@ public abstract class LogAction extends JarvisAction<LogModule> {
     protected Level logLevel;
 
     /**
-     * Constructs a new {@link LogAction} with the provided {@code message} and {@code logLevel}.
+     * Constructs a new {@link LogAction} with the provided {@code containingModule}, {@code context}, {@code
+     * message} and {@code LogLevel}.
      *
      * @param containingModule the {@link LogModule} containing this action
      * @param context          the {@link JarvisContext} associated to this action
      * @param message          the message to log
      * @param logLevel         the severity {@link Level} of the message to log
-     * @throws NullPointerException if the provided {@code message} or {@code logLevel} is {@code null}
+     * @throws NullPointerException if the provided {@code containingModule}, {@code context}, {@code message} or
+     *                              {@code logLevel} is {@code null}
      */
     public LogAction(LogModule containingModule, JarvisContext context, String message, Level logLevel) {
         super(containingModule, context);
@@ -54,6 +56,14 @@ public abstract class LogAction extends JarvisAction<LogModule> {
         return this.message;
     }
 
+    /**
+     * Logs the provided {@code message} with the given {@code logLevel}.
+     * <p>
+     * <b>Note</b>: this method always returns {@code null}, and it's result should not be stored in
+     * orchestration model variables.
+     *
+     * @return
+     */
     @Override
     public Object call() {
         Log.log(this.logLevel, this.message);
