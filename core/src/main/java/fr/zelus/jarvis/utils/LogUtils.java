@@ -13,7 +13,7 @@ public class LogUtils {
     /**
      * Formats the provided {@code array} in a {@link String} used to log parameter values.
      * <p>
-     * The returned {@link String} is "<a1.toString()>, <a2.toString()>, <an.toString()>", where <i>a1</i>,
+     * The returned {@link String} is "a1.toString(), a2.toString(), an.toString()", where <i>a1</i>,
      * <i>a2</i>, and <i>an</i> are elements in the provided {@code array}.
      *
      * @param array the array containing the parameter to print
