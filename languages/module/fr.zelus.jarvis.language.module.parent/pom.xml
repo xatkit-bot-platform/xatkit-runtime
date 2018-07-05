@@ -25,6 +25,7 @@
 
 	<build>
 		<plugins>
+
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-maven-plugin</artifactId>
@@ -43,22 +44,28 @@
 					</target>
 				</configuration>
 			</plugin>
-		</plugins>
-		<pluginManagement>
-			<plugins>
+
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+
 				<plugin>
 					<groupId>org.eclipse.xtend</groupId>
 					<artifactId>xtend-maven-plugin</artifactId>
 				</plugin>
+
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-clean-plugin</artifactId>
 				</plugin>
+
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
 					<version>1.0.0</version>
 				</plugin>
+
 				<plugin>
 					<!--
 						Can be removed after first generator execution
@@ -67,7 +74,8 @@
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-compiler-plugin</artifactId>
 				</plugin>
-			</plugins>
+
+            </plugins>
 		</pluginManagement>
 	</build>
 </project>

@@ -1,7 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<parent>
+
+    <parent>
 		<groupId>fr.zelus.jarvis.language.module</groupId>
 		<artifactId>fr.zelus.jarvis.language.module.parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
@@ -11,37 +12,51 @@
 	<packaging>eclipse-plugin</packaging>
 
 	<dependencies>
-		<dependency>
-			<groupId>fr.zelus.jarvis</groupId>
-			<artifactId>module</artifactId>
-        	<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.zelus.jarvis</groupId>
-			<artifactId>intent</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
+
+        <!-- xcore -->
+
+        <dependency>
 			<groupId>org.eclipse.emf</groupId>
 			<artifactId>org.eclipse.emf.ecore.xcore</artifactId>
 		</dependency>
-		<dependency>
+
+        <dependency>
 			<groupId>org.eclipse.emf</groupId>
 			<artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
 		</dependency>
-		<dependency>
+
+        <!-- Xtext -->
+
+        <dependency>
 			<groupId>org.eclipse.xtext</groupId>
 			<artifactId>org.eclipse.xtext.ecore</artifactId>
 		</dependency>
-		<dependency>
+
+        <dependency>
 			<groupId>org.eclipse.emf</groupId>
 			<artifactId>org.eclipse.emf.codegen.ecore.xtext</artifactId>
 		</dependency>
+
+        <!-- jarvis Internal -->
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>intent</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 	</dependencies>
 
 	<build>
 		<plugins>
-			<plugin>
+
+            <plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.4.0</version>
@@ -74,17 +89,17 @@
 					<dependency>
 						<groupId>org.eclipse.xtext</groupId>
 						<artifactId>org.eclipse.xtext.common.types</artifactId>
-						<version>${xtextVersion}</version>
+						<version>${xtext.version}</version>
 					</dependency>
 					<dependency>
 						<groupId>org.eclipse.xtext</groupId>
 						<artifactId>org.eclipse.xtext.xtext.generator</artifactId>
-						<version>${xtextVersion}</version>
+						<version>${xtext.version}</version>
 					</dependency>
 					<dependency>
 						<groupId>org.eclipse.xtext</groupId>
 						<artifactId>org.eclipse.xtext.xbase</artifactId>
-						<version>${xtextVersion}</version>
+						<version>${xtext.version}</version>
 					</dependency>
 					<dependency>
 						<groupId>org.eclipse.xtext</groupId>
@@ -93,7 +108,8 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-			<plugin>
+
+            <plugin>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>xtend-maven-plugin</artifactId>
 			</plugin>
@@ -139,10 +155,12 @@
 					</filesets>
 				</configuration>
 			</plugin>
+
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<plugin>
+
+                <plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
 					<version>1.0.0</version>
@@ -172,6 +190,7 @@
 						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
+
 			</plugins>
 		</pluginManagement>
 	</build>

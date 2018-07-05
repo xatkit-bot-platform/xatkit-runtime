@@ -1,33 +1,42 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>fr.zelus.jarvis.language.module</groupId>
 		<artifactId>fr.zelus.jarvis.language.module.parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
+
 	<artifactId>fr.zelus.jarvis.language.module.ui.tests</artifactId>
 	<packaging>eclipse-test-plugin</packaging>
 
 	<dependencies>
+
+		<!-- jarvis Internal -->
+
 		<dependency>
 			<groupId>fr.zelus.jarvis</groupId>
 			<artifactId>module</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>fr.zelus.jarvis</groupId>
 			<artifactId>intent</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>
 		<plugins>
+
 			<plugin>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>xtend-maven-plugin</artifactId>
 			</plugin>
+
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-surefire-plugin</artifactId>
@@ -37,6 +46,7 @@
 					<useUIHarness>true</useUIHarness>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
@@ -56,10 +66,12 @@
 					</dependency-resolution>
 				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
 
 	<profiles>
+
 		<profile>
 			<id>testing-on-mac</id>
 			<activation>
@@ -71,5 +83,6 @@
 				<tycho.testArgLine>-XstartOnFirstThread</tycho.testArgLine>
 			</properties>
 		</profile>
+
 	</profiles>
 </project>

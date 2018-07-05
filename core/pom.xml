@@ -17,64 +17,60 @@
     <name>jarvis core infrastructure</name>
 
     <properties>
-        <emf.version>2.12.0</emf.version>
+        <dialogflow.version>0.53.0-alpha</dialogflow.version>
+        <jslack.version>1.1.2</jslack.version>
+        <javax.websocket-api.version>1.1</javax.websocket-api.version>
+        <tyrus.version>1.13</tyrus.version>
+        <jda.version>3.6.0_376</jda.version>
+        <javax.mail.version>1.6.1</javax.mail.version>
+        <google.gmail.version>v1-rev91-1.23.0</google.gmail.version>
+        <google.api.version>1.23.0</google.api.version>
+        <commons-configuration.version>2.2</commons-configuration.version>
     </properties>
 
     <repositories>
+
+        <!-- JDA repository -->
+
         <repository>
             <id>jcenter</id>
             <url>http://jcenter.bintray.com</url>
         </repository>
-    </repositories>
 
+    </repositories>
 
     <dependencies>
 
+        <!-- DialogFlow -->
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-dialogflow</artifactId>
+        </dependency>
+
         <!-- EMF -->
+
         <dependency>
             <groupId>org.eclipse.emf</groupId>
             <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
-            <version>${emf.version}</version>
         </dependency>
 
-        <!-- jarvis Internal -->
-
-        <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>orchestration</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>intent</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!-- Slack -->
 
         <dependency>
             <groupId>com.github.seratch</groupId>
             <artifactId>jslack</artifactId>
-            <version>1.1.2</version>
         </dependency>
 
         <dependency>
             <groupId>javax.websocket</groupId>
             <artifactId>javax.websocket-api</artifactId>
-            <version>1.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.glassfish.tyrus.bundles</groupId>
             <artifactId>tyrus-standalone-client</artifactId>
-            <version>1.13</version>
         </dependency>
 
         <!-- Discord -->
@@ -82,7 +78,6 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.6.0_376</version>
         </dependency>
 
         <!-- Mail -->
@@ -90,38 +85,21 @@
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
-            <version>1.6.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.apis</groupId>
             <artifactId>google-api-services-gmail</artifactId>
-            <version>v1-rev91-1.23.0</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.oauth-client</groupId>
             <artifactId>google-oauth-client-jetty</artifactId>
-            <version>1.23.0</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
-            <version>1.23.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava-jdk5</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- DialogFlow -->
-
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-dialogflow</artifactId>
         </dependency>
 
         <!-- Utils -->
@@ -146,6 +124,26 @@
             <artifactId>commons-configuration2</artifactId>
         </dependency>
 
+        <!-- jarvis Internal -->
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>orchestration</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>intent</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Tests -->
 
         <dependency>
@@ -165,5 +163,87 @@
         </dependency>
 
     </dependencies>
+
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>google-cloud-dialogflow</artifactId>
+                <version>${dialogflow.version}</version>
+            </dependency>
+
+            <!-- Slack -->
+
+            <dependency>
+                <groupId>com.github.seratch</groupId>
+                <artifactId>jslack</artifactId>
+                <version>${jslack.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.websocket</groupId>
+                <artifactId>javax.websocket-api</artifactId>
+                <version>${javax.websocket-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.tyrus.bundles</groupId>
+                <artifactId>tyrus-standalone-client</artifactId>
+                <version>${tyrus.version}</version>
+            </dependency>
+
+            <!-- Discord -->
+
+            <dependency>
+                <groupId>net.dv8tion</groupId>
+                <artifactId>JDA</artifactId>
+                <version>${jda.version}</version>
+            </dependency>
+
+            <!-- Mail -->
+
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>${javax.mail.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.apis</groupId>
+                <artifactId>google-api-services-gmail</artifactId>
+                <version>${google.gmail.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.oauth-client</groupId>
+                <artifactId>google-oauth-client-jetty</artifactId>
+                <version>${google.api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.api-client</groupId>
+                <artifactId>google-api-client</artifactId>
+                <version>${google.api.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava-jdk5</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- Utils -->
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-configuration2</artifactId>
+                <version>${commons-configuration.version}</version>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
 
 </project>
