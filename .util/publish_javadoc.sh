@@ -93,8 +93,7 @@ publish() {
 }
 
 main() {
-    e "test"
-    e $DOCS_REPO
+
     local tmpDir=${HOME}/apidocs
 
     local branch="master"
@@ -102,21 +101,18 @@ main() {
 
     # Working in the build directory
     checkBuildInfo
-    e "checked"
+
     generate ${tmpDir}
-    e "generated"
 
     # Working in the home directory
     cd $HOME
     cloneBranch ${branch}
-    e "clone"
 
     # Working in branch directory
     cd ${branch}
     mergeIntoBranch ${tmpDir} ${branchOutputDir}
-    e "merged"
+
     publish ${branch}
-    e "published"
 }
 
 main
