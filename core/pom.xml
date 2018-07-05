@@ -246,4 +246,40 @@
 
     </dependencyManagement>
 
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <failOnError>false</failOnError>
+                    <quiet>true</quiet>
+                    <notimestamp>true</notimestamp>
+                    <nosince>true</nosince>
+                    <author>false</author>
+                    <tags>
+                        <tag>
+                            <name>generated</name>
+                            <placement>a</placement>
+                            <head>Generated</head>
+                        </tag>
+                        <!-- Ignore @model and @ordered -->
+                        <tag>
+                            <name>model</name>
+                            <placement>X</placement>
+                        </tag>
+                        <tag>
+                            <name>ordered</name>
+                            <placement>X</placement>
+                        </tag>
+                    </tags>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
 </project>
