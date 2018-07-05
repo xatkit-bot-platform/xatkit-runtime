@@ -8,7 +8,7 @@ public class LogWarningTest extends LogActionTest {
 
     @Override
     protected LogAction createLogAction(String message) {
-        return new LogWarning(logModule, new JarvisContext(), message);
+        return new LogWarning(logModule, new JarvisContext(null), message);
     }
 
     @Override

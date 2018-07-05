@@ -25,6 +25,11 @@ import static java.util.Objects.nonNull;
 public class JarvisContext {
 
     /**
+     * The {@link JarvisSession} containing this context.
+     */
+    private JarvisSession session;
+
+    /**
      * The sub-contexts associated to this class.
      * <p>
      * Sub-contexts are used to characterize the variables stored in the global context. As an example, a sub-context
@@ -34,9 +39,25 @@ public class JarvisContext {
 
     /**
      * Constructs a new empty {@link JarvisContext}.
+     *
+     * @param session the {@link JarvisSession} containing this context
      */
-    public JarvisContext() {
+    public JarvisContext(JarvisSession session) {
+        /*
+         * Passing the JarvisSession to the JarvisContext is a quick fix for #48, we should pass JarvisSession to
+         * actions instead of the context.
+         */
+        this.session = session;
         this.contexts = new HashMap<>();
+    }
+
+    /**
+     * Returns the {@link JarvisSession} containing this context.
+     *
+     * @return the {@link JarvisSession} containing this context
+     */
+    public JarvisSession getSession() {
+        return session;
     }
 
     /**

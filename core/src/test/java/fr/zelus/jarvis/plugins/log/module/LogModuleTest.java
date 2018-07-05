@@ -134,21 +134,21 @@ public class LogModuleTest {
 
     @Test(expected = NullPointerException.class)
     public void createJarvisActionNullActionInstance() {
-        logModule.createJarvisAction(null, VALID_RECOGNIZED_INTENT, new JarvisContext());
+        logModule.createJarvisAction(null, VALID_RECOGNIZED_INTENT, new JarvisContext(null));
     }
 
     @Test(expected = NullPointerException.class)
     public void createJarvisActionNullRecognizedIntent() {
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(getInfoAction());
-        logModule.createJarvisAction(actionInstance, null, new JarvisContext());
+        logModule.createJarvisAction(actionInstance, null, new JarvisContext(null));
     }
 
     @Test(expected = JarvisException.class)
     public void createJarvisActionNotEnabledAction() {
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(getInfoAction());
-        logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisContext());
+        logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisContext(null));
     }
 
     @Test
@@ -161,7 +161,8 @@ public class LogModuleTest {
         parameterValue.setParameter(getInfoAction().getParameters().get(0));
         parameterValue.setValue(validLogMessage);
         actionInstance.getValues().add(parameterValue);
-        JarvisAction action = logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisContext());
+        JarvisAction action = logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisContext
+                (null));
         assertThat(action).as("LogInfo action").isInstanceOf(LogInfo.class);
         LogInfo logAction = (LogInfo) action;
         assertThat(logAction.getMessage()).as("Not null message").isNotNull();

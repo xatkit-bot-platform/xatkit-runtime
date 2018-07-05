@@ -8,7 +8,7 @@ public class LogInfoTest extends LogActionTest {
 
     @Override
     protected LogAction createLogAction(String message) {
-        return new LogInfo(logModule, new JarvisContext(), message);
+        return new LogInfo(logModule, new JarvisContext(null), message);
     }
 
     @Override

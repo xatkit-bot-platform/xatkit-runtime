@@ -29,7 +29,11 @@ public class JarvisSession {
      */
     public JarvisSession(String sessionId) {
         this.sessionId = sessionId;
-        this.jarvisContext = new JarvisContext();
+        /*
+         * Passing the JarvisSession to the JarvisContext is a quick fix for #48, we should pass JarvisSession to
+         * actions instead of the context.
+         */
+        this.jarvisContext = new JarvisContext(this);
     }
 
     /**

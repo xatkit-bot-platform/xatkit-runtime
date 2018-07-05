@@ -9,7 +9,7 @@ public class StubJarvisAction extends JarvisAction {
     private boolean actionProcessed;
 
     public StubJarvisAction(JarvisModule containingModule) {
-        super(containingModule, new JarvisContext());
+        super(containingModule, new JarvisContext(null));
     }
 
     public boolean isActionProcessed() {
