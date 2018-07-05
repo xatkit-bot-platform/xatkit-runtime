@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 
 import java.text.MessageFormat;
 import java.util.concurrent.Callable;
@@ -36,10 +37,19 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
      */
     protected JarvisContext context;
 
+    /**
+     * The name of the variable to use to store the result of the {@link #call()} method.
+     * <p>
+     * The value of this attribute is used by {@link JarvisCore#handleMessage(String, JarvisSession)} to store the
+     * result of each {@link JarvisAction} in the variable defined in the provided orchestration model.
+     *
+     * @see JarvisCore#handleMessage(String, JarvisSession)
+     * @see #getReturnVariable()
+     */
     protected String returnVariable;
 
     /**
-     * Constructs a new {@link JarvisModule} with the provided {@code containingModule}.
+     * Constructs a new {@link JarvisModule} with the provided {@code containingModule} and {@code context}.
      *
      * @param containingModule the {@link JarvisModule} containing this action
      * @param context          the {@link JarvisContext} associated to this action
@@ -58,6 +68,15 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
         this.returnVariable = variableName;
     }
 
+    /**
+     * Return the name of the variable to use to store the result of the {@link #call()} method.
+     * <p>
+     * This method is used by {@link JarvisCore#handleMessage(String, JarvisSession)} to store the result of each
+     * {@link JarvisAction} in the variable defined in the provided orchestration model.
+     *
+     * @return the name of the variable to use to store the result of the {@link #call()} method
+     * @see JarvisCore#handleMessage(String, JarvisSession)
+     */
     public final String getReturnVariable() {
         return returnVariable;
     }
