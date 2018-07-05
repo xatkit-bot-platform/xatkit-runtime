@@ -42,7 +42,7 @@ import static java.util.Objects.nonNull;
 public abstract class JarvisModule {
 
     /**
-     * Tha {@link Map} containing the {@link JarvisAction} associated to this module.
+     * The {@link Map} containing the {@link JarvisAction} associated to this module.
      * <p>
      * This {@link Map} is used as a cache to retrieve {@link JarvisAction} that have been previously loaded.
      *
