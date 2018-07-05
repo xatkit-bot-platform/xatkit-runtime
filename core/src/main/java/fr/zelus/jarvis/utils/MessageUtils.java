@@ -39,6 +39,8 @@ public class MessageUtils {
                         if(value instanceof Future) {
                             try {
                                 printedValue = ((Future) value).get().toString();
+                                Log.info("found value {0} for {1}.{2}", printedValue, splitGroup[0],
+                                        variableIdentifier);
                             } catch(InterruptedException | ExecutionException e) {
                                 String errorMessage = MessageFormat.format("An error occured when retrieving the " +
                                         "value of the variable {0}", variableIdentifier);
@@ -48,6 +50,8 @@ public class MessageUtils {
                         }
                         else {
                             printedValue = value.toString();
+                            Log.info("found value {0} for {1}.{2}", printedValue, splitGroup[0],
+                                    variableIdentifier);
                         }
                         outMessage = outMessage.replace(group, printedValue);
                     } else {
