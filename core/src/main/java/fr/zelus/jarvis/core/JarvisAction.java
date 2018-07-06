@@ -109,7 +109,7 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
      * This method should not be called manually, and is handled by the {@link JarvisCore} component, that
      * orchestrates the {@link JarvisAction}s returned by the registered {@link JarvisModule}s.
      *
-     * @return
+     * @return the result of executing the {@link JarvisAction}, or {@code null} if the action does not return a value
      * @see JarvisCore
      */
     @Override

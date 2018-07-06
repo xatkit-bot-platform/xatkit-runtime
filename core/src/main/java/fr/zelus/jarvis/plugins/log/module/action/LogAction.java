@@ -62,7 +62,7 @@ public abstract class LogAction extends JarvisAction<LogModule> {
      * <b>Note</b>: this method always returns {@code null}, and it's result should not be stored in
      * orchestration model variables.
      *
-     * @return
+     * @return {@code null}
      */
     @Override
     public Object call() {

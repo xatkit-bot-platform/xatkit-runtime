@@ -35,7 +35,7 @@ public abstract class JarvisMessageAction<T extends JarvisModule> extends Jarvis
     protected String message;
 
     /**
-     * Constructs a new {@link JarvisMessageAction} with the provided {@containingModule}, {@code context}, and
+     * Constructs a new {@link JarvisMessageAction} with the provided {@code containingModule}, {@code context}, and
      * {@code rawMessage}.
      * <p>
      * This constructor stores the result of calling {@link MessageUtils#fillContextValues(String, JarvisContext)} on
