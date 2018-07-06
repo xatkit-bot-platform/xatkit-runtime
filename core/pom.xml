@@ -25,7 +25,6 @@
         <javax.mail.version>1.6.1</javax.mail.version>
         <google.gmail.version>v1-rev91-1.23.0</google.gmail.version>
         <google.api.version>1.23.0</google.api.version>
-        <commons-configuration.version>2.2</commons-configuration.version>
     </properties>
 
     <repositories>

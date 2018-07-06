@@ -24,6 +24,9 @@
         <log4j.version>2.9.1</log4j.version>
         <junit.version>4.12</junit.version>
         <assertj.version>3.10.0</assertj.version>
+
+        <!-- Used in the Javadoc profile -->
+        <commons-configuration.version>2.2</commons-configuration.version>
     </properties>
 
     <modules>
@@ -158,7 +161,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.9.1</version>
+                    <version>2.10.4</version>
                     <configuration>
                         <additionalparam>-Xdoclint:none</additionalparam>
                         <failOnError>false</failOnError>
@@ -254,4 +257,78 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <!-- A profile to manage Javadoc dependencies (EMF,...) -->
+        <profile>
+            <id>deploy-javadoc</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+
+            <dependencies>
+
+                <dependency>
+                    <groupId>fr.inria.atlanmod.commons</groupId>
+                    <artifactId>commons-core</artifactId>
+                    <version>${atlanmod-commons.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.eclipse.emf</groupId>
+                    <artifactId>org.eclipse.emf.common</artifactId>
+                    <version>${emf.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.eclipse.emf</groupId>
+                    <artifactId>org.eclipse.emf.ecore</artifactId>
+                    <version>${emf.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-configuration2</artifactId>
+                    <version>${commons-configuration.version}</version>
+                </dependency>
+
+            </dependencies>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-javadoc-plugin</artifactId>
+                            <version>2.10.4</version>
+                            <configuration>
+                                <includeDependencySources>true</includeDependencySources>
+                                <dependencySourceIncludes>
+                                    <dependencySourceInclude>fr.inria.atlanmod.commons:*</dependencySourceInclude>
+                                    <dependencySourceInclude>org.eclipse.emf:*</dependencySourceInclude>
+                                    <dependencySourceInclude>org.apache.commons.configuration2:*</dependencySourceInclude>
+                                </dependencySourceIncludes>
+                                <excludePackageNames>
+                                    fr.inria.atlanmod.commons*;
+                                    fr.inria.atlanmod.neoemf.tests*;
+                                    org.eclipse.emf*;
+                                    javax.annotation*;
+                                    org.apache.commons.configuration2*;
+                                </excludePackageNames>
+                                <detectLinks>true</detectLinks>
+                                <links>
+                                    <link>https://atlanmod.github.io/Commons/releases/latest/doc/</link>
+                                    <link>http://download.eclipse.org/modeling/emf/emf/javadoc/2.11/</link>
+                                    <link>https://commons.apache.org/proper/commons-configuration/apidocs/</link>
+                                </links>
+                            </configuration>
+                        </plugin>
+
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
