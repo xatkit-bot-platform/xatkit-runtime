@@ -13,8 +13,13 @@ import static java.util.Objects.nonNull;
 /**
  * A {@link JarvisModule} class that connects and interacts with Discord.
  * <p>
- * This module manages a connection to the Discord API, and provides a single
- * {@link fr.zelus.jarvis.core.JarvisAction} to post messages on a given channel.
+ * This module manages a connection to the Discord API, and provides a set of
+ * {@link fr.zelus.jarvis.core.JarvisAction}s to interact with the Discord API:
+ * <ul>
+ * <li>{@link fr.zelus.jarvis.plugins.discord.module.action.Reply}: reply to a user input</li>
+ * <li>{@link fr.zelus.jarvis.plugins.discord.module.action.PostMessage}: post a message to a given Discord
+ * channel</li>
+ * </ul>
  * <p>
  * This class is part of jarvis' core modules, and can be used in an orchestration model by importing the <i>core
  * .DiscordModule</i> package.
