@@ -323,7 +323,7 @@ public class DialogFlowApi {
 
     protected List<String> createInContextNames(List<fr.zelus.jarvis.intent.Context> contexts) {
         List<String> results = new ArrayList<>();
-        for(fr.zelus.jarvis.intent.Context context : contexts) {
+        for (fr.zelus.jarvis.intent.Context context : contexts) {
             /*
              * Use a dummy session to create the context.
              */
@@ -563,7 +563,7 @@ public class DialogFlowApi {
 
     private ContextParameter getContextParameter(String contextName, String parameterName) {
         IntentDefinitionRegistry intentDefinitionRegistry = JarvisCore.getInstance().getIntentDefinitionRegistry();
-        for(IntentDefinition intentDefinition : intentDefinitionRegistry.getAllIntentDefinitions()) {
+        for (IntentDefinition intentDefinition : intentDefinitionRegistry.getAllIntentDefinitions()) {
             for (fr.zelus.jarvis.intent.Context context : intentDefinition.getOutContexts()) {
                 /*
                  * Use toLowerCase() because context are stored in lower case by DialogFlow

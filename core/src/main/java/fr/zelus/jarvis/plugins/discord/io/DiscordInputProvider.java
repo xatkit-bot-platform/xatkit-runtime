@@ -2,8 +2,8 @@ package fr.zelus.jarvis.plugins.discord.io;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.io.InputProvider;
+import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import net.dv8tion.jda.core.JDA;
 import org.apache.commons.configuration2.Configuration;
 

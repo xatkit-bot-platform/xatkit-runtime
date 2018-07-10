@@ -22,7 +22,7 @@ public class LogUtils {
     public static String prettyPrint(Object[] array) {
         List<String> toStringList = StreamSupport.stream(Arrays.asList(array).spliterator(), false).map(o ->
         {
-            if(o instanceof String) {
+            if (o instanceof String) {
                 return "\"" + o.toString() + "\"";
             } else {
                 return o.toString();

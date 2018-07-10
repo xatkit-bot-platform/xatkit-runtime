@@ -42,7 +42,7 @@ public abstract class InputProvider implements Runnable {
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param jarvisCore the {@link JarvisCore} instance used to handle input messages
+     * @param jarvisCore    the {@link JarvisCore} instance used to handle input messages
      * @param configuration the {@link Configuration} used to initialize the {@link InputProvider}
      */
     public InputProvider(JarvisCore jarvisCore, Configuration configuration) {

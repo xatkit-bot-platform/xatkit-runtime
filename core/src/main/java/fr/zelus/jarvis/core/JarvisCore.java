@@ -746,7 +746,7 @@ public class JarvisCore {
         /*
          * Register the returned context values
          */
-        for(ContextParameterValue contextParameterValue : intent.getOutContextValues()) {
+        for (ContextParameterValue contextParameterValue : intent.getOutContextValues()) {
             String contextName = ((Context) contextParameterValue.getContextParameter().eContainer()).getName();
             String parameterName = contextParameterValue.getContextParameter().getName();
             String parameterValue = contextParameterValue.getValue();
@@ -758,10 +758,10 @@ public class JarvisCore {
         }
         for (ActionInstance actionInstance : actionInstances) {
             JarvisModule jarvisModule = JarvisCore.getInstance().getJarvisModuleRegistry().getJarvisModule(
-                            (Module) actionInstance.getAction().eContainer());
+                    (Module) actionInstance.getAction().eContainer());
             JarvisAction action = jarvisModule.createJarvisAction(actionInstance, intent, session);
             Future<Object> result = executorService.submit(action);
-            if(nonNull(action.getReturnVariable())) {
+            if (nonNull(action.getReturnVariable())) {
                 /*
                  * Store the Future, so we can run concurrently JarvisActions that are not related.
                  */

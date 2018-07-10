@@ -17,7 +17,7 @@ public class LogError extends LogAction {
      * @param session          the {@link JarvisSession} associated to this action
      * @param message          the message to log
      * @throws NullPointerException if the provided {@code containingModule}, {@code session}, or {@code message} is
-     * {@code null}
+     *                              {@code null}
      */
     public LogError(LogModule containingModule, JarvisSession session, String message) {
         super(containingModule, session, message, Level.ERROR);

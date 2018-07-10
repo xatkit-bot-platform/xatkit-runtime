@@ -40,7 +40,7 @@ public class PostMessage extends JarvisMessageAction<SlackModule> {
      * @param session          the {@link JarvisSession} associated to this action
      * @param message          the message to post
      * @param channel          the Slack channel to post the message to
-     * @throws NullPointerException if the provided {@code containingModule} or {@code session} is {@code null}
+     * @throws NullPointerException     if the provided {@code containingModule} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null} or empty.
      */
     public PostMessage(SlackModule containingModule, JarvisSession session, String message, String channel) {

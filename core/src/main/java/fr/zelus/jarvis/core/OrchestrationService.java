@@ -61,7 +61,8 @@ public class OrchestrationService {
      * @return a {@link List} containing the instantiated {@link JarvisAction}s associated to the provided {@code
      * recognizedIntent}.
      * @see JarvisModuleRegistry#getJarvisModule(String)
-     * @see JarvisModule#createJarvisAction(ActionInstance, RecognizedIntent, fr.zelus.jarvis.core.session.JarvisSession)
+     * @see JarvisModule#createJarvisAction(ActionInstance, RecognizedIntent, fr.zelus.jarvis.core.session
+     * .JarvisSession)
      */
     public List<ActionInstance> getActionsFromIntent(RecognizedIntent recognizedIntent, JarvisSession session) {
         IntentDefinition intentDefinition = recognizedIntent.getDefinition();

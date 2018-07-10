@@ -200,11 +200,10 @@ public class SlackInputProvider extends InputProvider {
         try {
             UsersInfoResponse response = slack.methods().usersInfo(usersInfoRequest);
             User user = response.getUser();
-            if(nonNull(user)) {
+            if (nonNull(user)) {
                 username = response.getUser().getProfile().getDisplayName();
                 Log.info("Found username {0}", username);
-            }
-            else {
+            } else {
                 Log.error("Cannot retrieve the username for {0}, returning the default username {1}", userId,
                         DEFAULT_USERNAME);
             }

@@ -214,7 +214,7 @@ public abstract class JarvisModule {
                  * The ActionInstance defines a return variable, we record it in the JarvisAction in order to store
                  * it in the global context.
                  */
-                if(nonNull(actionInstance.getReturnVariable())) {
+                if (nonNull(actionInstance.getReturnVariable())) {
                     jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
                 }
                 return jarvisAction;
@@ -252,22 +252,22 @@ public abstract class JarvisModule {
             int parameterLength = actionInstanceParameterValues.size();
             Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
                     .spliterator(), false).map(param -> {
-                        if(param instanceof VariableAccess) {
-                            String variableName = ((VariableAccess)param).getReferredVariable().getName();
-                            Future<Object> value = (Future<Object>)context.getContextValue("variables", variableName);
-                            try {
-                                return value.get().toString();
-                            } catch(InterruptedException | ExecutionException e) {
-                                throw new JarvisException(e);
-                            }
-                        } else {
-                            /*
-                             * Is the name of the MessageUtils method still consistent with this usage? We are not
-                             * processing messages, but parameters (see #55).
-                             */
-                            return MessageUtils.fillContextValues(param.getValue(), context);
-                        }
-                    }).toArray();
+                if (param instanceof VariableAccess) {
+                    String variableName = ((VariableAccess) param).getReferredVariable().getName();
+                    Future<Object> value = (Future<Object>) context.getContextValue("variables", variableName);
+                    try {
+                        return value.get().toString();
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new JarvisException(e);
+                    }
+                } else {
+                    /*
+                     * Is the name of the MessageUtils method still consistent with this usage? We are not
+                     * processing messages, but parameters (see #55).
+                     */
+                    return MessageUtils.fillContextValues(param.getValue(), context);
+                }
+            }).toArray();
             return actionInstanceParameterValuesArray;
         }
         String errorMessage = MessageFormat.format("The action does not define the good amount of parameters: " +
