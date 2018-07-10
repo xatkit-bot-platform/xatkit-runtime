@@ -752,15 +752,14 @@ public class JarvisCore {
             String parameterValue = contextParameterValue.getValue();
             session.getJarvisContext().setContextValue(contextName, parameterName, parameterValue);
         }
-        List<ActionInstance> actionInstances = orchestrationService.getActionsFromIntent(intent, session
-                .getJarvisContext());
+        List<ActionInstance> actionInstances = orchestrationService.getActionsFromIntent(intent, session);
         if (actionInstances.isEmpty()) {
             Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());
         }
         for (ActionInstance actionInstance : actionInstances) {
             JarvisModule jarvisModule = JarvisCore.getInstance().getJarvisModuleRegistry().getJarvisModule(
                             (Module) actionInstance.getAction().eContainer());
-            JarvisAction action = jarvisModule.createJarvisAction(actionInstance, intent, session.getJarvisContext());
+            JarvisAction action = jarvisModule.createJarvisAction(actionInstance, intent, session);
             Future<Object> result = executorService.submit(action);
             if(nonNull(action.getReturnVariable())) {
                 /*

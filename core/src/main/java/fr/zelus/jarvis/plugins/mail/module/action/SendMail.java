@@ -6,7 +6,7 @@ import com.google.api.services.gmail.model.Message;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.mail.module.MailModule;
 import fr.zelus.jarvis.utils.MessageUtils;
 
@@ -46,18 +46,18 @@ public class SendMail extends JarvisAction<MailModule> {
     private String body;
 
     /**
-     * Constructs a new {@link SendMail} with the provided {@code containingModule}, {@code context}, {@code to},
+     * Constructs a new {@link SendMail} with the provided {@code containingModule}, {@code session}, {@code to},
      * {@code title}, and {@code body}.
      *
      * @param containingModule the {@link MailModule} containing this action
-     * @param context          the {@link JarvisContext} associated to this action
+     * @param session          the {@link JarvisSession} associated to this action
      * @param to               the address to send the email to
      * @param title            the title of the email to send
      * @param body             the content of the email to send
-     * @throws NullPointerException if the provided {@code containingModule} or {@code context} is {@code null}
+     * @throws NullPointerException if the provided {@code containingModule} or {@code session} is {@code null}
      */
-    public SendMail(MailModule containingModule, JarvisContext context, String to, String title, String body) {
-        super(containingModule, context);
+    public SendMail(MailModule containingModule, JarvisSession session, String to, String title, String body) {
+        super(containingModule, session);
         this.to = to;
         this.title = title;
         this.body = body;
@@ -75,7 +75,7 @@ public class SendMail extends JarvisAction<MailModule> {
     public Object call() {
         try {
             MimeMessage email = createEmail(to, "jarvis.bot.dev@gmail.com", title, MessageUtils.fillContextValues
-                    (body, this.context));
+                    (body, this.session.getJarvisContext()));
             sendMessage(this.module.getService(), "me", email);
         } catch (MessagingException | IOException e) {
             String errorMessage = MessageFormat.format("An error occurred when sending the email to {0}", to);

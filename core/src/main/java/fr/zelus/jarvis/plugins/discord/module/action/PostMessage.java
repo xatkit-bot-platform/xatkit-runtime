@@ -2,7 +2,7 @@ package fr.zelus.jarvis.plugins.discord.module.action;
 
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisMessageAction;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.discord.module.DiscordModule;
 import net.dv8tion.jda.core.entities.MessageChannel;
 
@@ -26,16 +26,18 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
     private String channel;
 
     /**
-     * Constructs a new {@link PostMessage} with the provided {@code message} and {@code channel}.
+     * Constructs a new {@link PostMessage} with the provided {@code containingModule}, {@code session}, {@code
+     * message} and {@code channel}.
      *
      * @param containingModule the {@link DiscordModule} containing this action
-     * @param context          the {@link JarvisContext} associated to this action
+     * @param session          the {@link JarvisSession} associated to this action
      * @param message          the message to post
      * @param channel          the Discord channel to post the message to
+     * @throws NullPointerException     if the provided {@code containingModule} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null} or empty
      */
-    public PostMessage(DiscordModule containingModule, JarvisContext context, String message, String channel) {
-        super(containingModule, context, message);
+    public PostMessage(DiscordModule containingModule, JarvisSession session, String message, String channel) {
+        super(containingModule, session, message);
         checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a {0} action with the provided " +
                 "channel {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), channel);
         this.channel = channel;

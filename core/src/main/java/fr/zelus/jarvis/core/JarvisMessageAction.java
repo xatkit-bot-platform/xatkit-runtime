@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.utils.MessageUtils;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -35,24 +36,24 @@ public abstract class JarvisMessageAction<T extends JarvisModule> extends Jarvis
     protected String message;
 
     /**
-     * Constructs a new {@link JarvisMessageAction} with the provided {@code containingModule}, {@code context}, and
+     * Constructs a new {@link JarvisMessageAction} with the provided {@code containingModule}, {@code session}, and
      * {@code rawMessage}.
      * <p>
      * This constructor stores the result of calling {@link MessageUtils#fillContextValues(String, JarvisContext)} on
-     * the {@code rawMessage} parameter. Concrete subclasses can use this attribute to print the processed message to
+     * the {@code rawMessage} parameter. Concreted subclasses can use this attribute to print the processed message to
      * the end user.
      *
      * @param containingModule the {@link JarvisModule} containing this action
-     * @param context          the {@link JarvisContext} associated to this action
+     * @param session          the {@link JarvisSession} associated to this action
      * @param rawMessage       the message to process
-     * @throws NullPointerException     if the provided {@code containingModule} or {@code context} is {@code null}
+     * @throws NullPointerException     if the provided {@code containingModule} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code rawMessage} is {@code null} or empty
      */
-    public JarvisMessageAction(T containingModule, JarvisContext context, String rawMessage) {
-        super(containingModule, context);
+    public JarvisMessageAction(T containingModule, JarvisSession session, String rawMessage) {
+        super(containingModule, session);
         checkArgument(nonNull(rawMessage) && !rawMessage.isEmpty(), "Cannot construct a {0} action with the provided " +
                 "message {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
-        this.message = MessageUtils.fillContextValues(rawMessage, context);
+        this.message = MessageUtils.fillContextValues(rawMessage, session.getJarvisContext());
     }
 
     /**

@@ -1,6 +1,5 @@
 package fr.zelus.jarvis.core;
 
-import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 
 import java.text.MessageFormat;
@@ -33,9 +32,9 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
     protected T module;
 
     /**
-     * The {@link JarvisContext} associated to this action.
+     * The {@link JarvisSession} associated to this action.
      */
-    protected JarvisContext context;
+    protected JarvisSession session;
 
     /**
      * The name of the variable to use to store the result of the {@link #call()} method.
@@ -49,19 +48,19 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
     protected String returnVariable;
 
     /**
-     * Constructs a new {@link JarvisModule} with the provided {@code containingModule} and {@code context}.
+     * Constructs a new {@link JarvisModule} with the provided {@code containingModule} and {@code session}.
      *
      * @param containingModule the {@link JarvisModule} containing this action
-     * @param context          the {@link JarvisContext} associated to this action
-     * @throws NullPointerException if the provided {@code containingModule} or {@code context} is {@code null}
+     * @param session          the {@link JarvisSession} associated to this action
+     * @throws NullPointerException if the provided {@code containingModule} or {@code session} is {@code null}
      */
-    public JarvisAction(T containingModule, JarvisContext context) {
+    public JarvisAction(T containingModule, JarvisSession session) {
         checkNotNull(containingModule, "Cannot construct a {0} with a null containing module", this.getClass()
                 .getSimpleName());
-        checkNotNull(context, "Cannot construct a %s with a null %s", this.getClass().getSimpleName(), JarvisContext
+        checkNotNull(session, "Cannot construct a %s with a null %s", this.getClass().getSimpleName(), JarvisSession
                 .class.getSimpleName());
         this.module = containingModule;
-        this.context = context;
+        this.session = session;
     }
 
     public final void setReturnVariable(String variableName) {

@@ -1,6 +1,6 @@
 package fr.zelus.jarvis.plugins.log.module.action;
 
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 
 public class LogInfoTest extends LogActionTest {
 
@@ -8,7 +8,7 @@ public class LogInfoTest extends LogActionTest {
 
     @Override
     protected LogAction createLogAction(String message) {
-        return new LogInfo(logModule, new JarvisContext(null), message);
+        return new LogInfo(logModule, new JarvisSession("id"), message);
     }
 
     @Override

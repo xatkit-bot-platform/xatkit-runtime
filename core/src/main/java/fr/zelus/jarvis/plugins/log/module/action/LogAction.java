@@ -3,8 +3,8 @@ package fr.zelus.jarvis.plugins.log.module.action;
 import fr.inria.atlanmod.commons.log.Level;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisAction;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.log.module.LogModule;
-import fr.zelus.jarvis.core.session.JarvisContext;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
@@ -28,18 +28,18 @@ public abstract class LogAction extends JarvisAction<LogModule> {
     protected Level logLevel;
 
     /**
-     * Constructs a new {@link LogAction} with the provided {@code containingModule}, {@code context}, {@code
+     * Constructs a new {@link LogAction} with the provided {@code containingModule}, {@code session}, {@code
      * message} and {@code LogLevel}.
      *
      * @param containingModule the {@link LogModule} containing this action
-     * @param context          the {@link JarvisContext} associated to this action
+     * @param session          the {@link JarvisSession} associated to this action
      * @param message          the message to log
      * @param logLevel         the severity {@link Level} of the message to log
-     * @throws NullPointerException if the provided {@code containingModule}, {@code context}, {@code message} or
+     * @throws NullPointerException if the provided {@code containingModule}, {@code session}, {@code message} or
      *                              {@code logLevel} is {@code null}
      */
-    public LogAction(LogModule containingModule, JarvisContext context, String message, Level logLevel) {
-        super(containingModule, context);
+    public LogAction(LogModule containingModule, JarvisSession session, String message, Level logLevel) {
+        super(containingModule, session);
         checkNotNull(message, "Cannot construct a {0} action with null as its message", this.getClass().getSimpleName
                 ());
         checkNotNull(logLevel, "Cannot construct a {0} action with null as its level", this.getClass().getSimpleName());

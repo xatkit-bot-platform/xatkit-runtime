@@ -2,6 +2,7 @@ package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.Parameter;
@@ -48,7 +49,7 @@ public abstract class JarvisModule {
      *
      * @see #enableAction(Action)
      * @see #disableAction(Action)
-     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisContext)
+     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
      */
     protected Map<String, Class<? extends JarvisAction>> actionMap;
 
@@ -136,10 +137,10 @@ public abstract class JarvisModule {
      * <p>
      * This method returns the {@link Class}es describing the {@link JarvisAction}s associated to this module. To
      * construct a new {@link JarvisAction} from a {@link RecognizedIntent} see
-     * {@link #createJarvisAction(ActionInstance, RecognizedIntent, JarvisContext)} .
+     * {@link #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)} .
      *
      * @return all the {@link JarvisAction} {@link Class}es associated to this {@link JarvisModule}
-     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisContext)
+     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
      */
     public final Collection<Class<? extends JarvisAction>> getActions() {
         return actionMap.values();
@@ -154,15 +155,15 @@ public abstract class JarvisModule {
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link JarvisAction} to create
      * @param intent         the {@link RecognizedIntent} containing the extracted variables
-     * @param context        the {@link JarvisContext} associated to the action
+     * @param session        the {@link JarvisSession} associated to the action
      * @return a new {@link JarvisAction} instance from the provided {@link RecognizedIntent}
      * @throws JarvisException if the provided {@link Action} does not match any {@link JarvisAction}, or if the
      *                         provided {@link RecognizedIntent} does not define all the parameters required by the
      *                         action's constructor
      * @see #getParameterValues(ActionInstance, RecognizedIntent, JarvisContext)
      */
-    public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent, JarvisContext
-            context) {
+    public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent, JarvisSession
+            session) {
         checkNotNull(actionInstance, "Cannot construct a JarvisAction from a null ActionInstance");
         Action action = actionInstance.getAction();
         checkNotNull(intent, "Cannot construct a %s action from a null RecognizedIntent", action.getName());
@@ -171,7 +172,7 @@ public abstract class JarvisModule {
             throw new JarvisException(MessageFormat.format("Cannot create the JarvisAction {0}, the action is not " +
                     "loaded in the module", action.getName()));
         }
-        Object[] parameterValues = getParameterValues(actionInstance, intent, context);
+        Object[] parameterValues = getParameterValues(actionInstance, intent, session.getJarvisContext());
         Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
         JarvisAction jarvisAction;
         for (int i = 0; i < constructorList.length; i++) {
@@ -193,15 +194,15 @@ public abstract class JarvisModule {
                          */
                         Object[] fullParameters = new Object[parameterValues.length + 2];
                         fullParameters[0] = this;
-                        fullParameters[1] = context;
+                        fullParameters[1] = session;
                         System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
                         Log.info("Constructing {0} with the parameters ({1})", jarvisActionClass.getSimpleName(),
                                 prettyPrint(parameterValues));
                         jarvisAction = (JarvisAction) constructor.newInstance(fullParameters);
                     } else {
                         Log.info("Constructing {0}({1}, {2})", jarvisActionClass.getSimpleName(), this.getClass()
-                                .getSimpleName(), context);
-                        jarvisAction = (JarvisAction) constructor.newInstance(this, context);
+                                .getSimpleName(), session);
+                        jarvisAction = (JarvisAction) constructor.newInstance(this, session);
                     }
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     String errorMessage = MessageFormat.format("Cannot construct the JarvisAction {0}",
@@ -237,7 +238,7 @@ public abstract class JarvisModule {
      * @return an array containing the {@link Action}'s parameters
      * @throws JarvisException if the provided {@link RecognizedIntent} does not define all the parameters required
      *                         by the action's constructor
-     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisContext)
+     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
      */
     private Object[] getParameterValues(ActionInstance actionInstance, RecognizedIntent intent, JarvisContext context) {
         Action action = actionInstance.getAction();

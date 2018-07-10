@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.plugins.core.module.action;
 
 import fr.zelus.jarvis.core.JarvisAction;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.core.module.CoreModule;
 
 import java.text.SimpleDateFormat;
@@ -18,14 +18,14 @@ import java.util.Calendar;
 public class GetDate extends JarvisAction<CoreModule> {
 
     /**
-     * Constructs a new {@link GetDate} action from the provided {@code containingModule} and {@code context}.
+     * Constructs a new {@link GetDate} action from the provided {@code containingModule} and {@code session}.
      *
      * @param containingModule the {@link CoreModule} containing this action
-     * @param context          the {@link JarvisContext} associated to this action
-     * @throws NullPointerException if the provided {@code containingModule} or {@code context} is {@code null}
+     * @param session          the {@link JarvisSession} associated to this action
+     * @throws NullPointerException if the provided {@code containingModule} or {@code session} is {@code null}
      */
-    public GetDate(CoreModule containingModule, JarvisContext context) {
-        super(containingModule, context);
+    public GetDate(CoreModule containingModule, JarvisSession session) {
+        super(containingModule, session);
     }
 
     /**

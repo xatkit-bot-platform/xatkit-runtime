@@ -2,6 +2,7 @@ package fr.zelus.jarvis.plugins.discord.module.action;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.plugins.discord.module.DiscordModule;
 
@@ -20,7 +21,7 @@ public class Reply extends PostMessage {
         return (String) channelValue;
     }
 
-    public Reply(DiscordModule containingModule, JarvisContext context, String message) {
-        super(containingModule, context, message, getChannel(context));
+    public Reply(DiscordModule containingModule, JarvisSession session, String message) {
+        super(containingModule, session, message, getChannel(session.getJarvisContext()));
     }
 }

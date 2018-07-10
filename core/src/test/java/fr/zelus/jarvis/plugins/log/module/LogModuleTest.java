@@ -2,8 +2,7 @@ package fr.zelus.jarvis.plugins.log.module;
 
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.plugins.log.module.action.LogInfo;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.intent.RecognizedIntent;
@@ -15,6 +14,7 @@ import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
 import fr.zelus.jarvis.orchestration.ParameterValue;
+import fr.zelus.jarvis.plugins.log.module.action.LogInfo;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.eclipse.emf.common.util.URI;
@@ -134,21 +134,21 @@ public class LogModuleTest {
 
     @Test(expected = NullPointerException.class)
     public void createJarvisActionNullActionInstance() {
-        logModule.createJarvisAction(null, VALID_RECOGNIZED_INTENT, new JarvisContext(null));
+        logModule.createJarvisAction(null, VALID_RECOGNIZED_INTENT, new JarvisSession("id"));
     }
 
     @Test(expected = NullPointerException.class)
     public void createJarvisActionNullRecognizedIntent() {
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(getInfoAction());
-        logModule.createJarvisAction(actionInstance, null, new JarvisContext(null));
+        logModule.createJarvisAction(actionInstance, null, new JarvisSession("id"));
     }
 
     @Test(expected = JarvisException.class)
     public void createJarvisActionNotEnabledAction() {
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(getInfoAction());
-        logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisContext(null));
+        logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisSession("id"));
     }
 
     @Test
@@ -161,8 +161,8 @@ public class LogModuleTest {
         parameterValue.setParameter(getInfoAction().getParameters().get(0));
         parameterValue.setValue(validLogMessage);
         actionInstance.getValues().add(parameterValue);
-        JarvisAction action = logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisContext
-                (null));
+        JarvisAction action = logModule.createJarvisAction(actionInstance, VALID_RECOGNIZED_INTENT, new JarvisSession
+                ("id"));
         assertThat(action).as("LogInfo action").isInstanceOf(LogInfo.class);
         LogInfo logAction = (LogInfo) action;
         assertThat(logAction.getMessage()).as("Not null message").isNotNull();

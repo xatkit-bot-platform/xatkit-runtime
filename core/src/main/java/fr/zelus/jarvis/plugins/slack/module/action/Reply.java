@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.plugins.slack.module.action;
 
 import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import fr.zelus.jarvis.plugins.slack.module.SlackModule;
 
@@ -18,7 +19,7 @@ public class Reply extends PostMessage {
         return (String) channelValue;
     }
 
-    public Reply(SlackModule containingModule, JarvisContext context, String message) {
-        super(containingModule, context, message, getChannel(context));
+    public Reply(SlackModule containingModule, JarvisSession session, String message) {
+        super(containingModule, session, message, getChannel(session.getJarvisContext()));
     }
 }
