@@ -160,7 +160,7 @@ public abstract class JarvisModule {
      * @throws JarvisException if the provided {@link Action} does not match any {@link JarvisAction}, or if the
      *                         provided {@link RecognizedIntent} does not define all the parameters required by the
      *                         action's constructor
-     * @see #getParameterValues(ActionInstance, RecognizedIntent, JarvisContext)
+     * @see #getParameterValues(ActionInstance, JarvisContext)
      */
     public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent, JarvisSession
             session) {
@@ -172,7 +172,7 @@ public abstract class JarvisModule {
             throw new JarvisException(MessageFormat.format("Cannot create the JarvisAction {0}, the action is not " +
                     "loaded in the module", action.getName()));
         }
-        Object[] parameterValues = getParameterValues(actionInstance, intent, session.getJarvisContext());
+        Object[] parameterValues = getParameterValues(actionInstance, session.getJarvisContext());
         Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
         JarvisAction jarvisAction;
         for (int i = 0; i < constructorList.length; i++) {
@@ -227,20 +227,23 @@ public abstract class JarvisModule {
     }
 
     /**
-     * Match the {@link RecognizedIntent}'s variable to the provided {@link Action}'s parameters.
+     * Retrieves the {@code actionInstance}'s parameter values from the provided {@code context}.
      * <p>
-     * This method checks that the provided {@code intent} contains all the variables that are required by the
-     * {@link Action} definition that are not already defined in the {@link ActionInstance#getValues()} list, and
-     * returns them.
+     * This method iterates through the {@link ActionInstance}'s {@link ParameterValue}s and matches them
+     * against the describing {@link Action}'s {@link Parameter}s. The concrete value associated to the
+     * {@link ActionInstance}'s {@link ParameterValue}s are retrieved from the provided {@code context}.
+     * <p>
+     * The retrieved values are used by the {@link JarvisModule} to instantiate concrete {@link JarvisAction}s (see
+     * {@link #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)}).
      *
-     * @param actionInstance the {@link Action} definition to match the parameters from
-     * @param intent         the {@link RecognizedIntent} to match the variables from
-     * @return an array containing the {@link Action}'s parameters
-     * @throws JarvisException if the provided {@link RecognizedIntent} does not define all the parameters required
-     *                         by the action's constructor
+     * @param actionInstance the {@link ActionInstance} to match the parameters from
+     * @return an array containing the concrete {@link ActionInstance}'s parameters
+     * @throws JarvisException if one of the concrete value is not stored in the provided {@code context}, or if the
+     *                         {@link ActionInstance}'s {@link ParameterValue}s do not match the describing
+     *                         {@link Action}'s {@link Parameter}s.
      * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
      */
-    private Object[] getParameterValues(ActionInstance actionInstance, RecognizedIntent intent, JarvisContext context) {
+    private Object[] getParameterValues(ActionInstance actionInstance, JarvisContext context) {
         Action action = actionInstance.getAction();
         List<Parameter> actionParameters = action.getParameters();
         List<ParameterValue> actionInstanceParameterValues = actionInstance.getValues();
@@ -249,7 +252,6 @@ public abstract class JarvisModule {
              * Here some additional checks are needed (parameter types and order).
              * See https://github.com/gdaniel/jarvis/issues/4.
              */
-            int parameterLength = actionInstanceParameterValues.size();
             Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
                     .spliterator(), false).map(param -> {
                 if (param instanceof VariableAccess) {
