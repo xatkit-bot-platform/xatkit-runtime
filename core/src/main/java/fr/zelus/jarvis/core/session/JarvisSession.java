@@ -1,5 +1,7 @@
 package fr.zelus.jarvis.core.session;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+
 /**
  * A session holding user-related information.
  * <p>
@@ -26,8 +28,10 @@ public class JarvisSession {
      * Constructs a new, empty {@link JarvisSession} with the provided {@code sessionID}.
      *
      * @param sessionId the unique identifier of the {@link JarvisSession}
+     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
     public JarvisSession(String sessionId) {
+        checkNotNull(sessionId, "Cannot construct a %s with the session ID null", JarvisSession.class.getSimpleName());
         this.sessionId = sessionId;
         this.jarvisContext = new JarvisContext();
     }

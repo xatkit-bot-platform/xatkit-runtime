@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -50,10 +51,13 @@ public class JarvisContext {
      * @param context the sub-context to store the value in
      * @param key     the sub-context key associated to the value
      * @param value   the value to store
+     * @throws NullPointerException if the provided {@code context} or {@code key} is {@code null}
      * @see #getContextVariables(String)
      * @see #getContextValue(String, String)
      */
     public void setContextValue(String context, String key, Object value) {
+        checkNotNull(context, "Cannot set the value to the context null");
+        checkNotNull(key, "Cannot set the value to the context %s with the key null", context);
         if (contexts.containsKey(context)) {
             Map<String, Object> contextValues = contexts.get(context);
             contextValues.put(key, value);
@@ -72,9 +76,11 @@ public class JarvisContext {
      *
      * @param context the sub-context to retrieve the variables from
      * @return an unmodifiable {@link Map} holding the sub-context variables
+     * @throws NullPointerException if the provided {@code context} is {@code null}
      * @see #getContextValue(String, String)
      */
     public Map<String, Object> getContextVariables(String context) {
+        checkNotNull(context, "Cannot retrieve the context variables from the null context");
         if (contexts.containsKey(context)) {
             return Collections.unmodifiableMap(contexts.get(context));
         } else {
@@ -94,14 +100,28 @@ public class JarvisContext {
      * @param key     the sub-context key associated to the value
      * @return the {@code context} value associated to the provided {@code key}, or {@code null} if the {@code key}
      * does not exist
+     * @throws NullPointerException if the provided {@code context} or {@code key} is {@code null}
      * @see #getContextVariables(String)
      */
     public Object getContextValue(String context, String key) {
+        checkNotNull(context, "Cannot find the context value from the null context");
+        checkNotNull(key, "Cannot find the value of the context %s with the key null", context);
         Map<String, Object> contextVariables = getContextVariables(context);
         if (nonNull(contextVariables)) {
             return contextVariables.get(key);
         } else {
             return null;
         }
+    }
+
+    /**
+     * Returns an unmodifiable {@link Map} representing the stored context values.
+     * <p>
+     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
+     *
+     * @return an unmodifiable {@link Map} representing the stored context values
+     */
+    protected Map<String, Map<String, Object>> getContextMap() {
+        return Collections.unmodifiableMap(contexts);
     }
 }
