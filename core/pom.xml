@@ -102,6 +102,14 @@
             <artifactId>google-api-client</artifactId>
         </dependency>
 
+
+        <!--<dependency>
+            <groupId>com.afrozaar.wordpress</groupId>
+            <artifactId>wp-api-v2-client-java</artifactId>
+            <version>4.8.1</version>
+        </dependency> -->
+
+
         <!-- Utils -->
 
         <dependency>
