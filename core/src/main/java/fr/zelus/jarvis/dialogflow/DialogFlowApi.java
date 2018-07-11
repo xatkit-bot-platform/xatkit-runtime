@@ -542,7 +542,7 @@ public class DialogFlowApi {
             }
             return result;
             /*
-             * The code below build an IntentDefinition from scratch, but does not check that the intent is
+             * The code below builds an IntentDefinition from scratch, but does not check that the intent is
              * registered. We should move to something like that in the future, in order to let modelers design their
              * intents in the DialogFlow page if they want. Moving to this kind of architecture does not require an
              * IntentDefinition factory, or at least not the kind of one we are using now. (we need to synchronize it)
@@ -577,10 +577,13 @@ public class DialogFlowApi {
                 }
             }
         }
-        String errorMessage = MessageFormat.format("Unable to find the context parameter {0}.{1}", contextName,
-                parameterName);
-        Log.error(errorMessage);
-        throw new DialogFlowException(errorMessage);
+        /*
+         * DialogFlow merges all the parameters in the current contexts, so we can have context containing parameter
+         * keys that are not defined in the module model. We should ignore these parameter accesses, it is not
+         * straightforward to access a merged key, we should use its defining context.
+         */
+        Log.warn("Unable to find the context parameter {0}.{1}", contextName, parameterName);
+        return null;
     }
 
     private RecognizedIntent convertDialogFlowIntentToRecognizedIntent(QueryResult result) {
@@ -607,15 +610,16 @@ public class DialogFlowApi {
                 for (String key : parameterValues.keySet()) {
                     /*
                      * Ignore original: this variable contains the raw parsed value, we don't need this.
-                     * Ignore "given-name", it is set by the Default Welcome Intent and bound to the wrong context
-                     * (see #40)
                      */
-                    if (!key.contains(".original") && !key.contains("given-name")) {
+                    if (!key.contains(".original")) {
                         String parameterValue = parameterValues.get(key).getStringValue();
-                        ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
-                        contextParameterValue.setValue(parameterValue);
-                        contextParameterValue.setContextParameter(getContextParameter(contextName, key));
-                        recognizedIntent.getOutContextValues().add(contextParameterValue);
+                        ContextParameter contextParameter = getContextParameter(contextName, key);
+                        if(nonNull(contextParameter)) {
+                            ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
+                            contextParameterValue.setValue(parameterValue);
+                            contextParameterValue.setContextParameter(contextParameter);
+                            recognizedIntent.getOutContextValues().add(contextParameterValue);
+                        }
                     }
                 }
             }
