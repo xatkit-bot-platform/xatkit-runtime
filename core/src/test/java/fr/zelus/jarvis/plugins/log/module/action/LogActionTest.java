@@ -22,13 +22,14 @@ public abstract class LogActionTest<T extends LogAction> {
     protected LogModule logModule;
 
     @Before
-    public void setUp() {
+    public void setUp() throws InterruptedException {
         LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
         listAppender = loggerContext.getConfiguration().getAppender("List");
         /*
          * Clear before the test, this logger is used by all the test cases and may contain messages before the first
-         * test of this class.
+         * test of this class. We also need to wait in case some messages are pending in the logger.
          */
+        Thread.sleep(200);
         listAppender.clear();
         logModule = new LogModule(new BaseConfiguration());
     }
