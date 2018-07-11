@@ -10,7 +10,10 @@ import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.util.Map;
 
@@ -70,7 +73,8 @@ public class PrivateMessageListenerTest {
         listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordInputProvider.getJdaClient(),
                 StubMessage.createEmptyStubMessage()));
         assertThat(stubJarvisCore.getHandledMessages()).as("Empty message skipped").isEmpty();
-        assertThat(stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_NAME)).as("Null session").isNull();
+        assertThat(stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_NAME)).as("Null session")
+                .isNull();
     }
 
     @Test
@@ -93,6 +97,11 @@ public class PrivateMessageListenerTest {
         softly.assertThat(contextChannel).as("Channel context variable is a String").isInstanceOf(String.class);
         softly.assertThat(contextChannel).as("Valid channel context variable").isEqualTo(StubPrivateChannel
                 .PRIVATE_CHANNEL_ID);
+        Object contextUsername = discordContext.get(JarvisDiscordUtils.DISCORD_USERNAME_CONTEXT_KEY);
+        assertThat(contextUsername).as("Not null username context variable").isNotNull();
+        softly.assertThat(contextUsername).as("Username context variable is a String").isInstanceOf(String.class);
+        softly.assertThat(contextUsername).as("Valid username context variable").isEqualTo(StubMessage
+                .TEST_MESSAGE_AUTHOR);
     }
 
     private DiscordInputProvider createValidDiscordInputProvider() {

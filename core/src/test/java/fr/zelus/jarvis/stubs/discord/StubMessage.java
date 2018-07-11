@@ -10,6 +10,8 @@ public class StubMessage extends AbstractMessage {
 
     public static String TEST_MESSAGE_CONTENT = "test message";
 
+    public static String TEST_MESSAGE_AUTHOR = "Stub Author";
+
     public static StubMessage createEmptyStubMessage() {
         return new StubMessage("");
     }
@@ -29,7 +31,7 @@ public class StubMessage extends AbstractMessage {
 
     @Override
     public User getAuthor() {
-        return new UserImpl(1, null).setName("Stub Author");
+        return new UserImpl(1, null).setName(TEST_MESSAGE_AUTHOR);
     }
 
     @Override

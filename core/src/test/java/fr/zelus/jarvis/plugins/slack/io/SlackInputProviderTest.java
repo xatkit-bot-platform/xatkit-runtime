@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Map;
 
@@ -67,7 +66,7 @@ public class SlackInputProviderTest {
     }
 
     @Test
-    public void sendValidSlackMessage() throws IOException {
+    public void sendValidSlackMessage() {
         slackInputProvider = getValidSlackInputProvider();
         slackInputProvider.getRtmClient().onMessage(getValidMessage());
         assertThat(stubJarvisCore.getHandledMessages()).as("Valid handled messages").contains("hello");
@@ -80,6 +79,10 @@ public class SlackInputProviderTest {
         assertThat(contextChannel).as("Not null channel context variable").isNotNull();
         softly.assertThat(contextChannel).as("Channel context variable is a String").isInstanceOf(String.class);
         softly.assertThat(contextChannel).as("Valid channel context variable").isEqualTo(SLACK_CHANNEL);
+        Object contextUsername = slackContext.get(JarvisSlackUtils.SLACK_USERNAME_CONTEXT_KEY);
+        assertThat(contextUsername).as("Not null username context variable").isNotNull();
+        softly.assertThat(contextUsername).as("Username context variable is a String").isInstanceOf(String.class);
+        softly.assertThat(contextUsername).as("Valid context username variable").isEqualTo("gwendal");
     }
 
     @Test
@@ -130,7 +133,7 @@ public class SlackInputProviderTest {
 
     private String getValidMessage() {
         return MessageFormat.format("'{'\"type\":\"message\",\"text\":\"hello\", \"channel\":\"{0}\", " +
-                        "\"user\":\"123\"'}'", SLACK_CHANNEL);
+                        "\"user\":\"UBD4Z7SKH\"'}'", SLACK_CHANNEL);
     }
 
     private String getMessageInvalidType() {
