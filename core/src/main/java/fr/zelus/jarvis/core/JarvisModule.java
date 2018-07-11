@@ -9,7 +9,6 @@ import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.ParameterValue;
 import fr.zelus.jarvis.orchestration.VariableAccess;
-import fr.zelus.jarvis.utils.MessageUtils;
 import org.apache.commons.configuration2.Configuration;
 
 import java.lang.reflect.Constructor;
@@ -263,11 +262,7 @@ public abstract class JarvisModule {
                         throw new JarvisException(e);
                     }
                 } else {
-                    /*
-                     * Is the name of the MessageUtils method still consistent with this usage? We are not
-                     * processing messages, but parameters (see #55).
-                     */
-                    return MessageUtils.fillContextValues(param.getValue(), context);
+                    return context.fillContextValues(param.getValue());
                 }
             }).toArray();
             return actionInstanceParameterValuesArray;

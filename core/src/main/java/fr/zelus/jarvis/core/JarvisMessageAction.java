@@ -2,7 +2,6 @@ package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.utils.MessageUtils;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;
@@ -11,7 +10,7 @@ import static java.util.Objects.nonNull;
  * An abstract {@link JarvisAction} processing a message.
  * <p>
  * This class takes a {@link String} message as its constructor parameter, and relies on
- * {@link MessageUtils#fillContextValues(String, JarvisContext)} to pre-process it and replace context variable
+ * {@link JarvisContext#(String)} to pre-process it and replace context variable
  * accesses by their concrete value.
  * <p>
  * This class is only responsible of the pre-processing of the provided message, and does not provide any method to
@@ -19,18 +18,18 @@ import static java.util.Objects.nonNull;
  *
  * @param <T> the concrete {@link JarvisModule} subclass type containing the action
  * @see JarvisModule
- * @see MessageUtils
+ * @see JarvisContext
  */
 public abstract class JarvisMessageAction<T extends JarvisModule> extends JarvisAction<T> {
 
     /**
      * The processed message.
      * <p>
-     * This attribute is the result of calling {@link MessageUtils#fillContextValues(String, JarvisContext)} on the
+     * This attribute is the result of calling {@link JarvisContext#fillContextValues(String)} on the
      * {@code rawMessage} constructor parameter. Concrete subclasses can use this attribute to print the processed
      * message to the end user.
      *
-     * @see MessageUtils#fillContextValues(String, JarvisContext)
+     * @see JarvisContext#fillContextValues(String)
      * @see #getMessage()
      */
     protected String message;
@@ -39,7 +38,7 @@ public abstract class JarvisMessageAction<T extends JarvisModule> extends Jarvis
      * Constructs a new {@link JarvisMessageAction} with the provided {@code containingModule}, {@code session}, and
      * {@code rawMessage}.
      * <p>
-     * This constructor stores the result of calling {@link MessageUtils#fillContextValues(String, JarvisContext)} on
+     * This constructor stores the result of calling {@link JarvisContext#fillContextValues(String)} on
      * the {@code rawMessage} parameter. Concreted subclasses can use this attribute to print the processed message to
      * the end user.
      *
@@ -53,7 +52,7 @@ public abstract class JarvisMessageAction<T extends JarvisModule> extends Jarvis
         super(containingModule, session);
         checkArgument(nonNull(rawMessage) && !rawMessage.isEmpty(), "Cannot construct a {0} action with the provided " +
                 "message {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
-        this.message = MessageUtils.fillContextValues(rawMessage, session.getJarvisContext());
+        this.message = session.getJarvisContext().fillContextValues(rawMessage);
     }
 
     /**

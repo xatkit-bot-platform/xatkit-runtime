@@ -8,7 +8,6 @@ import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.mail.module.MailModule;
-import fr.zelus.jarvis.utils.MessageUtils;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -74,8 +73,8 @@ public class SendMail extends JarvisAction<MailModule> {
     @Override
     public Object call() {
         try {
-            MimeMessage email = createEmail(to, "jarvis.bot.dev@gmail.com", title, MessageUtils.fillContextValues
-                    (body, this.session.getJarvisContext()));
+            MimeMessage email = createEmail(to, "jarvis.bot.dev@gmail.com", title, this.session.getJarvisContext()
+                    .fillContextValues(body));
             sendMessage(this.module.getService(), "me", email);
         } catch (MessagingException | IOException e) {
             String errorMessage = MessageFormat.format("An error occurred when sending the email to {0}", to);
