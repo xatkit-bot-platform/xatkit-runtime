@@ -345,8 +345,8 @@ public class DialogFlowApi {
              */
             ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
                     context.getName());
-            Context dialogFlowContext = Context.newBuilder().setName(contextName.toString()).setLifespanCount(2)
-                    .build();
+            Context dialogFlowContext = Context.newBuilder().setName(contextName.toString()).setLifespanCount(context
+                    .getLifeSpan()).build();
             results.add(dialogFlowContext);
         }
         return results;

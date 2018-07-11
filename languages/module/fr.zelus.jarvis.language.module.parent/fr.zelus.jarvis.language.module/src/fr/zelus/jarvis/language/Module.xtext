@@ -36,12 +36,13 @@ IntentParameter returns intent::IntentParameter:
 	
 InContextDefinition returns intent::Context:
 	{intent::Context}
-	'inContext' name=EString
+	'inContext' name=EString ('(' 'lifeSpan' '='lifeSpan=INT ')')?
 ;
 	
 OutContextDefinition returns intent::Context:
 	{intent::Context}
-	'outContext' name=EString ('{'
+	'outContext' name=EString ('(' 'lifeSpan' '=' lifeSpan=INT ')')?
+	('{'
 		'params' '{'
 			(parameters+=ContextParameter)+
 		'}'

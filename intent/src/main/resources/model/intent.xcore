@@ -12,6 +12,7 @@ class IntentDefinition {
 
 class Context {
     String name
+    int lifeSpan = "5"
     contains ContextParameter[] parameters
 }
 
