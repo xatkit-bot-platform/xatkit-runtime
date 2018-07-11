@@ -25,6 +25,7 @@
         <javax.mail.version>1.6.1</javax.mail.version>
         <google.gmail.version>v1-rev91-1.23.0</google.gmail.version>
         <google.api.version>1.23.0</google.api.version>
+        <commons-beanutils.version>1.9.3</commons-beanutils.version>
     </properties>
 
     <repositories>
@@ -123,6 +124,11 @@
             <artifactId>commons-configuration2</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+        </dependency>
+
         <!-- jarvis Internal -->
 
         <dependency>
@@ -161,11 +167,15 @@
             <type>test-jar</type>
         </dependency>
 
+
+
     </dependencies>
 
     <dependencyManagement>
 
         <dependencies>
+
+            <!-- DialogFlow -->
 
             <dependency>
                 <groupId>com.google.cloud</groupId>
@@ -230,6 +240,10 @@
                         <groupId>com.google.guava</groupId>
                         <artifactId>guava-jdk5</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.core</groupId>
+                        <artifactId>jackson-core</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
 
@@ -241,6 +255,12 @@
                 <version>${commons-configuration.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+
         </dependencies>
 
     </dependencyManagement>
@@ -250,31 +270,14 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                    <failOnError>false</failOnError>
-                    <quiet>true</quiet>
-                    <notimestamp>true</notimestamp>
-                    <nosince>true</nosince>
-                    <author>false</author>
-                    <tags>
-                        <tag>
-                            <name>generated</name>
-                            <placement>a</placement>
-                            <head>Generated</head>
-                        </tag>
-                        <!-- Ignore @model and @ordered -->
-                        <tag>
-                            <name>model</name>
-                            <placement>X</placement>
-                        </tag>
-                        <tag>
-                            <name>ordered</name>
-                            <placement>X</placement>
-                        </tag>
-                    </tags>
+                    <archive>
+                        <manifest>
+                            <mainClass>fr.zelus.jarvis.Jarvis</mainClass>
+                        </manifest>
+                    </archive>
+                    <finalName>jarvis-nodep</finalName>
                 </configuration>
             </plugin>
 
