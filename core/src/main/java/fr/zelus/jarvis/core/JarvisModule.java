@@ -14,16 +14,13 @@ import org.apache.commons.configuration2.Configuration;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static fr.zelus.jarvis.utils.LogUtils.prettyPrint;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -196,7 +193,7 @@ public abstract class JarvisModule {
                         fullParameters[1] = session;
                         System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
                         Log.info("Constructing {0} with the parameters ({1})", jarvisActionClass.getSimpleName(),
-                                prettyPrint(parameterValues));
+                                printArray(parameterValues));
                         jarvisAction = (JarvisAction) constructor.newInstance(fullParameters);
                     } else {
                         Log.info("Constructing {0}({1}, {2})", jarvisActionClass.getSimpleName(), this.getClass()
@@ -220,7 +217,7 @@ public abstract class JarvisModule {
             }
         }
         String errorMessage = MessageFormat.format("Cannot find a {0} constructor matching the provided parameters " +
-                "({1})", action.getName(), prettyPrint(parameterValues));
+                "({1})", action.getName(), printArray(parameterValues));
         Log.error(errorMessage);
         throw new JarvisException(errorMessage);
     }
@@ -297,5 +294,27 @@ public abstract class JarvisModule {
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
         }
+    }
+
+    /**
+     * Formats the provided {@code array} in a {@link String} used to log parameter values.
+     * <p>
+     * The returned {@link String} is "a1.toString(), a2.toString(), an.toString()", where <i>a1</i>,
+     * <i>a2</i>, and <i>an</i> are elements in the provided {@code array}.
+     *
+     * @param array the array containing the parameter to print
+     * @return a {@link String} containing the formatted parameters
+     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
+     */
+    private String printArray(Object[] array) {
+        List<String> toStringList = StreamSupport.stream(Arrays.asList(array).spliterator(), false).map(o ->
+        {
+            if (o instanceof String) {
+                return "\"" + o.toString() + "\"";
+            } else {
+                return o.toString();
+            }
+        }).collect(Collectors.toList());
+        return String.join(",", toStringList);
     }
 }
