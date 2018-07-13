@@ -3,6 +3,8 @@ package fr.zelus.jarvis.core.session;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -147,6 +149,24 @@ public class JarvisContextTest {
     }
 
     @Test
+    public void fillContextValuesSetContextSetKeyFuture() {
+        context = new JarvisContext();
+        Future<String> f = CompletableFuture.completedFuture("value");
+        context.setContextValue("context", "key", f);
+        String result = context.fillContextValues("This is a {$context.key} test");
+        assertThat(result).as("Replaced future variable").isEqualTo("This is a value test");
+    }
+
+    @Test
+    public void fillContextValuesSetContextSetKeyFutureNotString() {
+        context = new JarvisContext();
+        Future<Integer> f = CompletableFuture.completedFuture(1);
+        context.setContextValue("context", "key", f);
+        String result = context.fillContextValues("This is a {$context.key} test");
+        assertThat(result).as("Replaced future non String variable").isEqualTo("This is a 1 test");
+    }
+
+    @Test
     public void fillContextValuesTwoValuesSetUnset() {
         context = new JarvisContext();
         context.setContextValue("context", "key", "value");
@@ -162,6 +182,17 @@ public class JarvisContextTest {
         context.setContextValue("context", "test", "testValue");
         String result = context.fillContextValues("This is a {$context.key} test from {$context.test}");
         assertThat(result).as("Replaced variables").isEqualTo("This is a value test from testValue");
+    }
+
+    @Test
+    public void fillContextValuesTwoFutureValuesSet() {
+        context = new JarvisContext();
+        Future<String> valueFuture = CompletableFuture.completedFuture("value");
+        Future<String> testValueFuture = CompletableFuture.completedFuture("testValue");
+        context.setContextValue("context", "key", valueFuture);
+        context.setContextValue("context", "test", testValueFuture);
+        String result = context.fillContextValues("This is a {$context.key} test from {$context.test}");
+        assertThat(result).as("Replaced future variables").isEqualTo("This is a value test from testValue");
     }
 
     private void checkContextMap(JarvisContext context, String expectedContext, String expectedKey, Object
