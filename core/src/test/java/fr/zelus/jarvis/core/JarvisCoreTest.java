@@ -277,9 +277,6 @@ public class JarvisCoreTest {
         jarvisCore.shutdown();
         softly.assertThat(jarvisCore.getExecutorService().isShutdown()).as("ExecutorService is shutdown");
         softly.assertThat(jarvisCore.getDialogFlowApi().isShutdown()).as("DialogFlow API is shutdown");
-        softly.assertThatThrownBy(() -> JarvisCore.getInstance()).as("Null JarvisCore Instance").isInstanceOf
-                (NullPointerException.class).hasMessage("Cannot retrieve the JarvisCore instance, make sure to " +
-                "initialize it first");
     }
 
     @Test(expected = NullPointerException.class)

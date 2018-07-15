@@ -55,6 +55,8 @@ public class DialogFlowApi {
         DEFAULT_FALLBACK_INTENT.setName("Default Fallback Intent");
     }
 
+    private JarvisCore jarvisCore;
+
     /**
      * The unique identifier of the DialogFlow project.
      */
@@ -126,34 +128,38 @@ public class DialogFlowApi {
      * Constructs a {@link DialogFlowApi} with the provided {@code projectId} and sets its language to
      * {@link #DEFAULT_LANGUAGE_CODE}.
      * <p>
-     * See {@link #DialogFlowApi(String, String)} to construct a {@link DialogFlowApi} instance with a given {@code
-     * languageCode}.
+     * See {@link #DialogFlowApi(JarvisCore, String, String)} to construct a {@link DialogFlowApi} instance with a
+     * given {@code languageCode}.
      *
+     * @param jarvisCore the {@link JarvisCore} instance managing the {@link DialogFlowApi}
      * @param projectId the unique identifier of the DialogFlow project
-     * @throws NullPointerException if the provided {@code projectId} or {@code languageCode} is
+     * @throws NullPointerException if the provided {@code jarvisCore}, {@code projectId} or {@code languageCode} is
      *                              {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
-     * @see #DialogFlowApi(String, String)
+     * @see #DialogFlowApi(JarvisCore, String, String)
      */
-    public DialogFlowApi(String projectId) {
-        this(projectId, DEFAULT_LANGUAGE_CODE);
+    public DialogFlowApi(JarvisCore jarvisCore, String projectId) {
+        this(jarvisCore, projectId, DEFAULT_LANGUAGE_CODE);
     }
 
     /**
      * Constructs a {@link DialogFlowApi} with the provided {@code projectId} and {@code languageCode}.
      *
+     * @param jarvisCore   the {@link JarvisCore} instance managing the {@link DialogFlowApi}
      * @param projectId    the unique identifier of the DialogFlow project
      * @param languageCode the code of the language processed by DialogFlow
-     * @throws NullPointerException if the provided {@code projectId} or {@code languageCode} is
+     * @throws NullPointerException if the provided {@code jarvisCore}, {@code projectId} or {@code languageCode} is
      *                              {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
      */
-    public DialogFlowApi(String projectId, String languageCode) {
+    public DialogFlowApi(JarvisCore jarvisCore, String projectId, String languageCode) {
+        checkNotNull(jarvisCore, "Cannot construct a DialogFlow API instance with a null JarvisCore instance");
         checkNotNull(projectId, "Cannot construct a DialogFlow API instance from a null project ID");
         checkNotNull(languageCode, "Cannot construct a DialogFlow API instance from a null language code");
         Log.info("Creating a new DialogFlowAPI");
         try {
             Log.info("Starting DialogFlow Client");
+            this.jarvisCore = jarvisCore;
             this.projectId = projectId;
             this.languageCode = languageCode;
             this.sessionsClient = SessionsClient.create();
@@ -535,7 +541,7 @@ public class DialogFlowApi {
 
     private IntentDefinition convertDialogFlowIntentToIntentDefinition(Intent intent) {
         if (nonNull(intent)) {
-            IntentDefinition result = JarvisCore.getInstance().getIntentDefinitionRegistry().getIntentDefinition(intent
+            IntentDefinition result = jarvisCore.getIntentDefinitionRegistry().getIntentDefinition(intent
                     .getDisplayName());
             if (isNull(result)) {
                 result = DEFAULT_FALLBACK_INTENT;
@@ -562,7 +568,7 @@ public class DialogFlowApi {
     }
 
     private ContextParameter getContextParameter(String contextName, String parameterName) {
-        IntentDefinitionRegistry intentDefinitionRegistry = JarvisCore.getInstance().getIntentDefinitionRegistry();
+        IntentDefinitionRegistry intentDefinitionRegistry = jarvisCore.getIntentDefinitionRegistry();
         for (IntentDefinition intentDefinition : intentDefinitionRegistry.getAllIntentDefinitions()) {
             for (fr.zelus.jarvis.intent.Context context : intentDefinition.getOutContexts()) {
                 /*
@@ -614,7 +620,7 @@ public class DialogFlowApi {
                     if (!key.contains(".original")) {
                         String parameterValue = parameterValues.get(key).getStringValue();
                         ContextParameter contextParameter = getContextParameter(contextName, key);
-                        if(nonNull(contextParameter)) {
+                        if (nonNull(contextParameter)) {
                             ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
                             contextParameterValue.setValue(parameterValue);
                             contextParameterValue.setContextParameter(contextParameter);

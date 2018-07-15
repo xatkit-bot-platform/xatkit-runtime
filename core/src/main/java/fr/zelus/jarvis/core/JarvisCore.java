@@ -48,10 +48,6 @@ import static java.util.Objects.nonNull;
  * the provided {@link OrchestrationModel}, and enable the corresponding {@link JarvisAction}s. It also creates an
  * instance of {@link IntentDefinitionRegistry} that can be accessed to retrieve and manage
  * {@link fr.zelus.jarvis.intent.IntentDefinition} .
- * <p>
- * Once constructed, this class can be globally accessed through the {@link JarvisCore#getInstance()} static method.
- * Easing the access to {@link IntentDefinitionRegistry}, {@link JarvisModuleRegistry}, and
- * {@link OrchestrationService} from the other jarvis components.
  *
  * @see IntentDefinitionRegistry
  * @see JarvisModuleRegistry
@@ -59,11 +55,6 @@ import static java.util.Objects.nonNull;
  * @see JarvisModule
  */
 public class JarvisCore {
-
-    /**
-     * The globally registered instance of this class.
-     */
-    private static JarvisCore INSTANCE = null;
 
     /**
      * The {@link Configuration} key to store the unique identifier of the DialogFlow project.
@@ -85,19 +76,6 @@ public class JarvisCore {
      * @see #JarvisCore(Configuration)
      */
     public static String ORCHESTRATION_MODEL_KEY = "jarvis.orchestration.model";
-
-    /**
-     * Returns the globally registered instance of this class, if it exists.
-     *
-     * @return the globally registered instance of this class
-     * @throws NullPointerException if there is no instance of this class that is globally registered
-     */
-    public static JarvisCore getInstance() {
-        if (isNull(INSTANCE)) {
-            throw new NullPointerException("Cannot retrieve the JarvisCore instance, make sure to initialize it first");
-        }
-        return INSTANCE;
-    }
 
     /**
      * Builds a {@link Configuration} holding the provided {@code projectId}, {@code languageCode}, and {@code
@@ -201,8 +179,6 @@ public class JarvisCore {
      * The provided {@link InputProvider} is run in a dedicated {@link Thread} and uses this class to provide user
      * inputs.
      * <p>
-     * Once constructed, this class can be globally retrieved by using {@link JarvisCore#getInstance()} method.
-     * <p>
      * <b>Note:</b> the {@link JarvisModule}s associated to the provided {@code orchestrationModel} have to be
      * in the classpath in order to be dynamically loaded and instantiated.
      *
@@ -221,7 +197,7 @@ public class JarvisCore {
         OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
                 (ORCHESTRATION_MODEL_KEY));
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
-        this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
+        this.dialogFlowApi = new DialogFlowApi(this, projectId, languageCode);
         this.sessions = new HashMap<>();
         /*
          * The OrchestrationService instance should be available through a getter for testing purposes.
@@ -231,7 +207,7 @@ public class JarvisCore {
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
         this.intentDefinitionRegistry = new IntentDefinitionRegistry();
         boolean intentRegistered = false;
-        for(InputProviderDefinition inputProviderDefinition : orchestrationModel.getInputProviderDefinitions()) {
+        for (InputProviderDefinition inputProviderDefinition : orchestrationModel.getInputProviderDefinitions()) {
             Module inputProviderModule = (Module) inputProviderDefinition.eContainer();
             JarvisModule inputProviderJarvisModule = this.jarvisModuleRegistry.getJarvisModule(inputProviderModule
                     .getName());
@@ -275,14 +251,6 @@ public class JarvisCore {
              */
             dialogFlowApi.trainMLEngine();
         }
-        /*
-         * The instance is correctly constructed, set it as the global instance of this class.
-         */
-        if (nonNull(INSTANCE)) {
-            Log.warn("Globally registering the constructed JarvisCore instance ({0}) will erase the stored one {1}",
-                    this, INSTANCE);
-        }
-        INSTANCE = this;
         Log.info("Jarvis bot started");
     }
 
@@ -293,8 +261,6 @@ public class JarvisCore {
      * The provided {@link OrchestrationModel} defines the Intent to Action bindings that are executed by the
      * application. This constructor takes care of loading the {@link JarvisModule}s associated to the provided
      * {@code orchestrationModel} and enables the corresponding {@link JarvisAction}s.
-     * <p>
-     * Once constructed, this class can be globally retrieved by using {@link JarvisCore#getInstance()} method.
      * <p>
      * <b>Note:</b> the {@link JarvisModule}s associated to the provided {@code orchestrationModel} have to be in the
      * classpath in order to be dynamically loaded and instantiated.
@@ -391,57 +357,6 @@ public class JarvisCore {
             return orchestrationModel;
         }
     }
-
-    /**
-     * Retrieves the {@link InputProvider} from the provided {@code property}.
-     * <p>
-     * This method checks if the provided {@code property} is a loaded {@link InputProvider}'s {@link Class}, or
-     * if it is defined by a {@link String} representing the fully qualified name of the {@link InputProvider}
-     * subclass to load. In that case, the method attempts to load the class using its {@link ClassLoader}, and
-     * constructs a new instance of it using the provided {@code configuration}. If there is no constructor with a
-     * {@link Configuration} parameter the method attempts to call the default constructor of the {@link InputProvider}.
-     *
-     * @param property the {@link Object} representing the {@link InputProvider} to create
-     * @return the {@link InputProvider} from the provided {@code property}
-     * @throws JarvisException      if the provided {@code property} type is not handled, or if it doesn't match a valid
-     *                              {@link InputProvider} instance
-     * @throws NullPointerException if the provided {@code property} or {@code configuration} is {@code null}
-     */
-//    protected InputProvider getInputProvider(Object property) {
-//        checkNotNull(property, "Cannot retrieve the InputProvider from the property null, please ensure it is set
-// in " +
-//                "the %s property of the jarvis configuration", INPUT_PROVIDER_KEY);
-//        checkNotNull(configuration, "Cannot create an InputProvider instance from a null configuration");
-//        Class<? extends InputProvider> clazz = null;
-//        if (property instanceof String) {
-//            clazz = Loader.loadClass((String) property, InputProvider.class);
-//        } else if (property instanceof Class) {
-//            clazz = (Class<? extends InputProvider>) property;
-//        } else {
-//            // Unknown property type
-//            String errorMessage = MessageFormat.format("Cannot retrieve the InputProvider from the provided " +
-//                    "property {0}, the property type ({1}) is not supported", property, property.getClass()
-//                    .getSimpleName());
-//            Log.error(errorMessage);
-//            throw new JarvisException(errorMessage);
-//        }
-//        try {
-//            return Loader.construct(clazz, Arrays.asList(JarvisCore.class, Configuration.class), Arrays.asList(this,
-//                    configuration));
-//        } catch (NoSuchMethodException e) {
-//            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the InputProvider using its " +
-//                    "{0}({1}) constructor", clazz.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
-//                    .class.getSimpleName());
-//            try {
-//                return Loader.construct(clazz, JarvisCore.class, this);
-//            } catch (NoSuchMethodException e1) {
-//                String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-//                        "not exist", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
-//                Log.error(errorMessage);
-//                throw new JarvisException(errorMessage, e1);
-//            }
-//        }
-//    }
 
     /**
      * Loads the {@link JarvisModule} defined by the provided {@link Module} definition.
@@ -541,9 +456,6 @@ public class JarvisCore {
      * this instance, unregisters the {@link fr.zelus.jarvis.intent.IntentDefinition} from the associated
      * {@link IntentDefinitionRegistry}, and shuts down the {@link #executorService}.
      * <p>
-     * Once shutdown, the {@link JarvisCore} instance can not be retrieved using {@link JarvisCore#getInstance()}
-     * static method.
-     * <p>
      * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down intent detections
      * and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
      *
@@ -559,12 +471,6 @@ public class JarvisCore {
         this.dialogFlowApi.shutdown();
         this.getJarvisModuleRegistry().clearJarvisModules();
         this.getIntentDefinitionRegistry().clearIntentDefinitions();
-        if (INSTANCE.equals(this)) {
-            INSTANCE = null;
-        } else {
-            Log.warn("The globally registered JarvisCore instance ({0}) is different from this one ({1}), skipping " +
-                    "global instance reset", INSTANCE, this);
-        }
     }
 
     /**
@@ -654,8 +560,8 @@ public class JarvisCore {
             Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());
         }
         for (ActionInstance actionInstance : actionInstances) {
-            JarvisModule jarvisModule = JarvisCore.getInstance().getJarvisModuleRegistry().getJarvisModule(
-                    (Module) actionInstance.getAction().eContainer());
+            JarvisModule jarvisModule = this.getJarvisModuleRegistry().getJarvisModule((Module) actionInstance
+                    .getAction().eContainer());
             JarvisAction action = jarvisModule.createJarvisAction(actionInstance, intent, session);
             Future<Object> result = executorService.submit(action);
             if (nonNull(action.getReturnVariable())) {
