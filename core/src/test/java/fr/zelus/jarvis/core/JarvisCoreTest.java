@@ -45,9 +45,9 @@ public class JarvisCoreTest {
 
     public static Configuration buildConfiguration(String projectId, String languageCode, Object orchestrationModel) {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VALID_PROJECT_ID);
-        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
+        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
+        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, orchestrationModel);
         return configuration;
     }
 
