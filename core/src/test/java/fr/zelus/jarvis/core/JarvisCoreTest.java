@@ -249,6 +249,7 @@ public class JarvisCoreTest {
         jarvisCore.shutdown();
         softly.assertThat(jarvisCore.getExecutorService().isShutdown()).as("ExecutorService is shutdown");
         softly.assertThat(jarvisCore.getDialogFlowApi().isShutdown()).as("DialogFlow API is shutdown");
+        softly.assertThat(jarvisCore.getJarvisModuleRegistry().getModules()).as("Empty module registry").isEmpty();
     }
 
     @Test(expected = NullPointerException.class)

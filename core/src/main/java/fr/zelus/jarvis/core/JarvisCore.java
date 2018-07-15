@@ -28,6 +28,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -379,13 +380,15 @@ public class JarvisCore {
     /**
      * Shuts down the {@link JarvisCore} and the underlying engines.
      * <p>
-     * This method shuts down the underlying {@link DialogFlowApi}, unloads all the {@link JarvisModule}s associated to
-     * this instance, unregisters the {@link fr.zelus.jarvis.intent.IntentDefinition} from the associated
+     * This method shuts down the underlying {@link DialogFlowApi}, unloads and shuts down all the
+     * {@link JarvisModule}s associated to this instance, unregisters the
+     * {@link fr.zelus.jarvis.intent.IntentDefinition} from the associated
      * {@link IntentDefinitionRegistry}, and shuts down the {@link #executorService}.
      * <p>
      * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down intent detections
      * and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
      *
+     * @see JarvisModule#shutdown()
      * @see DialogFlowApi#shutdown()
      */
     public void shutdown() {
@@ -396,6 +399,10 @@ public class JarvisCore {
         // Shutdown the executor first in case there are running tasks using the DialogFlow API.
         this.executorService.shutdownNow();
         this.dialogFlowApi.shutdown();
+        Collection<JarvisModule> jarvisModules = this.getJarvisModuleRegistry().getModules();
+        for(JarvisModule jarvisModule : jarvisModules) {
+            jarvisModule.shutdown();
+        }
         this.getJarvisModuleRegistry().clearJarvisModules();
         this.getIntentDefinitionRegistry().clearIntentDefinitions();
     }

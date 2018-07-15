@@ -52,7 +52,7 @@ public abstract class JarvisModule {
      */
     protected Map<String, Class<? extends JarvisAction>> actionMap;
 
-    protected Map<String, Thread> inputProviderMap;
+    protected Map<String, InputProviderThread> inputProviderMap;
 
 
     /**
@@ -122,7 +122,7 @@ public abstract class JarvisModule {
             }
         }
         Log.info("Starting InputProvider {0}", inputProviderClass.getSimpleName());
-        Thread inputProviderThread = new Thread(inputProvider);
+        InputProviderThread inputProviderThread = new InputProviderThread(inputProvider);
         inputProviderMap.put(inputProviderDefinition.getName(), inputProviderThread);
         inputProviderThread.start();
     }
@@ -230,6 +230,35 @@ public abstract class JarvisModule {
     }
 
     /**
+     * Shuts down the {@link JarvisModule}.
+     * <p>
+     * This method attempts to terminate all the running {@link InputProvider} threads, close the corresponding
+     * {@link InputProvider}s, and disables all the module's actions.
+     *
+     * @see InputProvider#close()
+     * @see #disableAllActions()
+     */
+    public void shutdown() {
+        Collection<InputProviderThread> threads = this.inputProviderMap.values();
+        for(InputProviderThread thread : threads) {
+            thread.getInputProvider().close();
+            thread.interrupt();
+            try {
+                thread.join(1000);
+            } catch(InterruptedException e) {
+                Log.warn("Caught an {0} while waiting for {1} thread to finish", e.getClass().getSimpleName(), thread
+                        .getInputProvider().getClass().getSimpleName());
+            }
+        }
+        this.inputProviderMap.clear();
+        /*
+         * Disable the actions at the end, in case a running InputProviderThread triggers an action computation
+         * before it is closed.
+         */
+        this.disableAllActions();
+    }
+
+    /**
      * Retrieves the {@code actionInstance}'s parameter values from the provided {@code context}.
      * <p>
      * This method iterates through the {@link ActionInstance}'s {@link ParameterValue}s and matches them
@@ -275,5 +304,20 @@ public abstract class JarvisModule {
                 "expected {0}, found {1}", actionParameters.size(), actionInstanceParameterValues.size());
         Log.error(errorMessage);
         throw new JarvisException(errorMessage);
+    }
+
+    private static class InputProviderThread extends Thread {
+
+        private InputProvider inputProvider;
+
+        public InputProviderThread(InputProvider inputProvider) {
+            super(inputProvider);
+            this.inputProvider = inputProvider;
+        }
+
+        public InputProvider getInputProvider() {
+            return inputProvider;
+        }
+
     }
 }
