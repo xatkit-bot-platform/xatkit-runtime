@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.plugins.discord.io;
+package fr.zelus.jarvis.plugins.discord.module.io;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
@@ -31,7 +31,6 @@ public class PrivateMessageListenerTest {
     @Before
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
-
     }
 
     @After

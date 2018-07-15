@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.plugins.discord.io;
+package fr.zelus.jarvis.plugins.discord.module.io;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;

@@ -4,19 +4,19 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.InputProviderDefinition;
 import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.ParameterValue;
 import fr.zelus.jarvis.orchestration.VariableAccess;
 import fr.zelus.jarvis.util.Loader;
+import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
 import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.StreamSupport;
@@ -39,6 +39,8 @@ import static java.util.Objects.nonNull;
  */
 public abstract class JarvisModule {
 
+    protected Configuration configuration;
+
     /**
      * The {@link Map} containing the {@link JarvisAction} associated to this module.
      * <p>
@@ -49,6 +51,8 @@ public abstract class JarvisModule {
      * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
      */
     protected Map<String, Class<? extends JarvisAction>> actionMap;
+
+    protected Map<String, Thread> inputProviderMap;
 
 
     /**
@@ -62,11 +66,9 @@ public abstract class JarvisModule {
      * @see #JarvisModule()
      */
     public JarvisModule(Configuration configuration) {
-        /*
-         * Do nothing with the configuration, it can be used by subclasses that require additional initialization
-         * information.
-         */
-        this();
+        this.configuration = configuration;
+        this.actionMap = new HashMap<>();
+        this.inputProviderMap = new HashMap<>();
     }
 
     /**
@@ -78,7 +80,7 @@ public abstract class JarvisModule {
      * @see #JarvisModule(Configuration)
      */
     public JarvisModule() {
-        this.actionMap = new HashMap<>();
+        this(new BaseConfiguration());
     }
 
     /**
@@ -94,19 +96,51 @@ public abstract class JarvisModule {
         return this.getClass().getSimpleName();
     }
 
+    public final void startInputProvider(InputProviderDefinition inputProviderDefinition, JarvisCore jarvisCore) {
+        Log.info("Starting {0}", inputProviderDefinition.getName());
+        String inputProviderQualifiedName = this.getClass().getPackage().getName() + ".io." + inputProviderDefinition
+                .getName();
+        Class<? extends InputProvider> inputProviderClass = Loader.loadClass(inputProviderQualifiedName,
+                InputProvider.class);
+        InputProvider inputProvider;
+        try {
+            inputProvider = Loader.construct(inputProviderClass, Arrays.asList
+                    (JarvisCore.class, Configuration.class), Arrays
+                    .asList(jarvisCore, configuration));
+        } catch (NoSuchMethodException e) {
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the InputProvider using its " +
+                            "{0}({1}) constructor", inputProviderClass.getSimpleName(), JarvisCore.class
+                            .getSimpleName(),
+                    Configuration.class.getSimpleName());
+            try {
+                inputProvider = Loader.construct(inputProviderClass, JarvisCore.class, jarvisCore);
+            } catch (NoSuchMethodException e1) {
+                String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+                        "not exist", inputProviderClass.getSimpleName(), JarvisCore.class.getSimpleName());
+                Log.error(errorMessage);
+                throw new JarvisException(errorMessage, e1);
+            }
+        }
+        Log.info("Starting InputProvider {0}", inputProviderClass.getSimpleName());
+        Thread inputProviderThread = new Thread(inputProvider);
+        inputProviderMap.put(inputProviderDefinition.getName(), inputProviderThread);
+        inputProviderThread.start();
+    }
+
     /**
      * Retrieves and loads the {@link JarvisAction} defined by the provided {@link Action}.
      * <p>
      * This method loads the corresponding {@link JarvisAction} based on jarvis' naming convention. The
      * {@link JarvisAction} must be located under the {@code action} sub-package of the {@link JarvisModule}
-     * concrete subclass package (see {@link #loadJarvisActionClass(Action)}).
+     * concrete subclass package.
      *
      * @param action the {@link Action} definition representing the {@link JarvisAction} to enable
-     * @see #loadJarvisActionClass(Action)
+     * @see Loader#loadClass(String, Class)
      */
     public final void enableAction(Action action) {
-        Class<JarvisAction> jarvisAction = this.loadJarvisActionClass(action);
-        actionMap.put(jarvisAction.getSimpleName(), jarvisAction);
+        String actionQualifiedName = this.getClass().getPackage().getName() + ".action." + action.getName();
+        Class<? extends JarvisAction> jarvisAction = Loader.loadClass(actionQualifiedName, JarvisAction.class);
+        actionMap.put(action.getName(), jarvisAction);
     }
 
     /**
@@ -115,7 +149,7 @@ public abstract class JarvisModule {
      * @param action the {@link Action} definition representing the {@link JarvisAction} to disable
      */
     public final void disableAction(Action action) {
-        actionMap.remove(this.loadJarvisActionClass(action).getSimpleName());
+        actionMap.remove(action.getName());
     }
 
     /**
@@ -186,7 +220,7 @@ public abstract class JarvisModule {
              * find a constructor that accepts them.
              */
             jarvisAction = Loader.construct(jarvisActionClass, fullParameters);
-        } catch(NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             throw new JarvisException(e);
         }
         if (nonNull(actionInstance.getReturnVariable())) {
@@ -241,31 +275,5 @@ public abstract class JarvisModule {
                 "expected {0}, found {1}", actionParameters.size(), actionInstanceParameterValues.size());
         Log.error(errorMessage);
         throw new JarvisException(errorMessage);
-    }
-
-    /**
-     * Loads the {@link JarvisAction} defined by the provided {@code action}.
-     * <p>
-     * This method loads the corresponding {@link JarvisAction} based on jarvis' naming convention. The
-     * {@link JarvisAction} must be located under the {@code action} sub-package of the {@link JarvisModule}
-     * concrete subclass package.
-     *
-     * @param action the {@link Action} definition representing the {@link JarvisAction} to load
-     * @return the {@link Class} representing the loaded {@link JarvisAction}
-     * @throws JarvisException if the {@link JarvisAction} can not be loaded
-     */
-    private Class<JarvisAction> loadJarvisActionClass(Action action) {
-        /*
-         * Ensures the Action is in the same package, under the Action/ subpackage
-         */
-        String actionQualifiedName = this.getClass().getPackage().getName() + ".action." + action.getName();
-        try {
-            return (Class<JarvisAction>) Class.forName(actionQualifiedName);
-        } catch (ClassNotFoundException e) {
-            String errorMessage = MessageFormat.format("Cannot load the Action {0} with the qualified name {1}",
-                    action.getName(), actionQualifiedName);
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
-        }
     }
 }

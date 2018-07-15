@@ -7,13 +7,13 @@ import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.InputProviderDefinition;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModuleFactory;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
-import fr.zelus.jarvis.stubs.StubInputProvider;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -34,8 +34,6 @@ public class DialogFlowApiTest {
     protected static String VALID_LANGUAGE_CODE = "en-US";
 
     protected static String SAMPLE_INPUT = "hello";
-
-    protected static Class<StubInputProvider> VALID_INPUT_PROVIDER_CLAZZ = StubInputProvider.class;
 
     protected DialogFlowApi api;
 
@@ -63,6 +61,9 @@ public class DialogFlowApiTest {
         stubAction.setName("StubJarvisAction");
         // No parameters, keep it simple
         stubModule.getActions().add(stubAction);
+        InputProviderDefinition stubInputProvider = ModuleFactory.eINSTANCE.createInputProviderDefinition();
+        stubInputProvider.setName("StubInputProvider");
+        stubModule.getInputProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
@@ -74,8 +75,7 @@ public class DialogFlowApiTest {
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel,
-                VALID_INPUT_PROVIDER_CLAZZ);
+        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel);
     }
 
     @After

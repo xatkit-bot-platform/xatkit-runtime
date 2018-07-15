@@ -8,6 +8,10 @@ Module returns Module:
 	{Module}
 	'Module' name=EString
 	'path' jarvisModulePath=EString
+	('providers' '{'
+		inputProviderDefinitions+=InputProviderDefinition
+		(inputProviderDefinitions+=InputProviderDefinition)*
+	'}')?
 	('intents' '{'
 		intentDefinitions+=IntentDefinition
 		(intentDefinitions+=IntentDefinition)*
@@ -17,6 +21,11 @@ Module returns Module:
 		(actions+=Action)* 
 	'}')?
 	;
+	
+InputProviderDefinition returns InputProviderDefinition:
+	{InputProviderDefinition}
+	'name' name=EString
+;
 
 IntentDefinition returns intent::IntentDefinition:
 	{intent::IntentDefinition}

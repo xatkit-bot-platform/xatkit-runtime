@@ -106,7 +106,7 @@ public class LogModuleTest {
         }
     }
 
-    @Test(expected = JarvisException.class)
+    @Test
     public void disableActionNotModuleAction() {
         Action action = createStubAction();
         logModule.disableAction(action);

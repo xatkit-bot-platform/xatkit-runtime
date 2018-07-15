@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.plugins.slack.io;
+package fr.zelus.jarvis.plugins.slack.module.io;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;

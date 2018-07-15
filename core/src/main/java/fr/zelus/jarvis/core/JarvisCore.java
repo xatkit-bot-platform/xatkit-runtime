@@ -11,6 +11,7 @@ import fr.zelus.jarvis.intent.IntentPackage;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.io.InputProvider;
 import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.InputProviderDefinition;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModulePackage;
 import fr.zelus.jarvis.orchestration.ActionInstance;
@@ -28,7 +29,6 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,11 +87,6 @@ public class JarvisCore {
     public static String ORCHESTRATION_MODEL_KEY = "jarvis.orchestration.model";
 
     /**
-     * The {@link Configuration} key to store the {@link InputProvider} to use.
-     */
-    public static String INPUT_PROVIDER_KEY = "jarvis.input.provider";
-
-    /**
      * Returns the globally registered instance of this class, if it exists.
      *
      * @return the globally registered instance of this class
@@ -108,25 +103,23 @@ public class JarvisCore {
      * Builds a {@link Configuration} holding the provided {@code projectId}, {@code languageCode}, and {@code
      * orchestrationModel}.
      * <p>
-     * This method is called by {@link #JarvisCore(String, String, OrchestrationModel, Class)} to setup the
+     * This method is called by {@link #JarvisCore(String, String, OrchestrationModel)} to setup the
      * {@link Configuration} that is forwarded to the base constructor {@link #JarvisCore(Configuration)}.
      *
      * @param projectId          the unique identifier of the DialogFlow project
      * @param languageCode       the code of the language processed by DialogFlow
      * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
-     * @param inputProviderClazz the {@link InputProvider}'s {@link Class} to instantiate to receive inputs from
      * @return the {@link Configuration} holding the provided {@code projectId}, {@code languageCode}, and {@code
      * orchestrationModel}
      * @see #JarvisCore(Configuration)
-     * @see #JarvisCore(String, String, OrchestrationModel, Class)
+     * @see #JarvisCore(String, String, OrchestrationModel)
      */
     protected static Configuration buildConfiguration(String projectId, String languageCode, OrchestrationModel
-            orchestrationModel, Class<? extends InputProvider> inputProviderClazz) {
+            orchestrationModel) {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(PROJECT_ID_KEY, projectId);
         configuration.addProperty(LANGUAGE_CODE_KEY, languageCode);
         configuration.addProperty(ORCHESTRATION_MODEL_KEY, orchestrationModel);
-        configuration.addProperty(INPUT_PROVIDER_KEY, inputProviderClazz);
         return configuration;
     }
 
@@ -172,26 +165,6 @@ public class JarvisCore {
      * @see JarvisAction
      */
     private OrchestrationService orchestrationService;
-
-    /**
-     * The {@link InputProvider} used to collect inputs.
-     * <p>
-     * The {@link InputProvider} instance runs in a dedicated {@link Thread} {@link #inputProviderThread} that can be
-     * interrupted using {@link JarvisCore#shutdown()}.
-     *
-     * @see #shutdown()
-     */
-    private InputProvider inputProvider;
-
-
-    /**
-     * The {@link Thread} used to run the {@link InputProvider} instance.
-     * <p>
-     * This {@link Thread} is automatically interrupted when calling {@link JarvisCore#shutdown()}.
-     *
-     * @see #shutdown()
-     */
-    private Thread inputProviderThread;
 
     /**
      * The {@link ExecutorService} used to process {@link JarvisAction}s returned by the registered
@@ -248,9 +221,6 @@ public class JarvisCore {
         OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
                 (ORCHESTRATION_MODEL_KEY));
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
-        inputProvider = getInputProvider(configuration.getProperty(INPUT_PROVIDER_KEY));
-        checkNotNull(inputProvider, "Cannot construct a jarvis instance from a null InputProvider");
-        this.inputProviderThread = new Thread(inputProvider);
         this.dialogFlowApi = new DialogFlowApi(projectId, languageCode);
         this.sessions = new HashMap<>();
         /*
@@ -261,6 +231,16 @@ public class JarvisCore {
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
         this.intentDefinitionRegistry = new IntentDefinitionRegistry();
         boolean intentRegistered = false;
+        for(InputProviderDefinition inputProviderDefinition : orchestrationModel.getInputProviderDefinitions()) {
+            Module inputProviderModule = (Module) inputProviderDefinition.eContainer();
+            JarvisModule inputProviderJarvisModule = this.jarvisModuleRegistry.getJarvisModule(inputProviderModule
+                    .getName());
+            if (isNull(inputProviderJarvisModule)) {
+                inputProviderJarvisModule = loadJarvisModuleFromModuleModel(inputProviderModule);
+                this.jarvisModuleRegistry.registerJarvisModule(inputProviderJarvisModule);
+            }
+            inputProviderJarvisModule.startInputProvider(inputProviderDefinition, this);
+        }
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             /*
              * Extracts the IntentDefinitions
@@ -303,7 +283,6 @@ public class JarvisCore {
                     this, INSTANCE);
         }
         INSTANCE = this;
-        this.inputProviderThread.start();
         Log.info("Jarvis bot started");
     }
 
@@ -323,7 +302,6 @@ public class JarvisCore {
      * @param projectId          the unique identifier of the DialogFlow project
      * @param languageCode       the code of the language processed by DialogFlow
      * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
-     * @param inputProviderClazz the {@link InputProvider}'s {@link Class} to instantiate to receive inputs from
      * @throws NullPointerException if the provided {@code projectId}, {@code languageCode}, {@code
      *                              orchestrationModel}, or {@code inputProvider} is {@code null}
      * @throws JarvisException      if the framework is not able to retrieve the {@link OrchestrationModel}
@@ -331,9 +309,8 @@ public class JarvisCore {
      * @see OrchestrationModel
      * @see InputProvider
      */
-    public JarvisCore(String projectId, String languageCode, OrchestrationModel orchestrationModel, Class<
-            ? extends InputProvider> inputProviderClazz) {
-        this(buildConfiguration(projectId, languageCode, orchestrationModel, inputProviderClazz));
+    public JarvisCore(String projectId, String languageCode, OrchestrationModel orchestrationModel) {
+        this(buildConfiguration(projectId, languageCode, orchestrationModel));
     }
 
     /**
@@ -387,8 +364,7 @@ public class JarvisCore {
                 orchestrationModelResource = resourceSet.getResource(uri, true);
             } catch (Exception e) {
                 throw new JarvisException(MessageFormat.format("Cannot load the OrchestrationModel at the given " +
-                        "location: " +
-                        "{0}", uri.toString()), e);
+                        "location: {0}", uri.toString()), e);
             }
             if (isNull(orchestrationModelResource)) {
                 String errorMessage = MessageFormat.format("Cannot load the provided orchestration model (uri: {0})",
@@ -431,40 +407,41 @@ public class JarvisCore {
      *                              {@link InputProvider} instance
      * @throws NullPointerException if the provided {@code property} or {@code configuration} is {@code null}
      */
-    protected InputProvider getInputProvider(Object property) {
-        checkNotNull(property, "Cannot retrieve the InputProvider from the property null, please ensure it is set in " +
-                "the %s property of the jarvis configuration", INPUT_PROVIDER_KEY);
-        checkNotNull(configuration, "Cannot create an InputProvider instance from a null configuration");
-        Class<? extends InputProvider> clazz = null;
-        if (property instanceof String) {
-            clazz = Loader.loadClass((String) property, InputProvider.class);
-        } else if (property instanceof Class) {
-            clazz = (Class<? extends InputProvider>) property;
-        } else {
-            // Unknown property type
-            String errorMessage = MessageFormat.format("Cannot retrieve the InputProvider from the provided " +
-                    "property {0}, the property type ({1}) is not supported", property, property.getClass()
-                    .getSimpleName());
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage);
-        }
-        try {
-            return Loader.construct(clazz, Arrays.asList(JarvisCore.class, Configuration.class), Arrays.asList(this,
-                    configuration));
-        } catch (NoSuchMethodException e) {
-            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the InputProvider using its " +
-                    "{0}({1}) constructor", clazz.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
-                    .class.getSimpleName());
-            try {
-                return Loader.construct(clazz, JarvisCore.class, this);
-            } catch (NoSuchMethodException e1) {
-                String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
-                Log.error(errorMessage);
-                throw new JarvisException(errorMessage, e1);
-            }
-        }
-    }
+//    protected InputProvider getInputProvider(Object property) {
+//        checkNotNull(property, "Cannot retrieve the InputProvider from the property null, please ensure it is set
+// in " +
+//                "the %s property of the jarvis configuration", INPUT_PROVIDER_KEY);
+//        checkNotNull(configuration, "Cannot create an InputProvider instance from a null configuration");
+//        Class<? extends InputProvider> clazz = null;
+//        if (property instanceof String) {
+//            clazz = Loader.loadClass((String) property, InputProvider.class);
+//        } else if (property instanceof Class) {
+//            clazz = (Class<? extends InputProvider>) property;
+//        } else {
+//            // Unknown property type
+//            String errorMessage = MessageFormat.format("Cannot retrieve the InputProvider from the provided " +
+//                    "property {0}, the property type ({1}) is not supported", property, property.getClass()
+//                    .getSimpleName());
+//            Log.error(errorMessage);
+//            throw new JarvisException(errorMessage);
+//        }
+//        try {
+//            return Loader.construct(clazz, Arrays.asList(JarvisCore.class, Configuration.class), Arrays.asList(this,
+//                    configuration));
+//        } catch (NoSuchMethodException e) {
+//            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the InputProvider using its " +
+//                    "{0}({1}) constructor", clazz.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
+//                    .class.getSimpleName());
+//            try {
+//                return Loader.construct(clazz, JarvisCore.class, this);
+//            } catch (NoSuchMethodException e1) {
+//                String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+//                        "not exist", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
+//                Log.error(errorMessage);
+//                throw new JarvisException(errorMessage, e1);
+//            }
+//        }
+//    }
 
     /**
      * Loads the {@link JarvisModule} defined by the provided {@link Module} definition.
@@ -481,8 +458,7 @@ public class JarvisCore {
     private JarvisModule loadJarvisModuleFromModuleModel(Module moduleModel) throws JarvisException {
         Log.info("Loading JarvisModule {0}", moduleModel.getName());
         Class<? extends JarvisModule> jarvisModuleClass = Loader.loadClass(moduleModel.getJarvisModulePath(),
-                JarvisModule
-                .class);
+                JarvisModule.class);
         try {
             return Loader.construct(jarvisModuleClass, Configuration.class, this.configuration);
         } catch (NoSuchMethodException e) {
@@ -546,28 +522,6 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link InputProvider} associated to this class.
-     * <p>
-     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
-     *
-     * @return the {@link InputProvider} associated to this class
-     */
-    protected InputProvider getInputProvider() {
-        return inputProvider;
-    }
-
-    /**
-     * Returns the {@link Thread} used to run the {@link InputProvider}.
-     * <p>
-     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
-     *
-     * @return the {@link Thread} used to run the {@link InputProvider}
-     */
-    protected Thread getInputProviderThread() {
-        return inputProviderThread;
-    }
-
-    /**
      * Returns the {@link ExecutorService} used to process {@link JarvisAction}s.
      * <p>
      * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications.
@@ -585,8 +539,7 @@ public class JarvisCore {
      * <p>
      * This method shuts down the underlying {@link DialogFlowApi}, unloads all the {@link JarvisModule}s associated to
      * this instance, unregisters the {@link fr.zelus.jarvis.intent.IntentDefinition} from the associated
-     * {@link IntentDefinitionRegistry}, shuts down the {@link #executorService}, closes the {@link #inputProvider},
-     * and interrupts the {@link #inputProviderThread}.
+     * {@link IntentDefinitionRegistry}, and shuts down the {@link #executorService}.
      * <p>
      * Once shutdown, the {@link JarvisCore} instance can not be retrieved using {@link JarvisCore#getInstance()}
      * static method.
@@ -597,18 +550,12 @@ public class JarvisCore {
      * @see DialogFlowApi#shutdown()
      */
     public void shutdown() {
+        Log.info("Shutting down JarvisCore");
         if (isShutdown()) {
             throw new JarvisException("Cannot perform shutdown, JarvisCore is already shutdown");
         }
         // Shutdown the executor first in case there are running tasks using the DialogFlow API.
         this.executorService.shutdownNow();
-        inputProvider.close();
-        inputProviderThread.interrupt();
-        try {
-            inputProviderThread.join(1000);
-        } catch (InterruptedException e) {
-            Log.warn("Received an InterruptedException when waiting for InputProvider Thread to finish");
-        }
         this.dialogFlowApi.shutdown();
         this.getJarvisModuleRegistry().clearJarvisModules();
         this.getIntentDefinitionRegistry().clearIntentDefinitions();

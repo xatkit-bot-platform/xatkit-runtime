@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.plugins.slack.io;
+package fr.zelus.jarvis.plugins.slack.module.io;
 
 import com.github.seratch.jslack.Slack;
 import com.github.seratch.jslack.api.methods.SlackApiException;

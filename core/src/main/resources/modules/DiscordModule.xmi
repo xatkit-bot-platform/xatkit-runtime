@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ASCII"?>
 <module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="DiscordModule" jarvisModulePath="fr.zelus.jarvis.plugins.discord.module.DiscordModule">
+  <inputProviderDefinitions name="DiscordInputProvider"/>
   <actions name="PostMessage">
     <parameters key="message" type="String"/>
     <parameters key="channel" type="String"/>

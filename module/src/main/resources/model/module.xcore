@@ -7,8 +7,13 @@ import fr.zelus.jarvis.intent.IntentDefinition
 class Module {
     String name
     String jarvisModulePath
+    contains InputProviderDefinition[] inputProviderDefinitions
+    contains IntentDefinition[] intentDefinitions
 	contains Action[] actions
-	contains IntentDefinition[] intentDefinitions
+}
+
+class InputProviderDefinition {
+    String name
 }
 
 class Action {

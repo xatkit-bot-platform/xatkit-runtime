@@ -4,9 +4,11 @@ package fr.zelus.jarvis.orchestration
 
 import fr.zelus.jarvis.module.Action
 import fr.zelus.jarvis.module.Parameter
+import fr.zelus.jarvis.module.InputProviderDefinition
 import fr.zelus.jarvis.intent.IntentDefinition
 
 class OrchestrationModel {
+    refers InputProviderDefinition[] inputProviderDefinitions
 	contains OrchestrationLink[] orchestrationLinks
 	String[] imports
 }

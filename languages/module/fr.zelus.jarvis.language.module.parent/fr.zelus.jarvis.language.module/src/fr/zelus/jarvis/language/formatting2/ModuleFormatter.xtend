@@ -11,6 +11,7 @@ import fr.zelus.jarvis.module.Module
 import fr.zelus.jarvis.module.Parameter
 import org.eclipse.xtext.formatting2.AbstractFormatter2
 import org.eclipse.xtext.formatting2.IFormattableDocument
+import fr.zelus.jarvis.module.InputProviderDefinition
 
 class ModuleFormatter extends AbstractFormatter2 {
 	
@@ -21,8 +22,8 @@ class ModuleFormatter extends AbstractFormatter2 {
 		for (Action action : module.getActions()) {
 			action.format;
 		}
-		for (IntentDefinition intentDefinition : module.getIntentDefinitions()) {
-			intentDefinition.format;
+		for (InputProviderDefinition inputProviderDefinition : module.getInputProviderDefinitions()) {
+			inputProviderDefinition.format;
 		}
 	}
 

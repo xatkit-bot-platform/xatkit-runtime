@@ -14,7 +14,7 @@ public interface JarvisSlackUtils {
     /**
      * The {@link Configuration} key to store the Slack bot API token.
      *
-     * @see fr.zelus.jarvis.plugins.slack.io.SlackInputProvider#SlackInputProvider(JarvisCore, Configuration)
+     * @see fr.zelus.jarvis.plugins.slack.module.io.SlackInputProvider#SlackInputProvider(JarvisCore, Configuration)
      * @see fr.zelus.jarvis.plugins.slack.module.SlackModule#SlackModule(Configuration)
      */
     String SLACK_TOKEN_KEY = "jarvis.slack.token";
