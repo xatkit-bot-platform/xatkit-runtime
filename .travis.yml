@@ -12,6 +12,8 @@ after_success:
 - bash <(curl -s https://codecov.io/bash) -t $CODECOV_UPLOAD_TOKEN
 # Publish Javadoc in Github
 - bash .util/publish_javadoc.sh
+# Report dependency and plugin updates
+- bash .util/report_updates.sh
 before_install:
 - openssl aes-256-cbc -K $encrypted_96afa04994a8_key -iv $encrypted_96afa04994a8_iv
   -in jarvis-secret.json.enc -out jarvis-secret.json -d

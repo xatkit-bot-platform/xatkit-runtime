@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.plugins.discord.io;
+package fr.zelus.jarvis.plugins.discord.module.io;
 
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
@@ -31,6 +31,9 @@ public class DiscordInputProviderTest {
     public void tearDown() {
         if (nonNull(discordInputProvider)) {
             discordInputProvider.close();
+        }
+        if (nonNull(stubJarvisCore)) {
+            stubJarvisCore.shutdown();
         }
     }
 

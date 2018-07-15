@@ -2,10 +2,13 @@
 @GenModel(modelDirectory="/intent/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
 package fr.zelus.jarvis.intent
 
-class IntentDefinition {
+class EventDefinition {
     String name
     contains IntentParameter[] outContextParameters
     contains Context[] outContexts
+}
+
+class IntentDefinition extends EventDefinition {
     contains Context[] inContexts
     String[] trainingSentences
 }
@@ -27,9 +30,13 @@ class IntentParameter {
     String ^type
 }
 
-class RecognizedIntent {
-    refers IntentDefinition definition
+class EventInstance {
+    refers EventDefinition definition
     contains ContextParameterValue[] outContextValues
+}
+
+class RecognizedIntent extends EventInstance {
+
 }
 
 class ContextParameterValue {

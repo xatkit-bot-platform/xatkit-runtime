@@ -2,6 +2,7 @@ package fr.zelus.jarvis.core.session;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.io.EventProvider;
 
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -21,7 +22,7 @@ import static java.util.Objects.nonNull;
  * This class stores the different variables that can be set during user input processing and accessed by executed
  * {@link fr.zelus.jarvis.core.JarvisAction}. {@link JarvisContext} is used to store:
  * <ul>
- * <li><b>{@link fr.zelus.jarvis.io.InputProvider} values</b> such as the user name, the channel where the
+ * <li><b>{@link EventProvider} values</b> such as the user name, the channel where the
  * message was received, etc</li>
  * <li><b>Intent recognition values</b>, that are computed by the Intent recognition engine and used to pass
  * information between messages</li>

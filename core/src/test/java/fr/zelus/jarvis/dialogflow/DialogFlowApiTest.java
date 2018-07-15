@@ -7,13 +7,15 @@ import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.InputProviderDefinition;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.ModuleFactory;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
-import fr.zelus.jarvis.stubs.StubInputProvider;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -35,8 +37,6 @@ public class DialogFlowApiTest {
 
     protected static String SAMPLE_INPUT = "hello";
 
-    protected static Class<StubInputProvider> VALID_INPUT_PROVIDER_CLAZZ = StubInputProvider.class;
-
     protected DialogFlowApi api;
 
     /**
@@ -54,6 +54,13 @@ public class DialogFlowApiTest {
     // not tested here, only instantiated to enable IntentDefinition registration and Module retrieval
     protected static JarvisCore jarvisCore;
 
+    private static Configuration buildConfiguration(String projectId, String languageCode) {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
+        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
+        return configuration;
+    }
+
     @BeforeClass
     public static void setUpBeforeClass() {
         Module stubModule = ModuleFactory.eINSTANCE.createModule();
@@ -63,19 +70,23 @@ public class DialogFlowApiTest {
         stubAction.setName("StubJarvisAction");
         // No parameters, keep it simple
         stubModule.getActions().add(stubAction);
+        InputProviderDefinition stubInputProvider = ModuleFactory.eINSTANCE.createInputProviderDefinition();
+        stubInputProvider.setName("StubInputProvider");
+        stubModule.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
         stubModule.getIntentDefinitions().add(stubIntentDefinition);
         OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
         OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
-        link.setIntent(stubIntentDefinition);
+        link.setEvent(stubIntentDefinition);
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel,
-                VALID_INPUT_PROVIDER_CLAZZ);
+        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, orchestrationModel);
+        jarvisCore = new JarvisCore(configuration);
     }
 
     @After
@@ -101,24 +112,30 @@ public class DialogFlowApiTest {
     @Rule
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
 
+    private DialogFlowApi getValidDialogFlowApi() {
+        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
+        return api;
+    }
+
     @Test(expected = NullPointerException.class)
-    public void constructNullProjectId() {
-        api = new DialogFlowApi(null);
+    public void constructNullJarvisCore() {
+        api = new DialogFlowApi(null, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullProjectIdValidLanguageCode() {
-        api = new DialogFlowApi(null, "en-US");
+        api = new DialogFlowApi(null, buildConfiguration(null, "en-US"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructNullLanguageCode() {
-        api = new DialogFlowApi(VALID_PROJECT_ID, null);
+        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, null));
+        assertThat(api.getLanguageCode()).as("Default language code").isEqualTo(DialogFlowApi.DEFAULT_LANGUAGE_CODE);
     }
 
     @Test
     public void constructValid() {
-        api = new DialogFlowApi(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
         softly.assertThat(api.isShutdown()).as("Not shutdown").isFalse();
@@ -126,27 +143,27 @@ public class DialogFlowApiTest {
 
     @Test
     public void constructDefaultLanguageCode() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, null));
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
     }
 
     @Test(expected = NullPointerException.class)
     public void registerIntentDefinitionNullIntentDefinition() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         api.registerIntentDefinition(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void registerIntentDefinitionNullName() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         api.registerIntentDefinition(intentDefinition);
     }
 
     @Test
     public void registerIntentDefinitionValidIntentDefinition() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         String intentName = UUID.randomUUID().toString();
         String trainingPhrase = "test";
@@ -180,7 +197,7 @@ public class DialogFlowApiTest {
 
     @Test(expected = DialogFlowException.class)
     public void registerIntentDefinitionAlreadyRegistered() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         String intentName = UUID.randomUUID().toString();
         registeredIntentDefinition.setName(intentName);
@@ -192,20 +209,20 @@ public class DialogFlowApiTest {
 
     @Test(expected = NullPointerException.class)
     public void deleteIntentDefinitionNullIntentDefinition() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         api.deleteIntentDefinition(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void deleteIntentDefinitionNullName() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         api.deleteIntentDefinition(intentDefinition);
     }
 
     @Test
     public void deleteIntentDefinitionNotRegisteredIntent() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         String intentName = UUID.randomUUID().toString();
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         intentDefinition.setName(intentName);
@@ -217,7 +234,7 @@ public class DialogFlowApiTest {
 
     @Test
     public void deleteIntentDefinitionRegisteredIntentDefinition() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         String intentName = UUID.randomUUID().toString();
         registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         registeredIntentDefinition.setName(intentName);
@@ -235,7 +252,7 @@ public class DialogFlowApiTest {
 
     @Test
     public void createSessionValidApi() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         JarvisSession session = api.createSession("sessionID");
         assertThat(session).as("Not null session").isNotNull();
         assertThat(session).as("The session is a DialogFlowSession instance").isInstanceOf(DialogFlowSession.class);
@@ -247,14 +264,14 @@ public class DialogFlowApiTest {
 
     @Test(expected = DialogFlowException.class)
     public void shutdownAlreadyShutdown() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         api.shutdown();
         api.shutdown();
     }
 
     @Test
     public void shutdown() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         JarvisSession session = api.createSession("sessionID");
         api.shutdown();
         softly.assertThat(api.isShutdown()).as("DialogFlow API is shutdown").isTrue();
@@ -262,15 +279,15 @@ public class DialogFlowApiTest {
                 .withMessage("Cannot extract an Intent from the provided input, the DialogFlow API is shutdown");
         assertThatExceptionOfType(DialogFlowException.class).isThrownBy(() -> api.createSession("sessionID"))
                 .withMessage
-                ("Cannot create a new Session, the DialogFlow API is shutdown");
+                        ("Cannot create a new Session, the DialogFlow API is shutdown");
     }
 
     @Test
     public void getIntentValidSession() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
-        IntentDefinition intentDefinition = intent.getDefinition();
+        IntentDefinition intentDefinition = (IntentDefinition) intent.getDefinition();
         assertThat(intent).as("Null Intent").isNotNull();
         assertThat(intentDefinition).as("Null Intent Definition").isNotNull();
         assertThat(intentDefinition.getName()).as("Valid Intent").isEqualTo("Default Welcome Intent");
@@ -278,34 +295,34 @@ public class DialogFlowApiTest {
 
     @Test(expected = DialogFlowException.class)
     public void getIntentInvalidSession() {
-        api = new DialogFlowApi("test");
+        api = new DialogFlowApi(jarvisCore, buildConfiguration("test", null));
         JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
     }
 
     @Test(expected = NullPointerException.class)
     public void getIntentNullSession() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, null);
     }
 
     @Test(expected = NullPointerException.class)
     public void getIntentNullText() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(null, session);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getIntentEmptyText() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent("", session);
     }
 
     @Test
     public void getIntentUnknownText() {
-        api = new DialogFlowApi(VALID_PROJECT_ID);
+        api = getValidDialogFlowApi();
         JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent("azerty", session);
         assertThat(intent.getDefinition()).as("IntentDefinition is not null").isNotNull();

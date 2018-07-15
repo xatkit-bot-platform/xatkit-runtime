@@ -1,10 +1,10 @@
-package fr.zelus.jarvis.stubs;
+package fr.zelus.jarvis.stubs.io;
 
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.io.InputProvider;
+import fr.zelus.jarvis.io.EventProvider;
 import org.apache.commons.configuration2.Configuration;
 
-public class StubInputProvider extends InputProvider {
+public class StubInputProvider extends EventProvider {
 
     public StubInputProvider(JarvisCore jarvisCore) {
         super(jarvisCore);

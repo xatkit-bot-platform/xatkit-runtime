@@ -3,27 +3,25 @@ package fr.zelus.jarvis.core;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.intent.EventInstance;
+import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.EventProviderDefinition;
 import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.ParameterValue;
 import fr.zelus.jarvis.orchestration.VariableAccess;
+import fr.zelus.jarvis.util.Loader;
+import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.StreamSupport;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static fr.zelus.jarvis.utils.LogUtils.prettyPrint;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -32,7 +30,7 @@ import static java.util.Objects.nonNull;
  * <p>
  * A {@link JarvisModule} manages a set of {@link JarvisAction}s that represent the concrete actions that can
  * be executed by the module. This class provides primitives to enable/disable specific actions, and construct
- * {@link JarvisAction} instances from a given {@link RecognizedIntent}.
+ * {@link JarvisAction} instances from a given {@link EventInstance}.
  * <p>
  * Note that enabling a {@link JarvisAction} will load the corresponding class, that must be stored in the
  * <i>action</i> package of the concrete {@link JarvisModule} implementation. For example, enabling the action
@@ -41,6 +39,8 @@ import static java.util.Objects.nonNull;
  */
 public abstract class JarvisModule {
 
+    protected Configuration configuration;
+
     /**
      * The {@link Map} containing the {@link JarvisAction} associated to this module.
      * <p>
@@ -48,9 +48,11 @@ public abstract class JarvisModule {
      *
      * @see #enableAction(Action)
      * @see #disableAction(Action)
-     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
+     * @see #createJarvisAction(ActionInstance, EventInstance, JarvisSession)
      */
     protected Map<String, Class<? extends JarvisAction>> actionMap;
+
+    protected Map<String, EventProviderThread> eventProviderMap;
 
 
     /**
@@ -64,11 +66,9 @@ public abstract class JarvisModule {
      * @see #JarvisModule()
      */
     public JarvisModule(Configuration configuration) {
-        /*
-         * Do nothing with the configuration, it can be used by subclasses that require additional initialization
-         * information.
-         */
-        this();
+        this.configuration = configuration;
+        this.actionMap = new HashMap<>();
+        this.eventProviderMap = new HashMap<>();
     }
 
     /**
@@ -80,7 +80,7 @@ public abstract class JarvisModule {
      * @see #JarvisModule(Configuration)
      */
     public JarvisModule() {
-        this.actionMap = new HashMap<>();
+        this(new BaseConfiguration());
     }
 
     /**
@@ -96,19 +96,51 @@ public abstract class JarvisModule {
         return this.getClass().getSimpleName();
     }
 
+    public final void startEventProvider(EventProviderDefinition eventProviderDefinition, JarvisCore jarvisCore) {
+        Log.info("Starting {0}", eventProviderDefinition.getName());
+        String eventProviderQualifiedName = this.getClass().getPackage().getName() + ".io." + eventProviderDefinition
+                .getName();
+        Class<? extends EventProvider> eventProviderClass = Loader.loadClass(eventProviderQualifiedName,
+                EventProvider.class);
+        EventProvider eventProvider;
+        try {
+            eventProvider = Loader.construct(eventProviderClass, Arrays.asList
+                    (JarvisCore.class, Configuration.class), Arrays
+                    .asList(jarvisCore, configuration));
+        } catch (NoSuchMethodException e) {
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the EventProvider using its " +
+                            "{0}({1}) constructor", eventProviderClass.getSimpleName(), JarvisCore.class
+                            .getSimpleName(),
+                    Configuration.class.getSimpleName());
+            try {
+                eventProvider = Loader.construct(eventProviderClass, JarvisCore.class, jarvisCore);
+            } catch (NoSuchMethodException e1) {
+                String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+                        "not exist", eventProviderClass.getSimpleName(), JarvisCore.class.getSimpleName());
+                Log.error(errorMessage);
+                throw new JarvisException(errorMessage, e1);
+            }
+        }
+        Log.info("Starting EventProvider {0}", eventProviderClass.getSimpleName());
+        EventProviderThread eventProviderThread = new EventProviderThread(eventProvider);
+        eventProviderMap.put(eventProviderDefinition.getName(), eventProviderThread);
+        eventProviderThread.start();
+    }
+
     /**
      * Retrieves and loads the {@link JarvisAction} defined by the provided {@link Action}.
      * <p>
      * This method loads the corresponding {@link JarvisAction} based on jarvis' naming convention. The
      * {@link JarvisAction} must be located under the {@code action} sub-package of the {@link JarvisModule}
-     * concrete subclass package (see {@link #loadJarvisActionClass(Action)}).
+     * concrete subclass package.
      *
      * @param action the {@link Action} definition representing the {@link JarvisAction} to enable
-     * @see #loadJarvisActionClass(Action)
+     * @see Loader#loadClass(String, Class)
      */
     public final void enableAction(Action action) {
-        Class<JarvisAction> jarvisAction = this.loadJarvisActionClass(action);
-        actionMap.put(jarvisAction.getSimpleName(), jarvisAction);
+        String actionQualifiedName = this.getClass().getPackage().getName() + ".action." + action.getName();
+        Class<? extends JarvisAction> jarvisAction = Loader.loadClass(actionQualifiedName, JarvisAction.class);
+        actionMap.put(action.getName(), jarvisAction);
     }
 
     /**
@@ -117,7 +149,7 @@ public abstract class JarvisModule {
      * @param action the {@link Action} definition representing the {@link JarvisAction} to disable
      */
     public final void disableAction(Action action) {
-        actionMap.remove(this.loadJarvisActionClass(action).getSimpleName());
+        actionMap.remove(action.getName());
     }
 
     /**
@@ -135,94 +167,95 @@ public abstract class JarvisModule {
      * Returns all the {@link JarvisAction} {@link Class}es associated to this {@link JarvisModule}.
      * <p>
      * This method returns the {@link Class}es describing the {@link JarvisAction}s associated to this module. To
-     * construct a new {@link JarvisAction} from a {@link RecognizedIntent} see
-     * {@link #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)} .
+     * construct a new {@link JarvisAction} from a {@link EventInstance} see
+     * {@link #createJarvisAction(ActionInstance, EventInstance, JarvisSession)} .
      *
      * @return all the {@link JarvisAction} {@link Class}es associated to this {@link JarvisModule}
-     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
+     * @see #createJarvisAction(ActionInstance, EventInstance, JarvisSession)
      */
     public final Collection<Class<? extends JarvisAction>> getActions() {
         return actionMap.values();
     }
 
     /**
-     * Creates a new {@link JarvisAction} instance from the provided {@link RecognizedIntent}.
+     * Creates a new {@link JarvisAction} instance from the provided {@link EventInstance}.
      * <p>
      * This methods attempts to construct a {@link JarvisAction} defined by the provided {@code actionInstance} by
-     * matching the {@code intent} variables to the {@link Action}'s parameters, and reusing the provided
+     * matching the {@code eventInstance} variables to the {@link Action}'s parameters, and reusing the provided
      * {@link ActionInstance#getValues()}.
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link JarvisAction} to create
-     * @param intent         the {@link RecognizedIntent} containing the extracted variables
+     * @param eventInstance  the {@link EventInstance} containing the extracted variables
      * @param session        the {@link JarvisSession} associated to the action
-     * @return a new {@link JarvisAction} instance from the provided {@link RecognizedIntent}
+     * @return a new {@link JarvisAction} instance from the provided {@link EventInstance}
      * @throws JarvisException if the provided {@link Action} does not match any {@link JarvisAction}, or if the
-     *                         provided {@link RecognizedIntent} does not define all the parameters required by the
+     *                         provided {@link EventInstance} does not define all the parameters required by the
      *                         action's constructor
      * @see #getParameterValues(ActionInstance, JarvisContext)
      */
-    public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent, JarvisSession
+    public JarvisAction createJarvisAction(ActionInstance actionInstance, EventInstance eventInstance, JarvisSession
             session) {
         checkNotNull(actionInstance, "Cannot construct a JarvisAction from a null ActionInstance");
         Action action = actionInstance.getAction();
-        checkNotNull(intent, "Cannot construct a %s action from a null RecognizedIntent", action.getName());
+        checkNotNull(eventInstance, "Cannot construct a %s action from a null EventInstance", action.getName());
         Class<? extends JarvisAction> jarvisActionClass = actionMap.get(action.getName());
         if (isNull(jarvisActionClass)) {
             throw new JarvisException(MessageFormat.format("Cannot create the JarvisAction {0}, the action is not " +
                     "loaded in the module", action.getName()));
         }
         Object[] parameterValues = getParameterValues(actionInstance, session.getJarvisContext());
-        Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
+        /*
+         * Append the mandatory parameters to the parameter values.
+         */
+        Object[] fullParameters = new Object[parameterValues.length + 2];
+        fullParameters[0] = this;
+        fullParameters[1] = session;
         JarvisAction jarvisAction;
-        for (int i = 0; i < constructorList.length; i++) {
-            Constructor<?> constructor = constructorList[i];
-            /*
-             * We use constructor.getParameterCount() -2 because the two first parameters of JarvisAction constructors
-             * must be their containing JarvisModule and the associated JarvisContext.
+        if (parameterValues.length > 0) {
+            System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
+        }
+        try {
+            /**
+             * The types of the parameters are not known, use {@link Loader#construct(Class, Object[])} to try to
+             * find a constructor that accepts them.
              */
-            if (constructor.getParameterCount() - 2 == parameterValues.length) {
-                /*
-                 * The following code assumes that all the Action parameters are instances of String, this should be
-                 * fixed by supporting the types returned by the DialogFlow API.
-                 */
-                try {
-                    if (constructor.getParameterCount() > 0) {
-                        /*
-                         * Construct the full parameter array, that contains this as its first element, followed by
-                         * the parameterValues.
-                         */
-                        Object[] fullParameters = new Object[parameterValues.length + 2];
-                        fullParameters[0] = this;
-                        fullParameters[1] = session;
-                        System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
-                        Log.info("Constructing {0} with the parameters ({1})", jarvisActionClass.getSimpleName(),
-                                prettyPrint(parameterValues));
-                        jarvisAction = (JarvisAction) constructor.newInstance(fullParameters);
-                    } else {
-                        Log.info("Constructing {0}({1}, {2})", jarvisActionClass.getSimpleName(), this.getClass()
-                                .getSimpleName(), session);
-                        jarvisAction = (JarvisAction) constructor.newInstance(this, session);
-                    }
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    String errorMessage = MessageFormat.format("Cannot construct the JarvisAction {0}",
-                            jarvisActionClass.getSimpleName());
-                    Log.error(errorMessage);
-                    throw new JarvisException(errorMessage, e);
-                }
-                /*
-                 * The ActionInstance defines a return variable, we record it in the JarvisAction in order to store
-                 * it in the global context.
-                 */
-                if (nonNull(actionInstance.getReturnVariable())) {
-                    jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
-                }
-                return jarvisAction;
+            jarvisAction = Loader.construct(jarvisActionClass, fullParameters);
+        } catch (NoSuchMethodException e) {
+            throw new JarvisException(e);
+        }
+        if (nonNull(actionInstance.getReturnVariable())) {
+            jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
+        }
+        return jarvisAction;
+    }
+
+    /**
+     * Shuts down the {@link JarvisModule}.
+     * <p>
+     * This method attempts to terminate all the running {@link EventProvider} threads, close the corresponding
+     * {@link EventProvider}s, and disables all the module's actions.
+     *
+     * @see EventProvider#close()
+     * @see #disableAllActions()
+     */
+    public void shutdown() {
+        Collection<EventProviderThread> threads = this.eventProviderMap.values();
+        for (EventProviderThread thread : threads) {
+            thread.getEventProvider().close();
+            thread.interrupt();
+            try {
+                thread.join(1000);
+            } catch (InterruptedException e) {
+                Log.warn("Caught an {0} while waiting for {1} thread to finish", e.getClass().getSimpleName(), thread
+                        .getEventProvider().getClass().getSimpleName());
             }
         }
-        String errorMessage = MessageFormat.format("Cannot find a {0} constructor matching the provided parameters " +
-                "({1})", action.getName(), prettyPrint(parameterValues));
-        Log.error(errorMessage);
-        throw new JarvisException(errorMessage);
+        this.eventProviderMap.clear();
+        /*
+         * Disable the actions at the end, in case a running EventProviderThread triggers an action computation
+         * before it is closed.
+         */
+        this.disableAllActions();
     }
 
     /**
@@ -233,14 +266,14 @@ public abstract class JarvisModule {
      * {@link ActionInstance}'s {@link ParameterValue}s are retrieved from the provided {@code context}.
      * <p>
      * The retrieved values are used by the {@link JarvisModule} to instantiate concrete {@link JarvisAction}s (see
-     * {@link #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)}).
+     * {@link #createJarvisAction(ActionInstance, EventInstance, JarvisSession)}).
      *
      * @param actionInstance the {@link ActionInstance} to match the parameters from
      * @return an array containing the concrete {@link ActionInstance}'s parameters
      * @throws JarvisException if one of the concrete value is not stored in the provided {@code context}, or if the
      *                         {@link ActionInstance}'s {@link ParameterValue}s do not match the describing
      *                         {@link Action}'s {@link Parameter}s.
-     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
+     * @see #createJarvisAction(ActionInstance, EventInstance, JarvisSession)
      */
     private Object[] getParameterValues(ActionInstance actionInstance, JarvisContext context) {
         Action action = actionInstance.getAction();
@@ -273,29 +306,18 @@ public abstract class JarvisModule {
         throw new JarvisException(errorMessage);
     }
 
-    /**
-     * Loads the {@link JarvisAction} defined by the provided {@code action}.
-     * <p>
-     * This method loads the corresponding {@link JarvisAction} based on jarvis' naming convention. The
-     * {@link JarvisAction} must be located under the {@code action} sub-package of the {@link JarvisModule}
-     * concrete subclass package.
-     *
-     * @param action the {@link Action} definition representing the {@link JarvisAction} to load
-     * @return the {@link Class} representing the loaded {@link JarvisAction}
-     * @throws JarvisException if the {@link JarvisAction} can not be loaded
-     */
-    private Class<JarvisAction> loadJarvisActionClass(Action action) {
-        /*
-         * Ensures the Action is in the same package, under the Action/ subpackage
-         */
-        String actionQualifiedName = this.getClass().getPackage().getName() + ".action." + action.getName();
-        try {
-            return (Class<JarvisAction>) Class.forName(actionQualifiedName);
-        } catch (ClassNotFoundException e) {
-            String errorMessage = MessageFormat.format("Cannot load the Action {0} with the qualified name {1}",
-                    action.getName(), actionQualifiedName);
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+    private static class EventProviderThread extends Thread {
+
+        private EventProvider eventProvider;
+
+        public EventProviderThread(EventProvider eventProvider) {
+            super(eventProvider);
+            this.eventProvider = eventProvider;
         }
+
+        public EventProvider getEventProvider() {
+            return eventProvider;
+        }
+
     }
 }

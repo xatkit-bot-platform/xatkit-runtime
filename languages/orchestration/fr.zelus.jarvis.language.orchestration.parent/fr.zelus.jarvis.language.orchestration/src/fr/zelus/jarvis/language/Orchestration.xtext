@@ -12,13 +12,14 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 OrchestrationModel returns OrchestrationModel:
 	{OrchestrationModel}
 	('import' imports+=STRING ('import' imports+=STRING)*)?
+	('use' 'provider'eventProviderDefinitions+=[module::EventProviderDefinition|ID])+
 	(orchestrationLinks+=OrchestrationLink
 	(orchestrationLinks+=OrchestrationLink)*)?
 ;
 
 OrchestrationLink returns OrchestrationLink:
 	{OrchestrationLink}
-		'on' 'intent' intent=[intent::IntentDefinition|ID] 'do'
+		'on' 'intent' event=[intent::EventDefinition|ID] 'do'
 		('var' variables+=VariableDefinition (',' variables+=VariableDefinition)*)?
 		actions+=ActionInstance (actions+=ActionInstance)*
 	;

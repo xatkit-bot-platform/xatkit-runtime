@@ -4,9 +4,9 @@
 package fr.zelus.jarvis.language.formatting2
 
 import com.google.inject.Inject
-import fr.zelus.jarvis.intent.IntentDefinition
 import fr.zelus.jarvis.language.services.ModuleGrammarAccess
 import fr.zelus.jarvis.module.Action
+import fr.zelus.jarvis.module.EventProviderDefinition
 import fr.zelus.jarvis.module.Module
 import fr.zelus.jarvis.module.Parameter
 import org.eclipse.xtext.formatting2.AbstractFormatter2
@@ -21,8 +21,8 @@ class ModuleFormatter extends AbstractFormatter2 {
 		for (Action action : module.getActions()) {
 			action.format;
 		}
-		for (IntentDefinition intentDefinition : module.getIntentDefinitions()) {
-			intentDefinition.format;
+		for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+			eventProviderDefinition.format;
 		}
 	}
 
