@@ -17,6 +17,7 @@ import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
+import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
@@ -26,9 +27,8 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -437,16 +437,9 @@ public class JarvisCore {
         checkNotNull(configuration, "Cannot create an InputProvider instance from a null configuration");
         Class<? extends InputProvider> clazz = null;
         if (property instanceof String) {
-            try {
-                clazz = (Class<? extends InputProvider>) this.getClass().getClassLoader().loadClass((String) property);
-            } catch (ClassNotFoundException e) {
-                String errorMessage = MessageFormat.format("Cannot find the InputProvider with the name {0}", property);
-                Log.error(errorMessage);
-                throw new JarvisException(errorMessage, e);
-            }
+            clazz = Loader.loadClass((String) property, InputProvider.class);
         } else if (property instanceof Class) {
             clazz = (Class<? extends InputProvider>) property;
-            ;
         } else {
             // Unknown property type
             String errorMessage = MessageFormat.format("Cannot retrieve the InputProvider from the provided " +
@@ -456,40 +449,14 @@ public class JarvisCore {
             throw new JarvisException(errorMessage);
         }
         try {
-            Log.info("Loading {0} InputProvider", clazz.getSimpleName());
-            Constructor<? extends InputProvider> constructor = clazz.getConstructor(JarvisCore.class, Configuration
-                    .class);
-            return constructor.newInstance(this, configuration);
-        } catch (ClassCastException e) {
-            String errorMessage = MessageFormat.format("The class {0} is not a subclass of InputProvider",
-                    property);
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            String errorMessage = MessageFormat.format("An error occured when calling {0}({1},{2}), see attached " +
-                    "exception", clazz.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration.class
-                    .getSimpleName());
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            return Loader.construct(clazz, Arrays.asList(JarvisCore.class, Configuration.class), Arrays.asList(this,
+                    configuration));
         } catch (NoSuchMethodException e) {
-            /*
-             * The configuration constructor does not exist, try to initialize the InputProvider using its
-             * default constructor.
-             */
             Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the InputProvider using its " +
                     "{0}({1}) constructor", clazz.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
                     .class.getSimpleName());
             try {
-                Constructor<? extends InputProvider> constructor = clazz.getConstructor(JarvisCore.class);
-                InputProvider inputProvider = (InputProvider) constructor.newInstance(this);
-                Log.warn("{0} loaded with its {0}({1}) constructor, the InputProvider will not be initialized " +
-                        "with the jarvis configuration", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
-                return inputProvider;
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e1) {
-                String errorMessage = MessageFormat.format("Cannot construct an instance of {0} with the " +
-                        "{0}({1}) constructor", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
-                Log.error(errorMessage);
-                throw new JarvisException(errorMessage, e1);
+                return Loader.construct(clazz, JarvisCore.class, this);
             } catch (NoSuchMethodException e1) {
                 String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
                         "not exist", clazz.getSimpleName(), JarvisCore.class.getSimpleName());
@@ -513,35 +480,18 @@ public class JarvisCore {
      */
     private JarvisModule loadJarvisModuleFromModuleModel(Module moduleModel) throws JarvisException {
         Log.info("Loading JarvisModule {0}", moduleModel.getName());
-        Class<?> jarvisModuleClass = null;
+        Class<? extends JarvisModule> jarvisModuleClass = Loader.loadClass(moduleModel.getJarvisModulePath(),
+                JarvisModule
+                .class);
         try {
-            jarvisModuleClass = Class.forName(moduleModel.getJarvisModulePath());
-            return (JarvisModule) jarvisModuleClass.getConstructor(Configuration.class).newInstance(this.configuration);
-        } catch (ClassNotFoundException e) {
-            String errorMessage = MessageFormat.format("Cannot load the module {0}, invalid path: {1}", moduleModel
-                    .getName(), moduleModel.getJarvisModulePath());
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            String errorMessage = MessageFormat.format("Cannot construct an instance of the module {0}", moduleModel
-                    .getName());
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            return Loader.construct(jarvisModuleClass, Configuration.class, this.configuration);
         } catch (NoSuchMethodException e) {
-            // The configuration constructor does not exist, try to initialize the module using its default constructor
             Log.warn("Cannot find the method {0}({1}), trying to initialize the module using its default " +
                     "constructor", jarvisModuleClass.getSimpleName(), Configuration.class.getSimpleName());
-            try {
-                JarvisModule loadedModule = (JarvisModule) jarvisModuleClass.newInstance();
-                Log.warn("Module {0} loaded with its default constructor, the module will not be initialized with " +
-                        "jarvis configuration", jarvisModuleClass.getSimpleName());
-                return loadedModule;
-            } catch (IllegalAccessException | InstantiationException e1) {
-                String errorMessage = MessageFormat.format("Cannot construct an instance of the module {0} with the " +
-                        "default constructor", moduleModel.getName());
-                Log.error(errorMessage);
-                throw new JarvisException(errorMessage, e1);
-            }
+            JarvisModule jarvisModule = Loader.construct(jarvisModuleClass);
+            Log.warn("Module {0} loaded with its default constructor, the module will not be initialized with " +
+                    "jarvis configuration", jarvisModuleClass.getSimpleName());
+            return jarvisModule;
         }
     }
 

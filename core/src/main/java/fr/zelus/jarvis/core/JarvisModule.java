@@ -9,15 +9,16 @@ import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.ParameterValue;
 import fr.zelus.jarvis.orchestration.VariableAccess;
+import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.Configuration;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -169,57 +170,29 @@ public abstract class JarvisModule {
                     "loaded in the module", action.getName()));
         }
         Object[] parameterValues = getParameterValues(actionInstance, session.getJarvisContext());
-        Constructor<?>[] constructorList = jarvisActionClass.getConstructors();
+        /*
+         * Append the mandatory parameters to the parameter values.
+         */
+        Object[] fullParameters = new Object[parameterValues.length + 2];
+        fullParameters[0] = this;
+        fullParameters[1] = session;
         JarvisAction jarvisAction;
-        for (int i = 0; i < constructorList.length; i++) {
-            Constructor<?> constructor = constructorList[i];
-            /*
-             * We use constructor.getParameterCount() -2 because the two first parameters of JarvisAction constructors
-             * must be their containing JarvisModule and the associated JarvisContext.
-             */
-            if (constructor.getParameterCount() - 2 == parameterValues.length) {
-                /*
-                 * The following code assumes that all the Action parameters are instances of String, this should be
-                 * fixed by supporting the types returned by the DialogFlow API.
-                 */
-                try {
-                    if (constructor.getParameterCount() > 0) {
-                        /*
-                         * Construct the full parameter array, that contains this as its first element, followed by
-                         * the parameterValues.
-                         */
-                        Object[] fullParameters = new Object[parameterValues.length + 2];
-                        fullParameters[0] = this;
-                        fullParameters[1] = session;
-                        System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
-                        Log.info("Constructing {0} with the parameters ({1})", jarvisActionClass.getSimpleName(),
-                                printArray(parameterValues));
-                        jarvisAction = (JarvisAction) constructor.newInstance(fullParameters);
-                    } else {
-                        Log.info("Constructing {0}({1}, {2})", jarvisActionClass.getSimpleName(), this.getClass()
-                                .getSimpleName(), session);
-                        jarvisAction = (JarvisAction) constructor.newInstance(this, session);
-                    }
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    String errorMessage = MessageFormat.format("Cannot construct the JarvisAction {0}",
-                            jarvisActionClass.getSimpleName());
-                    Log.error(errorMessage);
-                    throw new JarvisException(errorMessage, e);
-                }
-                /*
-                 * The ActionInstance defines a return variable, we record it in the JarvisAction in order to store
-                 * it in the global context.
-                 */
-                if (nonNull(actionInstance.getReturnVariable())) {
-                    jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
-                }
-                return jarvisAction;
-            }
+        if (parameterValues.length > 0) {
+            System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
         }
-        String errorMessage = MessageFormat.format("Cannot find a {0} constructor matching the provided parameters " +
-                "({1})", action.getName(), printArray(parameterValues));
-        Log.error(errorMessage);
-        throw new JarvisException(errorMessage);
+        try {
+            /**
+             * The types of the parameters are not known, use {@link Loader#construct(Class, Object[])} to try to
+             * find a constructor that accepts them.
+             */
+            jarvisAction = Loader.construct(jarvisActionClass, fullParameters);
+        } catch(NoSuchMethodException e) {
+            throw new JarvisException(e);
+        }
+        if (nonNull(actionInstance.getReturnVariable())) {
+            jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
+        }
+        return jarvisAction;
     }
 
     /**
@@ -294,27 +267,5 @@ public abstract class JarvisModule {
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
         }
-    }
-
-    /**
-     * Formats the provided {@code array} in a {@link String} used to log parameter values.
-     * <p>
-     * The returned {@link String} is "a1.toString(), a2.toString(), an.toString()", where <i>a1</i>,
-     * <i>a2</i>, and <i>an</i> are elements in the provided {@code array}.
-     *
-     * @param array the array containing the parameter to print
-     * @return a {@link String} containing the formatted parameters
-     * @see #createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
-     */
-    private String printArray(Object[] array) {
-        List<String> toStringList = StreamSupport.stream(Arrays.asList(array).spliterator(), false).map(o ->
-        {
-            if (o instanceof String) {
-                return "\"" + o.toString() + "\"";
-            } else {
-                return o.toString();
-            }
-        }).collect(Collectors.toList());
-        return String.join(",", toStringList);
     }
 }
