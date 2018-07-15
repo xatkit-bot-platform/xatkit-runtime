@@ -93,8 +93,9 @@ public class Loader {
     /**
      * Constructs a new instance of the provided {@code clazz} using its default constructor.
      * <p>
-     * Use {@link #construct(Class, Class, Object)}, {@link #construct(Class, List, List)}, or
-     * {@link #construct(Class, Object[])} to construct an instance of {@code clazz} with parameters.
+     * Use {@link #construct(Class, Class, Object)}, {@link #construct(Class, Class, Class, Object, Object)},
+     * {@link #construct(Class, List, List)}, or {@link #construct(Class, Object[])} to construct an instance of
+     * {@code clazz} with parameters.
      *
      * @param clazz the {@link Class} to construct a new instance of
      * @param <T>   the type of the {@link Class} to construct an instance of
@@ -134,6 +135,29 @@ public class Loader {
     public static <T> T construct(Class<T> clazz, Class<?> parameterType, Object parameter) throws
             NoSuchMethodException, JarvisException {
         return construct(clazz, Arrays.asList(parameterType), Arrays.asList(parameter));
+    }
+
+    /**
+     * Constructs a new instance of the provided {@code clazz} with the given {@code parameter1} and {@code parameter2}.
+     * <p>
+     * This method is equivalent to {@code construct(clazz, Arrays.asList(parameterType1, parameterType2), Arrays
+     * .asList(parameter1, parameter2)}.
+     *
+     * @param clazz          the {@link Class} to construct a new instance of
+     * @param parameterType1 the first parameter type in the constructor signature
+     * @param parameterType2 the second parameter type in the constructor signature
+     * @param parameter1     the first concrete parameter of the constructor to call
+     * @param parameter2     the second concrete parameter of the constructor to call
+     * @param <T>            the type of the {@link Class} to construct an instance of
+     * @return the constructed instance
+     * @throws NoSuchMethodException if the provided {@code clazz} does not define a constructor matching the
+     *                               provided {@code parameterType1} and {@code parameterType2}
+     * @throws JarvisException       if an error occurred when calling the {@code clazz}'s constructor
+     * @see #construct(Class, List, List)
+     */
+    public static <T> T construct(Class<T> clazz, Class<?> parameterType1, Class<?> parameterType2, Object parameter1,
+                                  Object parameter2) throws NoSuchMethodException, JarvisException {
+        return construct(clazz, Arrays.asList(parameterType1, parameterType2), Arrays.asList(parameter1, parameter2));
     }
 
     /**
