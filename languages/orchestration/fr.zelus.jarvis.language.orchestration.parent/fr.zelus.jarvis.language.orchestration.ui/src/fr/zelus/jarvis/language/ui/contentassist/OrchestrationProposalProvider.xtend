@@ -18,22 +18,25 @@ import fr.zelus.jarvis.orchestration.OrchestrationModel
  */
 class OrchestrationProposalProvider extends AbstractOrchestrationProposalProvider {
 
-	override completeOrchestrationModel_InputProviderDefinitions(EObject model, Assignment assignment,
+	override completeOrchestrationModel_EventProviderDefinitions(EObject model, Assignment assignment,
 		ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
 		var modules = ModuleRegistry.instance.loadOrchestrationModelModules(model as OrchestrationModel)
-		modules.map[m|m.inputProviderDefinitions.map[i|i.name]].flatten.forEach [iName |
+		modules.map[m|m.eventProviderDefinitions.map[i|i.name]].flatten.forEach [ iName |
 			acceptor.accept(createCompletionProposal(iName, context))
 		]
-		super.completeOrchestrationModel_InputProviderDefinitions(model, assignment, context, acceptor)
+		super.completeOrchestrationModel_EventProviderDefinitions(model, assignment, context, acceptor)
 	}
 
-	override completeOrchestrationLink_Intent(EObject model, Assignment assignment, ContentAssistContext context,
+	override completeOrchestrationLink_Event(EObject model, Assignment assignment, ContentAssistContext context,
 		ICompletionProposalAcceptor acceptor) {
 		var modules = ModuleRegistry.instance.loadOrchestrationModelModules(model.eContainer as OrchestrationModel)
 		modules.map[m|m.intentDefinitions.map[i|i.name]].flatten.forEach [ iName |
 			acceptor.accept(createCompletionProposal(iName, context))
 		]
-		super.completeOrchestrationLink_Intent(model, assignment, context, acceptor)
+		modules.map[m|m.eventProviderDefinitions.map[e|e.eventDefinitions.map[ed|ed.name]].flatten].flatten.forEach [ edName |
+			acceptor.accept(createCompletionProposal(edName, context))
+		]
+		super.completeOrchestrationLink_Event(model, assignment, context, acceptor)
 	}
 
 	override completeActionInstance_Action(EObject model, Assignment assignment, ContentAssistContext context,

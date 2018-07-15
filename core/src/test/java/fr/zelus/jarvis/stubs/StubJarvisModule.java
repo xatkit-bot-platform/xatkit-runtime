@@ -3,7 +3,7 @@ package fr.zelus.jarvis.stubs;
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisModule;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.stubs.action.StubJarvisAction;
 import org.apache.commons.configuration2.Configuration;
@@ -22,7 +22,7 @@ public class StubJarvisModule extends JarvisModule {
     }
 
     @Override
-    public JarvisAction createJarvisAction(ActionInstance actionInstance, RecognizedIntent intent, JarvisSession
+    public JarvisAction createJarvisAction(ActionInstance actionInstance, EventInstance eventInstance, JarvisSession
             session) {
         return jarvisAction;
     }

@@ -1,7 +1,8 @@
 package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.IntentDefinition;
+import fr.zelus.jarvis.intent.EventDefinition;
+import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
@@ -48,21 +49,21 @@ public class OrchestrationService {
     }
 
     /**
-     * Retrieves the {@link ActionInstance}s associated to the provided {@code recognizedIntent}.
+     * Retrieves the {@link ActionInstance}s associated to the provided {@code eventInstance}.
      * <p>
      * This class navigates the underlying {@link OrchestrationModel} and retrieves the {@link ActionInstance}s
-     * associated to the provided {@code recognizedIntent}. These {@link ActionInstance}s are used by the core
+     * associated to the provided {@code eventInstance}. These {@link ActionInstance}s are used by the core
      * component to create the concrete {@link JarvisAction} to execute.
      *
-     * @param recognizedIntent the {@link RecognizedIntent} to retrieve the {@link ActionInstance}s from
+     * @param eventInstance the {@link EventInstance} to retrieve the {@link ActionInstance}s from
      * @return a {@link List} containing the instantiated {@link ActionInstance}s associated to the provided {@code
      * recognizedIntent}.
      * @see JarvisModule#createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
      */
-    public List<ActionInstance> getActionsFromIntent(RecognizedIntent recognizedIntent) {
-        IntentDefinition intentDefinition = recognizedIntent.getDefinition();
+    public List<ActionInstance> getActionFromEvent(EventInstance eventInstance) {
+        EventDefinition eventDefinition  = eventInstance.getDefinition();
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
-            if (link.getIntent().getName().equals(intentDefinition.getName())) {
+            if (link.getEvent().getName().equals(eventDefinition.getName())) {
                 return link.getActions();
             }
         }

@@ -13,7 +13,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.io.InputProvider;
+import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import org.apache.commons.configuration2.Configuration;
 
@@ -38,9 +38,9 @@ import static java.util.Objects.nonNull;
  * messages through the RTM API.
  *
  * @see JarvisSlackUtils
- * @see InputProvider
+ * @see EventProvider
  */
-public class SlackInputProvider extends InputProvider {
+public class SlackInputProvider extends EventProvider {
 
     /**
      * The default username returned by {@link #getUsernameFromUserId(String)}.

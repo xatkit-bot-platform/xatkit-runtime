@@ -4,17 +4,18 @@ package fr.zelus.jarvis.orchestration
 
 import fr.zelus.jarvis.module.Action
 import fr.zelus.jarvis.module.Parameter
-import fr.zelus.jarvis.module.InputProviderDefinition
+import fr.zelus.jarvis.module.EventProviderDefinition
+import fr.zelus.jarvis.intent.EventDefinition
 import fr.zelus.jarvis.intent.IntentDefinition
 
 class OrchestrationModel {
-    refers InputProviderDefinition[] inputProviderDefinitions
+    refers EventProviderDefinition[] eventProviderDefinitions
 	contains OrchestrationLink[] orchestrationLinks
 	String[] imports
 }
 
 class OrchestrationLink {
-    refers IntentDefinition intent
+    refers EventDefinition event
     contains ActionInstance[] actions
     contains Variable[] variables
 }

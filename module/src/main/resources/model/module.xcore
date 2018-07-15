@@ -2,18 +2,24 @@
 @GenModel(modelDirectory="/module/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
 package fr.zelus.jarvis.module
 
+import fr.zelus.jarvis.intent.EventDefinition
 import fr.zelus.jarvis.intent.IntentDefinition
 
 class Module {
     String name
     String jarvisModulePath
-    contains InputProviderDefinition[] inputProviderDefinitions
+    contains EventProviderDefinition[] eventProviderDefinitions
     contains IntentDefinition[] intentDefinitions
 	contains Action[] actions
 }
 
-class InputProviderDefinition {
+class EventProviderDefinition {
     String name
+    contains EventDefinition[] eventDefinitions
+}
+
+class InputProviderDefinition extends EventProviderDefinition {
+
 }
 
 class Action {

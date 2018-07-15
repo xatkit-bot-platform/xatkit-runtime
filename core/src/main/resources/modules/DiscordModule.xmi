@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ASCII"?>
-<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="DiscordModule" jarvisModulePath="fr.zelus.jarvis.plugins.discord.module.DiscordModule">
-  <inputProviderDefinitions name="DiscordInputProvider"/>
+<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:module="fr.zelus.jarvis.module" name="DiscordModule" jarvisModulePath="fr.zelus.jarvis.plugins.discord.module.DiscordModule">
+  <eventProviderDefinitions xsi:type="module:InputProviderDefinition" name="DiscordInputProvider"/>
   <actions name="PostMessage">
     <parameters key="message" type="String"/>
     <parameters key="channel" type="String"/>

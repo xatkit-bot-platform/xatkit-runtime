@@ -9,8 +9,8 @@ Module returns Module:
 	'Module' name=EString
 	'path' jarvisModulePath=EString
 	('providers' '{'
-		inputProviderDefinitions+=InputProviderDefinition
-		(inputProviderDefinitions+=InputProviderDefinition)*
+		eventProviderDefinitions+=(InputProviderDefinition|EventProviderDefinition)
+		(eventProviderDefinitions+=(InputProviderDefinition|EventProviderDefinition))*
 	'}')?
 	('intents' '{'
 		intentDefinitions+=IntentDefinition
@@ -22,9 +22,24 @@ Module returns Module:
 	'}')?
 	;
 	
+EventProviderDefinition returns EventProviderDefinition:
+	{EventProviderDefinition}
+	'event' name=EString
+	'{'
+		eventDefinitions+=EventDefinition
+		(eventDefinitions+=EventDefinition)*
+	'}'
+;
+
+EventDefinition returns intent::EventDefinition:
+	{intent::EventDefinition}
+	name=EString
+	(outContexts+=OutContextDefinition)?
+;
+	
 InputProviderDefinition returns InputProviderDefinition:
 	{InputProviderDefinition}
-	'name' name=EString
+	'input' name=EString
 ;
 
 IntentDefinition returns intent::IntentDefinition:

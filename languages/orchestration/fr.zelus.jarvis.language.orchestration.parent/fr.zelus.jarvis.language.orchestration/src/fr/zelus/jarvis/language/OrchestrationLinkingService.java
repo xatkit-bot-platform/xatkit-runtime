@@ -12,9 +12,11 @@ import org.eclipse.xtext.linking.impl.DefaultLinkingService;
 import org.eclipse.xtext.linking.impl.IllegalNodeException;
 import org.eclipse.xtext.nodemodel.INode;
 
+import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.language.util.ModuleRegistry;
 import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.EventProviderDefinition;
 import fr.zelus.jarvis.module.InputProviderDefinition;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.Parameter;
@@ -38,7 +40,7 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 		System.out.println("Linking context: " + context);
 		System.out.println("Linking reference: " + ref);
 		if (context instanceof OrchestrationModel) {
-			if (ref.equals(OrchestrationPackage.eINSTANCE.getOrchestrationModel_InputProviderDefinitions())) {
+			if (ref.equals(OrchestrationPackage.eINSTANCE.getOrchestrationModel_EventProviderDefinitions())) {
 				/*
 				 * Trying to retrieve an InputProvider from a loaded module
 				 */
@@ -47,11 +49,11 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 							.loadOrchestrationModelModules((OrchestrationModel) context);
 					System.out.println("found " + modules.size() + " modules");
 					for (Module module : modules) {
-						for (InputProviderDefinition inputProviderDefinition : module.getInputProviderDefinitions()) {
-							System.out.println("comparing InputProvider " + inputProviderDefinition.getName());
+						for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+							System.out.println("comparing EventProvider " + eventProviderDefinition.getName());
 							System.out.println("Node text: " + node.getText());
-							if (inputProviderDefinition.getName().equals(node.getText())) {
-								return Arrays.asList(inputProviderDefinition);
+							if (eventProviderDefinition.getName().equals(node.getText())) {
+								return Arrays.asList(eventProviderDefinition);
 							}
 						}
 					}
@@ -64,9 +66,9 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				return super.getLinkedObjects(context, ref, node);
 			}
 		} else if (context instanceof OrchestrationLink) {
-			if (ref.equals(OrchestrationPackage.eINSTANCE.getOrchestrationLink_Intent())) {
+			if (ref.equals(OrchestrationPackage.eINSTANCE.getOrchestrationLink_Event())) {
 				/*
-				 * Trying to retrieve an Intent from a loaded module
+				 * Trying to retrieve an Event from a loaded module
 				 */
 				try {
 					Collection<Module> modules = ModuleRegistry.getInstance()
@@ -78,6 +80,15 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 							System.out.println("Node text: " + node.getText());
 							if (intentDefinition.getName().equals(node.getText())) {
 								return Arrays.asList(intentDefinition);
+							}
+						}
+						for(EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+							for(EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
+								System.out.println("comparing Event " + eventDefinition.getName());
+								System.out.println("Note text: " + node.getText());
+								if(eventDefinition.getName().equals(node.getText())) {
+									return Arrays.asList(eventDefinition);
+								}
 							}
 						}
 					}

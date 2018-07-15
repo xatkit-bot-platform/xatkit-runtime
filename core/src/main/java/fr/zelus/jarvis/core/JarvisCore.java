@@ -5,15 +5,9 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.dialogflow.DialogFlowException;
-import fr.zelus.jarvis.intent.Context;
-import fr.zelus.jarvis.intent.ContextParameterValue;
-import fr.zelus.jarvis.intent.IntentPackage;
-import fr.zelus.jarvis.intent.RecognizedIntent;
-import fr.zelus.jarvis.io.InputProvider;
-import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.InputProviderDefinition;
-import fr.zelus.jarvis.module.Module;
-import fr.zelus.jarvis.module.ModulePackage;
+import fr.zelus.jarvis.intent.*;
+import fr.zelus.jarvis.io.EventProvider;
+import fr.zelus.jarvis.module.*;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
@@ -126,7 +120,7 @@ public class JarvisCore {
      * Constructs a new {@link JarvisCore} instance from the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following key (note that additional values may
-     * be required according to the used {@link InputProvider}s and {@link JarvisModule}s):
+     * be required according to the used {@link EventProvider}s and {@link JarvisModule}s):
      * <ul>
      * <li><b>jarvis.orchestration.model</b>: the {@link OrchestrationModel} defining the Intent to
      * Action bindings (or the string representing its location)</li>
@@ -160,28 +154,32 @@ public class JarvisCore {
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
         this.intentDefinitionRegistry = new IntentDefinitionRegistry();
         boolean intentRegistered = false;
-        for (InputProviderDefinition inputProviderDefinition : orchestrationModel.getInputProviderDefinitions()) {
-            Module inputProviderModule = (Module) inputProviderDefinition.eContainer();
-            JarvisModule inputProviderJarvisModule = this.jarvisModuleRegistry.getJarvisModule(inputProviderModule
+        for (EventProviderDefinition eventProviderDefinition : orchestrationModel.getEventProviderDefinitions()) {
+            Module eventProviderModule = (Module) eventProviderDefinition.eContainer();
+            JarvisModule eventProviderJarvisModule = this.jarvisModuleRegistry.getJarvisModule(eventProviderModule
                     .getName());
-            if (isNull(inputProviderJarvisModule)) {
-                inputProviderJarvisModule = loadJarvisModuleFromModuleModel(inputProviderModule);
-                this.jarvisModuleRegistry.registerJarvisModule(inputProviderJarvisModule);
+            if (isNull(eventProviderJarvisModule)) {
+                eventProviderJarvisModule = loadJarvisModuleFromModuleModel(eventProviderModule);
+                this.jarvisModuleRegistry.registerJarvisModule(eventProviderJarvisModule);
             }
-            inputProviderJarvisModule.startInputProvider(inputProviderDefinition, this);
+            eventProviderJarvisModule.startEventProvider(eventProviderDefinition, this);
         }
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             /*
              * Extracts the IntentDefinitions
              */
-            this.intentDefinitionRegistry.registerIntentDefinition(link.getIntent());
-            try {
-                this.dialogFlowApi.registerIntentDefinition(link.getIntent());
-                intentRegistered = true;
-            } catch (DialogFlowException e) {
-                Log.warn("The Intent {0} is already registered in the DialogFlow project, skipping its registration",
-                        link.getIntent().getName());
-                Log.warn("Intent {0} won't be updated on the DialogFlow project", link.getIntent().getName());
+            EventDefinition eventDefinition = link.getEvent();
+            if(eventDefinition instanceof IntentDefinition) {
+                IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
+                this.intentDefinitionRegistry.registerIntentDefinition(intentDefinition);
+                try {
+                    this.dialogFlowApi.registerIntentDefinition(intentDefinition);
+                    intentRegistered = true;
+                } catch (DialogFlowException e) {
+                    Log.warn("The Intent {0} is already registered in the DialogFlow project, skipping its registration",
+                            intentDefinition.getName());
+                    Log.warn("Intent {0} won't be updated on the DialogFlow project", intentDefinition.getName());
+                }
             }
             /*
              * Load the action modules
@@ -465,7 +463,7 @@ public class JarvisCore {
      * the corresponding intent (if any).
      * <p>
      * The message is handled for a specific user, and can access the {@code session} information to retrieve stored
-     * context variables, extracted information, are additional information stored by the {@link InputProvider}.
+     * context variables, extracted information, are additional information stored by the {@link EventProvider}.
      * <p>
      * This method relies on the {@link OrchestrationService} instance to retrieve the {@link JarvisAction}
      * associated to the extracted intent. These {@link JarvisAction}s are then submitted to the local
@@ -489,7 +487,7 @@ public class JarvisCore {
             String parameterValue = contextParameterValue.getValue();
             session.getJarvisContext().setContextValue(contextName, parameterName, parameterValue);
         }
-        List<ActionInstance> actionInstances = orchestrationService.getActionsFromIntent(intent);
+        List<ActionInstance> actionInstances = orchestrationService.getActionFromEvent(intent);
         if (actionInstances.isEmpty()) {
             Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());
         }

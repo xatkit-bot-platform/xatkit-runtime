@@ -2,7 +2,7 @@ package fr.zelus.jarvis.plugins.discord.module.io;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.io.InputProvider;
+import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import net.dv8tion.jda.core.JDA;
 import org.apache.commons.configuration2.Configuration;
@@ -24,9 +24,9 @@ import static java.util.Objects.nonNull;
  * receive messages through the JDA client.
  *
  * @see JarvisDiscordUtils
- * @see InputProvider
+ * @see EventProvider
  */
-public class DiscordInputProvider extends InputProvider {
+public class DiscordInputProvider extends EventProvider {
 
     /**
      * The {@link String} representing the Discord bot API token.

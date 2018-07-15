@@ -62,14 +62,14 @@ public class JarvisCoreTest {
         stubModule.getActions().add(stubAction);
         InputProviderDefinition stubInputProvider = ModuleFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
-        stubModule.getInputProviderDefinitions().add(stubInputProvider);
+        stubModule.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
         stubModule.getIntentDefinitions().add(stubIntentDefinition);
         VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
         OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
-        link.setIntent(stubIntentDefinition);
+        link.setEvent(stubIntentDefinition);
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
@@ -152,14 +152,14 @@ public class JarvisCoreTest {
         stubModule.getActions().add(stubAction);
         InputProviderDefinition stubInputProvider = ModuleFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
-        stubModule.getInputProviderDefinitions().add(stubInputProvider);
+        stubModule.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
         stubModule.getIntentDefinitions().add(stubIntentDefinition);
         OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
         OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
-        link.setIntent(stubIntentDefinition);
+        link.setEvent(stubIntentDefinition);
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
