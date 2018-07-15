@@ -14,6 +14,8 @@ import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -52,6 +54,13 @@ public class DialogFlowApiTest {
     // not tested here, only instantiated to enable IntentDefinition registration and Module retrieval
     protected static JarvisCore jarvisCore;
 
+    private static Configuration buildConfiguration(String projectId, String languageCode) {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
+        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
+        return configuration;
+    }
+
     @BeforeClass
     public static void setUpBeforeClass() {
         Module stubModule = ModuleFactory.eINSTANCE.createModule();
@@ -75,7 +84,9 @@ public class DialogFlowApiTest {
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel);
+        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, orchestrationModel);
+        jarvisCore = new JarvisCore(configuration);
     }
 
     @After
@@ -102,33 +113,29 @@ public class DialogFlowApiTest {
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
 
     private DialogFlowApi getValidDialogFlowApi() {
-        api = new DialogFlowApi(jarvisCore, VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
         return api;
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullJarvisCore() {
-        api = new DialogFlowApi(null, VALID_PROJECT_ID);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructNullProjectId() {
-        api = new DialogFlowApi(jarvisCore, null);
+        api = new DialogFlowApi(null, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullProjectIdValidLanguageCode() {
-        api = new DialogFlowApi(null, null,"en-US");
+        api = new DialogFlowApi(null, buildConfiguration(null, "en-US"));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructNullLanguageCode() {
-        api = new DialogFlowApi(jarvisCore, VALID_PROJECT_ID, null);
+        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, null));
+        assertThat(api.getLanguageCode()).as("Default language code").isEqualTo(DialogFlowApi.DEFAULT_LANGUAGE_CODE);
     }
 
     @Test
     public void constructValid() {
-        api = new DialogFlowApi(jarvisCore, VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
         softly.assertThat(api.isShutdown()).as("Not shutdown").isFalse();
@@ -136,7 +143,7 @@ public class DialogFlowApiTest {
 
     @Test
     public void constructDefaultLanguageCode() {
-        api = new DialogFlowApi(jarvisCore, VALID_PROJECT_ID);
+        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, null));
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
     }
@@ -272,7 +279,7 @@ public class DialogFlowApiTest {
                 .withMessage("Cannot extract an Intent from the provided input, the DialogFlow API is shutdown");
         assertThatExceptionOfType(DialogFlowException.class).isThrownBy(() -> api.createSession("sessionID"))
                 .withMessage
-                ("Cannot create a new Session, the DialogFlow API is shutdown");
+                        ("Cannot create a new Session, the DialogFlow API is shutdown");
     }
 
     @Test
@@ -288,7 +295,7 @@ public class DialogFlowApiTest {
 
     @Test(expected = DialogFlowException.class)
     public void getIntentInvalidSession() {
-        api = new DialogFlowApi(jarvisCore, "test");
+        api = new DialogFlowApi(jarvisCore, buildConfiguration("test", null));
         JarvisSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
     }

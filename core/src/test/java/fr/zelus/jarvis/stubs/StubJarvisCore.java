@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.stubs;
 
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.JarvisCoreTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
@@ -34,7 +35,7 @@ public class StubJarvisCore extends JarvisCore {
      * Constructs a valid {@link StubJarvisCore} instance.
      */
     public StubJarvisCore() {
-        super(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL);
+        super(JarvisCoreTest.buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL));
         this.handledMessages = new ArrayList<>();
     }
 

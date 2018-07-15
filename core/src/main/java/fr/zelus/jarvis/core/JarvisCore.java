@@ -19,7 +19,6 @@ import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
 import fr.zelus.jarvis.util.Loader;
-import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
@@ -57,49 +56,11 @@ import static java.util.Objects.nonNull;
 public class JarvisCore {
 
     /**
-     * The {@link Configuration} key to store the unique identifier of the DialogFlow project.
-     *
-     * @see #JarvisCore(Configuration)
-     */
-    public static String PROJECT_ID_KEY = "dialogflow.projectId";
-
-    /**
-     * The {@link Configuration} key to store the code of the language processed by DialogFlow.
-     *
-     * @see #JarvisCore(Configuration)
-     */
-    public static String LANGUAGE_CODE_KEY = "dialogflow.language";
-
-    /**
      * The {@link Configuration} key to store the {@link OrchestrationModel} to use.
      *
      * @see #JarvisCore(Configuration)
      */
     public static String ORCHESTRATION_MODEL_KEY = "jarvis.orchestration.model";
-
-    /**
-     * Builds a {@link Configuration} holding the provided {@code projectId}, {@code languageCode}, and {@code
-     * orchestrationModel}.
-     * <p>
-     * This method is called by {@link #JarvisCore(String, String, OrchestrationModel)} to setup the
-     * {@link Configuration} that is forwarded to the base constructor {@link #JarvisCore(Configuration)}.
-     *
-     * @param projectId          the unique identifier of the DialogFlow project
-     * @param languageCode       the code of the language processed by DialogFlow
-     * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
-     * @return the {@link Configuration} holding the provided {@code projectId}, {@code languageCode}, and {@code
-     * orchestrationModel}
-     * @see #JarvisCore(Configuration)
-     * @see #JarvisCore(String, String, OrchestrationModel)
-     */
-    protected static Configuration buildConfiguration(String projectId, String languageCode, OrchestrationModel
-            orchestrationModel) {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(PROJECT_ID_KEY, projectId);
-        configuration.addProperty(LANGUAGE_CODE_KEY, languageCode);
-        configuration.addProperty(ORCHESTRATION_MODEL_KEY, orchestrationModel);
-        return configuration;
-    }
 
     /**
      * The {@link Configuration} used to initialize this class.
@@ -163,21 +124,16 @@ public class JarvisCore {
     /**
      * Constructs a new {@link JarvisCore} instance from the provided {@code configuration}.
      * <p>
-     * The provided {@code configuration} must provide values for the following keys:
+     * The provided {@code configuration} must provide values for the following key (note that additional values may
+     * be required according to the used {@link InputProvider}s and {@link JarvisModule}s):
      * <ul>
-     * <li><b>dialogflow.projectId</b>: the unique identifier of the DialogFlow project</li>
-     * <li><b>dialogflow.language</b>: the code of the language processed by DialogFlow</li>
      * <li><b>jarvis.orchestration.model</b>: the {@link OrchestrationModel} defining the Intent to
      * Action bindings (or the string representing its location)</li>
-     * <li><b>jarvis.input.provider</b>: the {@link InputProvider} to receive input from</li>
      * </ul>
      * <p>
      * The provided {@link OrchestrationModel} defines the Intent to Action bindings that are executed by the
      * application. This constructor takes care of loading the {@link JarvisModule}s associated to the provided
      * {@code orchestrationModel} and enables the corresponding {@link JarvisAction}s.
-     * <p>
-     * The provided {@link InputProvider} is run in a dedicated {@link Thread} and uses this class to provide user
-     * inputs.
      * <p>
      * <b>Note:</b> the {@link JarvisModule}s associated to the provided {@code orchestrationModel} have to be
      * in the classpath in order to be dynamically loaded and instantiated.
@@ -190,14 +146,10 @@ public class JarvisCore {
     public JarvisCore(Configuration configuration) {
         checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
         this.configuration = configuration;
-        String projectId = configuration.getString(PROJECT_ID_KEY);
-        checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
-        String languageCode = configuration.getString(LANGUAGE_CODE_KEY);
-        checkNotNull(languageCode, "Cannot construct a jarvis instance from a null language code");
         OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
                 (ORCHESTRATION_MODEL_KEY));
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
-        this.dialogFlowApi = new DialogFlowApi(this, projectId, languageCode);
+        this.dialogFlowApi = new DialogFlowApi(this, configuration);
         this.sessions = new HashMap<>();
         /*
          * The OrchestrationService instance should be available through a getter for testing purposes.
@@ -252,31 +204,6 @@ public class JarvisCore {
             dialogFlowApi.trainMLEngine();
         }
         Log.info("Jarvis bot started");
-    }
-
-    /**
-     * Constructs a new {@link JarvisCore} instance with the provided {@code projectId}, {@code languageCode}, and
-     * {@code orchestrationModel}.
-     * <p>
-     * The provided {@link OrchestrationModel} defines the Intent to Action bindings that are executed by the
-     * application. This constructor takes care of loading the {@link JarvisModule}s associated to the provided
-     * {@code orchestrationModel} and enables the corresponding {@link JarvisAction}s.
-     * <p>
-     * <b>Note:</b> the {@link JarvisModule}s associated to the provided {@code orchestrationModel} have to be in the
-     * classpath in order to be dynamically loaded and instantiated.
-     *
-     * @param projectId          the unique identifier of the DialogFlow project
-     * @param languageCode       the code of the language processed by DialogFlow
-     * @param orchestrationModel the {@link OrchestrationModel} defining the Intent to Action bindings
-     * @throws NullPointerException if the provided {@code projectId}, {@code languageCode}, {@code
-     *                              orchestrationModel}, or {@code inputProvider} is {@code null}
-     * @throws JarvisException      if the framework is not able to retrieve the {@link OrchestrationModel}
-     * @see #JarvisCore(Configuration)
-     * @see OrchestrationModel
-     * @see InputProvider
-     */
-    public JarvisCore(String projectId, String languageCode, OrchestrationModel orchestrationModel) {
-        this(buildConfiguration(projectId, languageCode, orchestrationModel));
     }
 
     /**

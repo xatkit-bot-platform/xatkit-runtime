@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.module.Action;
@@ -41,6 +42,14 @@ public class JarvisCoreTest {
     protected static OrchestrationModel VALID_ORCHESTRATION_MODEL;
 
     protected JarvisCore jarvisCore;
+
+    public static Configuration buildConfiguration(String projectId, String languageCode, Object orchestrationModel) {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VALID_PROJECT_ID);
+        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
+        return configuration;
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
@@ -101,7 +110,9 @@ public class JarvisCoreTest {
      * @return a valid {@link JarvisCore} instance
      */
     private JarvisCore getValidJarvisCore() {
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL);
+        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
+                VALID_ORCHESTRATION_MODEL);
+        jarvisCore = new JarvisCore(configuration);
         return jarvisCore;
     }
 
@@ -111,57 +122,18 @@ public class JarvisCoreTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructMissingProjectIdInConfiguration() {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
-        jarvisCore = new JarvisCore(configuration);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructMissingLanguageCodeInConfiguration() {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
-        jarvisCore = new JarvisCore(configuration);
-    }
-
-    @Test(expected = NullPointerException.class)
     public void constructMissingOrchestrationPathInConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
-        configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
         jarvisCore = new JarvisCore(configuration);
     }
 
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.PROJECT_ID_KEY, VALID_PROJECT_ID);
-        configuration.addProperty(JarvisCore.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
+        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VALID_PROJECT_ID);
+        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
         configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
         jarvisCore = new JarvisCore(configuration);
-        checkJarvisCore(jarvisCore);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructNullProjectId() {
-        new JarvisCore(null, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructNullLanguageCode() {
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, null, VALID_ORCHESTRATION_MODEL);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructNullOrchestrationModel() {
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, null);
-    }
-
-    @Test
-    public void constructValid() {
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL);
         checkJarvisCore(jarvisCore);
     }
 
@@ -192,7 +164,7 @@ public class JarvisCoreTest {
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
-        jarvisCore = new JarvisCore(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel);
+        jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel));
     }
 
     @Test(expected = JarvisException.class)
