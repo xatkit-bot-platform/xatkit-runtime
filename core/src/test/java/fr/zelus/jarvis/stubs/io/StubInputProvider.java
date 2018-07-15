@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.stubs;
+package fr.zelus.jarvis.stubs.io;
 
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.io.InputProvider;
