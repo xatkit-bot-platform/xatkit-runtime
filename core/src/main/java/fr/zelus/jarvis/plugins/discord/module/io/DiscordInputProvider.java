@@ -102,6 +102,7 @@ public class DiscordInputProvider extends InputProvider {
     @Override
     public void close() {
         Log.info("Closing Discord Client");
+        this.jdaClient.removeEventListener(this.jdaClient.getRegisteredListeners().toArray());
         this.jdaClient.shutdownNow();
     }
 }
