@@ -2,11 +2,10 @@ package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.intent.EventDefinition;
+import fr.zelus.jarvis.intent.IntentDefinition;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A registry that stores {@link EventDefinition}s.
@@ -52,6 +51,15 @@ public class EventDefinitionRegistry {
         return this.eventDefinitionMap.get(adaptEventName(name));
     }
 
+    public IntentDefinition getIntentDefinition(String name) {
+        EventDefinition eventDefinition = this.eventDefinitionMap.get(adaptEventName(name));
+        if (eventDefinition instanceof IntentDefinition) {
+            return (IntentDefinition) eventDefinition;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Returns an unmodifiable {@link Collection} containing all the registered {@link EventDefinition}s.
      * <p>
@@ -61,6 +69,12 @@ public class EventDefinitionRegistry {
      */
     public Collection<EventDefinition> getAllEventDefinitions() {
         return Collections.unmodifiableCollection(this.eventDefinitionMap.values());
+    }
+
+    public Collection<IntentDefinition> getAllIntentDefinitions() {
+        List<IntentDefinition> intentDefinitions = this.eventDefinitionMap.values().stream().filter(e -> e instanceof
+                IntentDefinition).map(i -> (IntentDefinition) i).collect(Collectors.toList());
+        return Collections.unmodifiableCollection(intentDefinitions);
     }
 
     /**

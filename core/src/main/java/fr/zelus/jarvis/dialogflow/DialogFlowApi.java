@@ -7,7 +7,7 @@ import com.google.cloud.dialogflow.v2.Context;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Value;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.IntentDefinitionRegistry;
+import fr.zelus.jarvis.core.EventDefinitionRegistry;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
@@ -381,7 +381,7 @@ public class DialogFlowApi {
      * Adapts the provided {@code intentDefinitionName} by replacing its {@code _} by spaces.
      * <p>
      * This method is used to deserialize names that have been serialized by
-     * {@link fr.zelus.jarvis.core.IntentDefinitionRegistry#adaptIntentName(String)}.
+     * {@link fr.zelus.jarvis.core.EventDefinitionRegistry#adaptEventName(String)}.
      *
      * @param intentDefinitionName the {@link IntentDefinition} name to adapt
      * @return the adapted {@code intentDefinitionName}
@@ -547,26 +547,14 @@ public class DialogFlowApi {
 
     private IntentDefinition convertDialogFlowIntentToIntentDefinition(Intent intent) {
         if (nonNull(intent)) {
-            IntentDefinition result = jarvisCore.getIntentDefinitionRegistry().getIntentDefinition(intent
+            IntentDefinition result = jarvisCore.getEventDefinitionRegistry().getIntentDefinition(intent
                     .getDisplayName());
             if (isNull(result)) {
+                Log.warn("Cannot retrieve the {0} with the provided name {1}, returning the Default Fallback Intent",
+                        IntentDefinition.class.getSimpleName(), intent.getDisplayName());
                 result = DEFAULT_FALLBACK_INTENT;
             }
             return result;
-            /*
-             * The code below builds an IntentDefinition from scratch, but does not check that the intent is
-             * registered. We should move to something like that in the future, in order to let modelers design their
-             * intents in the DialogFlow page if they want. Moving to this kind of architecture does not require an
-             * IntentDefinition factory, or at least not the kind of one we are using now. (we need to synchronize it)
-             */
-//            IntentDefinition intentDefinition = intentFactory.createIntentDefinition();
-//            intentDefinition.setName(intent.getDisplayName());
-//            for(Intent.TrainingPhrase trainingPhrase : intent.getTrainingPhrasesList()) {
-//                for(Intent.TrainingPhrase.Part part : trainingPhrase.getPartsList()) {
-//                    intentDefinition.getTrainingSentences().add(part.getText());
-//                }
-//            }
-//            return intentDefinition;
         } else {
             Log.warn("Cannot convert null to IntentDefinition");
             return null;
@@ -574,8 +562,8 @@ public class DialogFlowApi {
     }
 
     private ContextParameter getContextParameter(String contextName, String parameterName) {
-        IntentDefinitionRegistry intentDefinitionRegistry = jarvisCore.getIntentDefinitionRegistry();
-        for (IntentDefinition intentDefinition : intentDefinitionRegistry.getAllIntentDefinitions()) {
+        EventDefinitionRegistry eventDefinitionRegistry = jarvisCore.getEventDefinitionRegistry();
+        for (IntentDefinition intentDefinition : eventDefinitionRegistry.getAllIntentDefinitions()) {
             for (fr.zelus.jarvis.intent.Context context : intentDefinition.getOutContexts()) {
                 /*
                  * Use toLowerCase() because context are stored in lower case by DialogFlow

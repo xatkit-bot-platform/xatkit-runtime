@@ -7,7 +7,10 @@ import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.dialogflow.DialogFlowException;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.io.EventProvider;
-import fr.zelus.jarvis.module.*;
+import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.EventProviderDefinition;
+import fr.zelus.jarvis.module.Module;
+import fr.zelus.jarvis.module.ModulePackage;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
@@ -40,10 +43,9 @@ import static java.util.Objects.nonNull;
  * This class is constructed from an {@link OrchestrationModel}, that defines the Intent to Action bindings that are
  * executed by the application. Constructing an instance of this class will load the {@link JarvisModule}s used by
  * the provided {@link OrchestrationModel}, and enable the corresponding {@link JarvisAction}s. It also creates an
- * instance of {@link IntentDefinitionRegistry} that can be accessed to retrieve and manage
- * {@link fr.zelus.jarvis.intent.IntentDefinition} .
+ * instance of {@link EventDefinitionRegistry} that can be accessed to retrieve and manage {@link EventDefinition} .
  *
- * @see IntentDefinitionRegistry
+ * @see EventDefinitionRegistry
  * @see JarvisModuleRegistry
  * @see OrchestrationService
  * @see JarvisModule
@@ -84,14 +86,13 @@ public class JarvisCore {
     private JarvisModuleRegistry jarvisModuleRegistry;
 
     /**
-     * The {@link IntentDefinitionRegistry} used to cache {@link fr.zelus.jarvis.intent.IntentDefinition} from the input
-     * {@link OrchestrationModel} and provides utility methods to retrieve specific
-     * {@link fr.zelus.jarvis.intent.IntentDefinition} and clear the cache.
+     * The {@link EventDefinitionRegistry} used to cache {@link fr.zelus.jarvis.intent.EventDefinition}s and
+     * {@link IntentDefinition}s from the input {@link OrchestrationModel} and provides utility methods to retrieve
+     * specific
+     * {@link EventDefinition}s and {@link IntentDefinition}s and clear the cache.
      *
-     * @see #getIntentDefinitionRegistry()
+     * @see #getEventDefinitionRegistry() ()
      */
-    private IntentDefinitionRegistry intentDefinitionRegistry;
-
     private EventDefinitionRegistry eventDefinitionRegistry;
 
     /**
@@ -155,7 +156,6 @@ public class JarvisCore {
         this.orchestrationService = new OrchestrationService(orchestrationModel);
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
         this.eventDefinitionRegistry = new EventDefinitionRegistry();
-        this.intentDefinitionRegistry = new IntentDefinitionRegistry();
         boolean intentRegistered = false;
         for (EventProviderDefinition eventProviderDefinition : orchestrationModel.getEventProviderDefinitions()) {
             Module eventProviderModule = (Module) eventProviderDefinition.eContainer();
@@ -172,20 +172,19 @@ public class JarvisCore {
              * Extracts the IntentDefinitions
              */
             EventDefinition eventDefinition = link.getEvent();
-            if(eventDefinition instanceof IntentDefinition) {
+            this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
+            Log.info("Registering event {0}", eventDefinition.getName());
+            if (eventDefinition instanceof IntentDefinition) {
                 IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
-                this.intentDefinitionRegistry.registerIntentDefinition(intentDefinition);
                 try {
                     this.dialogFlowApi.registerIntentDefinition(intentDefinition);
                     intentRegistered = true;
                 } catch (DialogFlowException e) {
-                    Log.warn("The Intent {0} is already registered in the DialogFlow project, skipping its registration",
+                    Log.warn("The Intent {0} is already registered in the DialogFlow project, skipping its " +
+                                    "registration",
                             intentDefinition.getName());
                     Log.warn("Intent {0} won't be updated on the DialogFlow project", intentDefinition.getName());
                 }
-            } else {
-                Log.info("Registering event {0}", eventDefinition.getName());
-                eventDefinitionRegistry.registerEventDefinition(eventDefinition);
             }
             /*
              * Load the action modules
@@ -331,21 +330,17 @@ public class JarvisCore {
         return dialogFlowApi;
     }
 
+    /**
+     * Returns the {@link EventDefinitionRegistry} associated to this instance.
+     * <p>
+     * This registry is used to cache {@link EventDefinition}s and {@link IntentDefinition}s from the input
+     * {@link OrchestrationModel} and provides utility methods to retrieve specific {@link EventDefinition} and
+     * {@link IntentDefinition} and clear the cache.
+     *
+     * @return the {@link EventDefinitionRegistry} associated to this instance
+     */
     public EventDefinitionRegistry getEventDefinitionRegistry() {
         return eventDefinitionRegistry;
-    }
-
-    /**
-     * Returns the {@link IntentDefinitionRegistry} associated to this instance.
-     * <p>
-     * This registry is used to cache {@link fr.zelus.jarvis.intent.IntentDefinition} from the input
-     * {@link OrchestrationModel} and provides utility methods to retrieve specific
-     * {@link fr.zelus.jarvis.intent.IntentDefinition} and clear the cache.
-     *
-     * @return the {@link IntentDefinitionRegistry} associated to this instance
-     */
-    public IntentDefinitionRegistry getIntentDefinitionRegistry() {
-        return intentDefinitionRegistry;
     }
 
     /**
@@ -390,8 +385,8 @@ public class JarvisCore {
      * <p>
      * This method shuts down the underlying {@link DialogFlowApi}, unloads and shuts down all the
      * {@link JarvisModule}s associated to this instance, unregisters the
-     * {@link fr.zelus.jarvis.intent.IntentDefinition} from the associated
-     * {@link IntentDefinitionRegistry}, and shuts down the {@link #executorService}.
+     * {@link EventDefinition} from the associated {@link EventDefinitionRegistry}, and shuts down the
+     * {@link #executorService}.
      * <p>
      * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down intent detections
      * and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
@@ -408,11 +403,11 @@ public class JarvisCore {
         this.executorService.shutdownNow();
         this.dialogFlowApi.shutdown();
         Collection<JarvisModule> jarvisModules = this.getJarvisModuleRegistry().getModules();
-        for(JarvisModule jarvisModule : jarvisModules) {
+        for (JarvisModule jarvisModule : jarvisModules) {
             jarvisModule.shutdown();
         }
         this.getJarvisModuleRegistry().clearJarvisModules();
-        this.getIntentDefinitionRegistry().clearIntentDefinitions();
+        this.getEventDefinitionRegistry().clearEventDefinitions();
     }
 
     /**
