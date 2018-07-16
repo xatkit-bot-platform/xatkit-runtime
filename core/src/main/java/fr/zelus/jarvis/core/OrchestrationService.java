@@ -58,7 +58,7 @@ public class OrchestrationService {
      * @param eventInstance the {@link EventInstance} to retrieve the {@link ActionInstance}s from
      * @return a {@link List} containing the instantiated {@link ActionInstance}s associated to the provided {@code
      * recognizedIntent}.
-     * @see JarvisModule#createJarvisAction(ActionInstance, RecognizedIntent, JarvisSession)
+     * @see JarvisModule#createJarvisAction(ActionInstance, EventInstance, JarvisSession)
      */
     public List<ActionInstance> getActionFromEvent(EventInstance eventInstance) {
         EventDefinition eventDefinition  = eventInstance.getDefinition();

@@ -92,6 +92,8 @@ public class JarvisCore {
      */
     private IntentDefinitionRegistry intentDefinitionRegistry;
 
+    private EventDefinitionRegistry eventDefinitionRegistry;
+
     /**
      * The {@link OrchestrationService} used to find {@link JarvisAction}s to execute from the received textual inputs.
      *
@@ -152,6 +154,7 @@ public class JarvisCore {
          */
         this.orchestrationService = new OrchestrationService(orchestrationModel);
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
+        this.eventDefinitionRegistry = new EventDefinitionRegistry();
         this.intentDefinitionRegistry = new IntentDefinitionRegistry();
         boolean intentRegistered = false;
         for (EventProviderDefinition eventProviderDefinition : orchestrationModel.getEventProviderDefinitions()) {
@@ -180,6 +183,9 @@ public class JarvisCore {
                             intentDefinition.getName());
                     Log.warn("Intent {0} won't be updated on the DialogFlow project", intentDefinition.getName());
                 }
+            } else {
+                Log.info("Registering event {0}", eventDefinition.getName());
+                eventDefinitionRegistry.registerEventDefinition(eventDefinition);
             }
             /*
              * Load the action modules
@@ -323,6 +329,10 @@ public class JarvisCore {
      */
     public DialogFlowApi getDialogFlowApi() {
         return dialogFlowApi;
+    }
+
+    public EventDefinitionRegistry getEventDefinitionRegistry() {
+        return eventDefinitionRegistry;
     }
 
     /**
@@ -478,23 +488,28 @@ public class JarvisCore {
         checkNotNull(message, "Cannot handle null message");
         checkNotNull(session, "Cannot handle the message %s, the provided session is null", message);
         RecognizedIntent intent = dialogFlowApi.getIntent(message, session);
+        this.handleEvent(intent, session);
+
+    }
+
+    public void handleEvent(EventInstance eventInstance, JarvisSession session) {
         /*
          * Register the returned context values
          */
-        for (ContextParameterValue contextParameterValue : intent.getOutContextValues()) {
+        for (ContextParameterValue contextParameterValue : eventInstance.getOutContextValues()) {
             String contextName = ((Context) contextParameterValue.getContextParameter().eContainer()).getName();
             String parameterName = contextParameterValue.getContextParameter().getName();
             String parameterValue = contextParameterValue.getValue();
             session.getJarvisContext().setContextValue(contextName, parameterName, parameterValue);
         }
-        List<ActionInstance> actionInstances = orchestrationService.getActionFromEvent(intent);
+        List<ActionInstance> actionInstances = orchestrationService.getActionFromEvent(eventInstance);
         if (actionInstances.isEmpty()) {
-            Log.warn("The intent {0} is not associated to any action", intent.getDefinition().getName());
+            Log.warn("The intent {0} is not associated to any action", eventInstance.getDefinition().getName());
         }
         for (ActionInstance actionInstance : actionInstances) {
             JarvisModule jarvisModule = this.getJarvisModuleRegistry().getJarvisModule((Module) actionInstance
                     .getAction().eContainer());
-            JarvisAction action = jarvisModule.createJarvisAction(actionInstance, intent, session);
+            JarvisAction action = jarvisModule.createJarvisAction(actionInstance, eventInstance, session);
             Future<Object> result = executorService.submit(action);
             if (nonNull(action.getReturnVariable())) {
                 /*
