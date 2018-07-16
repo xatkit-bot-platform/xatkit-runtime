@@ -11,6 +11,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
+import fr.zelus.jarvis.io.EventInstanceBuilder;
 import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.plugins.wordpress.JarvisWordPressUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -20,6 +21,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -44,6 +46,7 @@ public class WordPressEventProvider extends EventProvider {
 
     public WordPressEventProvider(JarvisCore jarvisCore, Configuration configuration) {
         super(jarvisCore, configuration);
+        inputDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         checkNotNull(configuration, "Cannot construct a %s from a null configuration", this.getClass().getSimpleName());
         baseUrl = configuration.getString(JarvisWordPressUtils.WORDPRESS_BASE_URL_KEY);
         checkArgument(nonNull(baseUrl) && !baseUrl.isEmpty(), "Cannot construct a %s from the provided base URL: " +
@@ -87,30 +90,17 @@ public class WordPressEventProvider extends EventProvider {
                     lastUpdateDate = getPostUpdateDate(p);
                     JarvisSession session = jarvisCore.getOrCreateJarvisSession(JarvisWordPressUtils
                             .WORDPRESS_CONTEXT_KEY);
-                    EventDefinition eventDefinition = jarvisCore.getEventDefinitionRegistry().getEventDefinition
-                            ("UpdatedPost");
-                    EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
-                    eventInstance.setDefinition(eventDefinition);
+                    EventInstance updatedPostInstance = EventInstanceBuilder.newBuilder(jarvisCore
+                            .getEventDefinitionRegistry())
+                            .setEventDefinitionName("UpdatedPost")
+                            .setOutContextValue(JarvisWordPressUtils.WORDPRESS_POST_TITLE_CONTEXT_KEY, p.getTitle()
+                                    .getRendered())
+                            .setOutContextValue(JarvisWordPressUtils.WORDPRESS_POST_UPDATED_CONTEXT_KEY,
+                                    outputDateFormat.format(postDate))
+                            .setOutContextValue(JarvisWordPressUtils.WORDPRESS_POST_LINK_CONTEXT_KEY, p.getLink())
+                            .build();
 
-                    ContextParameterValue titleValue = IntentFactory.eINSTANCE.createContextParameterValue();
-                    titleValue.setContextParameter(getContextParameter(eventDefinition, JarvisWordPressUtils
-                            .WORDPRESS_POST_TITLE_CONTEXT_KEY));
-                    titleValue.setValue(p.getTitle().getRendered());
-                    eventInstance.getOutContextValues().add(titleValue);
-
-                    ContextParameterValue updatedValue = IntentFactory.eINSTANCE.createContextParameterValue();
-                    updatedValue.setContextParameter(getContextParameter(eventDefinition, JarvisWordPressUtils
-                            .WORDPRESS_POST_UPDATED_CONTEXT_KEY));
-                    updatedValue.setValue(outputDateFormat.format(postDate));
-                    eventInstance.getOutContextValues().add(updatedValue);
-
-                    ContextParameterValue linkValue = IntentFactory.eINSTANCE.createContextParameterValue();
-                    linkValue.setContextParameter(getContextParameter(eventDefinition, JarvisWordPressUtils
-                            .WORDPRESS_POST_LINK_CONTEXT_KEY));
-                    linkValue.setValue(p.getLink());
-                    eventInstance.getOutContextValues().add(linkValue);
-
-                    jarvisCore.handleEvent(eventInstance, session);
+                    jarvisCore.handleEvent(updatedPostInstance, session);
                     break; // TODO support multiple updates
                 }
             }
@@ -130,16 +120,7 @@ public class WordPressEventProvider extends EventProvider {
         }
     }
 
-    private ContextParameter getContextParameter(EventDefinition eventDefinition, String parameterName) {
-        for (Context c : eventDefinition.getOutContexts()) {
-            for (ContextParameter cp : c.getParameters()) {
-                if (cp.getName().equals(parameterName)) {
-                    return cp;
-                }
-            }
-        }
-        throw new RuntimeException("Cannot find the parameter " + parameterName);
-    }
+
 
     /**
      * Returns the update {@link Date} of the provided {@code post}.
