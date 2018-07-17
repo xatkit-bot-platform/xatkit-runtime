@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -193,6 +194,26 @@ public class JarvisContextTest {
         context.setContextValue("context", "test", testValueFuture);
         String result = context.fillContextValues("This is a {$context.key} test from {$context.test}");
         assertThat(result).as("Replaced future variables").isEqualTo("This is a value test from testValue");
+    }
+
+    @Test
+    public void fillContextValueSlowFuture() throws InterruptedException, ExecutionException {
+        context = new JarvisContext();
+        Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
+            synchronized (this) {
+                try {
+                    wait(10000);
+                    return false;
+                } catch(InterruptedException e) {
+                    return true;
+                }
+            }
+        });
+        context.setContextValue("context", "key", future);
+        String result = context.fillContextValues("This is a boolean value: {$context.key}");
+        Boolean hasBeenInterrupted = future.get();
+        assertThat(hasBeenInterrupted).as("The slow Future has been interrupted").isTrue();
+        assertThat(result).as("Not replaced future variable").isEqualTo("This is a boolean value: {$context.key}");
     }
 
     private void checkContextMap(JarvisContext context, String expectedContext, String expectedKey, Object

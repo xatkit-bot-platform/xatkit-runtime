@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -171,14 +173,25 @@ public class JarvisContext {
                         String printedValue = null;
                         if (value instanceof Future) {
                             try {
-                                printedValue = ((Future) value).get().toString();
-                                Log.info("found value {0} for {1}.{2}", printedValue, splitGroup[0],
+                                /*
+                                 * The timeout should be configurable (see #93)
+                                 */
+                                printedValue = ((Future) value).get(2, TimeUnit.SECONDS).toString();
+                                Log.info("Found value {0} for {1}.{2}", printedValue, splitGroup[0],
                                         variableIdentifier);
                             } catch (InterruptedException | ExecutionException e) {
-                                String errorMessage = MessageFormat.format("An error occured when retrieving the " +
+                                String errorMessage = MessageFormat.format("An error occurred when retrieving the " +
                                         "value of the variable {0}", variableIdentifier);
                                 Log.error(errorMessage);
                                 throw new JarvisException(e);
+                            } catch(TimeoutException e) {
+                                /*
+                                 * The Future takes too long to compute, return a placeholder (see https://github
+                                 * .com/gdaniel/jarvis/wiki/Troubleshooting#my-bot-sends-task-takes-too-long-to
+                                 * -compute-messages).
+                                 */
+                                Log.error("The value for {0}.{1} takes to long to compute, returning a placeholder");
+                                printedValue = "<Task takes too long to compute>";
                             }
                         } else {
                             printedValue = value.toString();
