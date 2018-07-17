@@ -8,10 +8,7 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -190,8 +187,14 @@ public class JarvisContext {
                                  * .com/gdaniel/jarvis/wiki/Troubleshooting#my-bot-sends-task-takes-too-long-to
                                  * -compute-messages).
                                  */
-                                Log.error("The value for {0}.{1} takes to long to compute, returning a placeholder");
-                                printedValue = "<Task takes too long to compute>";
+                                Log.error("The value for {0}.{1} took too long to complete, stopping it and returning" +
+                                        " a placeholder", splitGroup[0], variableIdentifier);
+                                ((Future) value).cancel(true);
+                                printedValue = "<Task took too long to complete>";
+                            } catch(CancellationException e) {
+                                Log.error("Cannot retrieve the value for {0}.{1}: the task has been cancelled, " +
+                                        "returning a placeholder", splitGroup[0], variableIdentifier);
+                                printedValue = "<Task has been cancelled>";
                             }
                         } else {
                             printedValue = value.toString();

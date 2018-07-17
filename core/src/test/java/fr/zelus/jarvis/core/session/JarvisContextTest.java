@@ -3,11 +3,13 @@ package fr.zelus.jarvis.core.session;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JarvisContextTest {
 
@@ -204,16 +206,17 @@ public class JarvisContextTest {
                 try {
                     wait(10000);
                     return false;
-                } catch(InterruptedException e) {
+                } catch (InterruptedException e) {
                     return true;
                 }
             }
         });
         context.setContextValue("context", "key", future);
         String result = context.fillContextValues("This is a boolean value: {$context.key}");
-        Boolean hasBeenInterrupted = future.get();
-        assertThat(hasBeenInterrupted).as("The slow Future has been interrupted").isTrue();
-        assertThat(result).as("Not replaced future variable").isEqualTo("This is a boolean value: {$context.key}");
+        assertThatThrownBy(() -> future.get()).as("Future.get() throws an exception").isInstanceOf
+                (CancellationException.class);
+        assertThat(result).as("Not replaced future variable").isEqualTo("This is a boolean value: <Task took too long" +
+                " to complete>");
     }
 
     private void checkContextMap(JarvisContext context, String expectedContext, String expectedKey, Object
