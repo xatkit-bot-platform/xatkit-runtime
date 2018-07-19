@@ -5,9 +5,11 @@ import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.intent.*;
 
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 
 public class EventInstanceBuilder {
@@ -23,18 +25,32 @@ public class EventInstanceBuilder {
     private Map<String, String> contextValues;
 
     private EventInstanceBuilder(EventDefinitionRegistry registry) {
+        checkNotNull(registry, "Cannot create a %s with a null %s", EventInstanceBuilder.class.getSimpleName(),
+                EventDefinitionRegistry.class.getSimpleName());
         this.registry = registry;
         this.contextValues = new HashMap<>();
     }
 
     public EventInstanceBuilder setEventDefinitionName(String eventDefinitionName) {
+        checkNotNull(eventDefinitionName, "Cannot construct an %s from a null %s", EventInstance.class.getSimpleName
+                (), EventDefinition.class.getSimpleName());
         this.eventDefinitionName = eventDefinitionName;
         return this;
     }
 
+    public String getEventDefinitionName() {
+        return this.eventDefinitionName;
+    }
+
     public EventInstanceBuilder setOutContextValue(String contextKey, String contextValue) {
+        checkNotNull(contextKey, "Cannot set the out context value %s with the key null", contextValue);
+        checkNotNull(contextValue, "Cannot set the out context value null");
         this.contextValues.put(contextKey, contextValue);
         return this;
+    }
+
+    public Map<String, String> getOutContextValues() {
+        return Collections.unmodifiableMap(this.contextValues);
     }
 
     public EventInstance build() {
@@ -70,6 +86,6 @@ public class EventInstanceBuilder {
                 }
             }
         }
-        throw new RuntimeException("Cannot find the parameter " + parameterName);
+        throw new JarvisException("Cannot find the parameter " + parameterName);
     }
 }
