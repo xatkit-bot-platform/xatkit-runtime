@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -194,7 +193,7 @@ public class JarvisCoreTest {
 
     @Test
     public void getOrchestrationModelFromValidString() {
-        JarvisCore jarvisCore = getValidJarvisCore();
+        jarvisCore = getValidJarvisCore();
         OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL.eResource
                 ().getURI().toString());
         assertThat(orchestrationModel).as("Not null OrchestrationModel").isNotNull();
@@ -275,11 +274,9 @@ public class JarvisCoreTest {
                 ("StubJarvisModule");
         jarvisCore.handleMessage("hello", jarvisCore.getOrCreateJarvisSession("sessionID"));
         /*
-         * Ask the executor to shutdown an await for the termination of the tasks. This ensures that the action
-         * created by the stub module has been executed.
+         * Sleep to ensure that the Action has been processed.
          */
-        jarvisCore.getExecutorService().shutdown();
-        jarvisCore.getExecutorService().awaitTermination(2, TimeUnit.SECONDS);
+        Thread.sleep(1000);
         softly.assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action processed").isTrue();
     }
 

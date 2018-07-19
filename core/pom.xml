@@ -27,6 +27,7 @@
         <google.api.version>1.23.0</google.api.version>
         <commons-beanutils.version>1.9.3</commons-beanutils.version>
         <wp-api-v2.version>4.8.1</wp-api-v2.version>
+        <httpcomponents.version>4.4.10</httpcomponents.version>
     </properties>
 
     <repositories>
@@ -138,6 +139,11 @@
             <artifactId>commons-beanutils</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+        </dependency>
+
         <!-- jarvis Internal -->
 
         <dependency>
@@ -175,8 +181,6 @@
             <artifactId>log4j-core</artifactId>
             <type>test-jar</type>
         </dependency>
-
-
 
     </dependencies>
 
@@ -271,6 +275,14 @@
                         <groupId>ch.qos.logback</groupId>
                         <artifactId>logback-classic</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>commons-beanutils</groupId>
+                        <artifactId>commons-beanutils</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-beanutils</groupId>
+                        <artifactId>commons-beanutils-core</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
 
@@ -286,6 +298,12 @@
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
                 <version>${commons-beanutils.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>${httpcomponents.version}</version>
             </dependency>
 
         </dependencies>

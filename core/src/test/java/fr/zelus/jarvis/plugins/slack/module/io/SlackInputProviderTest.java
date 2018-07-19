@@ -7,6 +7,7 @@ import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,6 +31,7 @@ public class SlackInputProviderTest {
         stubJarvisCore = new StubJarvisCore();
     }
 
+    @After
     public void tearDown() {
         if (nonNull(slackInputProvider)) {
             slackInputProvider.close();

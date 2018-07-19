@@ -17,10 +17,7 @@ import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -107,6 +104,11 @@ public class DialogFlowApiTest {
                  */
             }
         }
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        jarvisCore.shutdown();
     }
 
     @Rule

@@ -15,6 +15,7 @@ import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
+import fr.zelus.jarvis.server.JarvisServer;
 import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
@@ -120,6 +121,11 @@ public class JarvisCore {
     private Map<String, JarvisSession> sessions;
 
     /**
+     * The {@link JarvisServer} instance used to capture incoming webhooks.
+     */
+    private JarvisServer jarvisServer;
+
+    /**
      * Constructs a new {@link JarvisCore} instance from the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following key (note that additional values may
@@ -207,6 +213,7 @@ public class JarvisCore {
              */
             dialogFlowApi.trainMLEngine();
         }
+        jarvisServer = new JarvisServer();
         Log.info("Jarvis bot started");
     }
 
@@ -381,12 +388,21 @@ public class JarvisCore {
     }
 
     /**
+     * Returns the {@link JarvisServer} used to capture incoming webhooks.
+     *
+     * @return the {@link JarvisServer} used to capture incoming webhooks
+     */
+    protected JarvisServer getJarvisServer() {
+        return jarvisServer;
+    }
+
+    /**
      * Shuts down the {@link JarvisCore} and the underlying engines.
      * <p>
      * This method shuts down the underlying {@link DialogFlowApi}, unloads and shuts down all the
      * {@link JarvisModule}s associated to this instance, unregisters the
      * {@link EventDefinition} from the associated {@link EventDefinitionRegistry}, and shuts down the
-     * {@link #executorService}.
+     * {@link #executorService} and {@link #jarvisServer}.
      * <p>
      * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down intent detections
      * and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
@@ -401,6 +417,7 @@ public class JarvisCore {
         }
         // Shutdown the executor first in case there are running tasks using the DialogFlow API.
         this.executorService.shutdownNow();
+        this.jarvisServer.shutdown();
         this.dialogFlowApi.shutdown();
         Collection<JarvisModule> jarvisModules = this.getJarvisModuleRegistry().getModules();
         for (JarvisModule jarvisModule : jarvisModules) {
