@@ -5,6 +5,7 @@ import fr.zelus.jarvis.core.JarvisCoreTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import fr.zelus.jarvis.util.VariableLoaderHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.List;
  */
 public class StubJarvisCore extends JarvisCore {
 
-    protected static String VALID_PROJECT_ID = "jarvis-fd96e";
+    protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
 
     protected static String VALID_LANGUAGE_CODE = "en-US";
 

@@ -17,9 +17,15 @@ import static java.util.Objects.isNull;
  */
 public class VariableLoaderHelper {
 
+    private static String JARVIS_DIALOGFLOW_PROJECT = "JARVIS_DIALOGFLOW_PROJECT";
+
     private static String JARVIS_SLACK_TOKEN_KEY = "JARVIS_SLACK_TOKEN";
 
     private static String JARVIS_DISCORD_TOKEN = "JARVIS_DISCORD_TOKEN";
+
+    public static String getJarvisDialogFlowProject() {
+        return getVariable(JARVIS_DIALOGFLOW_PROJECT);
+    }
 
     public static String getJarvisSlackToken() {
         return getVariable(JARVIS_SLACK_TOKEN_KEY);

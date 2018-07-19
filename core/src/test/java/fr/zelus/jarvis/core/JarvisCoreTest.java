@@ -13,6 +13,7 @@ import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.stubs.StubJarvisModule;
+import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
@@ -34,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JarvisCoreTest {
 
-    protected static String VALID_PROJECT_ID = "jarvis-fd96e";
+    protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
 
     protected static String VALID_LANGUAGE_CODE = "en-US";
 

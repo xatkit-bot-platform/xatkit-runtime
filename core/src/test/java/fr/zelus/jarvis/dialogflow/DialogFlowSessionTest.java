@@ -1,13 +1,14 @@
 package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
+import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class DialogFlowSessionTest {
 
-    private static String VALID_PROJECT_ID = "jarvis-fd96e";
+    private static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
 
     private DialogFlowSession session;
 
