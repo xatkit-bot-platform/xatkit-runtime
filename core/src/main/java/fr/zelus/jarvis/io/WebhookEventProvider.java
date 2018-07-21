@@ -53,7 +53,7 @@ public abstract class WebhookEventProvider<T> extends EventProvider {
      * Parses the provided raw HTTP request content.
      * <p>
      * This method is internally used to fill the {@link #handleParsedContent(Object)} parameter with a parsed
-     * representation of the raw request content
+     * representation of the raw request content.
      *
      * @param content the raw HTTP request content to parse
      * @return a parsed representation of the raw request content
@@ -66,7 +66,7 @@ public abstract class WebhookEventProvider<T> extends EventProvider {
      * <p>
      * This method embeds the request content management that creates the associated
      * {@link fr.zelus.jarvis.intent.EventInstance}. The {@code parsedContent} parameter is set by an internal call
-     * to {@link #parseContent(Object)}
+     * to {@link #parseContent(Object)}.
      *
      * @param parsedContent the parsed request content to handle
      * @see #parseContent(Object)
