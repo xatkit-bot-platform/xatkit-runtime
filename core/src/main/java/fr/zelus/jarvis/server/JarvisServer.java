@@ -1,42 +1,60 @@
 package fr.zelus.jarvis.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
-import org.apache.http.*;
-import org.apache.http.client.utils.URLEncodedUtils;
+import fr.zelus.jarvis.io.WebhookEventProvider;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.Locale;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Objects.nonNull;
-
+/**
+ * The REST server used to receive external webhooks.
+ * <p>
+ * The {@link JarvisServer} provides a simple REST API that accepts POST methods on port {@code 5000}. Incoming
+ * requests are parsed and sent to the registered {@link WebhookEventProvider}s, that transform the
+ * original request into {@link fr.zelus.jarvis.intent.EventInstance}s that can be used to trigger actions.
+ *
+ * @see #registerWebhookEventProvider(WebhookEventProvider)
+ */
 public class JarvisServer {
 
-    private static String JSON_APPLICATION_CONTENT_TYPE = "application/json";
-
+    /**
+     * The port used to receive input requests.
+     * <p>
+     * TODO this port should be configurable in the global Configuration (see #101)
+     */
     private int portNumber;
 
+    /**
+     * The {@link HttpServer} used to receive input requests.
+     */
     private HttpServer server;
 
+    /**
+     * The {@link WebhookEventProvider}s to notify when a request is received.
+     * <p>
+     * These {@link WebhookEventProvider}s are used to parse the input requests and create the corresponding
+     * {@link fr.zelus.jarvis.intent.EventInstance}s that can be used to trigger actions.
+     */
+    private Set<WebhookEventProvider> webhookEventProviders;
+
+    /**
+     * Constructs a new {@link JarvisServer}.
+     * <p>
+     * <b>Note:</b> this method does not start the underlying {@link HttpServer}. Use {@link #start()} to start the
+     * {@link HttpServer} in a dedicated thread.
+     *
+     * @see #start()
+     * @see #stop()
+     */
     public JarvisServer() {
         Log.info("Starting JarvisServer");
+        webhookEventProviders = new HashSet<>();
         this.portNumber = 5000;
         SocketConfig socketConfig = SocketConfig.custom()
                 .setSoTimeout(15000)
@@ -47,11 +65,20 @@ public class JarvisServer {
                 .setListenerPort(portNumber)
                 .setServerInfo("Test/1.1")
                 .setSocketConfig(socketConfig)
-                .registerHandler("*", new HttpHandler())
+                .registerHandler("*", new HttpHandler(this))
                 .create();
+    }
+
+    /**
+     * Starts the underlying {@link HttpServer}.
+     * <p>
+     * This method registered a shutdown hook that is used to close the {@link HttpServer} when the application
+     * terminates. To manually close the underlying {@link HttpServer} see {@link #stop()}.
+     */
+    public void start() {
         try {
-            server.start();
-        } catch(IOException e) {
+            this.server.start();
+        } catch (IOException e) {
             throw new JarvisException("Cannot start the JarvisServer", e);
         }
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -61,88 +88,60 @@ public class JarvisServer {
         Log.info("JarvisServer started, listening on localhost:{0}", portNumber);
     }
 
-    public void shutdown() {
-        Log.info("Shutting down JarvisServer");
+    /**
+     * Stops the underlying {@link HttpServer}.
+     */
+    public void stop() {
+        Log.info("Stopping down JarvisServer");
         server.shutdown(5, TimeUnit.SECONDS);
     }
 
-
-    static class HttpHandler implements HttpRequestHandler {
-
-        private JsonParser parser;
-
-        private Gson gson;
-
-        public HttpHandler() {
-            super();
-            parser = new JsonParser();
-            gson = new GsonBuilder().setPrettyPrinting().create();
-        }
-
-        public void handle(final HttpRequest request, final HttpResponse response, final HttpContext context) throws
-                IOException {
-
-            String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
-            String target = request.getRequestLine().getUri();
-
-            Log.info("Received a {0} query on {1}", method, target);
-
-            List<NameValuePair> parameters = null;
-            try {
-                parameters = URLEncodedUtils.parse(new URI(target), HTTP.UTF_8);
-            } catch (URISyntaxException e) {
-                String errorMessage = MessageFormat.format("Cannot parse the requested URI {0}", target);
-                throw new JarvisException(errorMessage);
-            }
-
-            for (NameValuePair parameter : parameters) {
-                Log.info("Query parameter: {0} = {1}", parameter.getName(), parameter.getValue());
-            }
-
-            if (request instanceof HttpEntityEnclosingRequest) {
-                HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-                String contentEncoding = null;
-                Header encodingHeader = entity.getContentEncoding();
-                if (nonNull(encodingHeader) && encodingHeader.getElements().length > 0) {
-                    contentEncoding = encodingHeader.getElements()[0].getName();
-                    Log.info("Query content encoding: {0}", contentEncoding);
-                } else {
-                    Log.warn("Unknown query content encoding");
-                }
-                String contentType = null;
-                Header contentTypeHeader = entity.getContentType();
-                if (nonNull(contentTypeHeader) && contentTypeHeader.getElements().length > 0) {
-                    contentType = contentTypeHeader.getElements()[0].getName();
-                    Log.info("Query content type: {0}", contentType);
-                } else {
-                    Log.warn("Unknown query content type");
-                }
-                Long contentLength = entity.getContentLength();
-                Log.info("Query content length: {0}", contentLength);
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
-                StringBuilder contentBuilder = new StringBuilder();
-                while (reader.ready()) {
-                    contentBuilder.append(reader.readLine());
-                }
-                String content = contentBuilder.toString();
-                if (content.isEmpty()) {
-                    Log.warn("Empty query content");
-                } else {
-                    if (JSON_APPLICATION_CONTENT_TYPE.equals(contentType)) {
-                        Log.info("Parsing {0} content", JSON_APPLICATION_CONTENT_TYPE);
-                        JsonElement jsonElement = parser.parse(content);
-                        Log.info("Query content: \n {0}", gson.toJson(jsonElement));
-                    } else {
-                        Log.info("No parser for the provided content type {0}, returning the raw content: \n {1}",
-                                contentType, content);
-                    }
-                }
-            }
-            response.setStatusCode(HttpStatus.SC_OK);
-
-        }
-
+    /**
+     * Register a {@link WebhookEventProvider}.
+     * <p>
+     * The registered {@code webhookEventProvider} will be notified when a new request is received. If the provider
+     * supports the request content type (see {@link WebhookEventProvider#acceptContentType(String)}, it will receive
+     * the request content that will be used to create the associated {@link fr.zelus.jarvis.intent.EventInstance}.
+     *
+     * @param webhookEventProvider the {@link WebhookEventProvider} to register
+     * @see #notifyWebhookEventProviders(String, Object)
+     * @see WebhookEventProvider#acceptContentType(String)
+     * @see WebhookEventProvider#handleContent(Object)
+     */
+    public void registerWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
+        this.webhookEventProviders.add(webhookEventProvider);
     }
 
+    /**
+     * Unregistered a {@link WebhookEventProvider}.
+     * <p>
+     * The provided {@code webhookEventProvider} will not be notified when new request are received, and cannot be
+     * used to create {@link fr.zelus.jarvis.intent.EventInstance}s.
+     *
+     * @param webhookEventProvider the {@link WebhookEventProvider} to unregister
+     */
+    public void unregisterWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
+        this.webhookEventProviders.remove(webhookEventProvider);
+    }
+
+    /**
+     * Notifies the registered {@link WebhookEventProvider}s that a new request has been handled.
+     * <p>
+     * This method asks each registered {@link WebhookEventProvider} if it accepts the given {@code contentType}. If
+     * so, the provided {@code content} is sent to the {@link WebhookEventProvider} that will create the associated
+     * {@link fr.zelus.jarvis.intent.EventInstance}.
+     *
+     * @param contentType the content type of the received request
+     * @param content     the content of the received request
+     * @see #registerWebhookEventProvider(WebhookEventProvider)
+     * @see WebhookEventProvider#acceptContentType(String)
+     * @see WebhookEventProvider#handleContent(Object)
+     */
+    public void notifyWebhookEventProviders(String contentType, Object content) {
+        for (WebhookEventProvider webhookEventProvider : webhookEventProviders) {
+            if (webhookEventProvider.acceptContentType(contentType)) {
+                webhookEventProvider.handleContent(content);
+            }
+        }
+    }
 }

@@ -29,7 +29,7 @@ public abstract class EventProvider implements Runnable {
      * <b>Note</b>: this constructor should be used by {@link EventProvider}s that do not require additional
      * parameters to be initialized. In that case see {@link #EventProvider(JarvisCore, Configuration)}.
      *
-     * @param jarvisCore the {@link JarvisCore} instance used to handle input messages
+     * @param jarvisCore the {@link JarvisCore} instance used to handle {@link fr.zelus.jarvis.intent.EventInstance}s.
      */
     public EventProvider(JarvisCore jarvisCore) {
         this(jarvisCore, new BaseConfiguration());

@@ -214,6 +214,7 @@ public class JarvisCore {
             dialogFlowApi.trainMLEngine();
         }
         jarvisServer = new JarvisServer();
+        jarvisServer.start();
         Log.info("Jarvis bot started");
     }
 
@@ -417,7 +418,7 @@ public class JarvisCore {
         }
         // Shutdown the executor first in case there are running tasks using the DialogFlow API.
         this.executorService.shutdownNow();
-        this.jarvisServer.shutdown();
+        this.jarvisServer.stop();
         this.dialogFlowApi.shutdown();
         Collection<JarvisModule> jarvisModules = this.getJarvisModuleRegistry().getModules();
         for (JarvisModule jarvisModule : jarvisModules) {
