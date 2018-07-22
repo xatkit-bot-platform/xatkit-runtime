@@ -5,6 +5,8 @@ import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.*;
+import java.net.URL;
+import java.text.MessageFormat;
 
 import static java.util.Objects.isNull;
 
@@ -16,6 +18,8 @@ import static java.util.Objects.isNull;
  * requested variable.
  */
 public class VariableLoaderHelper {
+
+    private static String LOCAL_FILE_PATH = "test-variables.properties";
 
     private static String JARVIS_DIALOGFLOW_PROJECT = "JARVIS_DIALOGFLOW_PROJECT";
 
@@ -38,13 +42,14 @@ public class VariableLoaderHelper {
     private static String getVariable(String key) {
         String token = System.getenv(key);
         if(isNull(token) || token.isEmpty()) {
-            Log.info("Cannot retrieve Jarvis bot API token from the environment variables, using local file instead");
-            String fileString = VariableLoaderHelper.class.getClassLoader().getResource("test-variables.properties")
-                    .getFile();
-            if(isNull(fileString)) {
-                throw new RuntimeException("Cannot retrieve Jarvis bot API token from the local file: Cannot load the" +
-                        " local file");
+            Log.info("Cannot retrieve Jarvis bot API token from the environment variables, using local file {0} ",
+                    LOCAL_FILE_PATH);
+            URL resource = VariableLoaderHelper.class.getClassLoader().getResource(LOCAL_FILE_PATH);
+            if(isNull(resource)) {
+                throw new RuntimeException(MessageFormat.format("Cannot retrieve Jarvis bot variables from local " +
+                        "file: the file {0} does not exist", LOCAL_FILE_PATH));
             }
+            String fileString = resource.getFile();
             FileInputStream fileInputStream;
             try {
                 fileInputStream = new FileInputStream(fileString);
