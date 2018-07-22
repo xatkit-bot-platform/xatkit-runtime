@@ -13,7 +13,9 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.io.EventProvider;
+import fr.zelus.jarvis.io.IntentProvider;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import org.apache.commons.configuration2.Configuration;
 
@@ -40,7 +42,7 @@ import static java.util.Objects.nonNull;
  * @see JarvisSlackUtils
  * @see EventProvider
  */
-public class SlackInputProvider extends EventProvider {
+public class SlackInputProvider extends IntentProvider {
 
     /**
      * The default username returned by {@link #getUsernameFromUserId(String)}.
@@ -147,7 +149,9 @@ public class SlackInputProvider extends EventProvider {
                                                 session.getJarvisContext().setContextValue(JarvisSlackUtils
                                                         .SLACK_CONTEXT_KEY, JarvisSlackUtils
                                                         .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
-                                                jarvisCore.handleMessage(text, session);
+                                                RecognizedIntent recognizedIntent = this.getRecognizedIntent(text,
+                                                        session);
+                                                jarvisCore.handleEvent(recognizedIntent, session);
                                             } else {
                                                 Log.warn("Received an empty message, skipping it");
                                             }

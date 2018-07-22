@@ -2,6 +2,8 @@ package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
+import fr.zelus.jarvis.intent.EventDefinition;
+import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.module.Action;
@@ -41,6 +43,8 @@ public class JarvisCoreTest {
 
     protected static OrchestrationModel VALID_ORCHESTRATION_MODEL;
 
+    protected static EventInstance VALID_EVENT_INSTANCE;
+
     protected JarvisCore jarvisCore;
 
     public static Configuration buildConfiguration(String projectId, String languageCode, Object orchestrationModel) {
@@ -65,6 +69,11 @@ public class JarvisCoreTest {
         stubModule.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
+        /*
+         * Create the valid EventInstance used in handleEvent tests
+         */
+        VALID_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
+        VALID_EVENT_INSTANCE.setDefinition(stubIntentDefinition);
         // No parameters, keep it simple
         stubModule.getIntentDefinitions().add(stubIntentDefinition);
         VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
@@ -253,19 +262,19 @@ public class JarvisCoreTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void handleMessageNullMessage() {
+    public void handleEventNullEvent() {
         jarvisCore = getValidJarvisCore();
-        jarvisCore.handleMessage(null, new JarvisSession("sessionID"));
+        jarvisCore.handleEvent(null, new JarvisSession("sessionID"));
     }
 
     @Test(expected = NullPointerException.class)
-    public void handleMessageNullSession() {
+    public void handleEventNullSession() {
         jarvisCore = getValidJarvisCore();
-        jarvisCore.handleMessage("hello", null);
+        jarvisCore.handleEvent(VALID_EVENT_INSTANCE, null);
     }
 
     @Test
-    public void handleMessageValidMessage() throws InterruptedException {
+    public void handleEventValidEvent() throws InterruptedException {
         jarvisCore = getValidJarvisCore();
         /*
          * It is not necessary to check the the module list is not null and contains at least one element, this is
@@ -273,7 +282,7 @@ public class JarvisCoreTest {
          */
         StubJarvisModule stubJarvisModule = (StubJarvisModule) jarvisCore.getJarvisModuleRegistry().getJarvisModule
                 ("StubJarvisModule");
-        jarvisCore.handleMessage("hello", jarvisCore.getOrCreateJarvisSession("sessionID"));
+        jarvisCore.handleEvent(VALID_EVENT_INSTANCE, jarvisCore.getOrCreateJarvisSession("sessionID"));
         /*
          * Sleep to ensure that the Action has been processed.
          */
@@ -282,11 +291,15 @@ public class JarvisCoreTest {
     }
 
     @Test
-    public void handleMessageNotHandledMessage() {
+    public void handleEventNotHandledEvent() {
         jarvisCore = getValidJarvisCore();
         StubJarvisModule stubJarvisModule = (StubJarvisModule) jarvisCore.getJarvisModuleRegistry().getJarvisModule
                 ("StubJarvisModule");
-        jarvisCore.handleMessage("bye", jarvisCore.getOrCreateJarvisSession("sessionID"));
+        EventDefinition notHandledDefinition = IntentFactory.eINSTANCE.createEventDefinition();
+        notHandledDefinition.setName("NotHandled");
+        EventInstance notHandledEventInstance = IntentFactory.eINSTANCE.createEventInstance();
+        notHandledEventInstance.setDefinition(notHandledDefinition);
+        jarvisCore.handleEvent(notHandledEventInstance, jarvisCore.getOrCreateJarvisSession("sessionID"));
         assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action not processed").isFalse();
     }
 

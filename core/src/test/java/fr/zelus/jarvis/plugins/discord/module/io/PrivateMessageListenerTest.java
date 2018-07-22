@@ -1,6 +1,8 @@
 package fr.zelus.jarvis.plugins.discord.module.io;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.intent.EventDefinition;
+import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.discord.StubMessage;
@@ -10,10 +12,7 @@ import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.Map;
 
@@ -28,9 +27,18 @@ public class PrivateMessageListenerTest {
 
     private PrivateMessageListener listener;
 
+    private static EventDefinition VALID_EVENT_DEFINITION;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        VALID_EVENT_DEFINITION = IntentFactory.eINSTANCE.createIntentDefinition();
+        VALID_EVENT_DEFINITION.setName("Default Welcome Intent");
+    }
+
     @Before
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
+        discordInputProvider = createValidDiscordInputProvider();
     }
 
     @After
@@ -49,42 +57,48 @@ public class PrivateMessageListenerTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullJarvisCore() {
-        listener = new PrivateMessageListener(null);
+        listener = new PrivateMessageListener(null, discordInputProvider);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructNullDiscordInputProvider() {
+        listener = new PrivateMessageListener(stubJarvisCore, null);
     }
 
     @Test
     public void constructValidJarvisCore() {
-        listener = new PrivateMessageListener(stubJarvisCore);
+        listener = new PrivateMessageListener(stubJarvisCore, discordInputProvider);
         assertThat(listener.getJarvisCore()).as("Non null JarvisCore").isNotNull();
         assertThat(listener.getJarvisCore()).as("Valid JarvisCore").isEqualTo(stubJarvisCore);
     }
 
     @Test(expected = NullPointerException.class)
     public void onPrivateMessageReceivedNullMessage() {
-        listener = new PrivateMessageListener(stubJarvisCore);
+        listener = new PrivateMessageListener(stubJarvisCore, discordInputProvider);
         listener.onPrivateMessageReceived(null);
     }
 
     @Test
     public void onPrivateMessageEmptyMessage() {
-        discordInputProvider = createValidDiscordInputProvider();
-        listener = new PrivateMessageListener(stubJarvisCore);
+        listener = new PrivateMessageListener(stubJarvisCore, discordInputProvider);
         listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordInputProvider.getJdaClient(),
                 StubMessage.createEmptyStubMessage()));
-        assertThat(stubJarvisCore.getHandledMessages()).as("Empty message skipped").isEmpty();
+        assertThat(stubJarvisCore.getHandledEvents()).as("Empty message skipped").isEmpty();
         assertThat(stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_NAME)).as("Null session")
                 .isNull();
     }
 
     @Test
     public void onPrivateMessageValidMessage() {
-        discordInputProvider = createValidDiscordInputProvider();
-        listener = new PrivateMessageListener(stubJarvisCore);
+        listener = new PrivateMessageListener(stubJarvisCore, discordInputProvider);
         listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordInputProvider.getJdaClient(),
                 StubMessage.createTestStubMessage()));
-        softly.assertThat(stubJarvisCore.getHandledMessages()).as("Message handled").hasSize(1);
-        softly.assertThat(stubJarvisCore.getHandledMessages().get(0)).as("Valid Message handled").isEqualTo
-                (StubMessage.TEST_MESSAGE_CONTENT);
+        softly.assertThat(stubJarvisCore.getHandledEvents()).as("Event handled").hasSize(1);
+        /*
+         * Check equality on names, equals() should not be redefined for EObjects.
+         */
+        softly.assertThat(stubJarvisCore.getHandledEvents().get(0).getName()).as("Valid Event handled").isEqualTo
+                (VALID_EVENT_DEFINITION.getName());
         JarvisSession session = stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_NAME);
         assertThat(session).as("Not null session").isNotNull();
         Map<String, Object> discordContext = session.getJarvisContext().getContextVariables(JarvisDiscordUtils
@@ -106,8 +120,7 @@ public class PrivateMessageListenerTest {
     private DiscordInputProvider createValidDiscordInputProvider() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
-        discordInputProvider = new DiscordInputProvider(stubJarvisCore, configuration);
-        return discordInputProvider;
+        return new DiscordInputProvider(stubJarvisCore, configuration);
     }
 
 }

@@ -3,6 +3,10 @@ package fr.zelus.jarvis.stubs;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisCoreTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.intent.EventDefinition;
+import fr.zelus.jarvis.intent.EventInstance;
+import fr.zelus.jarvis.intent.IntentDefinition;
+import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.util.VariableLoaderHelper;
@@ -26,47 +30,48 @@ public class StubJarvisCore extends JarvisCore {
             .createOrchestrationModel();
 
     /**
-     * The {@link List} of messages that have been handled by this instance.
-     *
-     * @see #handledMessages
+     * The {@link List} of {@link EventDefinition} that have been handled by this instance.
      */
-    private List<String> handledMessages;
+    private List<EventDefinition> handledEvents;
 
     /**
      * Constructs a valid {@link StubJarvisCore} instance.
      */
     public StubJarvisCore() {
         super(JarvisCoreTest.buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL));
-        this.handledMessages = new ArrayList<>();
+        this.handledEvents = new ArrayList<>();
+        IntentDefinition welcomeIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        welcomeIntentDefinition.setName("Default Welcome Intent");
+        getEventDefinitionRegistry().registerEventDefinition(welcomeIntentDefinition);
     }
 
     /**
-     * Stores the provided {@code message} in the {@link #handledMessages} list.
+     * Stores the provided {@code message} in the {@link #handledEvents} list.
      * <p>
      * <b>Note:</b> this method does not process the {@code message}, and does not build
      * {@link fr.zelus.jarvis.core.JarvisAction}s from the provided {@code message}.
      *
-     * @param message the textual input to store in the {@link #handledMessages} list
+     * @param eventInstance the {@link EventInstance} to store in the {@link #handledEvents} list
      * @param session the user session to use to process the message
      */
     @Override
-    public void handleMessage(String message, JarvisSession session) {
-        this.handledMessages.add(message);
+    public void handleEvent(EventInstance eventInstance, JarvisSession session) {
+        this.handledEvents.add(eventInstance.getDefinition());
     }
 
     /**
-     * Returns the {@link List} containing the handled messages.
+     * Returns the {@link List} containing the handled {@link EventDefinition}s.
      *
-     * @return the {@link List} containing the handled messages
+     * @return the {@link List} containing the handled {@link EventDefinition}s
      */
-    public List<String> getHandledMessages() {
-        return handledMessages;
+    public List<EventDefinition> getHandledEvents() {
+        return handledEvents;
     }
 
     /**
-     * Clears the underlying message {@link List}.
+     * Clears the underlying {@link EventDefinition} {@link List}.
      */
     public void clearHandledMessages() {
-        handledMessages.clear();
+        handledEvents.clear();
     }
 }

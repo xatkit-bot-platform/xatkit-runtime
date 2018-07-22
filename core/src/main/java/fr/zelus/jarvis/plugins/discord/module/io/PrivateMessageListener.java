@@ -3,6 +3,7 @@ package fr.zelus.jarvis.plugins.discord.module.io;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
@@ -27,16 +28,26 @@ public class PrivateMessageListener extends ListenerAdapter {
     private JarvisCore jarvisCore;
 
     /**
-     * Constructs a new {@link PrivateMessageListener} from the provided {@code jarvisCore}.
+     * The {@link DiscordInputProvider} managing this listener.
+     */
+    private DiscordInputProvider discordInputProvider;
+
+    /**
+     * Constructs a new {@link PrivateMessageListener} from the provided {@code jarvisCore} and {@code
+     * discordInputProvider}.
      *
-     * @param jarvisCore the {@link JarvisCore} instance used to handled received messages
+     * @param jarvisCore           the {@link JarvisCore} instance used to handled received messages
+     * @param discordInputProvider the {@link DiscordInputProvider} managing this listener
      * @throws NullPointerException if the provided {@code jarvisCore} is {@code null}
      */
-    public PrivateMessageListener(JarvisCore jarvisCore) {
+    public PrivateMessageListener(JarvisCore jarvisCore, DiscordInputProvider discordInputProvider) {
         super();
-        checkNotNull(jarvisCore, "Cannot construct a {0} from a null {1}", this.getClass().getSimpleName(),
+        checkNotNull(jarvisCore, "Cannot construct a %s from a null %s", this.getClass().getSimpleName(),
                 JarvisCore.class.getSimpleName());
+        checkNotNull(discordInputProvider, "Cannot construct a %s from a null %s", this.getClass().getSimpleName(),
+                DiscordInputProvider.class.getSimpleName());
         this.jarvisCore = jarvisCore;
+        this.discordInputProvider = discordInputProvider;
     }
 
     /**
@@ -81,6 +92,7 @@ public class PrivateMessageListener extends ListenerAdapter {
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
                 .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
         Log.info("Received message {0}", content);
-        jarvisCore.handleMessage(content, jarvisSession);
+        RecognizedIntent recognizedIntent = discordInputProvider.getRecognizedIntent(content, jarvisSession);
+        jarvisCore.handleEvent(recognizedIntent, jarvisSession);
     }
 }

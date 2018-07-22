@@ -1,16 +1,15 @@
 package fr.zelus.jarvis.plugins.slack.module.io;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.intent.EventDefinition;
+import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import java.text.MessageFormat;
 import java.util.Map;
@@ -25,6 +24,14 @@ public class SlackInputProviderTest {
     private StubJarvisCore stubJarvisCore;
 
     private static String SLACK_CHANNEL = "test";
+
+    private static EventDefinition VALID_EVENT_DEFINITION;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        VALID_EVENT_DEFINITION = IntentFactory.eINSTANCE.createIntentDefinition();
+        VALID_EVENT_DEFINITION.setName("Default Welcome Intent");
+    }
 
     @Before
     public void setUp() {
@@ -71,7 +78,12 @@ public class SlackInputProviderTest {
     public void sendValidSlackMessage() {
         slackInputProvider = getValidSlackInputProvider();
         slackInputProvider.getRtmClient().onMessage(getValidMessage());
-        assertThat(stubJarvisCore.getHandledMessages()).as("Valid handled messages").contains("hello");
+        assertThat(stubJarvisCore.getHandledEvents()).as("Event handled").hasSize(1);
+        /*
+         * Check equality on names, equals() should not be redefined for EObjects.
+         */
+        softly.assertThat(stubJarvisCore.getHandledEvents().get(0).getName()).as("Valid Event handled").isEqualTo
+                (VALID_EVENT_DEFINITION.getName());
         JarvisSession session = stubJarvisCore.getJarvisSession(SLACK_CHANNEL);
         assertThat(session).as("Not null session").isNotNull();
         Map<String, Object> slackContext = session.getJarvisContext().getContextVariables(JarvisSlackUtils.SLACK_CONTEXT_KEY);
@@ -91,7 +103,7 @@ public class SlackInputProviderTest {
     public void sendSlackMessageInvalidType() {
         slackInputProvider = getValidSlackInputProvider();
         slackInputProvider.getRtmClient().onMessage(getMessageInvalidType());
-        assertThat(stubJarvisCore.getHandledMessages()).as("Empty handled messages").isEmpty();
+        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
         assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
@@ -99,7 +111,7 @@ public class SlackInputProviderTest {
     public void sendSlackMessageNullText() {
         slackInputProvider = getValidSlackInputProvider();
         slackInputProvider.getRtmClient().onMessage(getMessageNullText());
-        assertThat(stubJarvisCore.getHandledMessages()).as("Empty handled messages").isEmpty();
+        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
         assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
@@ -107,7 +119,7 @@ public class SlackInputProviderTest {
     public void sendSlackMessageNullChannel() {
         slackInputProvider = getValidSlackInputProvider();
         slackInputProvider.getRtmClient().onMessage(getMessageNullChannel());
-        assertThat(stubJarvisCore.getHandledMessages()).as("Empty handled messages").isEmpty();
+        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
         assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
@@ -115,7 +127,7 @@ public class SlackInputProviderTest {
     public void sendSlackMessageNullUser() {
         slackInputProvider = getValidSlackInputProvider();
         slackInputProvider.getRtmClient().onMessage(getMessageNullUser());
-        assertThat(stubJarvisCore.getHandledMessages()).as("Empty handled messages").isEmpty();
+        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
         assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
@@ -123,7 +135,7 @@ public class SlackInputProviderTest {
     public void sendSlackMessageEmptyMessage() {
         slackInputProvider = getValidSlackInputProvider();
         slackInputProvider.getRtmClient().onMessage(getMessageEmptyText());
-        assertThat(stubJarvisCore.getHandledMessages()).as("Empty handled messages").isEmpty();
+        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
         assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 

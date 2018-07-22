@@ -8,7 +8,7 @@ import net.dv8tion.jda.core.entities.impl.UserImpl;
 
 public class StubMessage extends AbstractMessage {
 
-    public static String TEST_MESSAGE_CONTENT = "test message";
+    public static String TEST_MESSAGE_CONTENT = "hello";
 
     public static String TEST_MESSAGE_AUTHOR = "Stub Author";
 

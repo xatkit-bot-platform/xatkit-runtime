@@ -99,7 +99,7 @@ public class JarvisCore {
     /**
      * The {@link OrchestrationService} used to find {@link JarvisAction}s to execute from the received textual inputs.
      *
-     * @see #handleMessage(String, JarvisSession)
+     * @see #handleEvent(EventInstance, JarvisSession)
      * @see JarvisAction
      */
     private OrchestrationService orchestrationService;
@@ -479,33 +479,9 @@ public class JarvisCore {
         this.sessions.clear();
     }
 
-    /**
-     * Handles an input {@code message} by executing the associated {@link JarvisAction}s.
-     * <p>
-     * The input {@code message} is forwarded to the underlying {@link DialogFlowApi} that takes care of retrieving
-     * the corresponding intent (if any).
-     * <p>
-     * The message is handled for a specific user, and can access the {@code session} information to retrieve stored
-     * context variables, extracted information, are additional information stored by the {@link EventProvider}.
-     * <p>
-     * This method relies on the {@link OrchestrationService} instance to retrieve the {@link JarvisAction}
-     * associated to the extracted intent. These {@link JarvisAction}s are then submitted to the local
-     * {@link #executorService} that takes care of executing them in a separated thread.
-     *
-     * @param message the textual input to process
-     * @param session the {@link JarvisSession} associated to the input user
-     * @throws NullPointerException if the provided {@code message} is {@code null}
-     * @see JarvisAction
-     */
-    public void handleMessage(String message, JarvisSession session) {
-        checkNotNull(message, "Cannot handle null message");
-        checkNotNull(session, "Cannot handle the message %s, the provided session is null", message);
-        RecognizedIntent intent = dialogFlowApi.getIntent(message, session);
-        this.handleEvent(intent, session);
-
-    }
-
     public void handleEvent(EventInstance eventInstance, JarvisSession session) {
+        checkNotNull(eventInstance, "Cannot handle the %s %s", EventInstance.class.getSimpleName(), eventInstance);
+        checkNotNull(session, "Cannot handle the %s %s", JarvisSession.class.getSimpleName(), session);
         /*
          * Register the returned context values
          */
