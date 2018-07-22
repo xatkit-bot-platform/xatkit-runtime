@@ -82,7 +82,6 @@ public class JarvisServer {
             throw new JarvisException("Cannot start the JarvisServer", e);
         }
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Log.info("Stopping JarvisServer (shutdown hook)");
             server.shutdown(5, TimeUnit.SECONDS);
         }));
         Log.info("JarvisServer started, listening on localhost:{0}", portNumber);
