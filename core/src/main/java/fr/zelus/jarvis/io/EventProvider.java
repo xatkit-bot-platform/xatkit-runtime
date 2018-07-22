@@ -55,6 +55,12 @@ public abstract class EventProvider implements Runnable {
         this.jarvisCore = jarvisCore;
     }
 
+    /**
+     * Closes the {@link EventProvider} and releases internal resources.
+     * <p>
+     * This method should be overridden by concrete subclasses that manipulate internal resources that require to be
+     * explicitly closed.
+     */
     public void close() {
 
     }
