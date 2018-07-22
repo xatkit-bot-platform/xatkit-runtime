@@ -18,7 +18,7 @@ import java.util.List;
  * A {@link JarvisCore} subclass that stores handled messages in a {@link List}.
  * <p>
  * This class is designed to ease testing of classes depending on {@link JarvisCore}, and allows to easily retrieve
- * its processed messages (see {@link #getHandledMessages()}).
+ * its processed messages (see {@link #getHandledEvents()}).
  */
 public class StubJarvisCore extends JarvisCore {
 
