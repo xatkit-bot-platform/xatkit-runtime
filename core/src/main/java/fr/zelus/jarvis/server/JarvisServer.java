@@ -82,7 +82,7 @@ public class JarvisServer {
             throw new JarvisException("Cannot start the JarvisServer", e);
         }
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Log.info("Shutting down JarvisServer (shutdown hook)");
+            Log.info("Stopping JarvisServer (shutdown hook)");
             server.shutdown(5, TimeUnit.SECONDS);
         }));
         Log.info("JarvisServer started, listening on localhost:{0}", portNumber);
@@ -92,7 +92,7 @@ public class JarvisServer {
      * Stops the underlying {@link HttpServer}.
      */
     public void stop() {
-        Log.info("Stopping down JarvisServer");
+        Log.info("Stopping JarvisServer");
         server.shutdown(5, TimeUnit.SECONDS);
     }
 
