@@ -6,15 +6,13 @@ import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.InputProviderDefinition;
-import fr.zelus.jarvis.module.Module;
-import fr.zelus.jarvis.module.ModuleFactory;
+import fr.zelus.jarvis.module.*;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.stubs.StubJarvisModule;
+import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
 import fr.zelus.jarvis.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -174,6 +172,26 @@ public class JarvisCoreTest {
         link.getActions().add(actionInstance);
         orchestrationModel.getOrchestrationLinks().add(link);
         jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel));
+        checkJarvisCore(jarvisCore, orchestrationModel);
+    }
+
+    @Test
+    public void constructValidWebhookEventProvider() {
+        Module stubModule = ModuleFactory.eINSTANCE.createModule();
+        stubModule.setName("StubJarvisModule");
+        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        EventProviderDefinition stubWebhookEventProviderDefinition = ModuleFactory.eINSTANCE
+                .createEventProviderDefinition();
+        stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");
+        stubModule.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
+        OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
+        orchestrationModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
+        jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel));
+        checkJarvisCore(jarvisCore, orchestrationModel);
+        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server WebhookEventProvider" +
+                " collection is not empty").isNotEmpty();
+        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
+                "registered WebhookEventProvider").isInstanceOf(StubJsonWebhookEventProvider.class);
     }
 
     @Test(expected = JarvisException.class)
@@ -304,11 +322,23 @@ public class JarvisCoreTest {
     }
 
     /**
-     * Computes a set of basic assertions on the provided {@code jarvisCore}.
+     * Computes a set of basic assertions on the provided {@code jarvisCore} using the
+     * {@link #VALID_ORCHESTRATION_MODEL}.
      *
      * @param jarvisCore the {@link JarvisCore} instance to check
      */
     private void checkJarvisCore(JarvisCore jarvisCore) {
+        checkJarvisCore(jarvisCore, VALID_ORCHESTRATION_MODEL);
+    }
+
+    /**
+     * Computes a set of basic assertions on the provided {@code jarvisCore} using the provided {@code
+     * orchestrationModel}.
+     *
+     * @param jarvisCore         the {@link JarvisCore} instance to check
+     * @param orchestrationModel the {@link OrchestrationModel} to check
+     */
+    private void checkJarvisCore(JarvisCore jarvisCore, OrchestrationModel orchestrationModel) {
         /*
          * isNotNull() assertions are not soft, otherwise the runner does not print the assertion error and fails on
          * a NullPointerException in the following assertions.
@@ -320,8 +350,9 @@ public class JarvisCoreTest {
                 .isEqualTo(VALID_LANGUAGE_CODE);
         assertThat(jarvisCore.getOrchestrationModel()).as("Not null OrchestrationModel").isNotNull();
         softly.assertThat(jarvisCore.getOrchestrationModel()).as("Valid OrchestrationModel").isEqualTo
-                (VALID_ORCHESTRATION_MODEL);
+                (orchestrationModel);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
+        assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
     }
 
 }

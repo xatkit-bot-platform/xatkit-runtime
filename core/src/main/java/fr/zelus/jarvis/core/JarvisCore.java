@@ -155,13 +155,14 @@ public class JarvisCore {
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
         this.dialogFlowApi = new DialogFlowApi(this, configuration);
         this.sessions = new HashMap<>();
-        /*
-         * The OrchestrationService instance should be available through a getter for testing purposes.
-         * See https://github.com/gdaniel/jarvis/issues/6.
-         */
         this.orchestrationService = new OrchestrationService(orchestrationModel);
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
         this.eventDefinitionRegistry = new EventDefinitionRegistry();
+        /*
+         * Start the server before processing the EventProviderDefinitions, we need to have a valid JarvisServer
+         * instance to call JarvisServer#registerWebhookEventProvider
+         */
+        this.jarvisServer = new JarvisServer(configuration);
         boolean intentRegistered = false;
         for (EventProviderDefinition eventProviderDefinition : orchestrationModel.getEventProviderDefinitions()) {
             Module eventProviderModule = (Module) eventProviderDefinition.eContainer();
@@ -213,7 +214,6 @@ public class JarvisCore {
              */
             dialogFlowApi.trainMLEngine();
         }
-        jarvisServer = new JarvisServer(configuration);
         jarvisServer.start();
         Log.info("Jarvis bot started");
     }

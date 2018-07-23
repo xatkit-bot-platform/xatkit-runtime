@@ -5,12 +5,14 @@ import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.io.EventProvider;
+import fr.zelus.jarvis.io.WebhookEventProvider;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.EventProviderDefinition;
 import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.ParameterValue;
 import fr.zelus.jarvis.orchestration.VariableAccess;
+import fr.zelus.jarvis.server.JarvisServer;
 import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -120,6 +122,13 @@ public abstract class JarvisModule {
                 Log.error(errorMessage);
                 throw new JarvisException(errorMessage, e1);
             }
+        }
+        if(eventProvider instanceof WebhookEventProvider) {
+            /*
+             * Register the WebhookEventProvider in the JarvisServer
+             */
+            Log.info("Registering {0} in the {1}", eventProvider, JarvisServer.class.getSimpleName());
+            jarvisCore.getJarvisServer().registerWebhookEventProvider((WebhookEventProvider) eventProvider);
         }
         Log.info("Starting EventProvider {0}", eventProviderClass.getSimpleName());
         EventProviderThread eventProviderThread = new EventProviderThread(eventProvider);
