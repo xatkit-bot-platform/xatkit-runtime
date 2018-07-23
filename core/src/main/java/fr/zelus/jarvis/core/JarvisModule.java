@@ -54,6 +54,15 @@ public abstract class JarvisModule {
      */
     protected Map<String, Class<? extends JarvisAction>> actionMap;
 
+    /**
+     * The {@link Map} containing the {@link EventProviderThread}s associated to this module.
+     * <p>
+     * This {@link Map} filled when new {@link EventProvider}s are started (see
+     * {@link #startEventProvider(EventProviderDefinition, JarvisCore)}), and is used to cache
+     * {@link EventProviderThread}s and stop them when the module is {@link #shutdown()}.
+     *
+     * @see #shutdown()
+     */
     protected Map<String, EventProviderThread> eventProviderMap;
 
 
@@ -98,6 +107,21 @@ public abstract class JarvisModule {
         return this.getClass().getSimpleName();
     }
 
+    /**
+     * Starts the {@link EventProvider} corresponding to the provided {@code eventProviderDefinition}.
+     * <p>
+     * This method dynamically loads the {@link EventProvider} corresponding to the provided {@code
+     * eventProviderDefinition}, and starts it in a dedicated {@link Thread}.
+     * <p>
+     * This method also registers {@link WebhookEventProvider}s to the underlying {@link JarvisServer} (see
+     * {@link JarvisServer#registerWebhookEventProvider(WebhookEventProvider)}).
+     *
+     * @param eventProviderDefinition the {@link EventProviderDefinition} representing the {@link EventProvider} to
+     *                                start
+     * @param jarvisCore              the {@link JarvisCore} instance associated to this module
+     * @see EventProvider#run()
+     * @see JarvisServer#registerWebhookEventProvider(WebhookEventProvider)
+     */
     public final void startEventProvider(EventProviderDefinition eventProviderDefinition, JarvisCore jarvisCore) {
         Log.info("Starting {0}", eventProviderDefinition.getName());
         String eventProviderQualifiedName = this.getClass().getPackage().getName() + ".io." + eventProviderDefinition
@@ -123,7 +147,7 @@ public abstract class JarvisModule {
                 throw new JarvisException(errorMessage, e1);
             }
         }
-        if(eventProvider instanceof WebhookEventProvider) {
+        if (eventProvider instanceof WebhookEventProvider) {
             /*
              * Register the WebhookEventProvider in the JarvisServer
              */
