@@ -213,7 +213,7 @@ public class JarvisCore {
              */
             dialogFlowApi.trainMLEngine();
         }
-        jarvisServer = new JarvisServer();
+        jarvisServer = new JarvisServer(configuration);
         jarvisServer.start();
         Log.info("Jarvis bot started");
     }

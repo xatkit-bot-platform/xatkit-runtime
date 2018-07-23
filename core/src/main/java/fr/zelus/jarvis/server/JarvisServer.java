@@ -3,6 +3,7 @@ package fr.zelus.jarvis.server;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.io.WebhookEventProvider;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
  * The REST server used to receive external webhooks.
@@ -24,9 +27,20 @@ import java.util.concurrent.TimeUnit;
 public class JarvisServer {
 
     /**
-     * The port used to receive input requests.
+     * The {@link Configuration} key to store the server port to use.
+     */
+    public static String SERVER_PORT_KEY = "jarvis.server.port";
+
+    /**
+     * The default port to use.
      * <p>
-     * TODO this port should be configurable in the global Configuration (see #101)
+     * The server port can be customized in the constructor's {@link Configuration} using the {@link #SERVER_PORT_KEY}
+     * key.
+     */
+    private static int DEFAULT_SERVER_PORT = 5000;
+
+    /**
+     * The port used to receive input requests.
      */
     private int portNumber;
 
@@ -44,18 +58,31 @@ public class JarvisServer {
     private Set<WebhookEventProvider> webhookEventProviders;
 
     /**
-     * Constructs a new {@link JarvisServer}.
+     * Constructs a new {@link JarvisServer} with the given {@link Configuration}.
+     * <p>
+     * The provided {@link Configuration} is used to specify the port the server should listen to (see
+     * {@link #SERVER_PORT_KEY}). If the {@link Configuration} does not specify a port the default value ({@code
+     * 5000}) is used.
      * <p>
      * <b>Note:</b> this method does not start the underlying {@link HttpServer}. Use {@link #start()} to start the
      * {@link HttpServer} in a dedicated thread.
      *
+     * @param configuration the {@link Configuration} used to initialize the {@link JarvisServer}
      * @see #start()
      * @see #stop()
      */
-    public JarvisServer() {
-        Log.info("Starting JarvisServer");
+    public JarvisServer(Configuration configuration) {
+        checkNotNull(configuration, "Cannot start the %s with the provided %s: %s", this.getClass().getSimpleName
+                (), Configuration.class.getSimpleName(), configuration);
+        Log.info("Starting %s", this.getClass().getSimpleName());
+        if(configuration.containsKey(SERVER_PORT_KEY)) {
+            this.portNumber = configuration.getInt(SERVER_PORT_KEY);
+            Log.info("Sever listening to port {0}", this.portNumber);
+        } else  {
+            Log.info("No port to listen to specified, using the default port {0}", DEFAULT_SERVER_PORT);
+            this.portNumber = DEFAULT_SERVER_PORT;
+        }
         webhookEventProviders = new HashSet<>();
-        this.portNumber = 5000;
         SocketConfig socketConfig = SocketConfig.custom()
                 .setSoTimeout(15000)
                 .setTcpNoDelay(true)
@@ -63,7 +90,7 @@ public class JarvisServer {
 
         server = ServerBootstrap.bootstrap()
                 .setListenerPort(portNumber)
-                .setServerInfo("Test/1.1")
+                .setServerInfo("Jarvis/1.1")
                 .setSocketConfig(socketConfig)
                 .registerHandler("*", new HttpHandler(this))
                 .create();
