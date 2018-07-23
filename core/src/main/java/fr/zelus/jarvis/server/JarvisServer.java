@@ -9,6 +9,9 @@ import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -37,17 +40,19 @@ public class JarvisServer {
      * The server port can be customized in the constructor's {@link Configuration} using the {@link #SERVER_PORT_KEY}
      * key.
      */
-    private static int DEFAULT_SERVER_PORT = 5000;
-
-    /**
-     * The port used to receive input requests.
-     */
-    private int portNumber;
+    protected static int DEFAULT_SERVER_PORT = 5000;
 
     /**
      * The {@link HttpServer} used to receive input requests.
      */
     private HttpServer server;
+
+    /**
+     * A boolean flag representing whether the {@link JarvisServer} is started.
+     *
+     * @see #isStarted()
+     */
+    private boolean isStarted;
 
     /**
      * The {@link WebhookEventProvider}s to notify when a request is received.
@@ -68,19 +73,22 @@ public class JarvisServer {
      * {@link HttpServer} in a dedicated thread.
      *
      * @param configuration the {@link Configuration} used to initialize the {@link JarvisServer}
+     * @throws NullPointerException if the provided {@code configuration} is {@code null}
      * @see #start()
      * @see #stop()
      */
     public JarvisServer(Configuration configuration) {
         checkNotNull(configuration, "Cannot start the %s with the provided %s: %s", this.getClass().getSimpleName
                 (), Configuration.class.getSimpleName(), configuration);
-        Log.info("Starting %s", this.getClass().getSimpleName());
-        if(configuration.containsKey(SERVER_PORT_KEY)) {
-            this.portNumber = configuration.getInt(SERVER_PORT_KEY);
-            Log.info("Sever listening to port {0}", this.portNumber);
-        } else  {
+        Log.info("Starting {0}", this.getClass().getSimpleName());
+        this.isStarted = false;
+        int portNumber;
+        if (configuration.containsKey(SERVER_PORT_KEY)) {
+            portNumber = configuration.getInt(SERVER_PORT_KEY);
+            Log.info("Sever listening to port {0}", portNumber);
+        } else {
+            portNumber = DEFAULT_SERVER_PORT;
             Log.info("No port to listen to specified, using the default port {0}", DEFAULT_SERVER_PORT);
-            this.portNumber = DEFAULT_SERVER_PORT;
         }
         webhookEventProviders = new HashSet<>();
         SocketConfig socketConfig = SocketConfig.custom()
@@ -97,6 +105,26 @@ public class JarvisServer {
     }
 
     /**
+     * Returns the underlying {@link HttpServer} used to receive requests.
+     * <p>
+     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
+     *
+     * @return the {@link HttpServer} used to receive requests
+     */
+    protected HttpServer getHttpServer() {
+        return this.server;
+    }
+
+    /**
+     * Returns {@code true} if the {@link JarvisServer} is started, {@code false} otherwise.
+     *
+     * @return {@code true} if the {@link JarvisServer} is started, {@code false} otherwise
+     */
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    /**
      * Starts the underlying {@link HttpServer}.
      * <p>
      * This method registered a shutdown hook that is used to close the {@link HttpServer} when the application
@@ -108,10 +136,13 @@ public class JarvisServer {
         } catch (IOException e) {
             throw new JarvisException("Cannot start the JarvisServer", e);
         }
+        isStarted = true;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             server.shutdown(5, TimeUnit.SECONDS);
+            isStarted = false;
         }));
-        Log.info("JarvisServer started, listening on localhost:{0}", portNumber);
+        Log.info("JarvisServer started, listening on {0}:{1}", server.getInetAddress().toString(), server
+                .getLocalPort());
     }
 
     /**
@@ -119,7 +150,12 @@ public class JarvisServer {
      */
     public void stop() {
         Log.info("Stopping JarvisServer");
+        if (!isStarted) {
+            throw new JarvisException(MessageFormat.format("Cannot stop the %s, the server is not started", this
+                    .getClass().getSimpleName()));
+        }
         server.shutdown(5, TimeUnit.SECONDS);
+        isStarted = false;
     }
 
     /**
@@ -130,11 +166,14 @@ public class JarvisServer {
      * the request content that will be used to create the associated {@link fr.zelus.jarvis.intent.EventInstance}.
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to register
+     * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
      * @see #notifyWebhookEventProviders(String, Object)
      * @see WebhookEventProvider#acceptContentType(String)
      * @see WebhookEventProvider#handleContent(Object)
      */
     public void registerWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
+        checkNotNull(webhookEventProvider, "Cannot register the provided %s: %s", WebhookEventProvider.class
+                .getSimpleName(), webhookEventProvider);
         this.webhookEventProviders.add(webhookEventProvider);
     }
 
@@ -145,9 +184,21 @@ public class JarvisServer {
      * used to create {@link fr.zelus.jarvis.intent.EventInstance}s.
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to unregister
+     * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
      */
     public void unregisterWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
+        checkNotNull(webhookEventProvider, "Cannot unregister the provided %s: %s", WebhookEventProvider.class
+                .getSimpleName(), webhookEventProvider);
         this.webhookEventProviders.remove(webhookEventProvider);
+    }
+
+    /**
+     * Returns an unmodifiable {@link Collection} containing the registered {@link WebhookEventProvider}s.
+     *
+     * @return an unmodifiable {@link Collection} containiong the registered {@link WebhookEventProvider}
+     */
+    public Collection<WebhookEventProvider> getRegisteredWebhookEventProviders() {
+        return Collections.unmodifiableSet(this.webhookEventProviders);
     }
 
     /**
