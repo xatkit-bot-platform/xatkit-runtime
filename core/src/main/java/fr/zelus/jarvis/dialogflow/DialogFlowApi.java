@@ -264,12 +264,11 @@ public class DialogFlowApi {
     public void registerIntentDefinition(IntentDefinition intentDefinition) {
         if (isShutdown()) {
             throw new DialogFlowException(MessageFormat.format("Cannot register the Intent {0}, the DialogFlow API is" +
-                    " " +
-                    "shutdown", intentDefinition.getName()));
+                    " shutdown", intentDefinition.getName()));
         }
         checkNotNull(intentDefinition, "Cannot register the IntentDefinition null");
         checkNotNull(intentDefinition.getName(), "Cannot register the IntentDefinition with null as its name");
-        Log.info("Registering intent {0}", intentDefinition.getName());
+        Log.info("Registering DialogFlow intent {0}", intentDefinition.getName());
         List<String> trainingSentences = intentDefinition.getTrainingSentences();
         List<Intent.TrainingPhrase> dialogFlowTrainingPhrases = new ArrayList<>();
         for (String trainingSentence : trainingSentences) {
