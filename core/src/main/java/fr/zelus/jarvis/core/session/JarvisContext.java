@@ -66,6 +66,7 @@ public class JarvisContext {
     public void setContextValue(String context, String key, Object value) {
         checkNotNull(context, "Cannot set the value to the context null");
         checkNotNull(key, "Cannot set the value to the context %s with the key null", context);
+        Log.info("Setting context variable {0}.{1} to {2}", context, key, value);
         if (contexts.containsKey(context)) {
             Map<String, Object> contextValues = contexts.get(context);
             contextValues.put(key, value);
