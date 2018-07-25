@@ -1,5 +1,8 @@
 package fr.zelus.jarvis.core.session;
 
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
+
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
@@ -25,15 +28,33 @@ public class JarvisSession {
     private JarvisContext jarvisContext;
 
     /**
-     * Constructs a new, empty {@link JarvisSession} with the provided {@code sessionID}.
+     * Constructs a new, empty {@link JarvisSession} with the provided {@code sessionId}.
+     * See {@link #JarvisSession(String, Configuration)} to construct a {@link JarvisSession} with a given
+     * {@link Configuration}.
      *
      * @param sessionId the unique identifier of the {@link JarvisSession}
-     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
     public JarvisSession(String sessionId) {
-        checkNotNull(sessionId, "Cannot construct a %s with the session ID null", JarvisSession.class.getSimpleName());
+        this(sessionId, new BaseConfiguration());
+    }
+
+    /**
+     * Constructs a new, empty {@link JarvisSession} with the provided {@code sessionId} and {@code configuration}.
+     * <p>
+     * This constructor forwards the provided {@link Configuration} to the underlying {@link JarvisContext} and can
+     * be used to customize {@link JarvisContext} properties.
+     *
+     * @param sessionId     the unique identifier of the {@link JarvisSession}
+     * @param configuration the {@link Configuration} parameterizing the {@link JarvisSession}
+     * @throws NullPointerException if the provided {@code sessionId} or {@code configuration} is {@code null}
+     */
+    public JarvisSession(String sessionId, Configuration configuration) {
+        checkNotNull(sessionId, "Cannot construct a %s with the session Id %s", JarvisSession.class.getSimpleName(),
+                sessionId);
+        checkNotNull(configuration, "Cannot construct a %s with the provided %s: %s", JarvisSession.class
+                .getSimpleName(), Configuration.class.getSimpleName(), configuration);
         this.sessionId = sessionId;
-        this.jarvisContext = new JarvisContext();
+        this.jarvisContext = new JarvisContext(configuration);
     }
 
     /**

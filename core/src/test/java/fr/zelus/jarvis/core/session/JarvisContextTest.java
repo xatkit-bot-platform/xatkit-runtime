@@ -1,7 +1,10 @@
 package fr.zelus.jarvis.core.session;
 
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
 
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -15,11 +18,31 @@ public class JarvisContextTest {
 
     private JarvisContext context;
 
+    @Test(expected = NullPointerException.class)
+    public void constructNullConfiguration() {
+        context = new JarvisContext(null);
+    }
+
+    @Test
+    public void constructEmptyConfiguration() {
+        context = new JarvisContext(new BaseConfiguration());
+        checkJarvisContext(context);
+        assertThat(context.getVariableTimeout()).as("Default variable timeout value").isEqualTo(2);
+    }
+
+    @Test
+    public void constructValidConfiguration() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 10);
+        context = new JarvisContext(configuration);
+        checkJarvisContext(context);
+        assertThat(context.getVariableTimeout()).as("Valid variable timeout value").isEqualTo(10);
+    }
+
     @Test
     public void constructValidContext() {
         context = new JarvisContext();
-        assertThat(context.getContextMap()).as("Not null context map").isNotNull();
-        assertThat(context.getContextMap()).as("Empty context map").isEmpty();
+        checkJarvisContext(context);
     }
 
     @Test(expected = NullPointerException.class)
@@ -199,7 +222,7 @@ public class JarvisContextTest {
     }
 
     @Test
-    public void fillContextValueSlowFuture() throws InterruptedException, ExecutionException {
+    public void fillContextValueSlowFuture() {
         context = new JarvisContext();
         Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
             synchronized (this) {
@@ -217,6 +240,38 @@ public class JarvisContextTest {
                 (CancellationException.class);
         assertThat(result).as("Not replaced future variable").isEqualTo("This is a boolean value: <Task took too long" +
                 " to complete>");
+    }
+
+    @Test
+    public void fillContextValueSlowFutureCustomVariableTimeout() throws InterruptedException, ExecutionException {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 5);
+        context = new JarvisContext(configuration);
+        Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
+            synchronized (this) {
+                try {
+                    wait(4000);
+                    return false;
+                } catch(InterruptedException e) {
+                    return true;
+                }
+            }
+        });
+        context.setContextValue("context", "key", future);
+        String result = context.fillContextValues("This is a boolean value: {$context.key}");
+        /*
+         * This should not throw an exception: the task should not be cancelled according to the provided variable
+         * timeout value.
+         */
+        Boolean futureValue = future.get();
+        assertThat(result).as("Replaced future variable").isEqualTo(MessageFormat.format("This is a boolean value: " +
+                "{0}", futureValue));
+
+    }
+
+    private void checkJarvisContext(JarvisContext context) {
+        assertThat(context.getContextMap()).as("Not null context map").isNotNull();
+        assertThat(context.getContextMap()).as("Empty context map").isEmpty();
     }
 
     private void checkContextMap(JarvisContext context, String expectedContext, String expectedKey, Object

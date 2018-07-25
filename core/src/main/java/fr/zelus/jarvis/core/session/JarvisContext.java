@@ -3,6 +3,8 @@ package fr.zelus.jarvis.core.session;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.io.EventProvider;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -34,6 +36,16 @@ import static java.util.Objects.nonNull;
 public class JarvisContext {
 
     /**
+     * The {@link Configuration} key to store maximum time to spend waiting for a context variable (in seconds).
+     */
+    public static String VARIABLE_TIMEOUT_KEY = "jarvis.context.variable.timeout";
+
+    /**
+     * The default amount of time to spend waiting for a context variable (in seconds).
+     */
+    private static int DEFAULT_VARIABLE_TIMEOUT_KEY = 2;
+
+    /**
      * The sub-contexts associated to this class.
      * <p>
      * Sub-contexts are used to characterize the variables stored in the global context. As an example, a sub-context
@@ -42,10 +54,58 @@ public class JarvisContext {
     private Map<String, Map<String, Object>> contexts;
 
     /**
+     * The amount of time to spend waiting for a context variable (in seconds).
+     * <p>
+     * This attribute is equals to {@link #DEFAULT_VARIABLE_TIMEOUT_KEY} unless a specific value is provided in this
+     * class' {@link Configuration} constructor parameter
+     *
+     * @see #JarvisContext(Configuration)
+     */
+    private int variableTimeout;
+
+    /**
      * Constructs a new empty {@link JarvisContext}.
+     * <p>
+     * See {@link #JarvisContext(Configuration)} to construct a {@link JarvisContext} with a given
+     * {@link Configuration}.
+     *
+     * @see #JarvisContext(Configuration)
      */
     public JarvisContext() {
+        this(new BaseConfiguration());
+    }
+
+    /**
+     * Constructs a new empty {@link JarvisContext} with the given {@code configuration}.
+     * <p>
+     * The provided {@link Configuration} contains information to customize the {@link JarvisContext} behavior, such
+     * as the {@code timeout} to retrieve {@link Future} variables.
+     *
+     * @param configuration the {@link Configuration} parameterizing the {@link JarvisContext}
+     * @throws NullPointerException if the provided {@code configuration} is {@code null}
+     */
+    public JarvisContext(Configuration configuration) {
+        checkNotNull(configuration, "Cannot construct a %s from the provided %s: %s", JarvisContext.class
+                .getSimpleName(), Configuration.class.getSimpleName(), configuration);
         this.contexts = new HashMap<>();
+        if (configuration.containsKey(VARIABLE_TIMEOUT_KEY)) {
+            this.variableTimeout = configuration.getInt(VARIABLE_TIMEOUT_KEY);
+            Log.info("Setting context variable timeout to {0}s", variableTimeout);
+        } else {
+            this.variableTimeout = DEFAULT_VARIABLE_TIMEOUT_KEY;
+            Log.info("Using default context variable timeout ({0}s)", DEFAULT_VARIABLE_TIMEOUT_KEY);
+        }
+    }
+
+    /**
+     * Returns the amount of time the {@link JarvisContext} can spend waiting for a context variable (in seconds).
+     * <p>
+     * This value can be set in this class' {@link Configuration} constructor parameter.
+     *
+     * @return the amount of time the {@link JarvisContext} can spend waiting for a context variable (in seconds)
+     */
+    public int getVariableTimeout() {
+        return variableTimeout;
     }
 
     /**
@@ -171,10 +231,7 @@ public class JarvisContext {
                         String printedValue = null;
                         if (value instanceof Future) {
                             try {
-                                /*
-                                 * The timeout should be configurable (see #93)
-                                 */
-                                printedValue = ((Future) value).get(2, TimeUnit.SECONDS).toString();
+                                printedValue = ((Future) value).get(variableTimeout, TimeUnit.SECONDS).toString();
                                 Log.info("Found value {0} for {1}.{2}", printedValue, splitGroup[0],
                                         variableIdentifier);
                             } catch (InterruptedException | ExecutionException e) {
@@ -182,7 +239,7 @@ public class JarvisContext {
                                         "value of the variable {0}", variableIdentifier);
                                 Log.error(errorMessage);
                                 throw new JarvisException(e);
-                            } catch(TimeoutException e) {
+                            } catch (TimeoutException e) {
                                 /*
                                  * The Future takes too long to compute, return a placeholder (see https://github
                                  * .com/gdaniel/jarvis/wiki/Troubleshooting#my-bot-sends-task-takes-too-long-to
@@ -192,7 +249,7 @@ public class JarvisContext {
                                         " a placeholder", splitGroup[0], variableIdentifier);
                                 ((Future) value).cancel(true);
                                 printedValue = "<Task took too long to complete>";
-                            } catch(CancellationException e) {
+                            } catch (CancellationException e) {
                                 Log.error("Cannot retrieve the value for {0}.{1}: the task has been cancelled, " +
                                         "returning a placeholder", splitGroup[0], variableIdentifier);
                                 printedValue = "<Task has been cancelled>";

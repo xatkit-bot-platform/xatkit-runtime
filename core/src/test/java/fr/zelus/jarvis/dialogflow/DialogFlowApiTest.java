@@ -2,6 +2,7 @@ package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
@@ -257,12 +258,18 @@ public class DialogFlowApiTest {
     public void createSessionValidApi() {
         api = getValidDialogFlowApi();
         JarvisSession session = api.createSession("sessionID");
-        assertThat(session).as("Not null session").isNotNull();
-        assertThat(session).as("The session is a DialogFlowSession instance").isInstanceOf(DialogFlowSession.class);
-        DialogFlowSession dialogFlowSession = (DialogFlowSession) session;
-        assertThat(dialogFlowSession.getSessionName()).as("Not null SessionName").isNotNull();
-        assertThat(dialogFlowSession.getSessionName().getProject()).as("Valid session project").isEqualTo
-                (VALID_PROJECT_ID);
+        checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
+    }
+
+    @Test
+    public void createSessionWithContextProperty() {
+        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 10);
+        api = new DialogFlowApi(jarvisCore, configuration);
+        JarvisSession session = api.createSession("sessionID");
+        checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
+        softly.assertThat(session.getJarvisContext().getVariableTimeout()).as("Valid JarvisContext variable timeout")
+                .isEqualTo(10);
     }
 
     @Test(expected = DialogFlowException.class)
@@ -331,6 +338,17 @@ public class DialogFlowApiTest {
         assertThat(intent.getDefinition()).as("IntentDefinition is not null").isNotNull();
         assertThat(intent.getDefinition().getName()).as("IntentDefinition is the Default Fallback Intent").isEqualTo
                 ("Default Fallback Intent");
+    }
+
+    private void checkDialogFlowSession(JarvisSession session, String expectedProjectId, String expectedSessionId) {
+        assertThat(session).as("Not null session").isNotNull();
+        assertThat(session).as("The session is a DialogFlowSession instance").isInstanceOf(DialogFlowSession.class);
+        DialogFlowSession dialogFlowSession = (DialogFlowSession) session;
+        assertThat(dialogFlowSession.getSessionName()).as("Not null SessionName").isNotNull();
+        softly.assertThat(dialogFlowSession.getSessionName().getProject()).as("Valid session project").isEqualTo
+                (expectedProjectId);
+        softly.assertThat(dialogFlowSession.getSessionName().getSession()).as("Valid session name").isEqualTo
+                (expectedSessionId);
     }
 
 }

@@ -73,6 +73,14 @@ public class DialogFlowApi {
     private JarvisCore jarvisCore;
 
     /**
+     * The {@link Configuration} used to initialize this class.
+     * <p>
+     * This {@link Configuration} is used to retrieve the underlying DialogFlow project identifier, language, and
+     * customize {@link JarvisSession} and {@link fr.zelus.jarvis.core.session.JarvisContext}s.
+     */
+    private Configuration configuration;
+
+    /**
      * The unique identifier of the DialogFlow project.
      */
     private String projectId;
@@ -161,6 +169,7 @@ public class DialogFlowApi {
         try {
             Log.info("Starting DialogFlow Client");
             this.jarvisCore = jarvisCore;
+            this.configuration = configuration;
             this.projectId = configuration.getString(PROJECT_ID_KEY);
             checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
             this.languageCode = configuration.getString(LANGUAGE_CODE_KEY);
@@ -459,6 +468,9 @@ public class DialogFlowApi {
      * <p>
      * The created session wraps the internal DialogFlow session that is used on the DialogFlow project to retrieve
      * conversation parts from a given user.
+     * <p>
+     * The returned {@link JarvisSession} is configured by the global {@link Configuration} provided in
+     * {@link #DialogFlowApi(JarvisCore, Configuration)}.
      *
      * @param sessionId the identifier to create a session for
      * @return a new {@link JarvisSession} for the provided {@code userId}
@@ -470,7 +482,7 @@ public class DialogFlowApi {
         }
         SessionName sessionName = SessionName.of(projectId, sessionId);
         Log.info("New session created with path {0}", sessionName.toString());
-        return new DialogFlowSession(sessionName);
+        return new DialogFlowSession(sessionName, configuration);
     }
 
     /**
