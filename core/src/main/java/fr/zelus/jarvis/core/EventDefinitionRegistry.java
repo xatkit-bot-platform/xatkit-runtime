@@ -28,7 +28,7 @@ public class EventDefinitionRegistry {
     }
 
     /**
-     * Registers the provided {@code eventDefinition} using its {@code name}.
+     * Registers the provided {@code eventDefinition}.
      *
      * @param eventDefinition the {@link EventDefinition} to register
      */
@@ -38,6 +38,15 @@ public class EventDefinitionRegistry {
             Log.warn("Another EventDefinition is stored with the key {0}, overriding it", adaptedName);
         }
         this.eventDefinitionMap.put(adaptedName, eventDefinition);
+    }
+
+    /**
+     * Unregisters the provided {@code eventDefinition}.
+     * @param eventDefinition the {@link EventDefinition} to unregister
+     */
+    public void unregisterEventDefinition(EventDefinition eventDefinition) {
+        String adaptedName = adaptEventName(eventDefinition.getName());
+        this.eventDefinitionMap.remove(adaptedName);
     }
 
     /**
