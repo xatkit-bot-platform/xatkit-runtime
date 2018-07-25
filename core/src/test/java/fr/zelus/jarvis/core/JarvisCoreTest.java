@@ -1,11 +1,9 @@
 package fr.zelus.jarvis.core;
 
+import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
-import fr.zelus.jarvis.intent.EventDefinition;
-import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.intent.IntentFactory;
+import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.module.*;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
@@ -29,6 +27,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.UUID;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -306,6 +305,67 @@ public class JarvisCoreTest {
          */
         Thread.sleep(1000);
         softly.assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action processed").isTrue();
+    }
+
+    @Test
+    public void handleEventMultiOutputContext() {
+        /*
+         * Create the EventDefinition
+         */
+        String trainingSentence = "I love the monkey head";
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        intentDefinition.setName(UUID.randomUUID().toString());
+        intentDefinition.getTrainingSentences().add(trainingSentence);
+        Context outContext1 = IntentFactory.eINSTANCE.createContext();
+        outContext1.setName("Context1");
+        ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
+        contextParameter1.setName("Parameter1");
+        contextParameter1.setEntityType("@sys.any");
+        contextParameter1.setTextFragment("love");
+        outContext1.getParameters().add(contextParameter1);
+        Context outContext2 = IntentFactory.eINSTANCE.createContext();
+        outContext2.setName("Context2");
+        ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
+        contextParameter2.setName("Parameter2");
+        contextParameter2.setEntityType("@sys.any");
+        contextParameter2.setTextFragment("monkey");
+        outContext2.getParameters().add(contextParameter2);
+        intentDefinition.getOutContexts().add(outContext1);
+        intentDefinition.getOutContexts().add(outContext2);
+        /*
+         * Create the EventInstance
+         */
+        EventInstance instance = IntentFactory.eINSTANCE.createEventInstance();
+        instance.setDefinition(intentDefinition);
+        ContextParameterValue value1 = IntentFactory.eINSTANCE.createContextParameterValue();
+        value1.setContextParameter(contextParameter1);
+        value1.setValue("love");
+        instance.getOutContextValues().add(value1);
+        ContextParameterValue value2 = IntentFactory.eINSTANCE.createContextParameterValue();
+        value2.setContextParameter(contextParameter2);
+        value2.setValue("monkey");
+        instance.getOutContextValues().add(value2);
+        jarvisCore = getValidJarvisCore();
+        JarvisSession session = new JarvisSession(UUID.randomUUID().toString());
+        /*
+         * Should not trigger any action, the EventDefinition is not registered in the orchestration model.
+         */
+        jarvisCore.handleEvent(instance, session);
+        JarvisContext context = session.getJarvisContext();
+        assertThat(context.getContextVariables("Context1")).as("Not null Context1 variable map").isNotNull();
+        assertThat(context.getContextVariables("Context1").keySet()).as("Context1 variable map contains a single variable")
+                .hasSize(1);
+        assertThat(context.getContextValue("Context1", "Parameter1")).as("Not null Context1.Parameter1 value")
+                .isNotNull();
+        assertThat(context.getContextValue("Context1", "Parameter1")).as("Valid Context1.Parameter1 value").isEqualTo
+                ("love");
+        assertThat(context.getContextVariables("Context2")).as("Not null Context2 variable map").isNotNull();
+        assertThat(context.getContextVariables("Context2").keySet()).as("Context2 variable map contains a single variable")
+                .hasSize(1);
+        assertThat(context.getContextValue("Context2", "Parameter2")).as("Not null Context2.Parameter2 value")
+                .isNotNull();
+        assertThat(context.getContextValue("Context2", "Parameter2")).as("Valid Context2.Parameter2 value").isEqualTo
+                ("monkey");
     }
 
     @Test

@@ -50,7 +50,7 @@ IntentDefinition returns intent::IntentDefinition:
 			trainingSentences+=EString (trainingSentences+=EString)*
 		'}'
 		(inContexts+=InContextDefinition)*
-		(outContexts+=OutContextDefinition)?
+		(outContexts+=OutContextDefinition)*
 	'}'
 	;
 

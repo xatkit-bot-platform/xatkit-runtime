@@ -4,9 +4,7 @@ import com.google.cloud.dialogflow.v2.Intent;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.intent.RecognizedIntent;
+import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.InputProviderDefinition;
 import fr.zelus.jarvis.module.Module;
@@ -27,6 +25,7 @@ import java.util.UUID;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.fail;
 
 public class DialogFlowApiTest {
 
@@ -92,6 +91,7 @@ public class DialogFlowApiTest {
     public void tearDown() {
         if (nonNull(registeredIntentDefinition)) {
             api.deleteIntentDefinition(registeredIntentDefinition);
+            jarvisCore.getEventDefinitionRegistry().unregisterEventDefinition(registeredIntentDefinition);
         }
         /*
          * Reset the variable value to null to avoid unnecessary deletion calls.
@@ -338,6 +338,98 @@ public class DialogFlowApiTest {
         assertThat(intent.getDefinition()).as("IntentDefinition is not null").isNotNull();
         assertThat(intent.getDefinition().getName()).as("IntentDefinition is the Default Fallback Intent").isEqualTo
                 ("Default Fallback Intent");
+    }
+
+    @Test
+    public void getIntentMultipleOutputContextNoParameters() {
+        String trainingSentence = "I love the monkey head";
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        intentDefinition.setName(UUID.randomUUID().toString());
+        intentDefinition.getTrainingSentences().add(trainingSentence);
+        Context outContext1 = IntentFactory.eINSTANCE.createContext();
+        outContext1.setName("Context1");
+        Context outContext2 = IntentFactory.eINSTANCE.createContext();
+        outContext2.setName("Context2");
+        intentDefinition.getOutContexts().add(outContext1);
+        intentDefinition.getOutContexts().add(outContext2);
+        api = getValidDialogFlowApi();
+        api.registerIntentDefinition(intentDefinition);
+        api.trainMLEngine();
+        jarvisCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
+        registeredIntentDefinition = intentDefinition;
+        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
+        assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
+        assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
+        softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
+                (intentDefinition.getName());
+        assertThat(recognizedIntent.getOutContextValues()).as("Empty out context values").isEmpty();
+    }
+
+    @Test
+    public void getIntentMultipleOutputContextParameters() {
+        String trainingSentence = "I love the monkey head";
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        intentDefinition.setName(UUID.randomUUID().toString());
+        intentDefinition.getTrainingSentences().add(trainingSentence);
+        Context outContext1 = IntentFactory.eINSTANCE.createContext();
+        outContext1.setName("Context1");
+        ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
+        contextParameter1.setName("Parameter1");
+        contextParameter1.setEntityType("@sys.any");
+        contextParameter1.setTextFragment("love");
+        outContext1.getParameters().add(contextParameter1);
+        Context outContext2 = IntentFactory.eINSTANCE.createContext();
+        outContext2.setName("Context2");
+        ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
+        contextParameter2.setName("Parameter2");
+        contextParameter2.setEntityType("@sys.any");
+        contextParameter2.setTextFragment("monkey");
+        outContext2.getParameters().add(contextParameter2);
+        intentDefinition.getOutContexts().add(outContext1);
+        intentDefinition.getOutContexts().add(outContext2);
+        api = getValidDialogFlowApi();
+        api.registerIntentDefinition(intentDefinition);
+        api.trainMLEngine();
+        jarvisCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
+        registeredIntentDefinition = intentDefinition;
+        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
+        assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
+        assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
+        softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
+                (intentDefinition.getName());
+        assertThat(recognizedIntent.getOutContextValues()).as("Valid out context value list size").hasSize(2);
+        ContextParameterValue value1 = recognizedIntent.getOutContextValues().get(0);
+        assertThat(value1).as("Not null ContextParameterValue1").isNotNull();
+        assertThat(value1.getContextParameter()).as("Not null ContextParameter1").isNotNull();
+        /*
+         * The order is not known, relies on the DialogFlow API
+         */
+        if(value1.getContextParameter().getName().equals(contextParameter1.getName())) {
+            checkContextParameterValue(value1, contextParameter1, "love");
+        } else if(value1.getContextParameter().getName().equals(contextParameter2.getName())) {
+            checkContextParameterValue(value1, contextParameter2, "monkey");
+        } else {
+            fail("ContextParameterValue1 doesn't match ContextParameter1 or ContextParameter2");
+        }
+        ContextParameterValue value2 = recognizedIntent.getOutContextValues().get(1);
+        assertThat(value2).as("Not null ContextParameterValue2").isNotNull();
+        assertThat(value2.getContextParameter()).as("Not null ContextParameter2").isNotNull();
+        if(value2.getContextParameter().getName().equals(contextParameter1.getName())) {
+            checkContextParameterValue(value2, contextParameter1, "love");
+        } else if(value2.getContextParameter().getName().equals(contextParameter2.getName())) {
+            checkContextParameterValue(value2, contextParameter2, "monkey");
+        } else {
+            fail("ContextParameterValue2 doesn't match ContextParameter1 or ContextParameter2");
+        }
+    }
+
+    private void checkContextParameterValue(ContextParameterValue value, ContextParameter expectedParameter, String
+            expectedValue) {
+        softly.assertThat(value.getContextParameter().getName()).as("Valid ContextParameter").isEqualTo
+                (expectedParameter.getName());
+        softly.assertThat(value.getValue()).as("Valid ContextParameterValue1").isEqualTo(expectedValue);
     }
 
     private void checkDialogFlowSession(JarvisSession session, String expectedProjectId, String expectedSessionId) {
