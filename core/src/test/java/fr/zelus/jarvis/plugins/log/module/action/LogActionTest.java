@@ -17,7 +17,7 @@ public abstract class LogActionTest<T extends LogAction> {
 
     protected static String VALID_MESSAGE = "test";
 
-    private ListAppender listAppender;
+    protected ListAppender listAppender;
 
     protected LogModule logModule;
 

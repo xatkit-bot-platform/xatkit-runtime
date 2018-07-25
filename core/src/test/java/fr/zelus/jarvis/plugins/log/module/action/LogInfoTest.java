@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.plugins.log.module.action;
 
+import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
 
 public class LogInfoTest extends LogActionTest {
@@ -8,7 +9,17 @@ public class LogInfoTest extends LogActionTest {
 
     @Override
     protected LogAction createLogAction(String message) {
-        return new LogInfo(logModule, new JarvisSession("id"), message);
+        LogAction action = new LogInfo(logModule, new JarvisSession("id"), message);
+        /*
+         * Clear the appender if the action initialization generated logs.
+         */
+        try {
+            Thread.sleep(200);
+        } catch(InterruptedException e) {
+            Log.error("An error occurred while waiting for new logged messages");
+        }
+        listAppender.clear();
+        return action;
     }
 
     @Override
