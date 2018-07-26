@@ -312,7 +312,7 @@ public class JarvisCoreTest {
         /*
          * Create the EventDefinition
          */
-        String trainingSentence = "I love the monkey head";
+        String trainingSentence = "how do you turn this on";
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         intentDefinition.setName(UUID.randomUUID().toString());
         intentDefinition.getTrainingSentences().add(trainingSentence);
@@ -321,14 +321,14 @@ public class JarvisCoreTest {
         ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter1.setName("Parameter1");
         contextParameter1.setEntityType("@sys.any");
-        contextParameter1.setTextFragment("love");
+        contextParameter1.setTextFragment("you");
         outContext1.getParameters().add(contextParameter1);
         Context outContext2 = IntentFactory.eINSTANCE.createContext();
         outContext2.setName("Context2");
         ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter2.setName("Parameter2");
         contextParameter2.setEntityType("@sys.any");
-        contextParameter2.setTextFragment("monkey");
+        contextParameter2.setTextFragment("this");
         outContext2.getParameters().add(contextParameter2);
         intentDefinition.getOutContexts().add(outContext1);
         intentDefinition.getOutContexts().add(outContext2);
@@ -358,14 +358,14 @@ public class JarvisCoreTest {
         assertThat(context.getContextValue("Context1", "Parameter1")).as("Not null Context1.Parameter1 value")
                 .isNotNull();
         assertThat(context.getContextValue("Context1", "Parameter1")).as("Valid Context1.Parameter1 value").isEqualTo
-                ("love");
+                ("you");
         assertThat(context.getContextVariables("Context2")).as("Not null Context2 variable map").isNotNull();
         assertThat(context.getContextVariables("Context2").keySet()).as("Context2 variable map contains a single variable")
                 .hasSize(1);
         assertThat(context.getContextValue("Context2", "Parameter2")).as("Not null Context2.Parameter2 value")
                 .isNotNull();
         assertThat(context.getContextValue("Context2", "Parameter2")).as("Valid Context2.Parameter2 value").isEqualTo
-                ("monkey");
+                ("turn");
     }
 
     @Test

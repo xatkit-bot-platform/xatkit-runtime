@@ -23,9 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.util.Objects.nonNull;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
 
 public class DialogFlowApiTest {
 
@@ -368,7 +366,12 @@ public class DialogFlowApiTest {
 
     @Test
     public void getIntentMultipleOutputContextParameters() {
-        String trainingSentence = "I love the monkey head";
+        /*
+         * Change the training sentence to avoid deleted intent definition matching (deleted intents can take some
+         * time to be completely removed from the DialogFlow Agent, see https://discuss.api
+         * .ai/t/intent-mismatch-issue/12042/17)
+         */
+        String trainingSentence = "cheese steak jimmy's";
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         intentDefinition.setName(UUID.randomUUID().toString());
         intentDefinition.getTrainingSentences().add(trainingSentence);
@@ -377,14 +380,14 @@ public class DialogFlowApiTest {
         ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter1.setName("Parameter1");
         contextParameter1.setEntityType("@sys.any");
-        contextParameter1.setTextFragment("love");
+        contextParameter1.setTextFragment("cheese");
         outContext1.getParameters().add(contextParameter1);
         Context outContext2 = IntentFactory.eINSTANCE.createContext();
         outContext2.setName("Context2");
         ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter2.setName("Parameter2");
         contextParameter2.setEntityType("@sys.any");
-        contextParameter2.setTextFragment("monkey");
+        contextParameter2.setTextFragment("steak");
         outContext2.getParameters().add(contextParameter2);
         intentDefinition.getOutContexts().add(outContext1);
         intentDefinition.getOutContexts().add(outContext2);
@@ -407,9 +410,9 @@ public class DialogFlowApiTest {
          * The order is not known, relies on the DialogFlow API
          */
         if(value1.getContextParameter().getName().equals(contextParameter1.getName())) {
-            checkContextParameterValue(value1, contextParameter1, "love");
+            checkContextParameterValue(value1, contextParameter1, "cheese");
         } else if(value1.getContextParameter().getName().equals(contextParameter2.getName())) {
-            checkContextParameterValue(value1, contextParameter2, "monkey");
+            checkContextParameterValue(value1, contextParameter2, "steak");
         } else {
             fail("ContextParameterValue1 doesn't match ContextParameter1 or ContextParameter2");
         }
@@ -417,9 +420,9 @@ public class DialogFlowApiTest {
         assertThat(value2).as("Not null ContextParameterValue2").isNotNull();
         assertThat(value2.getContextParameter()).as("Not null ContextParameter2").isNotNull();
         if(value2.getContextParameter().getName().equals(contextParameter1.getName())) {
-            checkContextParameterValue(value2, contextParameter1, "love");
+            checkContextParameterValue(value2, contextParameter1, "cheese");
         } else if(value2.getContextParameter().getName().equals(contextParameter2.getName())) {
-            checkContextParameterValue(value2, contextParameter2, "monkey");
+            checkContextParameterValue(value2, contextParameter2, "steak");
         } else {
             fail("ContextParameterValue2 doesn't match ContextParameter1 or ContextParameter2");
         }
