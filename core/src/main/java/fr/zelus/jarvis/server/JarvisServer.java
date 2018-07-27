@@ -80,7 +80,7 @@ public class JarvisServer {
     public JarvisServer(Configuration configuration) {
         checkNotNull(configuration, "Cannot start the %s with the provided %s: %s", this.getClass().getSimpleName
                 (), Configuration.class.getSimpleName(), configuration);
-        Log.info("Starting {0}", this.getClass().getSimpleName());
+        Log.info("Creating {0}", this.getClass().getSimpleName());
         this.isStarted = false;
         int portNumber;
         if (configuration.containsKey(SERVER_PORT_KEY)) {
@@ -131,6 +131,7 @@ public class JarvisServer {
      * terminates. To manually close the underlying {@link HttpServer} see {@link #stop()}.
      */
     public void start() {
+        Log.info("Starting {0}", this.getClass().getSimpleName());
         try {
             this.server.start();
         } catch (IOException e) {
