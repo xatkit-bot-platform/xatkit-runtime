@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
+import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
@@ -167,7 +168,7 @@ public class DialogFlowApiTest {
     public void registerIntentDefinitionValidIntentDefinition() {
         api = getValidDialogFlowApi();
         registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        String intentName = UUID.randomUUID().toString();
+        String intentName = "TestRegister";
         String trainingPhrase = "test";
         registeredIntentDefinition.setName(intentName);
         registeredIntentDefinition.getTrainingSentences().add(trainingPhrase);
@@ -201,7 +202,7 @@ public class DialogFlowApiTest {
     public void registerIntentDefinitionAlreadyRegistered() {
         api = getValidDialogFlowApi();
         registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        String intentName = UUID.randomUUID().toString();
+        String intentName = "TestAlreadyDefined";
         registeredIntentDefinition.setName(intentName);
         registeredIntentDefinition.getTrainingSentences().add("test");
         registeredIntentDefinition.getTrainingSentences().add("test jarvis");
@@ -225,7 +226,7 @@ public class DialogFlowApiTest {
     @Test
     public void deleteIntentDefinitionNotRegisteredIntent() {
         api = getValidDialogFlowApi();
-        String intentName = UUID.randomUUID().toString();
+        String intentName = "TestDeleteNotRegistered";
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         intentDefinition.setName(intentName);
         int registeredIntentsCount = api.getRegisteredIntents().size();
@@ -237,7 +238,7 @@ public class DialogFlowApiTest {
     @Test
     public void deleteIntentDefinitionRegisteredIntentDefinition() {
         api = getValidDialogFlowApi();
-        String intentName = UUID.randomUUID().toString();
+        String intentName = "TestDeleteRegistered";
         registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         registeredIntentDefinition.setName(intentName);
         api.registerIntentDefinition(registeredIntentDefinition);
@@ -342,7 +343,7 @@ public class DialogFlowApiTest {
     public void getIntentMultipleOutputContextNoParameters() {
         String trainingSentence = "I love the monkey head";
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        intentDefinition.setName(UUID.randomUUID().toString());
+        intentDefinition.setName("TestMonkeyHead");
         intentDefinition.getTrainingSentences().add(trainingSentence);
         Context outContext1 = IntentFactory.eINSTANCE.createContext();
         outContext1.setName("Context1");
@@ -351,10 +352,22 @@ public class DialogFlowApiTest {
         intentDefinition.getOutContexts().add(outContext1);
         intentDefinition.getOutContexts().add(outContext2);
         api = getValidDialogFlowApi();
-        api.registerIntentDefinition(intentDefinition);
+        try {
+            api.registerIntentDefinition(intentDefinition);
+        } catch(DialogFlowException e) {
+            /*
+             * The intent is already registered
+             */
+            Log.warn("The intent {0} is already registered", intentDefinition.getName());
+        }
         api.trainMLEngine();
         jarvisCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
-        registeredIntentDefinition = intentDefinition;
+        /*
+         * Setting this variable will delete the intent after execution. This should be done to ensure that the
+         * intents are well created, but it causes intent propagation issues on the DialogFlow side (see
+         * https://productforums.google.com/forum/m/#!category-topic/dialogflow/type-troubleshooting/UDokzc7mOcY)
+         */
+//        registeredIntentDefinition = intentDefinition;
         JarvisSession session = api.createSession(UUID.randomUUID().toString());
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
@@ -373,7 +386,7 @@ public class DialogFlowApiTest {
          */
         String trainingSentence = "cheese steak jimmy's";
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        intentDefinition.setName(UUID.randomUUID().toString());
+        intentDefinition.setName("TestCheeseSteakJimmys");
         intentDefinition.getTrainingSentences().add(trainingSentence);
         Context outContext1 = IntentFactory.eINSTANCE.createContext();
         outContext1.setName("Context1");
@@ -392,10 +405,19 @@ public class DialogFlowApiTest {
         intentDefinition.getOutContexts().add(outContext1);
         intentDefinition.getOutContexts().add(outContext2);
         api = getValidDialogFlowApi();
-        api.registerIntentDefinition(intentDefinition);
+        try {
+            api.registerIntentDefinition(intentDefinition);
+        } catch(DialogFlowException e) {
+            Log.warn("The intent {0} is already registered", intentDefinition.getName());
+        }
         api.trainMLEngine();
         jarvisCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
-        registeredIntentDefinition = intentDefinition;
+        /*
+         * Setting this variable will delete the intent after execution. This should be done to ensure that the
+         * intents are well created, but it causes intent propagation issues on the DialogFlow side (see
+         * https://productforums.google.com/forum/m/#!category-topic/dialogflow/type-troubleshooting/UDokzc7mOcY)
+         */
+//        registeredIntentDefinition = intentDefinition;
         JarvisSession session = api.createSession(UUID.randomUUID().toString());
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();

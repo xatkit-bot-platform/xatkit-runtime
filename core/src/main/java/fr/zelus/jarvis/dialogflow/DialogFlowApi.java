@@ -421,7 +421,7 @@ public class DialogFlowApi {
             if (intent.getDisplayName().equals(intentDefinition.getName())) {
                 Log.info("Deleting intent {0}", intentDefinition.getName());
                 intentsClient.deleteIntent(intent.getName());
-                Log.info("Intent {0} deleted", intentDefinition.getName());
+                Log.info("Intent {0} successfully deleted", intentDefinition.getName());
                 return;
             }
         }
