@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.plugins.discord.module.io;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.util.VariableLoaderHelper;
@@ -16,7 +17,7 @@ import java.util.List;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DiscordInputProviderTest {
+public class DiscordInputProviderTest extends AbstractJarvisTest {
 
     private DiscordInputProvider discordInputProvider;
 

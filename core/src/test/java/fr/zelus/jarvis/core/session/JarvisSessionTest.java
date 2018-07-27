@@ -1,12 +1,13 @@
 package fr.zelus.jarvis.core.session;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class JarvisSessionTest {
+public class JarvisSessionTest extends AbstractJarvisTest {
 
     private JarvisSession session;
 

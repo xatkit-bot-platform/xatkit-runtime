@@ -2,6 +2,7 @@ package fr.zelus.jarvis.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
@@ -26,7 +27,7 @@ import java.util.UUID;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.*;
 
-public class DialogFlowApiTest {
+public class DialogFlowApiTest extends AbstractJarvisTest {
 
     protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
 

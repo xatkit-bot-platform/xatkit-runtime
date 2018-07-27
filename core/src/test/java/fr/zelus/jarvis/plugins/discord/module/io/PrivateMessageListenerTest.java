@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.plugins.discord.module.io;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
@@ -19,7 +20,7 @@ import java.util.Map;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PrivateMessageListenerTest {
+public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     private StubJarvisCore stubJarvisCore;
 

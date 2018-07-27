@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.core.session;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
@@ -14,7 +15,7 @@ import java.util.concurrent.Future;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class JarvisContextTest {
+public class JarvisContextTest extends AbstractJarvisTest {
 
     private JarvisContext context;
 

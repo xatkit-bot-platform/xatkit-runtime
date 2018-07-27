@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.io;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.EventDefinitionRegistry;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.intent.*;
@@ -11,7 +12,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class EventInstanceBuilderTest {
+public class EventInstanceBuilderTest extends AbstractJarvisTest {
 
     private EventInstanceBuilder builder;
 

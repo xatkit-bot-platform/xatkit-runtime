@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.server;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
@@ -13,8 +14,7 @@ import org.junit.Test;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class JarvisServerTest {
-
+public class JarvisServerTest extends AbstractJarvisTest {
 
     private JarvisServer server;
 

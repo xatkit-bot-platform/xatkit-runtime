@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.plugins.log.module;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisAction;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
@@ -30,7 +31,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LogModuleTest {
+public class LogModuleTest extends AbstractJarvisTest {
 
     private LogModule logModule;
 

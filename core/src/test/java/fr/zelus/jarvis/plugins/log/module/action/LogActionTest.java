@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.plugins.log.module.action;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.plugins.log.module.LogModule;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.logging.log4j.LogManager;
@@ -13,7 +14,7 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class LogActionTest<T extends LogAction> {
+public abstract class LogActionTest<T extends LogAction> extends AbstractJarvisTest {
 
     protected static String VALID_MESSAGE = "test";
 

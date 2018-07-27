@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.core;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
@@ -32,7 +33,7 @@ import java.util.UUID;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class JarvisCoreTest {
+public class JarvisCoreTest extends AbstractJarvisTest {
 
     protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
 
