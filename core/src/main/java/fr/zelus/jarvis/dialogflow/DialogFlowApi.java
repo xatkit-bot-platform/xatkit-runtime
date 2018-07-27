@@ -1,7 +1,10 @@
 package fr.zelus.jarvis.dialogflow;
 
 import com.google.api.core.ApiFuture;
+import com.google.api.gax.core.CredentialsProvider;
+import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.FailedPreconditionException;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.v2.*;
 import com.google.cloud.dialogflow.v2.Context;
 import com.google.longrunning.Operation;
@@ -13,6 +16,8 @@ import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
 import org.apache.commons.configuration2.Configuration;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -52,6 +57,16 @@ public class DialogFlowApi {
     public static String LANGUAGE_CODE_KEY = "jarvis.dialogflow.language";
 
     /**
+     * The {@link Configuration} key to store the path of the {@code JSON} credential file for DialogFlow.
+     * <p>
+     * If this key is not set the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
+     * environment variable to retrieve the credentials file.
+     *
+     * @see #DialogFlowApi(JarvisCore, Configuration)
+     */
+    public static String GOOGLE_CREDENTIALS_PATH_KEY = "jarvis.dialogflow.credentials.path";
+
+    /**
      * The default language processed by DialogFlow.
      */
     public static String DEFAULT_LANGUAGE_CODE = "en-US";
@@ -70,6 +85,9 @@ public class DialogFlowApi {
         DEFAULT_FALLBACK_INTENT.setName("Default Fallback Intent");
     }
 
+    /**
+     * The containing {@link JarvisCore} instance.
+     */
     private JarvisCore jarvisCore;
 
     /**
@@ -156,6 +174,10 @@ public class DialogFlowApi {
      * </ul>
      * The value <b>jarvis.dialogflow.language</b> is not mandatory: if no language code is provided in the
      * {@link Configuration} the default one ({@link #DEFAULT_LANGUAGE_CODE} will be used.
+     * <p>
+     * The value <b>jarvis.dialogflow.credentials.path</b> is not mandatory either: if no credential path is provided
+     * in the {@link Configuration} the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
+     * environment variable to retrieve the credentials file.
      *
      * @param jarvisCore    the {@link JarvisCore} instance managing the {@link DialogFlowApi}
      * @param configuration the {@link Configuration} holding the DialogFlow project ID and language code
@@ -177,10 +199,39 @@ public class DialogFlowApi {
                 Log.warn("No language code provided, using the default one ({0})", DEFAULT_LANGUAGE_CODE);
                 languageCode = DEFAULT_LANGUAGE_CODE;
             }
-            this.sessionsClient = SessionsClient.create();
-            this.intentsClient = IntentsClient.create();
             this.projectAgentName = ProjectAgentName.of(projectId);
-            this.agentsClient = AgentsClient.create();
+            String credentialsPath = configuration.getString(GOOGLE_CREDENTIALS_PATH_KEY);
+            AgentsSettings agentsSettings;
+            IntentsSettings intentsSettings;
+            SessionsSettings sessionsSettings;
+            if (isNull(credentialsPath)) {
+                /*
+                 * No credentials provided, using the GOOGLE_APPLICATION_CREDENTIALS environment variable.
+                 */
+                Log.info("No credentials file provided, using GOOGLE_APPLICATION_CREDENTIALS environment variable");
+                agentsSettings = AgentsSettings.newBuilder().build();
+                intentsSettings = IntentsSettings.newBuilder().build();
+                sessionsSettings = SessionsSettings.newBuilder().build();
+            } else {
+                /*
+                 * A credential file path is provided in the configuration, use it to initialize the AgentsClient.
+                 */
+                Log.info("Using {0} credential file", credentialsPath);
+                CredentialsProvider credentialsProvider;
+                try {
+                    credentialsProvider = FixedCredentialsProvider.create(GoogleCredentials
+                            .fromStream(new FileInputStream(credentialsPath)));
+                } catch(FileNotFoundException e) {
+                    throw new DialogFlowException(MessageFormat.format("Cannot find the credentials file at {0}",
+                            credentialsPath), e);
+                }
+                agentsSettings = AgentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
+                intentsSettings = IntentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
+                sessionsSettings = SessionsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
+            }
+            this.agentsClient = AgentsClient.create(agentsSettings);
+            this.sessionsClient = SessionsClient.create(sessionsSettings);
+            this.intentsClient = IntentsClient.create(intentsSettings);
             this.projectName = ProjectName.of(projectId);
             this.intentFactory = IntentFactory.eINSTANCE;
         } catch (IOException e) {

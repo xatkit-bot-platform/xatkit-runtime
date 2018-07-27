@@ -13,5 +13,7 @@ notifications:
   slack:
     secure: QqhlM02gSId3ZYV6kG6DL2jmyNs/a1hxLGnpEFxG+VmXfjRgZ6Q39eUmC1smWJkQVJrKvuHwaIrouXEfdULwIw8XoMh8ps8CO8+DCSSu9Deg5ZRFBjyGEGIiwOqa6vPE2gHgC5odPsf5fUSF9veQwIPLbJP/svJ9PPPz2kb7G2yVYv1OjOVF00f7CevlP90zDJoLr/PshQ9UELtEjb+QFIskLeyBKoq0rQB1nJ8Aw2CvF165NCR6+heOb09OZyBb3nOyCTMmiAA3zFmq6Ddi0jim+EqKskgvnkOyZGLPK6QvbJqTNipx1+1CB+MMDh4y8j2oKQJ0kdLUAAfugdT8jwuDEDfKbfHmatEhv+9cjQh0y5LrP136AHZA2vuRCbr3klYXTdXtZXLi7DdluUkiUxoqEpsQb3dFBR5nKzZVWpruWWjj+7rsjoTEY7O6D4nx7wj8uZTdgxfY9z9HvU8lV7mUZluAbHg0TiKeqCHUuMPcBkq3dErq1FEWhUkLwv6qR1STxdKJVmkVxUh0RWLMgC5VITSg9KSLTNFukebv2eD73VXHoPL2BztHUIe36TJoprfDT0iu1G88LSvP9CV4LVttMVne4n2Strk1TZA5HUFCXdP+c74nROZ9vB5//ropvrkV9Bt2QJ5cJWWeHBsfHVhczo5fV9xZizKhaKem0lk=
 before_install:
+- openssl aes-256-cbc -K $encrypted_9b9010407ee6_key -iv $encrypted_9b9010407ee6_iv
+  -in jarvis-test2-secret.json.enc -out jarvis-test2-secret.json -d
 - openssl aes-256-cbc -K $encrypted_96afa04994a8_key -iv $encrypted_96afa04994a8_iv
   -in jarvis-secret.json.enc -out jarvis-secret.json -d

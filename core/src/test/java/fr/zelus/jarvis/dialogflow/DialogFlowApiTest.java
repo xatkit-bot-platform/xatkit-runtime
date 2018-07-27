@@ -152,6 +152,25 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
     }
 
+    @Test
+    public void constructCredentialsFilePath() {
+        Configuration configuration = buildConfiguration(VariableLoaderHelper.getJarvisTestDialogFlowProject(), null);
+        String credentialsFilePath = this.getClass().getClassLoader().getResource("jarvis-test2-secret.json").getFile();
+        configuration.addProperty(DialogFlowApi.GOOGLE_CREDENTIALS_PATH_KEY, credentialsFilePath);
+        api = new DialogFlowApi(jarvisCore, configuration);
+        /*
+         * Ensures that the underlying IntentsClient credentials are valid by listing the Agent intents.
+         */
+        Log.info("Listing DialogFlow intents to check permissions");
+        for(Intent registeredIntent : api.getRegisteredIntents()) {
+            Log.info("Found intent {0}", registeredIntent.getDisplayName());
+        }
+        /*
+         * Ensures that the underlying AgentsClient credentials are valid by training the Agent.
+         */
+        api.trainMLEngine();
+     }
+
     @Test(expected = NullPointerException.class)
     public void registerIntentDefinitionNullIntentDefinition() {
         api = getValidDialogFlowApi();
@@ -355,7 +374,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         api = getValidDialogFlowApi();
         try {
             api.registerIntentDefinition(intentDefinition);
-        } catch(DialogFlowException e) {
+        } catch (DialogFlowException e) {
             /*
              * The intent is already registered
              */
@@ -408,7 +427,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         api = getValidDialogFlowApi();
         try {
             api.registerIntentDefinition(intentDefinition);
-        } catch(DialogFlowException e) {
+        } catch (DialogFlowException e) {
             Log.warn("The intent {0} is already registered", intentDefinition.getName());
         }
         api.trainMLEngine();
@@ -432,9 +451,9 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         /*
          * The order is not known, relies on the DialogFlow API
          */
-        if(value1.getContextParameter().getName().equals(contextParameter1.getName())) {
+        if (value1.getContextParameter().getName().equals(contextParameter1.getName())) {
             checkContextParameterValue(value1, contextParameter1, "cheese");
-        } else if(value1.getContextParameter().getName().equals(contextParameter2.getName())) {
+        } else if (value1.getContextParameter().getName().equals(contextParameter2.getName())) {
             checkContextParameterValue(value1, contextParameter2, "steak");
         } else {
             fail("ContextParameterValue1 doesn't match ContextParameter1 or ContextParameter2");
@@ -442,9 +461,9 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         ContextParameterValue value2 = recognizedIntent.getOutContextValues().get(1);
         assertThat(value2).as("Not null ContextParameterValue2").isNotNull();
         assertThat(value2.getContextParameter()).as("Not null ContextParameter2").isNotNull();
-        if(value2.getContextParameter().getName().equals(contextParameter1.getName())) {
+        if (value2.getContextParameter().getName().equals(contextParameter1.getName())) {
             checkContextParameterValue(value2, contextParameter1, "cheese");
-        } else if(value2.getContextParameter().getName().equals(contextParameter2.getName())) {
+        } else if (value2.getContextParameter().getName().equals(contextParameter2.getName())) {
             checkContextParameterValue(value2, contextParameter2, "steak");
         } else {
             fail("ContextParameterValue2 doesn't match ContextParameter1 or ContextParameter2");
