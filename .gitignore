@@ -35,6 +35,7 @@ target
 # Google App
 jarvis-secret.json
 jarvis-test2-secret.json
+jarvis-secrets.tar
 gmail_secret.json
 credentials
 
