@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.intent.EventInstance;
 
 import java.text.MessageFormat;
 import java.util.concurrent.Callable;
@@ -39,10 +40,10 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
     /**
      * The name of the variable to use to store the result of the {@link #call()} method.
      * <p>
-     * The value of this attribute is used by {@link JarvisCore#handleMessage(String, JarvisSession)} to store the
+     * The value of this attribute is used by {@link JarvisCore#handleEvent(EventInstance, JarvisSession)} to store the
      * result of each {@link JarvisAction} in the variable defined in the provided orchestration model.
      *
-     * @see JarvisCore#handleMessage(String, JarvisSession)
+     * @see JarvisCore#handleEvent(EventInstance, JarvisSession)
      * @see #getReturnVariable()
      */
     protected String returnVariable;
@@ -55,10 +56,10 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
      * @throws NullPointerException if the provided {@code containingModule} or {@code session} is {@code null}
      */
     public JarvisAction(T containingModule, JarvisSession session) {
-        checkNotNull(containingModule, "Cannot construct a {0} with a null containing module", this.getClass()
-                .getSimpleName());
-        checkNotNull(session, "Cannot construct a %s with a null %s", this.getClass().getSimpleName(), JarvisSession
-                .class.getSimpleName());
+        checkNotNull(containingModule, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName
+                (), JarvisModule.class.getSimpleName(), containingModule);
+        checkNotNull(session, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName(),
+                JarvisSession.class.getSimpleName(), session);
         this.module = containingModule;
         this.session = session;
     }
@@ -70,11 +71,11 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
     /**
      * Return the name of the variable to use to store the result of the {@link #call()} method.
      * <p>
-     * This method is used by {@link JarvisCore#handleMessage(String, JarvisSession)} to store the result of each
+     * This method is used by {@link JarvisCore#handleEvent(EventInstance, JarvisSession)} to store the result of each
      * {@link JarvisAction} in the variable defined in the provided orchestration model.
      *
      * @return the name of the variable to use to store the result of the {@link #call()} method
-     * @see JarvisCore#handleMessage(String, JarvisSession)
+     * @see JarvisCore#handleEvent(EventInstance, JarvisSession)
      */
     public final String getReturnVariable() {
         return returnVariable;
