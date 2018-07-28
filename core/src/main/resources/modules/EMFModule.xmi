@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ASCII"?>
+<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="EMFModule" jarvisModulePath="fr.zelus.jarvis.plugins.emf.module.EMFModule">
+  <actions name="CreateResource">
+    <parameters key="uri" type="String"/>
+    <parameters key="content" type="List"/>
+  </actions>
+  <actions name="SaveResourceInFile">
+    <parameters key="resource" type="Resource"/>
+  </actions>
+</module:Module>
