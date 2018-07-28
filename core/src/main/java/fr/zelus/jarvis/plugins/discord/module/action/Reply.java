@@ -58,6 +58,7 @@ public class Reply extends PostMessage {
      * @param message          the message to post
      * @throws NullPointerException     if the provided {@code containingModule} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} is {@code null} or empty
+     * @see PostMessage#PostMessage(DiscordModule, JarvisSession, String, String)
      */
     public Reply(DiscordModule containingModule, JarvisSession session, String message) {
         super(containingModule, session, message, getChannel(session.getJarvisContext()));

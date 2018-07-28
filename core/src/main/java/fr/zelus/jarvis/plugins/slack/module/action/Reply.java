@@ -38,7 +38,7 @@ public class Reply extends PostMessage {
      * @throws IllegalArgumentException if the retrieved channel is not a {@link String}
      * @see JarvisSlackUtils
      */
-    private static String getChannel(JarvisContext context) {
+    public static String getChannel(JarvisContext context) {
         checkNotNull(context, "Cannot retrieve the channel from the provided %s %s", JarvisContext.class
                 .getSimpleName(), context);
         Object channelValue = context.getContextValue(JarvisSlackUtils.SLACK_CONTEXT_KEY, JarvisSlackUtils
@@ -58,6 +58,7 @@ public class Reply extends PostMessage {
      * @throws NullPointerException     if the provided {@code containingModule} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} is {@code null} or empty
      * @see #getChannel(JarvisContext)
+     * @see PostMessage#PostMessage(SlackModule, JarvisSession, String, String)
      */
     public Reply(SlackModule containingModule, JarvisSession session, String message) {
         super(containingModule, session, message, getChannel(session.getJarvisContext()));
