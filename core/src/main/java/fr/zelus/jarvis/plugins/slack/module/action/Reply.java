@@ -37,8 +37,8 @@ public class Reply extends PostMessage {
      * @see JarvisSlackUtils
      */
     private static String getChannel(JarvisContext context) {
-        checkNotNull(context, "Cannot retrieve the channel from the provided {0}: null", JarvisContext.class
-                .getSimpleName());
+        checkNotNull(context, "Cannot retrieve the channel from the provided %s %s", JarvisContext.class
+                .getSimpleName(), context);
         Object channelValue = context.getContextValue(JarvisSlackUtils.SLACK_CONTEXT_KEY, JarvisSlackUtils
                 .SLACK_CHANNEL_CONTEXT_KEY);
         checkNotNull(channelValue, "Cannot retrieve the Slack channel from the context");

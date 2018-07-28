@@ -30,7 +30,7 @@ public class PostMessage extends JarvisMessageAction<SlackModule> {
     /**
      * The Slack channel to post the message to.
      */
-    private String channel;
+    protected String channel;
 
     /**
      * Constructs a new {@link PostMessage} with the provided {@code containingModule}, {@code session}, {@code
@@ -46,8 +46,8 @@ public class PostMessage extends JarvisMessageAction<SlackModule> {
     public PostMessage(SlackModule containingModule, JarvisSession session, String message, String channel) {
         super(containingModule, session, message);
 
-        checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a {0} action with the provided " +
-                "channel {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), channel);
+        checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a %s action with the provided " +
+                "channel %s, expected a non-null and not empty String", this.getClass().getSimpleName(), channel);
         this.channel = channel;
     }
 
@@ -71,14 +71,12 @@ public class PostMessage extends JarvisMessageAction<SlackModule> {
         try {
             ChatPostMessageResponse response = module.getSlack().methods().chatPostMessage(request);
             if (response.isOk()) {
-                Log.trace("Message {0} successfully sent to the Slack API", request);
+                Log.trace("Request {0} successfully sent to the Slack API", request);
             } else {
-                Log.error("Cannot send the message {0} to the Slack API, received response {1}", request, response);
-            }
+                Log.error("An error occurred when processing the request {0}: received response {1}", request,
+                        response);            }
         } catch (IOException | SlackApiException e) {
-            String errorMessage = MessageFormat.format("Cannot send the message {0} to the Slack API", request);
-            Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            throw new JarvisException(MessageFormat.format("Cannot send the message {0} to the Slack API", request), e);
         }
         return null;
     }
