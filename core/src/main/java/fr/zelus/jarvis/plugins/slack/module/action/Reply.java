@@ -19,6 +19,8 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * <p>
  * <b>Note:</b> this class requires that its containing {@link SlackModule} has been loaded with a valid Slack bot API
  * token in order to authenticate the bot and post messages.
+ *
+ * @see PostMessage
  */
 public class Reply extends PostMessage {
 

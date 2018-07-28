@@ -48,6 +48,8 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
      * <p>
      * This method relies on the containing {@link DiscordModule}'s Discord {@link net.dv8tion.jda.core.JDA} client
      * to authenticate the bot and post the {@code message} to the given {@code channel}.
+     *
+     * @return {@code null}
      */
     @Override
     public Object call() {

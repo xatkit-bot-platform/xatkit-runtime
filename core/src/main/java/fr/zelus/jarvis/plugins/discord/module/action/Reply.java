@@ -20,6 +20,8 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * <p>
  * <b>Note:</b> this class requires that its containing {@link DiscordModule} has been loaded with a valid Discord
  * bot token in order to authenticate the bot and post messages.
+ *
+ * @see PostMessage
  */
 public class Reply extends PostMessage {
 
