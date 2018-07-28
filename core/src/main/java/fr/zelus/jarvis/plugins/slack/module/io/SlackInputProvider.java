@@ -2,7 +2,9 @@ package fr.zelus.jarvis.plugins.slack.module.io;
 
 import com.github.seratch.jslack.Slack;
 import com.github.seratch.jslack.api.methods.SlackApiException;
+import com.github.seratch.jslack.api.methods.request.auth.AuthTestRequest;
 import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
+import com.github.seratch.jslack.api.methods.response.auth.AuthTestResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.User;
 import com.github.seratch.jslack.api.rtm.RTMClient;
@@ -26,7 +28,6 @@ import java.text.MessageFormat;
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static fr.zelus.jarvis.plugins.slack.JarvisSlackUtils.*;
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -57,6 +58,14 @@ public class SlackInputProvider extends IntentProvider {
      * This token is used to authenticate the bot and receive messages through the RTM API.
      */
     private String slackToken;
+
+    /**
+     * The {@link String} representing the Slack bot identifier.
+     * <p>
+     * This identifier is used to check input message and filter the ones that are sent by this bot, in order to avoid
+     * infinite message loops.
+     */
+    private String botId;
 
     /**
      * The {@link RTMClient} managing the RTM connection to the Slack API.
@@ -95,7 +104,8 @@ public class SlackInputProvider extends IntentProvider {
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackInputProvider from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SLACK_TOKEN_KEY);
-        slack = new Slack();
+        this.slack = new Slack();
+        this.botId = getSelfId();
         try {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
@@ -118,24 +128,21 @@ public class SlackInputProvider extends IntentProvider {
                         }
                         if (json.get("type").getAsString().equals(MESSAGE_TYPE)) {
                             /*
-                             * The message has the MESSAGE_TYPE type, and can be processed as a user input
+                             * The message hasn't been sent by a bot
                              */
-                            if (isNull(json.get("bot_id"))) {
+                            JsonElement channelObject = json.get("channel");
+                            if (nonNull(channelObject)) {
                                 /*
-                                 * The message hasn't been sent by a bot
+                                 * The message channel is set
                                  */
-                                JsonElement channelObject = json.get("channel");
-                                if (nonNull(channelObject)) {
+                                String channel = channelObject.getAsString();
+                                JsonElement userObject = json.get("user");
+                                if (nonNull(userObject)) {
                                     /*
-                                     * The message channel is set
+                                     * The name of the user that sent the message
                                      */
-                                    String channel = channelObject.getAsString();
-                                    JsonElement userObject = json.get("user");
-                                    if (nonNull(userObject)) {
-                                        /*
-                                         * The name of the user that sent the message
-                                         */
-                                        String user = userObject.getAsString();
+                                    String user = userObject.getAsString();
+                                    if(!user.equals(this.botId)) {
                                         JsonElement textObject = json.get("text");
                                         if (nonNull(textObject)) {
                                             String text = textObject.getAsString();
@@ -159,14 +166,14 @@ public class SlackInputProvider extends IntentProvider {
                                             Log.warn("The message does not contain a \"text\" field, skipping it");
                                         }
                                     } else {
-                                        Log.warn("Skipping {0}, the message does not contain a \"user\" field",
-                                                json);
+                                        Log.trace("Skipping {0}, the message was sent by this bot", json);
                                     }
                                 } else {
-                                    Log.warn("Skipping {0}, the message does not contain a \"channel\" field", json);
+                                    Log.warn("Skipping {0}, the message does not contain a \"user\" field",
+                                            json);
                                 }
                             } else {
-                                Log.trace("Skipping {0}, the message has been sent by a bot", json);
+                                Log.warn("Skipping {0}, the message does not contain a \"channel\" field", json);
                             }
                         } else {
                             Log.trace("Skipping {0}, the message type is not \"{1}\"", json, MESSAGE_TYPE);
@@ -182,6 +189,24 @@ public class SlackInputProvider extends IntentProvider {
             String errorMessage = "Cannot start the Slack RTM websocket, please check your internet connection";
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
+        }
+    }
+
+    /**
+     * Returns the Slack bot identifier.
+     * <p>
+     * This identifier is used to check input message and filter the ones that are sent by this bot, in order to avoid
+     * infinite message loops.
+     *
+     * @return the Slack bot identifier
+     */
+    private String getSelfId() {
+        AuthTestRequest request = AuthTestRequest.builder().token(slackToken).build();
+        try {
+            AuthTestResponse response = slack.methods().authTest(request);
+            return response.getUserId();
+        } catch (IOException | SlackApiException e) {
+            throw new JarvisException("Cannot retrieve the bot identifier", e);
         }
     }
 
