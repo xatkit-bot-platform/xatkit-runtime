@@ -321,9 +321,18 @@ public abstract class JarvisModule {
                     .spliterator(), false).map(param -> {
                 if (param instanceof VariableAccess) {
                     String variableName = ((VariableAccess) param).getReferredVariable().getName();
-                    Future<Object> value = (Future<Object>) context.getContextValue("variables", variableName);
+                    Future<Object> futureValue = (Future<Object>) context.getContextValue("variables", variableName);
                     try {
-                        return value.get().toString();
+                        Object value = futureValue.get();
+                        if (value instanceof String) {
+                            /*
+                             * Fill potential context values if the variable is a String. This should only happen if
+                             * the associated JarvisAction returns a value with explicit access to the context in it.
+                             */
+                            return context.fillContextValues((String) value);
+                        } else {
+                            return value;
+                        }
                     } catch (InterruptedException | ExecutionException e) {
                         throw new JarvisException(e);
                     }
