@@ -498,7 +498,7 @@ public class JarvisCore {
         for (ActionInstance actionInstance : actionInstances) {
             JarvisModule jarvisModule = this.getJarvisModuleRegistry().getJarvisModule((Module) actionInstance
                     .getAction().eContainer());
-            JarvisAction action = jarvisModule.createJarvisAction(actionInstance, eventInstance, session);
+            JarvisAction action = jarvisModule.createJarvisAction(actionInstance, session);
             Future<Object> result = executorService.submit(action);
             if (nonNull(action.getReturnVariable())) {
                 /*

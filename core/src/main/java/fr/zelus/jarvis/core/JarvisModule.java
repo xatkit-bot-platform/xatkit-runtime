@@ -50,7 +50,7 @@ public abstract class JarvisModule {
      *
      * @see #enableAction(Action)
      * @see #disableAction(Action)
-     * @see #createJarvisAction(ActionInstance, EventInstance, JarvisSession)
+     * @see #createJarvisAction(ActionInstance, JarvisSession)
      */
     protected Map<String, Class<? extends JarvisAction>> actionMap;
 
@@ -201,36 +201,38 @@ public abstract class JarvisModule {
      * <p>
      * This method returns the {@link Class}es describing the {@link JarvisAction}s associated to this module. To
      * construct a new {@link JarvisAction} from a {@link EventInstance} see
-     * {@link #createJarvisAction(ActionInstance, EventInstance, JarvisSession)} .
+     * {@link #createJarvisAction(ActionInstance, JarvisSession)} .
      *
      * @return all the {@link JarvisAction} {@link Class}es associated to this {@link JarvisModule}
-     * @see #createJarvisAction(ActionInstance, EventInstance, JarvisSession)
+     * @see #createJarvisAction(ActionInstance, JarvisSession)
      */
     public final Collection<Class<? extends JarvisAction>> getActions() {
         return actionMap.values();
     }
 
     /**
-     * Creates a new {@link JarvisAction} instance from the provided {@link EventInstance}.
+     * Creates a new {@link JarvisAction} instance from the provided {@link ActionInstance}.
      * <p>
      * This methods attempts to construct a {@link JarvisAction} defined by the provided {@code actionInstance} by
      * matching the {@code eventInstance} variables to the {@link Action}'s parameters, and reusing the provided
      * {@link ActionInstance#getValues()}.
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link JarvisAction} to create
-     * @param eventInstance  the {@link EventInstance} containing the extracted variables
      * @param session        the {@link JarvisSession} associated to the action
-     * @return a new {@link JarvisAction} instance from the provided {@link EventInstance}
+     * @return a new {@link JarvisAction} instance from the provided {@link ActionInstance}
+     * @throws NullPointerException if the provided {@code actionInstance} or {@code session} is {@code null}
      * @throws JarvisException if the provided {@link Action} does not match any {@link JarvisAction}, or if the
      *                         provided {@link EventInstance} does not define all the parameters required by the
      *                         action's constructor
      * @see #getParameterValues(ActionInstance, JarvisContext)
      */
-    public JarvisAction createJarvisAction(ActionInstance actionInstance, EventInstance eventInstance, JarvisSession
+    public JarvisAction createJarvisAction(ActionInstance actionInstance, JarvisSession
             session) {
-        checkNotNull(actionInstance, "Cannot construct a JarvisAction from a null ActionInstance");
+        checkNotNull(actionInstance, "Cannot construct a %s from the provided %s %s", JarvisAction.class
+                .getSimpleName(), ActionInstance.class.getSimpleName(), actionInstance);
+        checkNotNull(session, "Cannot construct a %s from the provided %s %s", JarvisAction.class.getSimpleName(),
+                JarvisSession.class.getSimpleName(), session);
         Action action = actionInstance.getAction();
-        checkNotNull(eventInstance, "Cannot construct a %s action from a null EventInstance", action.getName());
         Class<? extends JarvisAction> jarvisActionClass = actionMap.get(action.getName());
         if (isNull(jarvisActionClass)) {
             throw new JarvisException(MessageFormat.format("Cannot create the JarvisAction {0}, the action is not " +
@@ -299,14 +301,14 @@ public abstract class JarvisModule {
      * {@link ActionInstance}'s {@link ParameterValue}s are retrieved from the provided {@code context}.
      * <p>
      * The retrieved values are used by the {@link JarvisModule} to instantiate concrete {@link JarvisAction}s (see
-     * {@link #createJarvisAction(ActionInstance, EventInstance, JarvisSession)}).
+     * {@link #createJarvisAction(ActionInstance, JarvisSession)}).
      *
      * @param actionInstance the {@link ActionInstance} to match the parameters from
      * @return an array containing the concrete {@link ActionInstance}'s parameters
      * @throws JarvisException if one of the concrete value is not stored in the provided {@code context}, or if the
      *                         {@link ActionInstance}'s {@link ParameterValue}s do not match the describing
      *                         {@link Action}'s {@link Parameter}s.
-     * @see #createJarvisAction(ActionInstance, EventInstance, JarvisSession)
+     * @see #createJarvisAction(ActionInstance, JarvisSession)
      */
     private Object[] getParameterValues(ActionInstance actionInstance, JarvisContext context) {
         Action action = actionInstance.getAction();
