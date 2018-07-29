@@ -3,7 +3,7 @@ package fr.zelus.jarvis.dialogflow;
 import com.google.cloud.dialogflow.v2.SessionName;
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisContext;
-import fr.zelus.jarvis.util.VariableLoaderHelper;
+import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;

@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.util;
+package fr.zelus.jarvis.test.util;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.plugins.log.module.LogModule;

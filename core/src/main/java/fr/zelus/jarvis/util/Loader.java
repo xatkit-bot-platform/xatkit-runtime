@@ -76,7 +76,8 @@ public class Loader {
                  */
                 try {
                     return (T) constructor.newInstance(parameters);
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                        InvocationTargetException e) {
                     /*
                      * The constructor does not accept the provided parameters, or an error occurred when calling it.
                      * In any case, we need to continue the iteration to try to find a suitable constructor.
@@ -84,10 +85,8 @@ public class Loader {
                 }
             }
         }
-        String errorMessage = MessageFormat.format("Cannot find a {0} constructor for the parameters ({1})", clazz
-                .getSimpleName(), printArray(parameters));
-        Log.error(errorMessage);
-        throw new NoSuchMethodException(errorMessage);
+        throw new NoSuchMethodException(MessageFormat.format("Cannot find a {0} constructor for the parameters ({1})",
+                clazz.getSimpleName(), printArray(parameters)));
     }
 
     /**

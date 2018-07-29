@@ -6,7 +6,7 @@ import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
-import fr.zelus.jarvis.util.VariableLoaderHelper;
+import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;

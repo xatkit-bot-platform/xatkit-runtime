@@ -9,7 +9,7 @@ import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
-import fr.zelus.jarvis.util.VariableLoaderHelper;
+import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 
 import java.util.ArrayList;
 import java.util.List;

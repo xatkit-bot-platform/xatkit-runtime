@@ -9,7 +9,7 @@ import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.discord.StubMessage;
 import fr.zelus.jarvis.stubs.discord.StubPrivateChannel;
 import fr.zelus.jarvis.stubs.discord.StubPrivateMessageReceivedEvent;
-import fr.zelus.jarvis.util.VariableLoaderHelper;
+import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
