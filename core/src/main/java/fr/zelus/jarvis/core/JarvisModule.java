@@ -221,9 +221,9 @@ public abstract class JarvisModule {
      * @param session        the {@link JarvisSession} associated to the action
      * @return a new {@link JarvisAction} instance from the provided {@link ActionInstance}
      * @throws NullPointerException if the provided {@code actionInstance} or {@code session} is {@code null}
-     * @throws JarvisException if the provided {@link Action} does not match any {@link JarvisAction}, or if the
-     *                         provided {@link EventInstance} does not define all the parameters required by the
-     *                         action's constructor
+     * @throws JarvisException      if the provided {@link Action} does not match any {@link JarvisAction}, or if the
+     *                              provided {@link EventInstance} does not define all the parameters required by the
+     *                              action's constructor
      * @see #getParameterValues(ActionInstance, JarvisContext)
      */
     public JarvisAction createJarvisAction(ActionInstance actionInstance, JarvisSession
@@ -256,7 +256,8 @@ public abstract class JarvisModule {
              */
             jarvisAction = Loader.construct(jarvisActionClass, fullParameters);
         } catch (NoSuchMethodException e) {
-            throw new JarvisException(e);
+            throw new JarvisException(MessageFormat.format("Cannot find a {0} constructor", jarvisActionClass
+                    .getSimpleName()), e);
         }
         if (nonNull(actionInstance.getReturnVariable())) {
             jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
