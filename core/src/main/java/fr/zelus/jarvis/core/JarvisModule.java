@@ -120,10 +120,16 @@ public abstract class JarvisModule {
      * @param eventProviderDefinition the {@link EventProviderDefinition} representing the {@link EventProvider} to
      *                                start
      * @param jarvisCore              the {@link JarvisCore} instance associated to this module
+     * @throws NullPointerException if the provided {@code eventProviderDefinition} or {@code jarvisCore} is {@code
+     *                              null}
      * @see EventProvider#run()
      * @see JarvisServer#registerWebhookEventProvider(WebhookEventProvider)
      */
     public final void startEventProvider(EventProviderDefinition eventProviderDefinition, JarvisCore jarvisCore) {
+        checkNotNull(eventProviderDefinition, "Cannot start the provided %s %s", EventProviderDefinition.class
+                .getSimpleName(), eventProviderDefinition);
+        checkNotNull(jarvisCore, "Cannot start the provided %s with the given %s %s", eventProviderDefinition
+                .getClass().getSimpleName(), JarvisCore.class.getSimpleName(), jarvisCore);
         Log.info("Starting {0}", eventProviderDefinition.getName());
         String eventProviderQualifiedName = this.getClass().getPackage().getName() + ".io." + eventProviderDefinition
                 .getName();
@@ -159,6 +165,16 @@ public abstract class JarvisModule {
         EventProviderThread eventProviderThread = new EventProviderThread(eventProvider);
         eventProviderMap.put(eventProviderDefinition.getName(), eventProviderThread);
         eventProviderThread.start();
+    }
+
+    /**
+     * Returns {@link Map} containing the {@link EventProviderThread}s associated to this module.
+     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
+     *
+     * @return the {@link Map} containing the {@link EventProviderThread}s associated to this module
+     */
+    protected Map<String, EventProviderThread> getEventProviderMap() {
+        return eventProviderMap;
     }
 
     /**
@@ -380,7 +396,7 @@ public abstract class JarvisModule {
         return String.join(", ", toStringList);
     }
 
-    private static class EventProviderThread extends Thread {
+    protected static class EventProviderThread extends Thread {
 
         private EventProvider eventProvider;
 

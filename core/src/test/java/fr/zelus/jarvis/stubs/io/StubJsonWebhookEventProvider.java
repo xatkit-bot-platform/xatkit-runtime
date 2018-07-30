@@ -3,7 +3,6 @@ package fr.zelus.jarvis.stubs.io;
 import com.google.gson.JsonElement;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.io.JsonWebhookEventProvider;
-import fr.zelus.jarvis.io.WebhookEventProvider;
 
 public class StubJsonWebhookEventProvider extends JsonWebhookEventProvider {
 
@@ -21,7 +20,13 @@ public class StubJsonWebhookEventProvider extends JsonWebhookEventProvider {
 
     @Override
     public void run() {
+        synchronized (this) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
 
+            }
+        }
     }
 
     public boolean hasReceivedEvent() {

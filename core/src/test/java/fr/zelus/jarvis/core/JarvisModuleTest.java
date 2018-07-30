@@ -2,27 +2,47 @@ package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.io.WebhookEventProvider;
 import fr.zelus.jarvis.module.Action;
+import fr.zelus.jarvis.module.EventProviderDefinition;
 import fr.zelus.jarvis.module.ModuleFactory;
 import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.*;
+import fr.zelus.jarvis.server.JarvisServer;
 import fr.zelus.jarvis.stubs.EmptyJarvisModule;
+import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.action.StubJarvisActionNoParameter;
 import fr.zelus.jarvis.stubs.action.StubJarvisActionTwoConstructors;
+import fr.zelus.jarvis.stubs.io.StubInputProvider;
+import fr.zelus.jarvis.stubs.io.StubInputProviderNoConfigurationConstructor;
+import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JarvisModuleTest extends AbstractJarvisTest {
 
     private JarvisModule module;
+
+    private static JarvisCore jarvisCore;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        jarvisCore = new StubJarvisCore();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        if (nonNull(jarvisCore)) {
+            jarvisCore.shutdown();
+        }
+    }
 
     @Rule
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
@@ -30,11 +50,102 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     @Before
     public void setUp() {
         module = new EmptyJarvisModule();
+        if (nonNull(jarvisCore)) {
+            /*
+             * Unregister the WebhookEventProviders that may have been set as side effect of startEventProvider
+             */
+            JarvisServer jarvisServer = jarvisCore.getJarvisServer();
+            for (WebhookEventProvider eventProvider : jarvisServer.getRegisteredWebhookEventProviders()) {
+                jarvisServer.unregisterWebhookEventProvider(eventProvider);
+            }
+        }
+        if (!jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().isEmpty()) {
+
+        }
+    }
+
+    @After
+    public void tearDown() {
+        if(nonNull(module)) {
+            module.shutdown();
+        }
     }
 
     @Test
     public void getName() {
         assertThat(module.getName()).as("Valid module name").isEqualTo("EmptyJarvisModule");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void startEventProviderNullEventProviderDefinition() {
+        module.startEventProvider(null, jarvisCore);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void startEventProviderNullJarvisCore() {
+        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        eventProviderDefinition.setName("StubInputProvider");
+        module.startEventProvider(eventProviderDefinition, null);
+    }
+
+    @Test(expected = JarvisException.class)
+    public void startEventProviderInvalidName() {
+        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        eventProviderDefinition.setName("Test");
+        module.startEventProvider(eventProviderDefinition, jarvisCore);
+    }
+
+    @Test
+    public void startValidEventProviderNotWebhook() {
+        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        eventProviderDefinition.setName("StubInputProvider");
+        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
+        assertThat(module.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
+                "entry").isNotNull();
+        JarvisModule.EventProviderThread eventProviderThread = module.getEventProviderMap().get
+                (eventProviderDefinition.getName());
+        softly.assertThat(eventProviderThread.getEventProvider()).as("EventProvider in thread is valid").isInstanceOf
+                (StubInputProvider.class);
+        softly.assertThat(eventProviderThread.isAlive()).as("EventProvider thread is alive").isTrue();
+        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
+                "providers in JarvisServer").isEmpty();
+    }
+
+    @Test
+    public void startValidEventProviderNotWebhookNoConfigurationConstructor() {
+        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        eventProviderDefinition.setName("StubInputProviderNoConfigurationConstructor");
+        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
+        assertThat(module.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
+                "entry").isNotNull();
+        JarvisModule.EventProviderThread eventProviderThread = module.getEventProviderMap().get
+                (eventProviderDefinition.getName());
+        softly.assertThat(eventProviderThread.getEventProvider()).as("EventProvider in thread is valid").isInstanceOf
+                (StubInputProviderNoConfigurationConstructor.class);
+        softly.assertThat(eventProviderThread.isAlive()).as("EventProvider thread is alive").isTrue();
+        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
+                "providers in JarvisServer").isEmpty();
+    }
+
+    @Test
+    public void startValidEventProviderWebhook() {
+        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        eventProviderDefinition.setName("StubJsonWebhookEventProvider");
+        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
+        assertThat(module.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
+                "entry").isNotNull();
+        JarvisModule.EventProviderThread eventProviderThread = module.getEventProviderMap().get
+                (eventProviderDefinition.getName());
+        softly.assertThat(eventProviderThread.getEventProvider()).as("EventProvider in thread is valid").isInstanceOf
+                (StubJsonWebhookEventProvider.class);
+        softly.assertThat(eventProviderThread.isAlive()).as("EventProvider thread is alive").isTrue();
+        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Webhook provider " +
+                "registered" + "in JarvisServer").hasSize(1);
+        softly.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as
+                ("Valid Webhook registered in JarvisServer").isInstanceOf(StubJsonWebhookEventProvider.class);
     }
 
     @Test(expected = JarvisException.class)
@@ -238,6 +349,19 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         session.getJarvisContext().setContextValue("variables", "param", CompletableFuture.completedFuture(listParam));
         session.getJarvisContext().setContextValue("variables", "param2", CompletableFuture.completedFuture(listParam));
         module.createJarvisAction(actionInstance, session);
+    }
+
+    @Test
+    public void shutdownRegisteredEventProviderAndAction() {
+        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        eventProviderDefinition.setName("StubInputProvider");
+        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        Action action = getNoParameterAction();
+        // Enables the action in the JarvisModule
+        ActionInstance actionInstance = createActionInstanceFor(action);
+        module.shutdown();
+        assertThat(module.getActions()).as("Empty Action map").isEmpty();
+        assertThat(module.getEventProviderMap()).as("Empty EventProvider map").isEmpty();
     }
 
     private Action getNoParameterAction() {
