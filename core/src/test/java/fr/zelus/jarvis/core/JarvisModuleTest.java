@@ -32,6 +32,11 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         module = new EmptyJarvisModule();
     }
 
+    @Test
+    public void getName() {
+        assertThat(module.getName()).as("Valid module name").isEqualTo("EmptyJarvisModule");
+    }
+
     @Test(expected = JarvisException.class)
     public void enableActionNotModuleAction() {
         Action action = getNotRegisteredAction();
