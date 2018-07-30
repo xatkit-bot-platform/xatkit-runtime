@@ -42,6 +42,15 @@ import static java.util.Objects.nonNull;
  */
 public abstract class JarvisModule {
 
+    /**
+     * The {@link Configuration} used to initialize this class.
+     * <p>
+     * This {@link Configuration} is used by the {@link JarvisModule} to initialize the {@link EventProvider}s and
+     * {@link JarvisAction}s.
+     *
+     * @see #startEventProvider(EventProviderDefinition, JarvisCore)
+     * @see #createJarvisAction(ActionInstance, JarvisSession)
+     */
     protected Configuration configuration;
 
     /**
@@ -396,15 +405,33 @@ public abstract class JarvisModule {
         return String.join(", ", toStringList);
     }
 
+    /**
+     * The {@link Thread} class used to start {@link EventProvider}s.
+     * <p>
+     * <b>Note:</b> this class is protected for testing purposes, and should not be called by client code.
+     */
     protected static class EventProviderThread extends Thread {
 
+        /**
+         * The {@link EventProvider} run by this {@link Thread}.
+         */
         private EventProvider eventProvider;
 
+        /**
+         * Constructs a new {@link EventProviderThread} to run the provided {@code eventProvider}
+         *
+         * @param eventProvider the {@link EventProvider} to run
+         */
         public EventProviderThread(EventProvider eventProvider) {
             super(eventProvider);
             this.eventProvider = eventProvider;
         }
 
+        /**
+         * Returns the {@link EventProvider} run by this {@link Thread}.
+         *
+         * @return the {@link EventProvider} run by this {@link Thread}
+         */
         public EventProvider getEventProvider() {
             return eventProvider;
         }
