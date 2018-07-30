@@ -21,6 +21,7 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -256,8 +257,8 @@ public abstract class JarvisModule {
              */
             jarvisAction = Loader.construct(jarvisActionClass, fullParameters);
         } catch (NoSuchMethodException e) {
-            throw new JarvisException(MessageFormat.format("Cannot find a {0} constructor", jarvisActionClass
-                    .getSimpleName()), e);
+            throw new JarvisException(MessageFormat.format("Cannot find a {0} constructor for the provided parameter " +
+                    "types ({1})", jarvisActionClass.getSimpleName(), printClassArray(fullParameters)), e);
         }
         if (nonNull(actionInstance.getReturnVariable())) {
             jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
@@ -325,6 +326,13 @@ public abstract class JarvisModule {
                 if (param instanceof VariableAccess) {
                     String variableName = ((VariableAccess) param).getReferredVariable().getName();
                     Future<Object> futureValue = (Future<Object>) context.getContextValue("variables", variableName);
+                    if (isNull(futureValue)) {
+                        /*
+                         * The context does not contain the value.
+                         */
+                        throw new JarvisException(MessageFormat.format("Cannot retrieve the context variable {0}" +
+                                ".{1}", "variables", variableName));
+                    }
                     try {
                         Object value = futureValue.get();
                         if (value instanceof String) {
@@ -349,6 +357,27 @@ public abstract class JarvisModule {
                 "expected {0}, found {1}", actionParameters.size(), actionInstanceParameterValues.size());
         Log.error(errorMessage);
         throw new JarvisException(errorMessage);
+    }
+
+    /**
+     * Formats the provided {@code array} in a {@link String} used representing their {@link Class}es.
+     * <p>
+     * The returned {@link String} is "a1.getClass().getSimpleName(), a2.getClass().getSimpleName(), an.getClass()
+     * .getSimpleName()", where <i>a1</i>, <i>a2</i>, and <i>an</i> are elements in the provided {@code array}.
+     *
+     * @param array the array containing the elements to print the {@link Class}es of
+     * @return a {@link String} containing the formatted elements' {@link Class}es
+     */
+    private String printClassArray(Object[] array) {
+        List<String> toStringList = StreamSupport.stream(Arrays.asList(array).spliterator(), false).map(o ->
+        {
+            if (isNull(o)) {
+                return "null";
+            } else {
+                return o.getClass().getSimpleName();
+            }
+        }).collect(Collectors.toList());
+        return String.join(", ", toStringList);
     }
 
     private static class EventProviderThread extends Thread {
