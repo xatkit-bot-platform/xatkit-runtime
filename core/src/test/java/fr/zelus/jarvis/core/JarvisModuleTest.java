@@ -59,7 +59,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
 
     @Test
     public void disableActionModuleAction() {
-        Action action = getNotRegisteredAction();
+        Action action = getNoParameterAction();
         module.enableAction(action);
         module.disableAction(action);
         assertThat(module.getActions()).as("The action map does not contain the unregistered action").doesNotContain
