@@ -1,5 +1,7 @@
 package fr.zelus.jarvis.language;
 
+import static java.util.Objects.isNull;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,16 +19,13 @@ import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.language.util.ModuleRegistry;
 import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.EventProviderDefinition;
-import fr.zelus.jarvis.module.InputProviderDefinition;
 import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
-import fr.zelus.jarvis.orchestration.ParameterValue;
-
-import static java.util.Objects.isNull;
+import fr.zelus.jarvis.orchestration.Value;
 
 public class OrchestrationLinkingService extends DefaultLinkingService {
 
@@ -126,8 +125,8 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 			} else {
 				return super.getLinkedObjects(context, ref, node);
 			}
-		} else if (context instanceof ParameterValue) {
-			if (ref.equals(OrchestrationPackage.eINSTANCE.getParameterValue_Parameter())) {
+		} else if (context instanceof Value) {
+			if (ref.equals(OrchestrationPackage.eINSTANCE.getValue_Parameter())) {
 				/*
 				 * Trying to retrieve the Parameter of the containing Action
 				 */

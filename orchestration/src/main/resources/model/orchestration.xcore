@@ -3,10 +3,9 @@
 package fr.zelus.jarvis.orchestration
 
 import fr.zelus.jarvis.module.Action
-import fr.zelus.jarvis.module.Parameter
 import fr.zelus.jarvis.module.EventProviderDefinition
 import fr.zelus.jarvis.intent.EventDefinition
-import fr.zelus.jarvis.intent.IntentDefinition
+import fr.zelus.jarvis.module.Parameter
 
 class OrchestrationModel {
     refers EventProviderDefinition[] eventProviderDefinitions
@@ -22,19 +21,22 @@ class OrchestrationLink {
 
 class ActionInstance {
     refers Action action
-    contains ParameterValue[] values
+    contains Value[] values
     contains VariableAccess returnVariable
-}
-
-class ParameterValue {
-    refers Parameter parameter
-    String value
 }
 
 class Variable {
     String name
 }
 
-class VariableAccess extends ParameterValue {
+abstract class Value {
+    refers Parameter parameter
+}
+
+class StringValue extends Value {
+    String value
+}
+
+class VariableAccess extends Value {
     refers Variable referredVariable
 }

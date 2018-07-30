@@ -10,7 +10,8 @@ import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.module.EventProviderDefinition;
 import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.ActionInstance;
-import fr.zelus.jarvis.orchestration.ParameterValue;
+import fr.zelus.jarvis.orchestration.StringValue;
+import fr.zelus.jarvis.orchestration.Value;
 import fr.zelus.jarvis.orchestration.VariableAccess;
 import fr.zelus.jarvis.server.JarvisServer;
 import fr.zelus.jarvis.util.Loader;
@@ -323,9 +324,9 @@ public abstract class JarvisModule {
     /**
      * Retrieves the {@code actionInstance}'s parameter values from the provided {@code context}.
      * <p>
-     * This method iterates through the {@link ActionInstance}'s {@link ParameterValue}s and matches them
+     * This method iterates through the {@link ActionInstance}'s {@link Value}s and matches them
      * against the describing {@link Action}'s {@link Parameter}s. The concrete value associated to the
-     * {@link ActionInstance}'s {@link ParameterValue}s are retrieved from the provided {@code context}.
+     * {@link ActionInstance}'s {@link Value}s are retrieved from the provided {@code context}.
      * <p>
      * The retrieved values are used by the {@link JarvisModule} to instantiate concrete {@link JarvisAction}s (see
      * {@link #createJarvisAction(ActionInstance, JarvisSession)}).
@@ -333,14 +334,14 @@ public abstract class JarvisModule {
      * @param actionInstance the {@link ActionInstance} to match the parameters from
      * @return an array containing the concrete {@link ActionInstance}'s parameters
      * @throws JarvisException if one of the concrete value is not stored in the provided {@code context}, or if the
-     *                         {@link ActionInstance}'s {@link ParameterValue}s do not match the describing
+     *                         {@link ActionInstance}'s {@link Value}s do not match the describing
      *                         {@link Action}'s {@link Parameter}s.
      * @see #createJarvisAction(ActionInstance, JarvisSession)
      */
     private Object[] getParameterValues(ActionInstance actionInstance, JarvisContext context) {
         Action action = actionInstance.getAction();
         List<Parameter> actionParameters = action.getParameters();
-        List<ParameterValue> actionInstanceParameterValues = actionInstance.getValues();
+        List<Value> actionInstanceParameterValues = actionInstance.getValues();
         if ((actionParameters.size() == actionInstanceParameterValues.size())) {
             /*
              * Here some additional checks are needed (parameter types and order).
@@ -372,8 +373,14 @@ public abstract class JarvisModule {
                     } catch (InterruptedException | ExecutionException e) {
                         throw new JarvisException(e);
                     }
+                } else if (param instanceof StringValue){
+                    return context.fillContextValues(((StringValue)param).getValue());
                 } else {
-                    return context.fillContextValues(param.getValue());
+                    /*
+                     * Unknown Value type.
+                     */
+                    throw new JarvisException(MessageFormat.format("Unknown {0} type: {1} using default toString() method",
+                            Value.class.getSimpleName(),nonNull(param) ? param.getClass().getSimpleName() : "null"));
                 }
             }).toArray();
             return actionInstanceParameterValuesArray;

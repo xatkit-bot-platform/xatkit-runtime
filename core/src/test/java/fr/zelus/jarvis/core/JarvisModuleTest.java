@@ -230,8 +230,8 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         Parameter param = ModuleFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         action.getParameters().add(param);
-        ParameterValue value = OrchestrationFactory.eINSTANCE.createParameterValue();
-        value.setParameter(param);
+        StringValue value = OrchestrationFactory.eINSTANCE.createStringValue();
+//        value.setParameter(param);
         value.setValue("myValue");
         actionInstance.getValues().add(value);
         module.createJarvisAction(actionInstance, new JarvisSession("sessionID"));
@@ -244,8 +244,8 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         Parameter param = ModuleFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         // Do not attach the Parameter to the Action
-        ParameterValue value = OrchestrationFactory.eINSTANCE.createParameterValue();
-        value.setParameter(param);
+        StringValue value = OrchestrationFactory.eINSTANCE.createStringValue();
+//        value.setParameter(param);
         value.setValue("myValue");
         actionInstance.getValues().add(value);
         module.createJarvisAction(actionInstance, new JarvisSession("sessionID"));
