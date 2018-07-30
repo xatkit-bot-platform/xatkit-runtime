@@ -4,7 +4,6 @@ package fr.zelus.jarvis.intent
 
 class EventDefinition {
     String name
-    contains IntentParameter[] outContextParameters
     contains Context[] outContexts
 }
 
@@ -23,11 +22,6 @@ class ContextParameter {
     String name
     String textFragment
     String entityType
-}
-
-class IntentParameter {
-    String key
-    String ^type
 }
 
 class EventInstance {
