@@ -7,6 +7,7 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.http.Header;
 import org.apache.http.entity.ContentType;
 
 import java.io.Reader;
@@ -26,7 +27,7 @@ public abstract class JsonWebhookEventProvider extends WebhookEventProvider<Json
      * The {@link JsonParser} used to parse the raw HTTP request content.
      *
      * @see #parseContent(Object)
-     * @see #handleParsedContent(JsonElement)
+     * @see #handleParsedContent(JsonElement, Header[])
      */
     private JsonParser jsonParser;
 
@@ -72,13 +73,13 @@ public abstract class JsonWebhookEventProvider extends WebhookEventProvider<Json
     /**
      * Parses the provided raw HTTP request content into a {@link JsonElement}.
      * <p>
-     * This method is internally used to fill the {@link #handleParsedContent(JsonElement)} parameter with the
+     * This method is internally used to fill the {@link #handleParsedContent(JsonElement, Header[])} parameter with the
      * {@link JsonElement} constructed from the raw request content.
      *
      * @param content the raw HTTP request content to parse
      * @return a {@link JsonElement} representing the raw request content
      * @throws JarvisException if the provided {@code content} is cannot be parsed by the {@link JsonParser}.
-     * @see #handleParsedContent(JsonElement)
+     * @see #handleParsedContent(JsonElement, Header[])
      */
     @Override
     protected final JsonElement parseContent(Object content) {
@@ -104,10 +105,11 @@ public abstract class JsonWebhookEventProvider extends WebhookEventProvider<Json
      * {@link fr.zelus.jarvis.intent.EventInstance}. The {@code parsedContent} parameter is set by an internal call
      * to {@link #parseContent(Object)}.
      *
-     * @param parsedContent the {@link JsonElement} representing therequest content to handle
+     * @param parsedContent the {@link JsonElement} representing the request content to handle
+     * @param headers       the HTTP headers of the received request
      * @see #parseContent(Object)
      */
     @Override
-    protected abstract void handleParsedContent(JsonElement parsedContent);
+    protected abstract void handleParsedContent(JsonElement parsedContent, Header[] headers);
 
 }

@@ -2,6 +2,7 @@ package fr.zelus.jarvis.io;
 
 import fr.zelus.jarvis.core.JarvisCore;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.http.Header;
 
 /**
  * A specialised {@link EventProvider} that handles HTTP requests sent by the
@@ -52,43 +53,46 @@ public abstract class WebhookEventProvider<T> extends EventProvider {
     /**
      * Parses the provided raw HTTP request content.
      * <p>
-     * This method is internally used to fill the {@link #handleParsedContent(Object)} parameter with a parsed
+     * This method is internally used to fill the {@link #handleParsedContent(Object, Header[])} parameter with a parsed
      * representation of the raw request content.
      *
      * @param content the raw HTTP request content to parse
      * @return a parsed representation of the raw request content
-     * @see #handleParsedContent(Object)
+     * @see #handleParsedContent(Object, Header[])
      */
     protected abstract T parseContent(Object content);
 
     /**
-     * Handles the parsed request content.
+     * Handles the parsed request content and headers.
      * <p>
      * This method embeds the request content management that creates the associated
      * {@link fr.zelus.jarvis.intent.EventInstance}. The {@code parsedContent} parameter is set by an internal call
      * to {@link #parseContent(Object)}.
      *
      * @param parsedContent the parsed request content to handle
+     * @param headers the HTTP headers of the received request
      * @see #parseContent(Object)
      */
-    protected abstract void handleParsedContent(T parsedContent);
+    protected abstract void handleParsedContent(T parsedContent, Header[] headers);
 
     /**
-     * Handles the raw HTTP request content.
+     * Handles the raw HTTP request content and headers.
      * <p>
-     * This method parses the provided {@code content} and internally calls {@link #handleParsedContent(Object)} to
+     * This method parses the provided {@code content} and internally calls
+     * {@link #handleParsedContent(Object, Header[])} to
      * create the associated {@link fr.zelus.jarvis.intent.EventInstance}s.
      * <p>
      * This method is part of the core API and cannot be reimplemented by concrete subclasses. Use
-     * {@link #handleParsedContent(Object)} to tune the request content processing.
+     * {@link #handleParsedContent(Object, Header[])} to tune the request content processing.
      *
      * @param content the raw HTTP request content to handle
+     * @param headers the HTTP headers of the received request
      * @see #parseContent(Object)
-     * @see #handleParsedContent(Object)
+     * @see #handleParsedContent(Object, Header[])
      */
-    public final void handleContent(Object content) {
+    public final void handleContent(Object content, Header[] headers) {
         T parsedContent = parseContent(content);
-        handleParsedContent(parsedContent);
+        handleParsedContent(parsedContent, headers);
     }
 
 }

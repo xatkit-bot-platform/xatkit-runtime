@@ -3,6 +3,7 @@ package fr.zelus.jarvis.stubs.io;
 import com.google.gson.JsonElement;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.io.JsonWebhookEventProvider;
+import org.apache.http.Header;
 
 public class StubJsonWebhookEventProvider extends JsonWebhookEventProvider {
 
@@ -14,7 +15,7 @@ public class StubJsonWebhookEventProvider extends JsonWebhookEventProvider {
     }
 
     @Override
-    protected void handleParsedContent(JsonElement parsedContent) {
+    protected void handleParsedContent(JsonElement parsedContent, Header[] headers) {
         eventReceived = true;
     }
 

@@ -36,7 +36,7 @@ class HttpHandler implements HttpRequestHandler {
      * The {@link JarvisServer} is used to notify the {@link fr.zelus.jarvis.io.WebhookEventProvider}s when a new
      * request is received.
      *
-     * @see JarvisServer#notifyWebhookEventProviders(String, Object)
+     * @see JarvisServer#notifyWebhookEventProviders(String, Object, Header[])
      */
     private JarvisServer jarvisServer;
 
@@ -74,7 +74,7 @@ class HttpHandler implements HttpRequestHandler {
      * @param request  the received {@link HttpRequest}
      * @param response the {@link HttpResponse} to send to the caller
      * @param context  the {@link HttpContext} associated to the received {@link HttpRequest}
-     * @see JarvisServer#notifyWebhookEventProviders(String, Object)
+     * @see JarvisServer#notifyWebhookEventProviders(String, Object, Header[])
      */
     public void handle(final HttpRequest request, final HttpResponse response, final HttpContext context) {
 
@@ -98,6 +98,7 @@ class HttpHandler implements HttpRequestHandler {
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
             String contentEncoding = null;
+
             Header encodingHeader = entity.getContentEncoding();
             if (nonNull(encodingHeader) && encodingHeader.getElements().length > 0) {
                 contentEncoding = encodingHeader.getElements()[0].getName();
@@ -134,7 +135,7 @@ class HttpHandler implements HttpRequestHandler {
                         Log.info("No parser for the provided content type {0}, returning the raw content: \n {1}",
                                 contentType, content);
                     }
-                    this.jarvisServer.notifyWebhookEventProviders(contentType, content);
+                    this.jarvisServer.notifyWebhookEventProviders(contentType, content, request.getAllHeaders());
                 }
             } catch (IOException e) {
                 throw new JarvisException("An error occurred when handling the request content", e);

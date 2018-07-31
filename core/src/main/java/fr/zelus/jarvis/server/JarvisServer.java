@@ -4,6 +4,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.io.WebhookEventProvider;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.http.Header;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
@@ -215,10 +216,10 @@ public class JarvisServer {
      * @see WebhookEventProvider#acceptContentType(String)
      * @see WebhookEventProvider#handleContent(Object)
      */
-    public void notifyWebhookEventProviders(String contentType, Object content) {
+    public void notifyWebhookEventProviders(String contentType, Object content, Header[] headers) {
         for (WebhookEventProvider webhookEventProvider : webhookEventProviders) {
             if (webhookEventProvider.acceptContentType(contentType)) {
-                webhookEventProvider.handleContent(content);
+                webhookEventProvider.handleContent(content, headers);
             }
         }
     }

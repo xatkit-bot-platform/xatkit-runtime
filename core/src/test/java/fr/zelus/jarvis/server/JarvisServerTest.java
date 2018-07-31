@@ -6,6 +6,7 @@ import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.http.Header;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
 import org.junit.Rule;
@@ -122,7 +123,7 @@ public class JarvisServerTest extends AbstractJarvisTest {
         this.server = getValidJarvisServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
-        this.server.notifyWebhookEventProviders("application/json", "{field: value}");
+        this.server.notifyWebhookEventProviders("application/json", "{field: value}", new Header[0]);
         assertThat(stubJsonWebhookEventProvider.hasReceivedEvent()).as("WebhookEventProvider has received an event")
                 .isTrue();
     }
@@ -132,7 +133,7 @@ public class JarvisServerTest extends AbstractJarvisTest {
         this.server = getValidJarvisServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
-        this.server.notifyWebhookEventProviders("not valid", "test");
+        this.server.notifyWebhookEventProviders("not valid", "test", new Header[0]);
         assertThat(stubJsonWebhookEventProvider.hasReceivedEvent()).as("WebhookEventProvider hasn't received an " +
                 "event").isFalse();
     }
