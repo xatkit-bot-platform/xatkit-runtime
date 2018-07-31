@@ -71,7 +71,7 @@ OutContextDefinition returns intent::Context:
 
 ContextParameter returns intent::ContextParameter:
 	{intent::ContextParameter}
-	name=EString '<-' textFragment=EString '('entityType=EString')'
+	name=EString ('<-' textFragment=EString '('entityType=EString')')?
 ;
 
 Action returns Action:
