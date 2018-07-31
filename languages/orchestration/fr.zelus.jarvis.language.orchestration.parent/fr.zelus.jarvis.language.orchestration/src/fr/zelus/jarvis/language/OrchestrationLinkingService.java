@@ -25,7 +25,7 @@ import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
-import fr.zelus.jarvis.orchestration.Value;
+import fr.zelus.jarvis.orchestration.ParameterValue;
 
 public class OrchestrationLinkingService extends DefaultLinkingService {
 
@@ -125,8 +125,8 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 			} else {
 				return super.getLinkedObjects(context, ref, node);
 			}
-		} else if (context instanceof Value) {
-			if (ref.equals(OrchestrationPackage.eINSTANCE.getValue_Parameter())) {
+		} else if (context instanceof ParameterValue) {
+			if (ref.equals(OrchestrationPackage.eINSTANCE.getParameterValue_Parameter())) {
 				/*
 				 * Trying to retrieve the Parameter of the containing Action
 				 */

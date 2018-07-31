@@ -32,27 +32,33 @@ VariableDefinition returns Variable:
 ActionInstance returns ActionInstance:
 	((returnVariable=VariableAccess) '=')?
 	action=[module::Action|ID]
-	('(' values+=Value (',' values+=Value)* ')')?
+	('(' values+=ParameterValue (',' values+=ParameterValue)* ')')?
 ;
+
+ParameterValue returns ParameterValue:
+	{ParameterValue}
+	parameter=[module::Parameter|ID] ':' expression=Expression
+;
+
+Expression returns Expression:
+	VariableAccess | Literal
+;
+
 
 VariableAccess returns VariableAccess:
 	{VariableAccess}
 	referredVariable=[Variable|ID]
 ;
 
-Value returns Value:
-	VariableAccessValue | StringValue
+Literal returns Literal:
+	StringLiteral
 ;
 
-VariableAccessValue returns VariableAccess:
-	{VariableAccess}
-	parameter=[module::Parameter|ID] ':' referredVariable=[Variable|ID]
+StringLiteral returns StringLiteral:
+	{StringLiteral}
+	value=STRING
 ;
 
-StringValue returns StringValue:
-	parameter=[module::Parameter|ID] ':' value=STRING
-;
-	
 QualifiedName returns ecore::EString:
 ID ('.'ID)*;
 

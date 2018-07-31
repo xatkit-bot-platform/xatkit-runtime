@@ -230,10 +230,12 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         Parameter param = ModuleFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         action.getParameters().add(param);
-        StringValue value = OrchestrationFactory.eINSTANCE.createStringValue();
-//        value.setParameter(param);
+        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        StringLiteral value = OrchestrationFactory.eINSTANCE.createStringLiteral();
+        parameterValue.setExpression(value);
+//        parameterValue.setParameter(param);
         value.setValue("myValue");
-        actionInstance.getValues().add(value);
+        actionInstance.getValues().add(parameterValue);
         module.createJarvisAction(actionInstance, new JarvisSession("sessionID"));
     }
 
@@ -244,10 +246,12 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         Parameter param = ModuleFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         // Do not attach the Parameter to the Action
-        StringValue value = OrchestrationFactory.eINSTANCE.createStringValue();
-//        value.setParameter(param);
+        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        StringLiteral value = OrchestrationFactory.eINSTANCE.createStringLiteral();
+        parameterValue.setExpression(value);
+//        parameterValue.setParameter(param);
         value.setValue("myValue");
-        actionInstance.getValues().add(value);
+        actionInstance.getValues().add(parameterValue);
         module.createJarvisAction(actionInstance, new JarvisSession("sessionID"));
     }
 
@@ -259,7 +263,9 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         paramVariable.setName("param");
         VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        actionInstance.getValues().add(variableAccess);
+        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        parameterValue.setExpression(variableAccess);
+        actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
         session.getJarvisContext().setContextValue("variables", "param", CompletableFuture.completedFuture("test"));
@@ -279,7 +285,9 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         paramVariable.setName("param");
         VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        actionInstance.getValues().add(variableAccess);
+        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        parameterValue.setExpression(variableAccess);
+        actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
         List<String> listParam = new ArrayList<>();
@@ -302,7 +310,9 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         paramVariable.setName("param");
         VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        actionInstance.getValues().add(variableAccess);
+        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        parameterValue.setExpression(variableAccess);
+        actionInstance.getValues().add(parameterValue);
         List<String> listParam = new ArrayList<>();
         listParam.add("test");
         JarvisAction jarvisAction = module.createJarvisAction(actionInstance, new JarvisSession("sessionID"));
@@ -316,7 +326,9 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         paramVariable.setName("param");
         VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        actionInstance.getValues().add(variableAccess);
+        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        parameterValue.setExpression(variableAccess);
+        actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
         // Register an integer in the context, there is no constructor to handle it
@@ -336,12 +348,16 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         paramVariable.setName("param");
         VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
+        ParameterValue parameterValue1 = OrchestrationFactory.eINSTANCE.createParameterValue();
+        parameterValue1.setExpression(variableAccess);
         Variable paramVariable2 = OrchestrationFactory.eINSTANCE.createVariable();
         paramVariable2.setName("param2");
         VariableAccess variableAccess2 = OrchestrationFactory.eINSTANCE.createVariableAccess();
         variableAccess2.setReferredVariable(paramVariable2);
-        actionInstance.getValues().add(variableAccess);
-        actionInstance.getValues().add(variableAccess2);
+        ParameterValue parameterValue2 = OrchestrationFactory.eINSTANCE.createParameterValue();
+        parameterValue2.setExpression(variableAccess2);
+        actionInstance.getValues().add(parameterValue1);
+        actionInstance.getValues().add(parameterValue2);
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
         List<String> listParam = new ArrayList<>();

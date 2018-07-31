@@ -21,7 +21,7 @@ class OrchestrationLink {
 
 class ActionInstance {
     refers Action action
-    contains Value[] values
+    contains ParameterValue[] values
     contains VariableAccess returnVariable
 }
 
@@ -29,14 +29,40 @@ class Variable {
     String name
 }
 
-abstract class Value {
+class ParameterValue {
     refers Parameter parameter
+    contains Expression expression
 }
 
-class StringValue extends Value {
+abstract class Expression {
+
+}
+
+abstract class Literal extends Expression {
+
+}
+
+class StringLiteral extends Literal {
     String value
 }
 
-class VariableAccess extends Value {
+class VariableAccess extends Expression {
     refers Variable referredVariable
 }
+
+
+
+
+
+
+//abstract class Value {
+//    refers Parameter parameter
+//}
+
+//class StringValue extends Value {
+//    String value
+//}
+
+//class VariableAccess extends Value {
+//    refers Variable referredVariable
+//}
