@@ -26,7 +26,6 @@ EventProviderDefinition returns EventProviderDefinition:
 	{EventProviderDefinition}
 	'event' name=EString
 	'{'
-		eventDefinitions+=EventDefinition
 		(eventDefinitions+=EventDefinition)*
 	'}'
 ;
