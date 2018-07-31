@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ASCII"?>
 <module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="MailModule" jarvisModulePath="fr.zelus.jarvis.plugins.mail.module.MailModule">
   <actions name="SendMail">
-    <parameters key="to" type="String"/>
-    <parameters key="title" type="String"/>
-    <parameters key="body" type="String"/>
+    <parameters key="to"/>
+    <parameters key="title"/>
+    <parameters key="body"/>
   </actions>
 </module:Module>

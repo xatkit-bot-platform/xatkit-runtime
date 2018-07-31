@@ -341,7 +341,6 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         Action action = getParameterAction();
         Parameter param2 = ModuleFactory.eINSTANCE.createParameter();
         param2.setKey("param2");
-        param2.setType("List"); // not used, see #120
         action.getParameters().add(param2);
         ActionInstance actionInstance = createActionInstanceFor(action);
         Variable paramVariable = OrchestrationFactory.eINSTANCE.createVariable();
@@ -391,7 +390,6 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         action.setName("StubJarvisActionTwoConstructors");
         Parameter param = ModuleFactory.eINSTANCE.createParameter();
         param.setKey("param");
-        param.setType("List"); // not used, see #120
         action.getParameters().add(param);
         return action;
     }

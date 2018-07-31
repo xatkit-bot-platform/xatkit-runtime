@@ -41,21 +41,18 @@ public class ModuleCreatorUtil {
         infoAction.setName("LogInfo");
         Parameter infoParam = moduleFactory.createParameter();
         infoParam.setKey("message");
-        infoParam.setType("String");
         infoAction.getParameters().add(infoParam);
 
         Action warningAction = moduleFactory.createAction();
         warningAction.setName("LogWarning");
         Parameter warningParam = moduleFactory.createParameter();
         warningParam.setKey("message");
-        warningParam.setType("String");
         warningAction.getParameters().add(warningParam);
 
         Action errorAction = moduleFactory.createAction();
         errorAction.setName("LogError");
         Parameter errorParam = moduleFactory.createParameter();
         errorParam.setKey("message");
-        errorParam.setType("String");
         errorAction.getParameters().add(errorParam);
 
         module.getActions().add(infoAction);
@@ -85,10 +82,8 @@ public class ModuleCreatorUtil {
         postMessageAction.setName("PostMessage");
         Parameter messageParam = moduleFactory.createParameter();
         messageParam.setKey("message");
-        messageParam.setType("String");
         Parameter channelParam = moduleFactory.createParameter();
         channelParam.setKey("channel");
-        channelParam.setType("String");
         postMessageAction.getParameters().add(messageParam);
         postMessageAction.getParameters().add(channelParam);
 

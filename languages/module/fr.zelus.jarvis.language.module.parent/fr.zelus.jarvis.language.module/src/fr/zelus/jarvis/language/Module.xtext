@@ -82,7 +82,7 @@ Action returns Action:
 
 Parameter returns Parameter:
 	{Parameter}
-	key=EString ':' type=EString;
+	key=EString;
 
 EString returns ecore::EString:
 	STRING | ID;

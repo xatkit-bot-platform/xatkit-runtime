@@ -29,5 +29,4 @@ class Action {
 
 class Parameter {
     String key
-    String ^type
 }
