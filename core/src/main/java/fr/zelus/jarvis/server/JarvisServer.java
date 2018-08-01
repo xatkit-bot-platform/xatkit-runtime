@@ -169,9 +169,9 @@ public class JarvisServer {
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to register
      * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
-     * @see #notifyWebhookEventProviders(String, Object)
+     * @see #notifyWebhookEventProviders(String, Object, Header[])
      * @see WebhookEventProvider#acceptContentType(String)
-     * @see WebhookEventProvider#handleContent(Object)
+     * @see WebhookEventProvider#handleContent(Object, Header[])
      */
     public void registerWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
         checkNotNull(webhookEventProvider, "Cannot register the provided %s: %s", WebhookEventProvider.class
@@ -214,7 +214,7 @@ public class JarvisServer {
      * @param content     the content of the received request
      * @see #registerWebhookEventProvider(WebhookEventProvider)
      * @see WebhookEventProvider#acceptContentType(String)
-     * @see WebhookEventProvider#handleContent(Object)
+     * @see WebhookEventProvider#handleContent(Object, Header[])
      */
     public void notifyWebhookEventProviders(String contentType, Object content, Header[] headers) {
         for (WebhookEventProvider webhookEventProvider : webhookEventProviders) {

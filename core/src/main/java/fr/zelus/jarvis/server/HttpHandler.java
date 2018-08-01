@@ -97,8 +97,10 @@ class HttpHandler implements HttpRequestHandler {
 
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+            Header[] headers = request.getAllHeaders();
+            Log.info("Request Headers");
+            logHeaders(headers);
             String contentEncoding = null;
-
             Header encodingHeader = entity.getContentEncoding();
             if (nonNull(encodingHeader) && encodingHeader.getElements().length > 0) {
                 contentEncoding = encodingHeader.getElements()[0].getName();
@@ -135,13 +137,24 @@ class HttpHandler implements HttpRequestHandler {
                         Log.info("No parser for the provided content type {0}, returning the raw content: \n {1}",
                                 contentType, content);
                     }
-                    this.jarvisServer.notifyWebhookEventProviders(contentType, content, request.getAllHeaders());
+                    this.jarvisServer.notifyWebhookEventProviders(contentType, content, headers);
                 }
             } catch (IOException e) {
                 throw new JarvisException("An error occurred when handling the request content", e);
             }
         }
         response.setStatusCode(HttpStatus.SC_OK);
+    }
+
+    /**
+     * An utility method that logs the names and values of the provided {@link Header} array.
+     *
+     * @param headers the array containing the {@link Header}s to log
+     */
+    private void logHeaders(Header[] headers) {
+        for (int i = 0; i < headers.length; i++) {
+            Log.info("{0} : {1}", headers[i].getName(), headers[i].getValue());
+        }
     }
 
 }

@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.io;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import fr.zelus.jarvis.core.JarvisCore;
@@ -14,6 +15,7 @@ import java.io.Reader;
 import java.text.MessageFormat;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.nonNull;
 
 /**
  * A Json {@link WebhookEventProvider} that provides utility methods to parse and manipulate Json HTTP requests.
@@ -111,5 +113,33 @@ public abstract class JsonWebhookEventProvider extends WebhookEventProvider<Json
      */
     @Override
     protected abstract void handleParsedContent(JsonElement parsedContent, Header[] headers);
+
+    /*
+     * A static class containing utility methods to manipulate Json contents.
+     */
+    public static class JsonHelper {
+
+        /**
+         * Returns the {@link JsonElement} associated to the given {@code key} in the provided {@code object}.
+         * <p>
+         * This method throws a {@link JarvisException} if the {@code key} field of the provided {@link JsonObject}
+         * is {@code null}. The thrown exception can be globally caught to avoid multiple {@code null} checks
+         * when manipulating {@link JsonObject}s.
+         *
+         * @param object the {@link JsonObject} to retrieve the field of
+         * @param key    the identifier of the field in the provided {@code object} to retrieve
+         * @return the {@link JsonElement} associated to the given {@code key} in the provided {@code object}
+         * @throws JarvisException if the {@code key} field is {@code null}
+         */
+        public static JsonElement getJsonElementFromJsonObject(JsonObject object, String key) {
+            JsonElement element = object.get(key);
+            if (nonNull(element)) {
+                return element;
+            } else {
+                throw new JarvisException(MessageFormat.format("The Json object does not contain the field {0}", key));
+            }
+        }
+
+    }
 
 }

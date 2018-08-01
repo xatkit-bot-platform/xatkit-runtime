@@ -1,8 +1,11 @@
 package fr.zelus.jarvis.io;
 
+import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
+
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
  * A specialised {@link EventProvider} that handles HTTP requests sent by the
@@ -70,7 +73,7 @@ public abstract class WebhookEventProvider<T> extends EventProvider {
      * to {@link #parseContent(Object)}.
      *
      * @param parsedContent the parsed request content to handle
-     * @param headers the HTTP headers of the received request
+     * @param headers       the HTTP headers of the received request
      * @see #parseContent(Object)
      */
     protected abstract void handleParsedContent(T parsedContent, Header[] headers);
@@ -93,6 +96,32 @@ public abstract class WebhookEventProvider<T> extends EventProvider {
     public final void handleContent(Object content, Header[] headers) {
         T parsedContent = parseContent(content);
         handleParsedContent(parsedContent, headers);
+    }
+
+    /**
+     * Returns the {@link Header} value associated to the provided {@code headerKey}.
+     * <p>
+     * This method is an utility method that can be called by subclasses'
+     * {@link #handleParsedContent(Object, Header[])} implementation to retrieve specific values from the request
+     * {@link Header}s.
+     *
+     * @param headers   the array of {@link Header} to retrieve the value from
+     * @param headerKey the {@link Header} key to retrieve the value of
+     * @return the {@link Header} value associated to the provided {@code headerKey} if it exists, {@code null}
+     * otherwise
+     */
+    protected String getHeaderValue(Header[] headers, String headerKey) {
+        checkNotNull(headerKey, "Cannot retrieve the header value %s", headerKey);
+        checkNotNull(headers, "Cannot retrieve the header value %s from the provided %s Array %s", headerKey, Header
+                .class.getSimpleName(), headers);
+        for (int i = 0; i < headers.length; i++) {
+            if (headerKey.equals(headers[i].getName())) {
+                return headers[i].getValue();
+            }
+        }
+        Log.warn("Unable to retrieve the value {0} from the provided {1} Array", headerKey, Header.class
+                .getSimpleName());
+        return null;
     }
 
 }
