@@ -106,7 +106,7 @@ public class GithubIssueEventBuilder {
                 break;
             case GITHUB_ISSUES_ACTION_UNLABELED:
                 /*
-                 * Only one removed label per request
+                 * Only one removed label per request.
                  */
                 builder.setEventDefinitionName("Issue_Unlabeled");
                 JsonObject removedLabelObject = getJsonElementFromJsonObject(json, "label").getAsJsonObject();

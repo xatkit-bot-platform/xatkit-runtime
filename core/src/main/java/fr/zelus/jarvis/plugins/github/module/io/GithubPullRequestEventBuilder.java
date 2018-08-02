@@ -48,7 +48,7 @@ public class GithubPullRequestEventBuilder {
         String senderLogin = getJsonElementFromJsonObject(senderObject, "login").getAsString();
         String htmlURL = getJsonElementFromJsonObject(pullRequestObject, "html_url").getAsString();
         EventInstanceBuilder builder = EventInstanceBuilder.newBuilder(eventRegistry);
-        switch(action) {
+        switch (action) {
             case GITHUB_PULL_REQUEST_ACTION_OPENED:
                 builder.setEventDefinitionName("Pull_Request_Opened");
                 break;
@@ -56,7 +56,7 @@ public class GithubPullRequestEventBuilder {
                 builder.setEventDefinitionName("Pull_Request_Edited");
                 JsonObject changesObject = getJsonElementFromJsonObject(json, "changes").getAsJsonObject();
                 JsonObject changesTitleObject = changesObject.getAsJsonObject("title");
-                if(nonNull(changesTitleObject)) {
+                if (nonNull(changesTitleObject)) {
                     String previousTitle = getJsonElementFromJsonObject(changesTitleObject, "from").getAsString();
                     builder.setOutContextValue("old_title", previousTitle);
                 } else {
@@ -66,7 +66,7 @@ public class GithubPullRequestEventBuilder {
                     builder.setOutContextValue("old_title", title);
                 }
                 JsonObject changesBodyObject = changesObject.getAsJsonObject("body");
-                if(nonNull(changesBodyObject)) {
+                if (nonNull(changesBodyObject)) {
                     String previousBody = getJsonElementFromJsonObject(changesBodyObject, "from").getAsString();
                     builder.setOutContextValue("old_body", previousBody);
                 } else {
@@ -81,9 +81,9 @@ public class GithubPullRequestEventBuilder {
                  * Find if the pull request has been merged or not.
                  */
                 String merged = getJsonElementFromJsonObject(pullRequestObject, "merged").getAsString();
-                if(merged.equals("true")) {
+                if (merged.equals("true")) {
                     builder.setEventDefinitionName("Pull_Request_Closed_Merged");
-                } else if(merged.equals("false")) {
+                } else if (merged.equals("false")) {
                     builder.setEventDefinitionName("Pull_Request_Closed_Not_Merged");
                 } else {
                     throw new JarvisException(MessageFormat.format("Unknown Pull Request merged field value {0}",
@@ -105,6 +105,45 @@ public class GithubPullRequestEventBuilder {
                 String removedAssigneeLogin = getJsonElementFromJsonObject(removedAssigneeObject, "login")
                         .getAsString();
                 builder.setOutContextValue("old_assignee", removedAssigneeLogin);
+                break;
+            case GITHUB_PULL_REQUEST_ACTION_LABELED:
+                builder.setEventDefinitionName("Pull_Request_Labeled");
+                /*
+                 * Only one new label per request.
+                 */
+                JsonObject labelObject = getJsonElementFromJsonObject(json, "label").getAsJsonObject();
+                String label = getJsonElementFromJsonObject(labelObject, "name").getAsString();
+                builder.setOutContextValue("label", label);
+                break;
+            case GITHUB_PULL_REQUEST_ACTION_UNLABELED:
+                /*
+                 * Only one removed label per request.
+                 */
+                builder.setEventDefinitionName("Pull_Request_Unlabeled");
+                JsonObject removedLabelObject = getJsonElementFromJsonObject(json, "label").getAsJsonObject();
+                String removedLabel = getJsonElementFromJsonObject(removedLabelObject, "name").getAsString();
+                builder.setOutContextValue("old_label", removedLabel);
+                break;
+            case GITHUB_PULL_REQUEST_ACTION_REVIEW_REQUESTED:
+                builder.setEventDefinitionName("Pull_Request_Review_Requested");
+                /*
+                 * Only one new reviewer per request.
+                 */
+                JsonObject requestedReviewerObject = getJsonElementFromJsonObject(json, "requested_reviewer")
+                        .getAsJsonObject();
+                String requestedReviewerLogin = getJsonElementFromJsonObject(requestedReviewerObject, "login").getAsString();
+                builder.setOutContextValue("requested_reviewers", requestedReviewerLogin);
+                break;
+            case GITHUB_PULL_REQUEST_ACTION_REVIEW_REQUEST_REMOVED:
+                builder.setEventDefinitionName("Pull_Request_Review_Request_Removed");
+                /*
+                 * Only one removed reviewer per request.
+                 */
+                JsonObject requestedReviewerRemovedObject = getJsonElementFromJsonObject(json, "requested_reviewer")
+                        .getAsJsonObject();
+                String requestedReviewerRemovedLogin = getJsonElementFromJsonObject(requestedReviewerRemovedObject,
+                        "login").getAsString();
+                builder.setOutContextValue("removed_reviewer", requestedReviewerRemovedLogin);
                 break;
             default:
                 throw new JarvisException(MessageFormat.format("Unknown Pull Request action {0}", action));
