@@ -1,9 +1,6 @@
 package fr.zelus.jarvis.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
 import org.apache.http.*;
@@ -131,8 +128,13 @@ class HttpHandler implements HttpRequestHandler {
                 } else {
                     if (ContentType.APPLICATION_JSON.getMimeType().equals(contentType)) {
                         Log.info("Parsing {0} content", ContentType.APPLICATION_JSON.getMimeType());
-                        JsonElement jsonElement = parser.parse(content);
-                        Log.info("Query content: \n {0}", gson.toJson(jsonElement));
+                        try {
+                            JsonElement jsonElement = parser.parse(content);
+                            Log.info("Query content: \n {0}", gson.toJson(jsonElement));
+                        } catch(JsonSyntaxException e) {
+                            Log.error(e, "Cannot parse the {0} content {1}", ContentType.APPLICATION_JSON.getMimeType
+                                    (), content);
+                        }
                     } else {
                         Log.info("No parser for the provided content type {0}, returning the raw content: \n {1}",
                                 contentType, content);
