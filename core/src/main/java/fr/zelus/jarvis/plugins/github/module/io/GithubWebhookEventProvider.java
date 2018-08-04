@@ -26,6 +26,8 @@ public class GithubWebhookEventProvider extends JsonWebhookEventProvider {
 
     private final static String GITHUB_PULL_REQUEST_EVENT = "pull_request";
 
+    private final static String GITHUB_LABEL_EVENT = "label";
+
     public GithubWebhookEventProvider(JarvisCore jarvisCore) {
         super(jarvisCore);
     }
@@ -54,6 +56,10 @@ public class GithubWebhookEventProvider extends JsonWebhookEventProvider {
                     case GITHUB_PULL_REQUEST_EVENT:
                         eventInstances = GithubPullRequestEventBuilder.handleGithubPullRequestEvent(parsedContent,
                                 this.jarvisCore.getEventDefinitionRegistry());
+                        break;
+                    case GITHUB_LABEL_EVENT:
+                        eventInstances = GithubLabelEventBuilder.handleGithubLabelEvent(parsedContent, this
+                                .jarvisCore.getEventDefinitionRegistry());
                         break;
                     default:
                         Log.warn("Unknown Github event type {0}", githubEvent);
