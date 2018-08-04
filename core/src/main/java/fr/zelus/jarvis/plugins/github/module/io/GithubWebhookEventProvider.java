@@ -28,6 +28,8 @@ public class GithubWebhookEventProvider extends JsonWebhookEventProvider {
 
     private final static String GITHUB_LABEL_EVENT = "label";
 
+    private final static String GITHUB_FORK_EVENT = "fork";
+
     public GithubWebhookEventProvider(JarvisCore jarvisCore) {
         super(jarvisCore);
     }
@@ -60,6 +62,10 @@ public class GithubWebhookEventProvider extends JsonWebhookEventProvider {
                     case GITHUB_LABEL_EVENT:
                         eventInstances = GithubLabelEventBuilder.handleGithubLabelEvent(parsedContent, this
                                 .jarvisCore.getEventDefinitionRegistry());
+                        break;
+                    case GITHUB_FORK_EVENT:
+                        eventInstances = GithubForkEventBuilder.handleForkEvent(parsedContent, this.jarvisCore
+                                .getEventDefinitionRegistry());
                         break;
                     default:
                         Log.warn("Unknown Github event type {0}", githubEvent);
