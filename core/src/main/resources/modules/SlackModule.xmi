@@ -13,6 +13,12 @@
     <parameters key="file"/>
     <parameters key="channel"/>
   </actions>
+  <actions name="PostFileMessage">
+    <parameters key="title"/>
+    <parameters key="message"/>
+    <parameters key="content"/>
+    <parameters key="channel"/>
+  </actions>
   <actions name="ReplyFileMessage">
     <parameters key="message"/>
     <parameters key="file"/>
