@@ -3,11 +3,13 @@
  */
 package fr.zelus.jarvis.language.validation
 
-import fr.zelus.jarvis.orchestration.OrchestrationModel
-import org.eclipse.xtext.validation.Check
 import fr.zelus.jarvis.language.util.ModuleRegistry
-import java.io.IOException
+import fr.zelus.jarvis.module.Parameter
+import fr.zelus.jarvis.orchestration.ActionInstance
+import fr.zelus.jarvis.orchestration.OrchestrationModel
 import fr.zelus.jarvis.orchestration.OrchestrationPackage
+import java.io.IOException
+import org.eclipse.xtext.validation.Check
 
 /**
  * This class contains custom validation rules. 
@@ -21,9 +23,6 @@ class OrchestrationValidator extends AbstractOrchestrationValidator {
 		model.imports.forEach[i | 
 			println("Checking import " + i)
 			try {
-				/*
-				 * Remove the quotes at the beginning and at the end of the import string
-				 */
 				ModuleRegistry.instance.loadModule(i)
 			} catch(IOException e) {
 				println("Import checking failed")
@@ -31,5 +30,17 @@ class OrchestrationValidator extends AbstractOrchestrationValidator {
 				error('Module ' + i + "does not exist", OrchestrationPackage.Literals.ORCHESTRATION_MODEL__IMPORTS)
 			}
 		]
+	}
+	
+	@Check
+	def checkValidActionInstance(ActionInstance actionInstance) {
+		val actionParameters = actionInstance.action.parameters;
+		val actionInstanceParameters = actionInstance.values.map[v | v.parameter]
+		for(Parameter p : actionParameters) {
+			if(!actionInstanceParameters.contains(p)) {
+				println('The parameter ' + p.key + ' is not set in the action instance')
+				error('The parameter ' + p.key + ' is not set in the action instance', OrchestrationPackage.Literals.ACTION_INSTANCE__VALUES)
+			}
+		}
 	}
 }

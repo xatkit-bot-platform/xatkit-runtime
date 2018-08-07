@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.language;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -81,11 +82,11 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 								return Arrays.asList(intentDefinition);
 							}
 						}
-						for(EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
-							for(EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
+						for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+							for (EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
 								System.out.println("comparing Event " + eventDefinition.getName());
 								System.out.println("Note text: " + node.getText());
-								if(eventDefinition.getName().equals(node.getText())) {
+								if (eventDefinition.getName().equals(node.getText())) {
 									return Arrays.asList(eventDefinition);
 								}
 							}
@@ -113,6 +114,13 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 							System.out.println("comparing Action " + action.getName());
 							System.out.println("Node text: " + node.getText());
 							if (action.getName().equals(node.getText())) {
+								/*
+								 * Infers that the first action we find is the one associated to the ActionInstance.
+								 * This is generally the case when dealing with Modules that do not contain multiple
+								 * Actions with the same name (i.e. same JarvisAction but different constructors). If
+								 * this is the case the set Action might be wrong, and will be updated when checking
+								 * ParameterValues.
+								 */
 								return Arrays.asList(action);
 							}
 						}
@@ -138,11 +146,63 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 					 */
 					System.out.println("Cannot retrieve the Action associated to " + actionInstance);
 				}
+				/*
+				 * First look for the parameters in the defined containing Action. For modules containing multiple
+				 * Actions with the same name (i.e. same JarvisAction but different constructors) this iteration can
+				 * fail, because the inferred Action was not right.
+				 */
 				for (Parameter p : action.getParameters()) {
 					System.out.println("comparing Parameter " + p.getKey());
 					System.out.println("Node text: " + node.getText());
 					if (p.getKey().equals(node.getText())) {
 						return Arrays.asList(p);
+					}
+				}
+				/*
+				 * Unable to find the Parameter in the inferred Action, trying to find alternative Actions with the same
+				 * name and check their parameters. If such Action is found all the defined ParameterValues of this
+				 * ActionInstance are processed and updated to fit the new parent Action.
+				 */
+				Module module = (Module) action.eContainer();
+				Parameter result = null;
+				for (Action moduleAction : module.getActions()) {
+					if (!moduleAction.equals(action) && moduleAction.getName().equals(action.getName())) {
+						for (Parameter p : moduleAction.getParameters()) {
+							if (p.getKey().equals(node.getText())) {
+								System.out.println("Found the parameter " + p.getKey() + " in a variant "
+										+ action.getName() + " returning it and updating the action instance");
+								actionInstance.setAction(moduleAction);
+								result = p;
+							}
+						}
+						if (nonNull(result)) {
+							/*
+							 * The Parameter was found in another Action, trying to reset all the ParameterValues'
+							 * Parameter with the Action Parameters.
+							 */
+							Action foundAction = (Action) result.eContainer();
+							boolean validAction = true;
+							for (ParameterValue actionInstanceValue : actionInstance.getValues()) {
+								Parameter actionInstanceParameter = actionInstanceValue.getParameter();
+								boolean found = false;
+								/*
+								 * Check that each Parameter associated to the ActionInstance ParameterValues has a
+								 * variant in the found action and update its reference. If all the Parameters have been
+								 * updated the found Action variant is returned. Otherwise the loop searches for another
+								 * Action variant.
+								 */
+								for (Parameter foundActionParameter : foundAction.getParameters()) {
+									if (foundActionParameter.getKey().equals(actionInstanceParameter.getKey())) {
+										actionInstanceValue.setParameter(foundActionParameter);
+										found = true;
+									}
+								}
+								validAction &= found;
+							}
+							if (validAction) {
+								return Arrays.asList(result);
+							}
+						}
 					}
 				}
 				return Collections.emptyList();
