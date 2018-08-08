@@ -184,6 +184,43 @@ public class JarvisContext {
     }
 
     /**
+     * Merges the provided {@code other} {@link JarvisContext} into this one.
+     * <p>
+     * This method adds all the {@code contexts} and {@code values} of the provided {@code other}
+     * {@link JarvisContext} to this one, performing a deep copy of the underlying {@link Map} structure, ensuring
+     * that future updates on the {@code other} {@link JarvisContext} will not be applied on this one (such as value
+     * and context additions/deletions).
+     * <p>
+     * However, note that the values stored in the context {@link Map}s are not cloned, meaning that
+     * {@link fr.zelus.jarvis.core.JarvisAction}s updating existing values will update them for all the merged
+     * context (see #129).
+     *
+     * @param other the {@link JarvisContext} to merge into this one
+     * @throws JarvisException if the provided {@link JarvisContext} defines at least one {@code context} with the
+     *                         same name as one of the {@code contexts} stored in this {@link JarvisContext}
+     */
+    public void merge(JarvisContext other) {
+        checkNotNull(other, "Cannot merge the provided %s %s", JarvisContext.class.getSimpleName(), other);
+        other.getContextMap().forEach((k, v) -> {
+            if (this.contexts.containsKey(k)) {
+                throw new JarvisException(MessageFormat.format("Cannot merge the provided {0}, duplicated value for " +
+                        "context {1}", JarvisContext.class.getSimpleName(), k));
+            } else {
+                Map<String, Object> variableMap = new HashMap<>();
+                v.forEach((k1, v1) -> {
+                    /*
+                     * v1 is not cloned here, so concrete values are shared between the contexts. This may be an
+                     * issue if some actions update existing context variables. In this case we'll need to implement
+                     * a deep copy of the variables themselves. (see #129)
+                     */
+                    variableMap.put(k1, v1);
+                });
+                this.contexts.put(k, variableMap);
+            }
+        });
+    }
+
+    /**
      * Returns an unmodifiable {@link Map} representing the stored context values.
      * <p>
      * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.

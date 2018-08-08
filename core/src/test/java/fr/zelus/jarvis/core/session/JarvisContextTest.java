@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core.session;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
+import fr.zelus.jarvis.core.JarvisException;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
@@ -132,6 +133,71 @@ public class JarvisContextTest extends AbstractJarvisTest {
     }
 
     @Test(expected = NullPointerException.class)
+    public void mergeNullJarvisContext() {
+        context = new JarvisContext();
+        context.merge(null);
+    }
+
+    @Test(expected = JarvisException.class)
+    public void mergeDuplicatedContext() {
+        context = new JarvisContext();
+        context.setContextValue("context", "key", "value");
+        JarvisContext context2 = new JarvisContext();
+        context2.setContextValue("context", "key2", "value2");
+        context.merge(context2);
+    }
+
+    @Test
+    public void mergeEmptyTargetContext() {
+        context = new JarvisContext();
+        context.setContextValue("context", "key", "value");
+        context.merge(new JarvisContext());
+        assertThat(context.getContextValue("context", "key")).as("Not null context value").isNotNull();
+        assertThat(context.getContextValue("context", "key")).as("Valid context value").isEqualTo("value");
+    }
+
+    @Test
+    public void mergeEmptySourceContext() {
+        context = new JarvisContext();
+        JarvisContext context2 = new JarvisContext();
+        context2.setContextValue("context", "key", "value");
+        context.merge(context2);
+        assertThat(context.getContextValue("context", "key")).as("Not null merged context value").isNotNull();
+        assertThat(context.getContextValue("context", "key")).as("Valid merged context value").isEqualTo("value");
+    }
+
+    @Test
+    public void mergeNotEmptyContextsNoDuplicates() {
+        context = new JarvisContext();
+        context.setContextValue("context", "key", "value");
+        JarvisContext context2 = new JarvisContext();
+        context2.setContextValue("context2", "key2", "value2");
+        context.merge(context2);
+        assertThat(context.getContextValue("context", "key")).as("Not null context value").isNotNull();
+        assertThat(context.getContextValue("context", "key")).as("Valid context value").isEqualTo("value");
+        assertThat(context.getContextValue("context2", "key2")).as("Not null merged context value").isNotNull();
+        assertThat(context.getContextValue("context2", "key2")).as("Valid context value").isEqualTo("value2");
+    }
+
+    @Test
+    public void updateTargetContextAfterMerge() {
+        context = new JarvisContext();
+        JarvisContext context2 = new JarvisContext();
+        context2.setContextValue("context2", "key2", "value2");
+        context.merge(context2);
+        // Add a context
+        context2.setContextValue("context3", "key3", "value3");
+        // Add a value in the merged context
+        context2.setContextValue("context2", "newKey", "newValue");
+        assertThat(context.getContextVariables("context3")).as("New context not merged").isEmpty();
+        assertThat(context.getContextValue("context2", "newKey")).as("New value not merged").isNull();
+    }
+
+    /*
+     * We do not test updates on context values themselves, because they are not cloned (see #129)
+     */
+
+    @Test(expected = NullPointerException.class)
     public void fillContextValuesNullMessage() {
         context = new JarvisContext();
         context.fillContextValues(null);
@@ -253,7 +319,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
                 try {
                     wait(4000);
                     return false;
-                } catch(InterruptedException e) {
+                } catch (InterruptedException e) {
                     return true;
                 }
             }
