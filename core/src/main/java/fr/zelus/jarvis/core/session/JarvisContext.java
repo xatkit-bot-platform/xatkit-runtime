@@ -222,12 +222,10 @@ public class JarvisContext {
 
     /**
      * Returns an unmodifiable {@link Map} representing the stored context values.
-     * <p>
-     * <b>Note:</b> this method is protected for testing purposes, and should not be called by client code.
      *
      * @return an unmodifiable {@link Map} representing the stored context values
      */
-    protected Map<String, Map<String, Object>> getContextMap() {
+    public Map<String, Map<String, Object>> getContextMap() {
         return Collections.unmodifiableMap(contexts);
     }
 
