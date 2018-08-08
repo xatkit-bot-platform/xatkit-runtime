@@ -76,6 +76,12 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         assertThat(module.getName()).as("Valid module name").isEqualTo("EmptyJarvisModule");
     }
 
+    @Test
+    public void getJarvisCore() {
+        assertThat(module.getJarvisCore()).as("Not null JarvisCore").isNotNull();
+        assertThat(module.getJarvisCore()).as("Valid JarvisCore").isEqualTo(jarvisCore);
+    }
+
     @Test(expected = NullPointerException.class)
     public void startEventProviderNullEventProviderDefinition() {
         module.startEventProvider(null);

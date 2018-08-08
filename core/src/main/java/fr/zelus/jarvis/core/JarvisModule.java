@@ -129,6 +129,15 @@ public abstract class JarvisModule {
     }
 
     /**
+     * Return the {@link JarvisCore} instance associated to this module.
+     *
+     * @return the {@link JarvisCore} instance associated to this module
+     */
+    public final JarvisCore getJarvisCore() {
+        return this.jarvisCore;
+    }
+
+    /**
      * Starts the {@link EventProvider} corresponding to the provided {@code eventProviderDefinition}.
      * <p>
      * This method dynamically loads the {@link EventProvider} corresponding to the provided {@code
