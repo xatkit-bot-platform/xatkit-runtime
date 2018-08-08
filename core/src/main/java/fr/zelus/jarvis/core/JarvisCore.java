@@ -445,17 +445,46 @@ public class JarvisCore {
      * <p>
      * If the {@link JarvisSession} does not exist a new one is created using
      * {@link DialogFlowApi#createSession(String)}.
+     * <p>
+     * See {@link #getOrCreateJarvisSession(String, JarvisSession)} to create or retrieve a {@link JarvisSession} and
+     * merge its context with an existing {@link JarvisSession}.
      *
      * @param sessionId the identifier to get or retrieve a session from
      * @return the {@link JarvisSession} associated to the provided {@code sessionId}
      * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
     public JarvisSession getOrCreateJarvisSession(String sessionId) {
-        checkNotNull(sessionId, "Cannot create or retrieve a session from null as the session ID");
+        checkNotNull(sessionId, "Cannot create or retrieve the %s from the provided session ID %s", JarvisSession
+                .class.getSimpleName(), sessionId);
         JarvisSession session = getJarvisSession(sessionId);
         if (isNull(session)) {
             session = this.dialogFlowApi.createSession(sessionId);
             sessions.put(sessionId, session);
+        }
+        return session;
+    }
+
+    /**
+     * Retrieves or creates the {@link JarvisSession} associated to the provided {@code sessionId}, and merges its
+     * context with the provided {@code baseSession}.
+     * <p>
+     * This method allows to create {@link JarvisSession} filled with initial context values, that can be set by
+     * {@link EventProvider} instances not tailored to a specific session (e.g.
+     * {@link fr.zelus.jarvis.io.WebhookEventProvider}). Calling this method is equivalent to {@code
+     * getOrCreateJarvisSession(sessionId).merge(baseSession.getJarvisContext())}.
+     *
+     * @param sessionId   the identifier to get or retrieve the session from
+     * @param baseSession the {@link JarvisSession} to merge in the retrieved one
+     * @return the {@link JarvisSession} associated to the provided {@code sessionId}, with its context variables
+     * merged from the provided {@code baseSession}
+     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
+     */
+    public JarvisSession getOrCreateJarvisSession(String sessionId, JarvisSession baseSession) {
+        checkNotNull(sessionId, "Cannot create or retrieve the %s from the provided session ID %s", JarvisSession.class
+                .getSimpleName(), sessionId);
+        JarvisSession session = getOrCreateJarvisSession(sessionId);
+        if (nonNull(baseSession)) {
+            session.getJarvisContext().merge(baseSession.getJarvisContext());
         }
         return session;
     }

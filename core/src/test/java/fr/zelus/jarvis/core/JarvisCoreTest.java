@@ -268,6 +268,49 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * returned JarvisSession.
          */
         assertThat(session.getSessionId()).as("Valid session ID").contains("sessionID");
+        assertThat(session.getJarvisContext()).as("Not null session context").isNotNull();
+        assertThat(session.getJarvisContext().getContextMap()).as("Empty session context").isEmpty();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getOrCreateJarvisSessionMergeNullSessionId() {
+        jarvisCore = getValidJarvisCore();
+        jarvisCore.getOrCreateJarvisSession(null, new JarvisSession("sessionID"));
+    }
+
+    @Test
+    public void getOrCreateJarvisSessionMergeNullJarvisSession() {
+        jarvisCore = getValidJarvisCore();
+        JarvisSession session = jarvisCore.getOrCreateJarvisSession("sessionID", null);
+        assertThat(session).as("Not null JarvisSession").isNotNull();
+        /*
+         * Use contains because the underlying DialogFlow API add additional identification information in the
+         * returned JarvisSession.
+         */
+        assertThat(session.getSessionId()).as("Valid session ID").contains("sessionID");
+        assertThat(session.getJarvisContext()).as("Not null session context").isNotNull();
+        assertThat(session.getJarvisContext().getContextMap()).as("Empty session context").isEmpty();
+    }
+
+    @Test
+    public void getOrCreateJarvisSessionMergeNotEmptyJarvisSession() {
+        jarvisCore = getValidJarvisCore();
+        JarvisSession mergedSession = new JarvisSession("mergedSession");
+        mergedSession.getJarvisContext().setContextValue("context", "key", "value");
+        JarvisSession session = jarvisCore.getOrCreateJarvisSession("sessionID", mergedSession);
+        assertThat(session).as("Not null JarvisSession").isNotNull();
+        /*
+         * Use contains because the underlying DialogFlow API add additional identification information in the
+         * returned JarvisSession.
+         */
+        assertThat(session.getSessionId()).as("Valid session ID").contains("sessionID");
+        assertThat(session.getJarvisContext()).as("Not null session context").isNotNull();
+        assertThat(session.getJarvisContext().getContextMap()).as("Session context map contains a single entry")
+                .hasSize(1);
+        assertThat(session.getJarvisContext().getContextVariables("context")).as("The session context contains a " +
+                "single variable").hasSize(1);
+        assertThat(session.getJarvisContext().getContextValue("context", "key")).as("Valid session context value")
+                .isEqualTo("value");
     }
 
     @Test
