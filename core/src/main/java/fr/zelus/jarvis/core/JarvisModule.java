@@ -41,12 +41,17 @@ import static java.util.Objects.nonNull;
 public abstract class JarvisModule {
 
     /**
+     * The {@link JarvisCore} instance containing this module.
+     */
+    protected JarvisCore jarvisCore;
+
+    /**
      * The {@link Configuration} used to initialize this class.
      * <p>
      * This {@link Configuration} is used by the {@link JarvisModule} to initialize the {@link EventProvider}s and
      * {@link JarvisAction}s.
      *
-     * @see #startEventProvider(EventProviderDefinition, JarvisCore)
+     * @see #startEventProvider(EventProviderDefinition)
      * @see #createJarvisAction(ActionInstance, JarvisSession)
      */
     protected Configuration configuration;
@@ -66,7 +71,7 @@ public abstract class JarvisModule {
      * The {@link Map} containing the {@link EventProviderThread}s associated to this module.
      * <p>
      * This {@link Map} filled when new {@link EventProvider}s are started (see
-     * {@link #startEventProvider(EventProviderDefinition, JarvisCore)}), and is used to cache
+     * {@link #startEventProvider(EventProviderDefinition)}), and is used to cache
      * {@link EventProviderThread}s and stop them when the module is {@link #shutdown()}.
      *
      * @see #shutdown()
@@ -75,31 +80,39 @@ public abstract class JarvisModule {
 
 
     /**
-     * Constructs a new {@link JarvisModule} from the provided {@link Configuration}.
+     * Constructs a new {@link JarvisModule} from the provided {@link JarvisCore} and {@link Configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
      * {@link JarvisModule}s. Subclasses implementing this constructor typically need additional parameters to be
      * initialized, that can be provided in the {@code configuration}.
      *
+     * @param jarvisCore    the {@link JarvisCore} instance associated to this module
      * @param configuration the {@link Configuration} used to initialize the {@link JarvisModule}
-     * @see #JarvisModule()
+     * @throws NullPointerException if the provided {@code jarvisCore} or {@code configuration} is {@code null}
+     * @see #JarvisModule(JarvisCore)
      */
-    public JarvisModule(Configuration configuration) {
+    public JarvisModule(JarvisCore jarvisCore, Configuration configuration) {
+        checkNotNull(jarvisCore, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
+                JarvisCore.class.getSimpleName(), jarvisCore);
+        checkNotNull(configuration, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
+                Configuration.class.getSimpleName(), configuration);
+        this.jarvisCore = jarvisCore;
         this.configuration = configuration;
         this.actionMap = new HashMap<>();
         this.eventProviderMap = new HashMap<>();
     }
 
     /**
-     * Constructs a new {@link JarvisModule}.
+     * Constructs a new {@link JarvisModule} from the provided {@link JarvisCore}.
      * <p>
      * <b>Note</b>: this constructor should be used by {@link JarvisModule}s that do not require additional
-     * parameters to be initialized. In that case see {@link #JarvisModule(Configuration)}.
+     * parameters to be initialized. In that case see {@link #JarvisModule(JarvisCore, Configuration)}.
      *
-     * @see #JarvisModule(Configuration)
+     * @throws NullPointerException if the provided {@code jarvisCore} is {@code null}
+     * @see #JarvisModule(JarvisCore, Configuration)
      */
-    public JarvisModule() {
-        this(new BaseConfiguration());
+    public JarvisModule(JarvisCore jarvisCore) {
+        this(jarvisCore, new BaseConfiguration());
     }
 
     /**
@@ -126,13 +139,12 @@ public abstract class JarvisModule {
      *
      * @param eventProviderDefinition the {@link EventProviderDefinition} representing the {@link EventProvider} to
      *                                start
-     * @param jarvisCore              the {@link JarvisCore} instance associated to this module
      * @throws NullPointerException if the provided {@code eventProviderDefinition} or {@code jarvisCore} is {@code
      *                              null}
      * @see EventProvider#run()
      * @see JarvisServer#registerWebhookEventProvider(WebhookEventProvider)
      */
-    public final void startEventProvider(EventProviderDefinition eventProviderDefinition, JarvisCore jarvisCore) {
+    public final void startEventProvider(EventProviderDefinition eventProviderDefinition) {
         checkNotNull(eventProviderDefinition, "Cannot start the provided %s %s", EventProviderDefinition.class
                 .getSimpleName(), eventProviderDefinition);
         checkNotNull(jarvisCore, "Cannot start the provided %s with the given %s %s", eventProviderDefinition

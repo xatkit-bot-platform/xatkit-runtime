@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.plugins.core.module;
 
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisModule;
 
 /**
@@ -18,4 +19,14 @@ import fr.zelus.jarvis.core.JarvisModule;
  * @see fr.zelus.jarvis.plugins.core.module.action.GetDate
  */
 public class CoreModule extends JarvisModule {
+
+    /**
+     * Constructs a new {@link CoreModule} from the provided {@link JarvisCore}.
+     *
+     * @param jarvisCore the {@link JarvisCore} instance associated to this module
+     * @throws NullPointerException if the provided {@code jarvisCore} is {@code null}
+     */
+    public CoreModule(JarvisCore jarvisCore) {
+        super(jarvisCore);
+    }
 }

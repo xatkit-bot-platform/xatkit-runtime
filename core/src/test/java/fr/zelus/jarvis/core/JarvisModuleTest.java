@@ -49,7 +49,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
 
     @Before
     public void setUp() {
-        module = new EmptyJarvisModule();
+        module = new EmptyJarvisModule(jarvisCore);
         if (nonNull(jarvisCore)) {
             /*
              * Unregister the WebhookEventProviders that may have been set as side effect of startEventProvider
@@ -78,28 +78,21 @@ public class JarvisModuleTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void startEventProviderNullEventProviderDefinition() {
-        module.startEventProvider(null, jarvisCore);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void startEventProviderNullJarvisCore() {
-        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
-        eventProviderDefinition.setName("StubInputProvider");
-        module.startEventProvider(eventProviderDefinition, null);
+        module.startEventProvider(null);
     }
 
     @Test(expected = JarvisException.class)
     public void startEventProviderInvalidName() {
         EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("Test");
-        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        module.startEventProvider(eventProviderDefinition);
     }
 
     @Test
     public void startValidEventProviderNotWebhook() {
         EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProvider");
-        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        module.startEventProvider(eventProviderDefinition);
         assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
         assertThat(module.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
                 "entry").isNotNull();
@@ -116,7 +109,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     public void startValidEventProviderNotWebhookNoConfigurationConstructor() {
         EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProviderNoConfigurationConstructor");
-        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        module.startEventProvider(eventProviderDefinition);
         assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
         assertThat(module.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
                 "entry").isNotNull();
@@ -133,7 +126,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     public void startValidEventProviderWebhook() {
         EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubJsonWebhookEventProvider");
-        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        module.startEventProvider(eventProviderDefinition);
         assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
         assertThat(module.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
                 "entry").isNotNull();
@@ -370,7 +363,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     public void shutdownRegisteredEventProviderAndAction() {
         EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProvider");
-        module.startEventProvider(eventProviderDefinition, jarvisCore);
+        module.startEventProvider(eventProviderDefinition);
         Action action = getNoParameterAction();
         // Enables the action in the JarvisModule
         ActionInstance actionInstance = createActionInstanceFor(action);

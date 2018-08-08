@@ -1,17 +1,18 @@
 package fr.zelus.jarvis.plugins.log.module.action;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.plugins.log.module.LogModule;
+import fr.zelus.jarvis.stubs.StubJarvisCore;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.test.appender.ListAppender;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.IOException;
 
+import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class LogActionTest<T extends LogAction> extends AbstractJarvisTest {
@@ -21,6 +22,20 @@ public abstract class LogActionTest<T extends LogAction> extends AbstractJarvisT
     protected ListAppender listAppender;
 
     protected LogModule logModule;
+
+    private static JarvisCore jarvisCore;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        jarvisCore = new StubJarvisCore();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        if (nonNull(jarvisCore)) {
+            jarvisCore.shutdown();
+        }
+    }
 
     @Before
     public void setUp() throws InterruptedException {
@@ -32,7 +47,7 @@ public abstract class LogActionTest<T extends LogAction> extends AbstractJarvisT
          */
         Thread.sleep(200);
         listAppender.clear();
-        logModule = new LogModule(new BaseConfiguration());
+        logModule = new LogModule(jarvisCore, new BaseConfiguration());
     }
 
     @After

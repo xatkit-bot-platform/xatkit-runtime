@@ -147,12 +147,12 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void constructValidDefaultModuleConstructor() {
         /*
-         * Use another OrchestrationModel linking to the StubJarvisModuleDefaultConstructor stub class, that only
+         * Use another OrchestrationModel linking to the StubJarvisModuleJarvisCoreConstructor stub class, that only
          * defines a default constructor.
          */
         Module stubModule = ModuleFactory.eINSTANCE.createModule();
-        stubModule.setName("StubJarvisModuleDefaultConstructor");
-        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModuleDefaultConstructor");
+        stubModule.setName("StubJarvisModuleJarvisCoreConstructor");
+        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModuleJarvisCoreConstructor");
         Action stubAction = ModuleFactory.eINSTANCE.createAction();
         stubAction.setName("StubJarvisAction");
         // No parameters, keep it simple

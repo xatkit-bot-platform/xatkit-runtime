@@ -12,6 +12,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.JarvisModule;
 
@@ -71,10 +72,14 @@ public class MailModule extends JarvisModule {
     private Gmail service;
 
     /**
-     * Constructs a new {@link MailModule} and initializes the underlying {@link Gmail} service.
+     * Constructs a new {@link MailModule} from the provided {@link JarvisCore} and initializes the underlying
+     * {@link Gmail} service.
+     *
+     * @param jarvisCore the {@link JarvisCore} instance associated to this module
+     * @throws NullPointerException if the provided {@code jarvisCore} is {@code null}
      */
-    public MailModule() {
-        super();
+    public MailModule(JarvisCore jarvisCore) {
+        super(jarvisCore);
         try {
             final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
             service = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))

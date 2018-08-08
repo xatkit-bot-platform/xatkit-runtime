@@ -172,7 +172,7 @@ public class JarvisCore {
                 eventProviderJarvisModule = loadJarvisModuleFromModuleModel(eventProviderModule);
                 this.jarvisModuleRegistry.registerJarvisModule(eventProviderJarvisModule);
             }
-            eventProviderJarvisModule.startEventProvider(eventProviderDefinition, this);
+            eventProviderJarvisModule.startEventProvider(eventProviderDefinition);
         }
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             /*
@@ -313,16 +313,24 @@ public class JarvisCore {
         Log.info("Loading JarvisModule {0}", moduleModel.getName());
         Class<? extends JarvisModule> jarvisModuleClass = Loader.loadClass(moduleModel.getJarvisModulePath(),
                 JarvisModule.class);
+        JarvisModule module;
         try {
-            return Loader.construct(jarvisModuleClass, Configuration.class, this.configuration);
+            module = Loader.construct(jarvisModuleClass, JarvisCore.class, Configuration.class, this, this
+                    .configuration);
         } catch (NoSuchMethodException e) {
-            Log.warn("Cannot find the method {0}({1}), trying to initialize the module using its default " +
-                    "constructor", jarvisModuleClass.getSimpleName(), Configuration.class.getSimpleName());
-            JarvisModule jarvisModule = Loader.construct(jarvisModuleClass);
-            Log.warn("Module {0} loaded with its default constructor, the module will not be initialized with " +
-                    "jarvis configuration", jarvisModuleClass.getSimpleName());
-            return jarvisModule;
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the module with the its {0}({1})" +
+                    "constructor", jarvisModuleClass.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
+                    .class.getSimpleName());
+            try {
+                module = Loader.construct(jarvisModuleClass, JarvisCore.class, this);
+                Log.warn("Module {0} loaded with its default constructor, the module will not be initialized with " +
+                        "jarvis configuration", jarvisModuleClass.getSimpleName());
+            } catch (NoSuchMethodException e1) {
+                throw new JarvisException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+                        "not exist", jarvisModuleClass.getSimpleName(), JarvisCore.class.getSimpleName()), e1);
+            }
         }
+        return module;
     }
 
     /**
@@ -445,9 +453,6 @@ public class JarvisCore {
      * <p>
      * If the {@link JarvisSession} does not exist a new one is created using
      * {@link DialogFlowApi#createSession(String)}.
-     * <p>
-     * See {@link #getOrCreateJarvisSession(String, JarvisSession)} to create or retrieve a {@link JarvisSession} and
-     * merge its context with an existing {@link JarvisSession}.
      *
      * @param sessionId the identifier to get or retrieve a session from
      * @return the {@link JarvisSession} associated to the provided {@code sessionId}

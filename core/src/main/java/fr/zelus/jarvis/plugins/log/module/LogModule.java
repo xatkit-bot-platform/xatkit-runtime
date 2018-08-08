@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.plugins.log.module;
 
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisModule;
 import org.apache.commons.configuration2.Configuration;
 
@@ -22,11 +23,13 @@ import org.apache.commons.configuration2.Configuration;
 public class LogModule extends JarvisModule {
 
     /**
-     * Constructs a new {@link LogModule} instance from the provided {@link Configuration}.
+     * Constructs a new {@link LogModule} instance from the provided {@link JarvisCore} and {@link Configuration}.
      *
+     * @param jarvisCore    the {@link JarvisCore} instance associated to this module
      * @param configuration the {@link Configuration} used to initialize the {@link LogModule}
+     * @throws NullPointerException if the provided {@code jarvisCore} or {@code configuration} is {@code null}
      */
-    public LogModule(Configuration configuration) {
-        super(configuration);
+    public LogModule(JarvisCore jarvisCore, Configuration configuration) {
+        super(jarvisCore, configuration);
     }
 }

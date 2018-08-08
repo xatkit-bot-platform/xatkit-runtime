@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.stubs;
 
 import fr.zelus.jarvis.core.JarvisAction;
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisModule;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.orchestration.ActionInstance;
@@ -11,8 +12,8 @@ public class StubJarvisModule extends JarvisModule {
 
     private StubJarvisAction jarvisAction;
 
-    public StubJarvisModule(Configuration configuration) {
-        super(configuration);
+    public StubJarvisModule(JarvisCore jarvisCore, Configuration configuration) {
+        super(jarvisCore, configuration);
         this.jarvisAction = new StubJarvisAction(this);
     }
 

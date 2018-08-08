@@ -1,11 +1,11 @@
 package fr.zelus.jarvis.plugins.slack.module;
 
 import com.github.seratch.jslack.Slack;
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisModule;
 import org.apache.commons.configuration2.Configuration;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static fr.zelus.jarvis.plugins.slack.JarvisSlackUtils.SLACK_TOKEN_KEY;
 import static java.util.Objects.nonNull;
 
@@ -41,7 +41,7 @@ public class SlackModule extends JarvisModule {
     private Slack slack;
 
     /**
-     * Constructs a new {@link SlackModule} from the provided {@link Configuration}.
+     * Constructs a new {@link SlackModule} from the provided {@link JarvisCore} and {@link Configuration}.
      * <p>
      * This constructor initializes the underlying {@link Slack} client with the Slack bot API token retrieved from
      * the {@link Configuration}.
@@ -49,13 +49,13 @@ public class SlackModule extends JarvisModule {
      * <b>Note:</b> {@link SlackModule} requires a valid Slack bot API token to be initialized, and calling the
      * default constructor will throw an {@link IllegalArgumentException} when looking for the Slack bot API token.
      *
+     * @param jarvisCore    the {@link JarvisCore} instance associated to this module
      * @param configuration the {@link Configuration} used to retrieve the Slack bot API token
-     * @throws NullPointerException     if the provided {@link Configuration} is {@code null}
+     * @throws NullPointerException     if the provided {@code jarvisCore} or {@code configuration} is {@code null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
      */
-    public SlackModule(Configuration configuration) {
-        super(configuration);
-        checkNotNull(configuration, "Cannot construct a SlackModule from a null configuration");
+    public SlackModule(JarvisCore jarvisCore, Configuration configuration) {
+        super(jarvisCore, configuration);
         slackToken = configuration.getString(SLACK_TOKEN_KEY);
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackModule from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
