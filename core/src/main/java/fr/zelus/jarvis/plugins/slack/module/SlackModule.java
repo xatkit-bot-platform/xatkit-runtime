@@ -3,6 +3,7 @@ package fr.zelus.jarvis.plugins.slack.module;
 import com.github.seratch.jslack.Slack;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import org.apache.commons.configuration2.Configuration;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -31,7 +32,7 @@ public class SlackModule extends JarvisModule {
      * authenticate the bot and post messages through the Slack API.
      *
      * @see #getSlackToken()
-     * @see #SlackModule(Configuration)
+     * @see #SlackModule(JarvisCore, Configuration)
      */
     private String slackToken;
 
@@ -79,5 +80,15 @@ public class SlackModule extends JarvisModule {
      */
     public Slack getSlack() {
         return slack;
+    }
+
+    /**
+     * Returns the {@link JarvisSession} associated to the provided {@code channel}.
+     *
+     * @param channel the {@code channel} identifier to retrieve the {@link JarvisSession} from
+     * @return the {@link JarvisSession} associated to the provided {@code channel}
+     */
+    public JarvisSession createSessionFromChannel(String channel) {
+        return this.jarvisCore.getOrCreateJarvisSession(channel);
     }
 }

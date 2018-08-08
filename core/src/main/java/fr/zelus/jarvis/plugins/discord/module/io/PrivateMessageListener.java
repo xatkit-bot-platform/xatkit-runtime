@@ -79,14 +79,14 @@ public class PrivateMessageListener extends ListenerAdapter {
             return;
         }
         MessageChannel channel = event.getChannel();
-        String channelName = channel.getName();
+        String channelId = channel.getId();
         Message message = event.getMessage();
         String content = message.getContentRaw();
         if (content.isEmpty()) {
             Log.trace("Skipping {0}, the message is empty");
             return;
         }
-        JarvisSession jarvisSession = jarvisCore.getOrCreateJarvisSession(channelName);
+        JarvisSession jarvisSession = jarvisCore.getOrCreateJarvisSession(channelId);
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
                 .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils

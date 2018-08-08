@@ -2,8 +2,10 @@ package fr.zelus.jarvis.plugins.discord.module;
 
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.entities.MessageChannel;
 import org.apache.commons.configuration2.Configuration;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -68,5 +70,15 @@ public class DiscordModule extends JarvisModule {
      */
     public JDA getJdaClient() {
         return jdaClient;
+    }
+
+    /**
+     * Returns the {@link JarvisSession} associated to the provided {@link MessageChannel}.
+     *
+     * @param messageChannel the {@link MessageChannel} to retrieve the {@link JarvisSession} from
+     * @return the {@link JarvisSession} associated to the provided {@link MessageChannel}
+     */
+    public JarvisSession createSessionFromChannel(MessageChannel messageChannel) {
+        return this.jarvisCore.getOrCreateJarvisSession(messageChannel.getId());
     }
 }

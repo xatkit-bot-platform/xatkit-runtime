@@ -23,7 +23,7 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
     /**
      * The Discord channel to post the message to.
      */
-    private String channel;
+    private MessageChannel channel;
 
     /**
      * Constructs a new {@link PostMessage} with the provided {@code containingModule}, {@code session}, {@code
@@ -40,7 +40,7 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
         super(containingModule, session, message);
         checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a {0} action with the provided " +
                 "channel {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), channel);
-        this.channel = channel;
+        this.channel = module.getJdaClient().getPrivateChannelById(channel);
     }
 
     /**
@@ -53,8 +53,12 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
      */
     @Override
     public Object call() {
-        MessageChannel messageChannel = module.getJdaClient().getPrivateChannelById(channel);
-        messageChannel.sendMessage(message).queue();
+        channel.sendMessage(message).queue();
         return null;
+    }
+
+    @Override
+    protected JarvisSession getClientSession() {
+        return this.module.createSessionFromChannel(channel);
     }
 }

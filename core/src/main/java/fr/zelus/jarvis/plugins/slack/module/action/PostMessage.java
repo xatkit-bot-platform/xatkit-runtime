@@ -82,4 +82,9 @@ public class PostMessage extends JarvisMessageAction<SlackModule> {
         }
         return null;
     }
+
+    @Override
+    protected JarvisSession getClientSession() {
+        return this.module.createSessionFromChannel(channel);
+    }
 }
