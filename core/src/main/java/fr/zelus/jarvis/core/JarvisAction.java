@@ -64,6 +64,16 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
         this.session = session;
     }
 
+    /**
+     * A hook method that is called after {@link JarvisAction}.
+     * <p>
+     * This method can be extended by subclasses to add post-construction computation, such as setting additional
+     * fields, checking invariants once the {@link JarvisAction} has been initialized, etc.
+     */
+    public void init() {
+
+    }
+
     public final void setReturnVariable(String variableName) {
         this.returnVariable = variableName;
     }

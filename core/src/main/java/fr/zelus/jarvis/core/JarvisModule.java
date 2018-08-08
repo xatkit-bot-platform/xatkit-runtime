@@ -307,6 +307,7 @@ public abstract class JarvisModule {
         if (nonNull(actionInstance.getReturnVariable())) {
             jarvisAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
         }
+        jarvisAction.init();
         return jarvisAction;
     }
 
