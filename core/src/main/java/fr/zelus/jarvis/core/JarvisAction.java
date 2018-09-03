@@ -3,7 +3,6 @@ package fr.zelus.jarvis.core;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;
 
-import java.text.MessageFormat;
 import java.util.concurrent.Callable;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -101,19 +100,6 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
     }
 
     /**
-     * Returns the name of the action.
-     * <p>
-     * This method returns the value of {@link Class#getName()}, and can not be overridden by concrete subclasses.
-     * {@link JarvisAction}'s names are part of jarvis' naming convention, and are used to dynamically load modules
-     * and actions.
-     *
-     * @return the name of the action.
-     */
-    public final String getName() {
-        return this.getClass().getSimpleName();
-    }
-
-    /**
      * Runs the action and returns its result.
      * <p>
      * This method should not be called manually, and is handled by the {@link JarvisCore} component, that
@@ -125,8 +111,4 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
     @Override
     public abstract Object call();
 
-    @Override
-    public String toString() {
-        return MessageFormat.format("{0} ({1})", getName(), super.toString());
-    }
 }
