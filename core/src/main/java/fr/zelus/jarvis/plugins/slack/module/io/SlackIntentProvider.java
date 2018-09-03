@@ -43,7 +43,7 @@ import static java.util.Objects.nonNull;
  * @see JarvisSlackUtils
  * @see EventProvider
  */
-public class SlackInputProvider extends IntentProvider {
+public class SlackIntentProvider extends IntentProvider {
 
     /**
      * The default username returned by {@link #getUsernameFromUserId(String)}.
@@ -83,13 +83,13 @@ public class SlackInputProvider extends IntentProvider {
     private JsonParser jsonParser;
 
     /**
-     * Constructs a new {@link SlackInputProvider} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link SlackIntentProvider} from the provided {@link JarvisCore} and {@link Configuration}.
      * <p>
      * This constructor initializes the underlying RTM connection and creates a message listener that forwards to
      * the {@code jarvisCore} instance not empty direct messages sent by users (not bots) to the Slack bot associated
      * to this class.
      * <p>
-     * <b>Note:</b> {@link SlackInputProvider} requires a valid Slack bot API token to be initialized, and calling
+     * <b>Note:</b> {@link SlackIntentProvider} requires a valid Slack bot API token to be initialized, and calling
      * the default constructor will throw an {@link IllegalArgumentException} when looking for the Slack bot API token.
      *
      * @param jarvisCore    the {@link JarvisCore} instance used to handle messages
@@ -97,11 +97,11 @@ public class SlackInputProvider extends IntentProvider {
      * @throws NullPointerException     if the provided {@link Configuration} is {@code null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
      */
-    public SlackInputProvider(JarvisCore jarvisCore, Configuration configuration) {
+    public SlackIntentProvider(JarvisCore jarvisCore, Configuration configuration) {
         super(jarvisCore, configuration);
-        checkNotNull(configuration, "Cannot construct a SlackInputProvider from a null configuration");
+        checkNotNull(configuration, "Cannot construct a SlackIntentProvider from a null configuration");
         this.slackToken = configuration.getString(SLACK_TOKEN_KEY);
-        checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackInputProvider from the " +
+        checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackIntentProvider from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SLACK_TOKEN_KEY);
         this.slack = new Slack();
@@ -109,7 +109,7 @@ public class SlackInputProvider extends IntentProvider {
         try {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
-            String errorMessage = MessageFormat.format("Cannot connect SlackInputProvider, please ensure that the bot" +
+            String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the bot" +
                     " API token is valid and stored in jarvis configuration with the key {0}", SLACK_TOKEN_KEY);
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);

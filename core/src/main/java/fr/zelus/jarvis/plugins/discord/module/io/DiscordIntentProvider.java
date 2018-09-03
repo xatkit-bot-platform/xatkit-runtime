@@ -26,7 +26,7 @@ import static java.util.Objects.nonNull;
  * @see JarvisDiscordUtils
  * @see IntentProvider
  */
-public class DiscordInputProvider extends IntentProvider {
+public class DiscordIntentProvider extends IntentProvider {
 
     /**
      * The {@link String} representing the Discord bot API token.
@@ -41,13 +41,13 @@ public class DiscordInputProvider extends IntentProvider {
     private JDA jdaClient;
 
     /**
-     * Constructs a new {@link DiscordInputProvider} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link DiscordIntentProvider} from the provided {@link JarvisCore} and {@link Configuration}.
      * <p>
      * This constructor initializes the underlying {@link JDA} client and creates a message listener that forwards to
      * the {@code jarvisCore} instance not empty direct messages sent by users (not bots) to the bot private channel
      * (see {@link PrivateMessageListener}.
      * <p>
-     * <b>Note:</b> {@link DiscordInputProvider} requires a valid Discord bot API token to be initialized, and
+     * <b>Note:</b> {@link DiscordIntentProvider} requires a valid Discord bot API token to be initialized, and
      * calling the default constructor will throw an {@link IllegalArgumentException} when looking for the Discord
      * bot token.
      *
@@ -58,11 +58,11 @@ public class DiscordInputProvider extends IntentProvider {
      * @see JarvisDiscordUtils
      * @see PrivateMessageListener
      */
-    public DiscordInputProvider(JarvisCore jarvisCore, Configuration configuration) {
+    public DiscordIntentProvider(JarvisCore jarvisCore, Configuration configuration) {
         super(jarvisCore, configuration);
-        checkNotNull(configuration, "Cannot construct a DiscordInputProvider from a null configuration");
+        checkNotNull(configuration, "Cannot construct a DiscordIntentProvider from a null configuration");
         this.discordToken = configuration.getString(DISCORD_TOKEN_KEY);
-        checkArgument(nonNull(discordToken) && !discordToken.isEmpty(), "Cannot construct a DiscordInputProvider " +
+        checkArgument(nonNull(discordToken) && !discordToken.isEmpty(), "Cannot construct a DiscordIntentProvider " +
                 "from the provided token %s, please ensure that the jarvis configuration contains a valid Discord bot" +
                 "API token associated to the key %s", discordToken, DISCORD_TOKEN_KEY);
         jdaClient = JarvisDiscordUtils.getJDA(discordToken);

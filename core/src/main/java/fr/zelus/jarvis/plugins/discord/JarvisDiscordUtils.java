@@ -2,6 +2,7 @@ package fr.zelus.jarvis.plugins.discord;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.plugins.discord.module.io.DiscordIntentProvider;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
@@ -21,7 +22,7 @@ public class JarvisDiscordUtils {
     /**
      * The {@link org.apache.commons.configuration2.Configuration} key to store the Discord bot token.
      *
-     * @see fr.zelus.jarvis.plugins.discord.module.io.DiscordInputProvider
+     * @see DiscordIntentProvider
      * @see fr.zelus.jarvis.plugins.discord.module.DiscordModule
      */
     public static String DISCORD_TOKEN_KEY = "jarvis.discord.token";

@@ -24,7 +24,7 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     private StubJarvisCore stubJarvisCore;
 
-    private DiscordInputProvider discordInputProvider;
+    private DiscordIntentProvider discordIntentProvider;
 
     private PrivateMessageListener listener;
 
@@ -39,13 +39,13 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
     @Before
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
-        discordInputProvider = createValidDiscordInputProvider();
+        discordIntentProvider = createValidDiscordInputProvider();
     }
 
     @After
     public void tearDown() {
-        if (nonNull(discordInputProvider)) {
-            discordInputProvider.close();
+        if (nonNull(discordIntentProvider)) {
+            discordIntentProvider.close();
         }
         if (nonNull(stubJarvisCore)) {
             stubJarvisCore.shutdown();
@@ -58,7 +58,7 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullJarvisCore() {
-        listener = new PrivateMessageListener(null, discordInputProvider);
+        listener = new PrivateMessageListener(null, discordIntentProvider);
     }
 
     @Test(expected = NullPointerException.class)
@@ -68,21 +68,21 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     @Test
     public void constructValidJarvisCore() {
-        listener = new PrivateMessageListener(stubJarvisCore, discordInputProvider);
+        listener = new PrivateMessageListener(stubJarvisCore, discordIntentProvider);
         assertThat(listener.getJarvisCore()).as("Non null JarvisCore").isNotNull();
         assertThat(listener.getJarvisCore()).as("Valid JarvisCore").isEqualTo(stubJarvisCore);
     }
 
     @Test(expected = NullPointerException.class)
     public void onPrivateMessageReceivedNullMessage() {
-        listener = new PrivateMessageListener(stubJarvisCore, discordInputProvider);
+        listener = new PrivateMessageListener(stubJarvisCore, discordIntentProvider);
         listener.onPrivateMessageReceived(null);
     }
 
     @Test
     public void onPrivateMessageEmptyMessage() {
-        listener = new PrivateMessageListener(stubJarvisCore, discordInputProvider);
-        listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordInputProvider.getJdaClient(),
+        listener = new PrivateMessageListener(stubJarvisCore, discordIntentProvider);
+        listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordIntentProvider.getJdaClient(),
                 StubMessage.createEmptyStubMessage()));
         assertThat(stubJarvisCore.getHandledEvents()).as("Empty message skipped").isEmpty();
         assertThat(stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_NAME)).as("Null session")
@@ -91,8 +91,8 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     @Test
     public void onPrivateMessageValidMessage() {
-        listener = new PrivateMessageListener(stubJarvisCore, discordInputProvider);
-        listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordInputProvider.getJdaClient(),
+        listener = new PrivateMessageListener(stubJarvisCore, discordIntentProvider);
+        listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordIntentProvider.getJdaClient(),
                 StubMessage.createTestStubMessage()));
         softly.assertThat(stubJarvisCore.getHandledEvents()).as("Event handled").hasSize(1);
         /*
@@ -118,10 +118,10 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
                 .TEST_MESSAGE_AUTHOR);
     }
 
-    private DiscordInputProvider createValidDiscordInputProvider() {
+    private DiscordIntentProvider createValidDiscordInputProvider() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
-        return new DiscordInputProvider(stubJarvisCore, configuration);
+        return new DiscordIntentProvider(stubJarvisCore, configuration);
     }
 
 }

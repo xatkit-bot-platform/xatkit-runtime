@@ -16,7 +16,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A {@link ListenerAdapter} that listen private messages and send them to the underlying {@link JarvisCore}.
  * <p>
- * This class is instantiated by its containing {@link DiscordInputProvider}, and is used to react to Discord
+ * This class is instantiated by its containing {@link DiscordIntentProvider}, and is used to react to Discord
  * messages. Note that this listener only forwards not empty, not {@code null} messages to the {@link JarvisCore}, in
  * order to avoid useless calls to the underlying DialogFlow API.
  */
@@ -28,26 +28,26 @@ public class PrivateMessageListener extends ListenerAdapter {
     private JarvisCore jarvisCore;
 
     /**
-     * The {@link DiscordInputProvider} managing this listener.
+     * The {@link DiscordIntentProvider} managing this listener.
      */
-    private DiscordInputProvider discordInputProvider;
+    private DiscordIntentProvider discordIntentProvider;
 
     /**
      * Constructs a new {@link PrivateMessageListener} from the provided {@code jarvisCore} and {@code
-     * discordInputProvider}.
+     * discordIntentProvider}.
      *
      * @param jarvisCore           the {@link JarvisCore} instance used to handled received messages
-     * @param discordInputProvider the {@link DiscordInputProvider} managing this listener
+     * @param discordIntentProvider the {@link DiscordIntentProvider} managing this listener
      * @throws NullPointerException if the provided {@code jarvisCore} is {@code null}
      */
-    public PrivateMessageListener(JarvisCore jarvisCore, DiscordInputProvider discordInputProvider) {
+    public PrivateMessageListener(JarvisCore jarvisCore, DiscordIntentProvider discordIntentProvider) {
         super();
         checkNotNull(jarvisCore, "Cannot construct a %s from a null %s", this.getClass().getSimpleName(),
                 JarvisCore.class.getSimpleName());
-        checkNotNull(discordInputProvider, "Cannot construct a %s from a null %s", this.getClass().getSimpleName(),
-                DiscordInputProvider.class.getSimpleName());
+        checkNotNull(discordIntentProvider, "Cannot construct a %s from a null %s", this.getClass().getSimpleName(),
+                DiscordIntentProvider.class.getSimpleName());
         this.jarvisCore = jarvisCore;
-        this.discordInputProvider = discordInputProvider;
+        this.discordIntentProvider = discordIntentProvider;
     }
 
     /**
@@ -92,7 +92,7 @@ public class PrivateMessageListener extends ListenerAdapter {
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
                 .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
         Log.info("Received message {0}", content);
-        RecognizedIntent recognizedIntent = discordInputProvider.getRecognizedIntent(content, jarvisSession);
+        RecognizedIntent recognizedIntent = discordIntentProvider.getRecognizedIntent(content, jarvisSession);
         jarvisCore.handleEvent(recognizedIntent, jarvisSession);
     }
 }

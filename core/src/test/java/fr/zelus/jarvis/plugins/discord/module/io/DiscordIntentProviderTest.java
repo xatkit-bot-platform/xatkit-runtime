@@ -17,9 +17,9 @@ import java.util.List;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DiscordInputProviderTest extends AbstractJarvisTest {
+public class DiscordIntentProviderTest extends AbstractJarvisTest {
 
-    private DiscordInputProvider discordInputProvider;
+    private DiscordIntentProvider discordIntentProvider;
 
     private StubJarvisCore stubJarvisCore;
 
@@ -30,8 +30,8 @@ public class DiscordInputProviderTest extends AbstractJarvisTest {
 
     @After
     public void tearDown() {
-        if (nonNull(discordInputProvider)) {
-            discordInputProvider.close();
+        if (nonNull(discordIntentProvider)) {
+            discordIntentProvider.close();
         }
         if (nonNull(stubJarvisCore)) {
             stubJarvisCore.shutdown();
@@ -44,26 +44,26 @@ public class DiscordInputProviderTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullJarvisCore() {
-        discordInputProvider = new DiscordInputProvider(null, new BaseConfiguration());
+        discordIntentProvider = new DiscordIntentProvider(null, new BaseConfiguration());
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        discordInputProvider = new DiscordInputProvider(stubJarvisCore, null);
+        discordIntentProvider = new DiscordIntentProvider(stubJarvisCore, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructNoTokenConfiguration() {
-        discordInputProvider = new DiscordInputProvider(stubJarvisCore, new BaseConfiguration());
+        discordIntentProvider = new DiscordIntentProvider(stubJarvisCore, new BaseConfiguration());
     }
 
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
-        discordInputProvider = new DiscordInputProvider(stubJarvisCore, configuration);
-        assertThat(discordInputProvider.getJdaClient()).as("Not null JDA client").isNotNull();
-        List<Object> listeners = discordInputProvider.getJdaClient().getRegisteredListeners();
+        discordIntentProvider = new DiscordIntentProvider(stubJarvisCore, configuration);
+        assertThat(discordIntentProvider.getJdaClient()).as("Not null JDA client").isNotNull();
+        List<Object> listeners = discordIntentProvider.getJdaClient().getRegisteredListeners();
         softly.assertThat(listeners).as("JDA contains one listener").hasSize(1);
         softly.assertThat(listeners.get(0)).as("Listener is a PrivateMessageListener").isInstanceOf
                 (PrivateMessageListener
