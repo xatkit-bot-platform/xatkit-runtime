@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.io;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.JarvisModule;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 
@@ -14,34 +14,38 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * This class defines primitives to handle raw HTTP request contents, manipulate the parsed content, and provides an
  * utility method that checks if the {@link WebhookEventProvider} accepts a given {@code contentType}.
  *
- * @param <T> the type of the parsed HTTP request content
+ * @param <T> the concrete {@link JarvisModule} subclass type containing the provider
+ * @param <C> the type of the parsed HTTP request content
  */
-public abstract class WebhookEventProvider<T> extends EventProvider {
+public abstract class WebhookEventProvider<T extends JarvisModule, C> extends EventProvider<T> {
 
     /**
-     * Constructs a new {@link WebhookEventProvider} from the provided {@code jarvisCore}.
+     * Constructs a new {@link WebhookEventProvider} with the provided {@code containingModule}.
      * <p>
      * <b>Note</b>: this constructor should be used by {@link WebhookEventProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #WebhookEventProvider(JarvisCore, Configuration)}.
+     * parameters to be initialized. In that case see {@link #WebhookEventProvider(JarvisModule, Configuration)}.
      *
-     * @param jarvisCore the {@link JarvisCore} instance used to handle {@link fr.zelus.jarvis.intent.EventInstance}s.
+     * @param containingModule the {@link JarvisModule} containing this {@link WebhookEventProvider}
+     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
      */
-    public WebhookEventProvider(JarvisCore jarvisCore) {
-        super(jarvisCore);
+    public WebhookEventProvider(T containingModule) {
+        super(containingModule);
     }
 
     /**
-     * Constructs a new {@link WebhookEventProvider} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link WebhookEventProvider} from the provided {@code containingModule} and
+     * {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance used to handle input messages
-     * @param configuration the {@link Configuration} used to initialize the {@link WebhookEventProvider}
+     * @param containingModule the {@link JarvisModule} containing this {@link WebhookEventProvider}
+     * @param configuration    the {@link Configuration} used to initialize the {@link WebhookEventProvider}
+     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
      */
-    public WebhookEventProvider(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public WebhookEventProvider(T containingModule, Configuration configuration) {
+        super(containingModule, configuration);
     }
 
     /**
@@ -63,7 +67,7 @@ public abstract class WebhookEventProvider<T> extends EventProvider {
      * @return a parsed representation of the raw request content
      * @see #handleParsedContent(Object, Header[])
      */
-    protected abstract T parseContent(Object content);
+    protected abstract C parseContent(Object content);
 
     /**
      * Handles the parsed request content and headers.
@@ -76,7 +80,7 @@ public abstract class WebhookEventProvider<T> extends EventProvider {
      * @param headers       the HTTP headers of the received request
      * @see #parseContent(Object)
      */
-    protected abstract void handleParsedContent(T parsedContent, Header[] headers);
+    protected abstract void handleParsedContent(C parsedContent, Header[] headers);
 
     /**
      * Handles the raw HTTP request content and headers.
@@ -94,7 +98,7 @@ public abstract class WebhookEventProvider<T> extends EventProvider {
      * @see #handleParsedContent(Object, Header[])
      */
     public final void handleContent(Object content, Header[] headers) {
-        T parsedContent = parseContent(content);
+        C parsedContent = parseContent(content);
         handleParsedContent(parsedContent, headers);
     }
 

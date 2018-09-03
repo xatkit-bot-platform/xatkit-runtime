@@ -8,12 +8,12 @@ import com.afrozaar.wordpress.wpapi.v2.request.Request;
 import com.afrozaar.wordpress.wpapi.v2.request.SearchRequest;
 import com.afrozaar.wordpress.wpapi.v2.response.PagedResponse;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.*;
+import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.io.EventInstanceBuilder;
 import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.plugins.wordpress.JarvisWordPressUtils;
+import fr.zelus.jarvis.plugins.wordpress.module.WordPressModule;
 import org.apache.commons.configuration2.Configuration;
 
 import java.text.DateFormat;
@@ -28,7 +28,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
-public class WordPressEventProvider extends EventProvider {
+public class WordPressEventProvider extends EventProvider<WordPressModule> {
 
     private String baseUrl;
 
@@ -44,8 +44,8 @@ public class WordPressEventProvider extends EventProvider {
 
     private Date lastUpdateDate;
 
-    public WordPressEventProvider(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public WordPressEventProvider(WordPressModule containingModule, Configuration configuration) {
+        super(containingModule, configuration);
         inputDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         checkNotNull(configuration, "Cannot construct a %s from a null configuration", this.getClass().getSimpleName());
         baseUrl = configuration.getString(JarvisWordPressUtils.WORDPRESS_BASE_URL_KEY);

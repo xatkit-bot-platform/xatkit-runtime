@@ -5,6 +5,7 @@ import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
+import fr.zelus.jarvis.plugins.slack.module.SlackModule;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -24,6 +25,8 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
 
     private StubJarvisCore stubJarvisCore;
 
+    private SlackModule slackModule;
+
     private static String SLACK_CHANNEL = "test";
 
     private static EventDefinition VALID_EVENT_DEFINITION;
@@ -37,12 +40,18 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
     @Before
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(JarvisSlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
+        slackModule = new SlackModule(stubJarvisCore, configuration);
     }
 
     @After
     public void tearDown() {
         if (nonNull(slackIntentProvider)) {
             slackIntentProvider.close();
+        }
+        if(nonNull(slackModule)) {
+            slackModule.shutdown();
         }
         if(nonNull(stubJarvisCore)) {
             stubJarvisCore.shutdown();
@@ -59,19 +68,19 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        slackIntentProvider = new SlackIntentProvider(stubJarvisCore, null);
+        slackIntentProvider = new SlackIntentProvider(slackModule, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructNoTokenConfiguration() {
-        slackIntentProvider = new SlackIntentProvider(stubJarvisCore, new BaseConfiguration());
+        slackIntentProvider = new SlackIntentProvider(slackModule, new BaseConfiguration());
     }
 
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisSlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
-        slackIntentProvider = new SlackIntentProvider(stubJarvisCore, configuration);
+        slackIntentProvider = new SlackIntentProvider(slackModule, configuration);
         assertThat(slackIntentProvider.getRtmClient()).as("Not null RTM client").isNotNull();
     }
 
@@ -143,7 +152,7 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
     private SlackIntentProvider getValidSlackInputProvider() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisSlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
-        return new SlackIntentProvider(stubJarvisCore, configuration);
+        return new SlackIntentProvider(slackModule, configuration);
     }
 
     private String getValidMessage() {

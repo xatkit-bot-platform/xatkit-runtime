@@ -5,6 +5,7 @@ import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
+import fr.zelus.jarvis.plugins.discord.module.DiscordModule;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.discord.StubMessage;
 import fr.zelus.jarvis.stubs.discord.StubPrivateChannel;
@@ -24,6 +25,8 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     private StubJarvisCore stubJarvisCore;
 
+    private DiscordModule discordModule;
+
     private DiscordIntentProvider discordIntentProvider;
 
     private PrivateMessageListener listener;
@@ -39,6 +42,9 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
     @Before
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
+        discordModule = new DiscordModule(stubJarvisCore, configuration);
         discordIntentProvider = createValidDiscordInputProvider();
     }
 
@@ -46,6 +52,9 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
     public void tearDown() {
         if (nonNull(discordIntentProvider)) {
             discordIntentProvider.close();
+        }
+        if(nonNull(discordModule)) {
+            discordModule.shutdown();
         }
         if (nonNull(stubJarvisCore)) {
             stubJarvisCore.shutdown();
@@ -121,7 +130,7 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
     private DiscordIntentProvider createValidDiscordInputProvider() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
-        return new DiscordIntentProvider(stubJarvisCore, configuration);
+        return new DiscordIntentProvider(discordModule, configuration);
     }
 
 }

@@ -2,18 +2,18 @@ package fr.zelus.jarvis.plugins.github.module.io;
 
 import com.google.gson.JsonElement;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.io.JsonWebhookEventProvider;
+import fr.zelus.jarvis.plugins.github.module.GithubModule;
 import org.apache.http.Header;
 
 import java.util.List;
 
 import static java.util.Objects.nonNull;
 
-public class GithubWebhookEventProvider extends JsonWebhookEventProvider {
+public class GithubWebhookEventProvider extends JsonWebhookEventProvider<GithubModule> {
 
     private final static String GITHUB_EVENT_HEADER_KEY = "X-Github-Event";
 
@@ -30,8 +30,8 @@ public class GithubWebhookEventProvider extends JsonWebhookEventProvider {
 
     private final static String GITHUB_FORK_EVENT = "fork";
 
-    public GithubWebhookEventProvider(JarvisCore jarvisCore) {
-        super(jarvisCore);
+    public GithubWebhookEventProvider(GithubModule containingModule) {
+        super(containingModule);
     }
 
     @Override

@@ -12,13 +12,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.io.IntentProvider;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
+import fr.zelus.jarvis.plugins.slack.module.SlackModule;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.websocket.DeploymentException;
@@ -43,7 +43,7 @@ import static java.util.Objects.nonNull;
  * @see JarvisSlackUtils
  * @see EventProvider
  */
-public class SlackIntentProvider extends IntentProvider {
+public class SlackIntentProvider extends IntentProvider<SlackModule> {
 
     /**
      * The default username returned by {@link #getUsernameFromUserId(String)}.
@@ -83,7 +83,8 @@ public class SlackIntentProvider extends IntentProvider {
     private JsonParser jsonParser;
 
     /**
-     * Constructs a new {@link SlackIntentProvider} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link SlackIntentProvider} from the provided {@code containingModule} and
+     * {@code configuration}.
      * <p>
      * This constructor initializes the underlying RTM connection and creates a message listener that forwards to
      * the {@code jarvisCore} instance not empty direct messages sent by users (not bots) to the Slack bot associated
@@ -92,13 +93,14 @@ public class SlackIntentProvider extends IntentProvider {
      * <b>Note:</b> {@link SlackIntentProvider} requires a valid Slack bot API token to be initialized, and calling
      * the default constructor will throw an {@link IllegalArgumentException} when looking for the Slack bot API token.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance used to handle messages
-     * @param configuration the {@link Configuration} used to retrieve the Slack bot API token
-     * @throws NullPointerException     if the provided {@link Configuration} is {@code null}
+     * @param containingModule the {@link SlackModule} containing this {@link SlackIntentProvider}
+     * @param configuration    the {@link Configuration} used to retrieve the Slack bot API token
+     * @throws NullPointerException     if the provided {@code containingModule} or {@code configuration} is {@code
+     *                                  null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
      */
-    public SlackIntentProvider(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public SlackIntentProvider(SlackModule containingModule, Configuration configuration) {
+        super(containingModule, configuration);
         checkNotNull(configuration, "Cannot construct a SlackIntentProvider from a null configuration");
         this.slackToken = configuration.getString(SLACK_TOKEN_KEY);
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackIntentProvider from the " +
@@ -109,7 +111,8 @@ public class SlackIntentProvider extends IntentProvider {
         try {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
-            String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the bot" +
+            String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the " +
+                    "bot" +
                     " API token is valid and stored in jarvis configuration with the key {0}", SLACK_TOKEN_KEY);
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
@@ -142,7 +145,7 @@ public class SlackIntentProvider extends IntentProvider {
                                      * The name of the user that sent the message
                                      */
                                     String user = userObject.getAsString();
-                                    if(!user.equals(this.botId)) {
+                                    if (!user.equals(this.botId)) {
                                         JsonElement textObject = json.get("text");
                                         if (nonNull(textObject)) {
                                             String text = textObject.getAsString();

@@ -1,6 +1,6 @@
 package fr.zelus.jarvis.io;
 
-import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.JarvisModule;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.intent.RecognizedIntent;
@@ -14,8 +14,10 @@ import org.apache.commons.configuration2.Configuration;
  * user inputs. Note that the {@link DialogFlowApi} instance is not directly accessible by subclasses to avoid
  * uncontrolled accesses such as intent creation, removal, and context manipulation. Subclasses should use
  * {@link #getRecognizedIntent(String, JarvisSession)} to retrieve {@link RecognizedIntent}s from textual user inputs.
+ *
+ * @param <T> the concrete {@link JarvisModule} subclass type containing the provider
  */
-public abstract class IntentProvider extends EventProvider {
+public abstract class IntentProvider<T extends JarvisModule> extends EventProvider<T> {
 
     /**
      * The {@link DialogFlowApi} used to parse user input and retrieve {@link RecognizedIntent}s.
@@ -32,18 +34,17 @@ public abstract class IntentProvider extends EventProvider {
      * retrieve {@link RecognizedIntent}s.
      * <p>
      * <b>Note</b>: this constructor should be used by {@link IntentProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #IntentProvider(JarvisCore, Configuration)}.
+     * parameters to be initialized. In that case see {@link #IntentProvider(JarvisModule, Configuration)}.
      *
-     * @param jarvisCore the {@link JarvisCore} instance used to handle
-     *                   {@link fr.zelus.jarvis.intent.EventInstance}s.
+     * @param containingModule the {@link JarvisModule} containing this {@link IntentProvider}
+     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
      */
-    public IntentProvider(JarvisCore jarvisCore) {
-        this(jarvisCore, new BaseConfiguration());
+    public IntentProvider(T containingModule) {
+        this(containingModule, new BaseConfiguration());
     }
 
     /**
-     * Constructs a new {@link IntentProvider} from the provided {@link JarvisCore}, {@link Configuration}, and
-     * {@link DialogFlowApi}.
+     * Constructs a new {@link IntentProvider} with the provided {@code containingModule} and {@code configuration}.
      * <p>
      * This constructor sets the internal {@link DialogFlowApi} instance that is used to parse user input and
      * retrieve {@link RecognizedIntent}s.
@@ -52,11 +53,11 @@ public abstract class IntentProvider extends EventProvider {
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance used to handle input messages
-     * @param configuration the {@link Configuration} used to initialize the {@link IntentProvider}
+     * @param containingModule the {@link JarvisModule} containing this {@link IntentProvider}
+     * @param configuration    the {@link Configuration} used to initialize the {@link IntentProvider}
      */
-    public IntentProvider(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public IntentProvider(T containingModule, Configuration configuration) {
+        super(containingModule, configuration);
         this.dialogFlowApi = jarvisCore.getDialogFlowApi();
     }
 

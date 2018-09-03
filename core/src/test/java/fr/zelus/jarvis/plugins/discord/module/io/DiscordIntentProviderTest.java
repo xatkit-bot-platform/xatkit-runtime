@@ -2,6 +2,7 @@ package fr.zelus.jarvis.plugins.discord.module.io;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
+import fr.zelus.jarvis.plugins.discord.module.DiscordModule;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -23,15 +24,23 @@ public class DiscordIntentProviderTest extends AbstractJarvisTest {
 
     private StubJarvisCore stubJarvisCore;
 
+    private DiscordModule discordModule;
+
     @Before
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
+        discordModule = new DiscordModule(stubJarvisCore, configuration);
     }
 
     @After
     public void tearDown() {
         if (nonNull(discordIntentProvider)) {
             discordIntentProvider.close();
+        }
+        if(nonNull(discordModule)) {
+            discordModule.shutdown();
         }
         if (nonNull(stubJarvisCore)) {
             stubJarvisCore.shutdown();
@@ -49,19 +58,19 @@ public class DiscordIntentProviderTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        discordIntentProvider = new DiscordIntentProvider(stubJarvisCore, null);
+        discordIntentProvider = new DiscordIntentProvider(discordModule, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructNoTokenConfiguration() {
-        discordIntentProvider = new DiscordIntentProvider(stubJarvisCore, new BaseConfiguration());
+        discordIntentProvider = new DiscordIntentProvider(discordModule, new BaseConfiguration());
     }
 
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
-        discordIntentProvider = new DiscordIntentProvider(stubJarvisCore, configuration);
+        discordIntentProvider = new DiscordIntentProvider(discordModule, configuration);
         assertThat(discordIntentProvider.getJdaClient()).as("Not null JDA client").isNotNull();
         List<Object> listeners = discordIntentProvider.getJdaClient().getRegisteredListeners();
         softly.assertThat(listeners).as("JDA contains one listener").hasSize(1);

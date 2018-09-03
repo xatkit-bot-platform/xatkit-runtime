@@ -1,9 +1,9 @@
 package fr.zelus.jarvis.plugins.discord.module.io;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.io.IntentProvider;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
+import fr.zelus.jarvis.plugins.discord.module.DiscordModule;
 import net.dv8tion.jda.core.JDA;
 import org.apache.commons.configuration2.Configuration;
 
@@ -26,7 +26,7 @@ import static java.util.Objects.nonNull;
  * @see JarvisDiscordUtils
  * @see IntentProvider
  */
-public class DiscordIntentProvider extends IntentProvider {
+public class DiscordIntentProvider extends IntentProvider<DiscordModule> {
 
     /**
      * The {@link String} representing the Discord bot API token.
@@ -41,7 +41,8 @@ public class DiscordIntentProvider extends IntentProvider {
     private JDA jdaClient;
 
     /**
-     * Constructs a new {@link DiscordIntentProvider} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link DiscordIntentProvider} from the provided {@code containingModule} and
+     * {@code configuration}.
      * <p>
      * This constructor initializes the underlying {@link JDA} client and creates a message listener that forwards to
      * the {@code jarvisCore} instance not empty direct messages sent by users (not bots) to the bot private channel
@@ -51,15 +52,16 @@ public class DiscordIntentProvider extends IntentProvider {
      * calling the default constructor will throw an {@link IllegalArgumentException} when looking for the Discord
      * bot token.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance used to handle messages
-     * @param configuration the {@link Configuration} used to retrieve the Discord bot token
-     * @throws NullPointerException     if the provided {@link Configuration} is {@code null}
+     * @param containingModule the {@link DiscordModule} containing this {@link DiscordIntentProvider}
+     * @param configuration    the {@link Configuration} used to retrieve the Discord bot token
+     * @throws NullPointerException     if the provided {@code containingModule} or {@code configuration} is {@code
+     *                                  null}
      * @throws IllegalArgumentException if the provided Discord bot token is {@code null} or empty
      * @see JarvisDiscordUtils
      * @see PrivateMessageListener
      */
-    public DiscordIntentProvider(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public DiscordIntentProvider(DiscordModule containingModule, Configuration configuration) {
+        super(containingModule, configuration);
         checkNotNull(configuration, "Cannot construct a DiscordIntentProvider from a null configuration");
         this.discordToken = configuration.getString(DISCORD_TOKEN_KEY);
         checkArgument(nonNull(discordToken) && !discordToken.isEmpty(), "Cannot construct a DiscordIntentProvider " +

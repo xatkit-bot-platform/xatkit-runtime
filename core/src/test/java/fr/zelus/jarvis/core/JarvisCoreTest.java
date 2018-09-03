@@ -178,8 +178,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void constructValidWebhookEventProvider() {
         Module stubModule = ModuleFactory.eINSTANCE.createModule();
-        stubModule.setName("StubJarvisModule");
-        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        stubModule.setName("EmptyJarvisModule");
+        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.EmptyJarvisModule");
         EventProviderDefinition stubWebhookEventProviderDefinition = ModuleFactory.eINSTANCE
                 .createEventProviderDefinition();
         stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");

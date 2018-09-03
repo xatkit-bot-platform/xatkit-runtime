@@ -166,18 +166,18 @@ public abstract class JarvisModule {
         EventProvider eventProvider;
         try {
             eventProvider = Loader.construct(eventProviderClass, Arrays.asList
-                    (JarvisCore.class, Configuration.class), Arrays
-                    .asList(jarvisCore, configuration));
+                    (this.getClass(), Configuration.class), Arrays
+                    .asList(this, configuration));
         } catch (NoSuchMethodException e) {
             Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the EventProvider using its " +
                             "{0}({1}) constructor", eventProviderClass.getSimpleName(), JarvisCore.class
                             .getSimpleName(),
                     Configuration.class.getSimpleName());
             try {
-                eventProvider = Loader.construct(eventProviderClass, JarvisCore.class, jarvisCore);
+                eventProvider = Loader.construct(eventProviderClass, this.getClass(), this);
             } catch (NoSuchMethodException e1) {
                 String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", eventProviderClass.getSimpleName(), JarvisCore.class.getSimpleName());
+                        "not exist", eventProviderClass.getSimpleName(), this.getClass().getSimpleName());
                 Log.error(errorMessage);
                 throw new JarvisException(errorMessage, e1);
             }
