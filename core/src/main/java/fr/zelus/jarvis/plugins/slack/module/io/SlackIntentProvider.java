@@ -152,7 +152,8 @@ public class SlackIntentProvider extends IntentProvider<SlackModule> {
                                             if (!text.isEmpty()) {
                                                 Log.info("Received message {0} from user {1} (channel: {2})", text,
                                                         user, channel);
-                                                JarvisSession session = jarvisCore.getOrCreateJarvisSession(channel);
+                                                JarvisSession session = this.module
+                                                        .createSessionFromChannel(channel);
                                                 session.getJarvisContext().setContextValue(JarvisSlackUtils
                                                         .SLACK_CONTEXT_KEY, JarvisSlackUtils
                                                         .SLACK_CHANNEL_CONTEXT_KEY, channel);

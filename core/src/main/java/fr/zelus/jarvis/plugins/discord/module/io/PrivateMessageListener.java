@@ -86,7 +86,7 @@ public class PrivateMessageListener extends ListenerAdapter {
             Log.trace("Skipping {0}, the message is empty");
             return;
         }
-        JarvisSession jarvisSession = jarvisCore.getOrCreateJarvisSession(channelId);
+        JarvisSession jarvisSession = discordIntentProvider.getModule().createSessionFromChannel(channel);
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
                 .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils

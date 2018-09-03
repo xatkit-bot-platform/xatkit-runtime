@@ -31,7 +31,7 @@ public abstract class EventProvider<T extends JarvisModule> implements Runnable 
     /**
      * The {@link JarvisModule} subclass containing this action.
      */
-    protected T containingModule;
+    protected T module;
 
     /**
      * Constructs a new {@link EventProvider} with the provided {@code containingModule}.
@@ -64,8 +64,17 @@ public abstract class EventProvider<T extends JarvisModule> implements Runnable 
          */
         checkNotNull(containingModule, "Cannot construct an instance of %s with a null %s", this.getClass()
                 .getSimpleName(), JarvisModule.class.getSimpleName());
-        this.containingModule = containingModule;
+        this.module = containingModule;
         this.jarvisCore = containingModule.getJarvisCore();
+    }
+
+    /**
+     * Returns the {@link JarvisModule} containing this {@link EventProvider}.
+     *
+     * @return the {@link JarvisModule} containing this {@link EventProvider}
+     */
+    public T getModule() {
+        return module;
     }
 
     /**
