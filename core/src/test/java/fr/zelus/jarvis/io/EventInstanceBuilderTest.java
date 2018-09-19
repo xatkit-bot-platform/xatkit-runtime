@@ -98,6 +98,8 @@ public class EventInstanceBuilderTest extends AbstractJarvisTest {
         assertThat(eventInstance).as("Not null EventInstance").isNotNull();
         softly.assertThat(eventInstance.getDefinition()).as("Valid EventDefinition").isEqualTo(eventDefinition);
         softly.assertThat(eventInstance.getOutContextValues()).as("Empty out context values").isEmpty();
+        softly.assertThat(builder.getEventDefinitionName()).as("Builder EventDefinitionName cleared").isNull();
+        softly.assertThat(builder.getOutContextValues()).as("Builder OutContextValues cleared").isEmpty();
     }
 
     @Test(expected = JarvisException.class)
@@ -124,6 +126,26 @@ public class EventInstanceBuilderTest extends AbstractJarvisTest {
         softly.assertThat(contextParameterValue.getContextParameter().getName()).as("Valid ContextParameter")
                 .isEqualTo("key");
         softly.assertThat(contextParameterValue.getValue()).as("Valid ContextParameterValue").isEqualTo("value");
+        softly.assertThat(builder.getEventDefinitionName()).as("Builder EventDefinitionName cleared").isNull();
+        softly.assertThat(builder.getOutContextValues()).as("Builder OutContextValues cleared").isEmpty();
+    }
+
+    @Test
+    public void clearSetEventDefinitionName() {
+        builder = EventInstanceBuilder.newBuilder(registry);
+        builder.setEventDefinitionName("EventName");
+        builder.clear();
+        assertThat(builder.getEventDefinitionName()).as("Builder EventDefinitionName cleared").isNull();
+    }
+
+    @Test
+    public void clearSetEventDefinitionNameSetOutContext() {
+        builder = EventInstanceBuilder.newBuilder(registry);
+        builder.setEventDefinitionName("EventName");
+        builder.setOutContextValue("OutContext", "key");
+        builder.clear();
+        softly.assertThat(builder.getEventDefinitionName()).as("Builder EventDefinitionName cleared").isNull();
+        softly.assertThat(builder.getOutContextValues()).as("Builder OutContextValues cleared").isEmpty();
     }
 
     private EventDefinition createAndRegisterEmptyEventDefinition(String eventName) {

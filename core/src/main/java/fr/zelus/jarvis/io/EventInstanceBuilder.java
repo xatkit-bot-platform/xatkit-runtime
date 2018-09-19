@@ -149,6 +149,9 @@ public class EventInstanceBuilder {
      * {@link EventDefinition} name is used to retrieve the associated {@link EventDefinition} from the {@code
      * registry}, and the {@link EventDefinition}'s {@link ContextParameter}s are processed and matched against the
      * provided output context parameters.
+     * <p>
+     * <b>Note:</b> the builder will be cleared after returning the created {@link EventInstance} in order to allow
+     * multiple {@link EventInstance} creations from the same {@link EventInstanceBuilder} (see {@link #clear()}).
      *
      * @return the created {@link EventInstance}
      * @throws JarvisException if there is no {@link EventDefinition} associated to the provided {@code name}, or if
@@ -156,6 +159,7 @@ public class EventInstanceBuilder {
      *                         the provided ones
      * @see #setEventDefinitionName(String)
      * @see #setOutContextValue(String, String)
+     * @see #clear() 
      */
     public EventInstance build() {
         EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
@@ -179,7 +183,18 @@ public class EventInstanceBuilder {
             contextParameterValue.setValue(contextValues.get(contextKey));
             eventInstance.getOutContextValues().add(contextParameterValue);
         }
+        this.clear();
         return eventInstance;
+    }
+
+    /**
+     * Clears the builder and reset its internal fields.
+     * <p>
+     * <b>Note:</b> this method is automatically called after calling {@link #build()}.
+     */
+    public void clear() {
+        this.eventDefinitionName = null;
+        this.contextValues = new HashMap<>();
     }
 
     /**
