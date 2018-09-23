@@ -15,6 +15,7 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
 import org.apache.commons.configuration2.Configuration;
+import fr.zelus.jarvis.recognition.IntentRecognitionProvider;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,16 +32,18 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * A wrapper of the DialogFlow API that provides utility methods to connect to a given DialogFlow project, start
- * sessions, manage registered intents, and detect intents instances from textual inputs.
+ * A concrete wrapper for the DialogFlow API client.
  * <p>
- * This class is used to easily setup a connection to a given DialogFlow project. Note that in addition to the
- * constructor parameters, the {@code GOOGLE_APPLICATION_CREDENTIALS} environment variable must be set and point to
- * the DialogFlow project's key. See
+ * This class is used to easily setup a connection to a given DialogFlow agent. Note that in addition to the
+ * constructor parameters, the DialogFlow {@code projectId} (see {@link #PROJECT_ID_KEY}), language code (see
+ * {@link #LANGUAGE_CODE_KEY}), and the location of the DialogFlow project's key file ((see
+ * {@link #GOOGLE_CREDENTIALS_PATH_KEY}) should be provided in the constructor's {@link Configuration}. The
+ * DialogFlow project's key file location can also be provided in the {@code GOOGLE_APPLICATION_CREDENTIALS}
+ * environment variable. See
  * <a href="https://cloud.google.com/dialogflow-enterprise/docs/reference/libraries">DialogFlow documentation</a> for
  * further information.
  */
-public class DialogFlowApi {
+public class DialogFlowApi implements IntentRecognitionProvider {
 
     /**
      * The {@link Configuration} key to store the unique identifier of the DialogFlow project.
@@ -221,7 +224,7 @@ public class DialogFlowApi {
                 try {
                     credentialsProvider = FixedCredentialsProvider.create(GoogleCredentials
                             .fromStream(new FileInputStream(credentialsPath)));
-                } catch(FileNotFoundException e) {
+                } catch (FileNotFoundException e) {
                     throw new DialogFlowException(MessageFormat.format("Cannot find the credentials file at {0}",
                             credentialsPath), e);
                 }
@@ -307,20 +310,15 @@ public class DialogFlowApi {
     }
 
     /**
-     * Registers the provided {@code intentDefinition} in the DialogFlow project.
+     * {@inheritDoc}
      * <p>
      * This method reuses the information contained in the provided {@link IntentDefinition} to create a new
      * DialogFlow {@link Intent} and add it to the current project.
-     * <p>
-     * <b>Note:</b> this method does not train the underlying DialogFlow Machine Learning Engine, so multiple calls
-     * to this method are not generating multiple training calls. Once all the {@link IntentDefinition}s have been
-     * registered to the DialogFlow project use {@link #trainMLEngine()} to train the ML Engine.
      *
-     * @param intentDefinition the {@link IntentDefinition} to register to the DialogFlow project
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown, or if the {@link Intent} already exists in
      *                             the DialogFlow project
-     * @see #trainMLEngine()
      */
+    @Override
     public void registerIntentDefinition(IntentDefinition intentDefinition) {
         if (isShutdown()) {
             throw new DialogFlowException(MessageFormat.format("Cannot register the Intent {0}, the DialogFlow API is" +
@@ -450,16 +448,11 @@ public class DialogFlowApi {
     }
 
     /**
-     * Deletes the {@link Intent} matching the provided {@code intentDefinition} from the DialogFlow project.
-     * <p>
-     * <b>Note:</b> this method does not train the underlying DialogFlow Machine Learning Engine, so multiple calls
-     * to this method are not generating multiple training calls. Once all the {@link IntentDefinition}s have been
-     * deleted from the DialogFlow project use {@link #trainMLEngine()} to train the ML Engine.
+     * {@inheritDoc}
      *
-     * @param intentDefinition the {@link IntentDefinition} to delete from the DialogFlow project
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
-     * @see #trainMLEngine()
      */
+    @Override
     public void deleteIntentDefinition(IntentDefinition intentDefinition) {
         if (isShutdown()) {
             throw new DialogFlowException(MessageFormat.format("Cannot delete the Intent {0}, the DialogFlow API is " +
@@ -480,7 +473,7 @@ public class DialogFlowApi {
     }
 
     /**
-     * Sends a training query to the DialogFlow ML Engine and waits for its completion.
+     * {@inheritDoc}
      * <p>
      * This method checks every second whether the underlying ML Engine has finished its training. Note that this
      * method is blocking as long as the ML Engine training is not terminated, and may not terminate if an issue
@@ -488,6 +481,7 @@ public class DialogFlowApi {
      *
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
+    @Override
     public void trainMLEngine() {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot train the ML Engine, the DialogFlow API is shutdown");
@@ -515,7 +509,7 @@ public class DialogFlowApi {
     }
 
     /**
-     * Creates a new {@link JarvisSession} for the provided {@code userId}.
+     * {@inheritDoc}
      * <p>
      * The created session wraps the internal DialogFlow session that is used on the DialogFlow project to retrieve
      * conversation parts from a given user.
@@ -523,10 +517,9 @@ public class DialogFlowApi {
      * The returned {@link JarvisSession} is configured by the global {@link Configuration} provided in
      * {@link #DialogFlowApi(JarvisCore, Configuration)}.
      *
-     * @param sessionId the identifier to create a session for
-     * @return a new {@link JarvisSession} for the provided {@code userId}
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
+    @Override
     public JarvisSession createSession(String sessionId) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
@@ -537,11 +530,9 @@ public class DialogFlowApi {
     }
 
     /**
-     * Shuts down the DialogFlow clients and invalidates the session.
-     * <p>
-     * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus this class cannot be used to
-     * access DialogFlow API anymore.
+     * {@inheritDoc}
      */
+    @Override
     public void shutdown() {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot perform shutdown, DialogFlow API is already shutdown");
@@ -552,45 +543,38 @@ public class DialogFlowApi {
     }
 
     /**
-     * Returns whether the DialogFlow client is shutdown.
-     *
-     * @return {@code true} if the DialogFlow client is shutdown, {@code false} otherwise
+     * {@inheritDoc}
      */
+    @Override
     public boolean isShutdown() {
         return this.sessionsClient.isShutdown() || this.intentsClient.isShutdown() || this.agentsClient.isShutdown();
     }
 
     /**
-     * Returns the {@link RecognizedIntent} extracted from the provided {@code text}
+     * {@inheritDoc}
      * <p>
      * The returned {@link RecognizedIntent} is constructed from the raw {@link Intent} returned by the DialogFlow
      * API, using the mapping defined in {@link #convertDialogFlowIntentToRecognizedIntent(QueryResult)}.
-     * {@link RecognizedIntent}s are used
-     * to wrap the Intents returned by the Intent Recognition APIs and decouple the application from the concrete API
-     * used.
-     * <p>
-     * This method uses the provided {@code session} to extract contextual {@link Intent}s, such as follow-up
-     * or context-based {@link Intent}s.
+     * {@link RecognizedIntent}s are used to wrap the Intents returned by the Intent Recognition APIs and
+     * decouple the application from the concrete API used.
      *
-     * @param text    a {@link String} representing the textual input to process and extract the {@link Intent} from
-     * @param session the {@link JarvisSession} wrapping the underlying DialogFlow session
-     * @return a {@link RecognizedIntent} extracted from the provided input {@code text}
-     * @throws NullPointerException     if the provided {@code text} or {@code session} is {@code null}
-     * @throws IllegalArgumentException if the provided {@code text} is empty
+     * @throws NullPointerException     if the provided {@code input} or {@code session} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code input} is empty
      * @throws DialogFlowException      if the {@link DialogFlowApi} is shutdown or if an exception is thrown by the
      *                                  underlying DialogFlow engine
      */
-    public RecognizedIntent getIntent(String text, JarvisSession session) {
+    @Override
+    public RecognizedIntent getIntent(String input, JarvisSession session) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot extract an Intent from the provided input, the DialogFlow API is " +
                     "shutdown");
         }
-        checkNotNull(text, "Cannot retrieve the intent from null");
+        checkNotNull(input, "Cannot retrieve the intent from null");
         checkNotNull(session, "Cannot retrieve the intent using null as a session");
-        checkArgument(!text.isEmpty(), "Cannot retrieve the intent from empty string");
+        checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         checkArgument(session instanceof DialogFlowSession, "Cannot handle the message, expected session type to be " +
                 "%s, found %s", DialogFlowSession.class.getSimpleName(), session.getClass().getSimpleName());
-        TextInput.Builder textInput = TextInput.newBuilder().setText(text).setLanguageCode(languageCode);
+        TextInput.Builder textInput = TextInput.newBuilder().setText(input).setLanguageCode(languageCode);
         QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
         DetectIntentResponse response;
         try {
