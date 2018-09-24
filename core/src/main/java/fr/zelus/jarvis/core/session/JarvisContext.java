@@ -43,7 +43,7 @@ public class JarvisContext {
     /**
      * The default amount of time to spend waiting for a context variable (in seconds).
      */
-    private static int DEFAULT_VARIABLE_TIMEOUT_KEY = 2;
+    public static int DEFAULT_VARIABLE_TIMEOUT_VALUE = 2;
 
     /**
      * The sub-contexts associated to this class.
@@ -56,7 +56,7 @@ public class JarvisContext {
     /**
      * The amount of time to spend waiting for a context variable (in seconds).
      * <p>
-     * This attribute is equals to {@link #DEFAULT_VARIABLE_TIMEOUT_KEY} unless a specific value is provided in this
+     * This attribute is equals to {@link #DEFAULT_VARIABLE_TIMEOUT_VALUE} unless a specific value is provided in this
      * class' {@link Configuration} constructor parameter
      *
      * @see #JarvisContext(Configuration)
@@ -92,8 +92,8 @@ public class JarvisContext {
             this.variableTimeout = configuration.getInt(VARIABLE_TIMEOUT_KEY);
             Log.info("Setting context variable timeout to {0}s", variableTimeout);
         } else {
-            this.variableTimeout = DEFAULT_VARIABLE_TIMEOUT_KEY;
-            Log.info("Using default context variable timeout ({0}s)", DEFAULT_VARIABLE_TIMEOUT_KEY);
+            this.variableTimeout = DEFAULT_VARIABLE_TIMEOUT_VALUE;
+            Log.info("Using default context variable timeout ({0}s)", DEFAULT_VARIABLE_TIMEOUT_VALUE);
         }
     }
 
