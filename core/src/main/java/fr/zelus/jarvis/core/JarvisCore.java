@@ -1,10 +1,7 @@
 package fr.zelus.jarvis.core;
 
-import com.google.cloud.dialogflow.v2.SessionName;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.dialogflow.DialogFlowApi;
-import fr.zelus.jarvis.dialogflow.DialogFlowException;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.module.Action;
@@ -15,6 +12,9 @@ import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
+import fr.zelus.jarvis.recognition.IntentRecognitionProvider;
+import fr.zelus.jarvis.recognition.IntentRecognitionProviderException;
+import fr.zelus.jarvis.recognition.IntentRecognitionProviderFactory;
 import fr.zelus.jarvis.server.JarvisServer;
 import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.Configuration;
@@ -71,11 +71,9 @@ public class JarvisCore {
     private Configuration configuration;
 
     /**
-     * The {@link DialogFlowApi} used to access the DialogFlow framework and send user input for
-     * {@link RecognizedIntent}
-     * extraction.
+     * The {@link IntentRecognitionProvider} used to compute {@link RecognizedIntent}s from input text.
      */
-    private DialogFlowApi dialogFlowApi;
+    private IntentRecognitionProvider intentRecognitionProvider;
 
     /**
      * The {@link JarvisModuleRegistry} used to cache loaded module, and provides utility method to retrieve,
@@ -153,7 +151,8 @@ public class JarvisCore {
         OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
                 (ORCHESTRATION_MODEL_KEY));
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
-        this.dialogFlowApi = new DialogFlowApi(this, configuration);
+        this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
+                configuration);
         this.sessions = new HashMap<>();
         this.orchestrationService = new OrchestrationService(orchestrationModel);
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
@@ -184,13 +183,10 @@ public class JarvisCore {
             if (eventDefinition instanceof IntentDefinition) {
                 IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
                 try {
-                    this.dialogFlowApi.registerIntentDefinition(intentDefinition);
+                    this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
                     intentRegistered = true;
-                } catch (DialogFlowException e) {
-                    Log.warn("The Intent {0} is already registered in the DialogFlow project, skipping its " +
-                                    "registration",
-                            intentDefinition.getName());
-                    Log.warn("Intent {0} won't be updated on the DialogFlow project", intentDefinition.getName());
+                } catch (IntentRecognitionProviderException e) {
+                    Log.warn(e);
                 }
             }
             /*
@@ -209,10 +205,10 @@ public class JarvisCore {
         }
         if (intentRegistered) {
             /*
-             * New intents have been registered in the DialogFlow project, we should explicitly ask the ML Engine
-             * to train in order to take them into account
+             * New intents have been registered in the IntentRecognitionProvider, we should explicitly ask the
+             * ML Engine to train in order to take them into account.
              */
-            dialogFlowApi.trainMLEngine();
+            intentRecognitionProvider.trainMLEngine();
         }
         jarvisServer.start();
         Log.info("Jarvis bot started");
@@ -334,16 +330,17 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link DialogFlowApi} used to query the DialogFlow framework.
+     * Returns the underlying {@link IntentRecognitionProvider}.
      * <p>
-     * <b>Note:</b> this method is designed to ease debugging and testing, direct interactions with the DialogFlow
-     * API may create consistency issues. In particular, jarvis does not ensure that {@link JarvisAction}s will be
-     * triggered in case of direct queries to the DialogFlow API.
+     * <b>Note:</b> this method is designed to ease debugging and testing, direct interactions with the
+     * {@link IntentRecognitionProvider} API may create consistency issues. In particular, jarvis does not ensure
+     * that {@link JarvisAction}s will be triggered in case of direct queries to the
+     * {@link IntentRecognitionProvider} API.
      *
-     * @return the {@link DialogFlowApi} used to query the DialogFlow framework
+     * @return the underlying {@link IntentRecognitionProvider}
      */
-    public DialogFlowApi getDialogFlowApi() {
-        return dialogFlowApi;
+    public IntentRecognitionProvider getIntentRecognitionProvider() {
+        return intentRecognitionProvider;
     }
 
     /**
@@ -408,26 +405,26 @@ public class JarvisCore {
     /**
      * Shuts down the {@link JarvisCore} and the underlying engines.
      * <p>
-     * This method shuts down the underlying {@link DialogFlowApi}, unloads and shuts down all the
+     * This method shuts down the underlying {@link IntentRecognitionProvider}, unloads and shuts down all the
      * {@link JarvisModule}s associated to this instance, unregisters the
      * {@link EventDefinition} from the associated {@link EventDefinitionRegistry}, and shuts down the
      * {@link #executorService} and {@link #jarvisServer}.
      * <p>
-     * <b>Note:</b> calling this method invalidates the DialogFlow connection, and thus shuts down intent detections
-     * and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
+     * <b>Note:</b> calling this method invalidates the {@link IntentRecognitionProvider} connection, and thus shuts
+     * down intent detections and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
      *
      * @see JarvisModule#shutdown()
-     * @see DialogFlowApi#shutdown()
+     * @see IntentRecognitionProvider#shutdown()
      */
     public void shutdown() {
         Log.info("Shutting down JarvisCore");
         if (isShutdown()) {
             throw new JarvisException("Cannot perform shutdown, JarvisCore is already shutdown");
         }
-        // Shutdown the executor first in case there are running tasks using the DialogFlow API.
+        // Shutdown the executor first in case there are running tasks using the IntentRecognitionProvider API.
         this.executorService.shutdownNow();
         this.jarvisServer.stop();
-        this.dialogFlowApi.shutdown();
+        this.intentRecognitionProvider.shutdown();
         Collection<JarvisModule> jarvisModules = this.getJarvisModuleRegistry().getModules();
         for (JarvisModule jarvisModule : jarvisModules) {
             jarvisModule.shutdown();
@@ -439,20 +436,20 @@ public class JarvisCore {
     /**
      * Returns whether the {@link JarvisCore} client is shutdown.
      * <p>
-     * This class is considered as shutdown if either its underlying {@link ExecutorService} or {@link DialogFlowApi}
-     * is shutdown, or if its {@link SessionName} is {@code null}.
+     * This class is considered as shutdown if either its underlying {@link ExecutorService} or
+     * {@link IntentRecognitionProvider} is shutdown.
      *
      * @return {@code true} if the {@link JarvisCore} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
-        return executorService.isShutdown() || dialogFlowApi.isShutdown();
+        return executorService.isShutdown() || intentRecognitionProvider.isShutdown();
     }
 
     /**
      * Retrieves or creates the {@link JarvisSession} associated to the provided {@code sessionId}.
      * <p>
      * If the {@link JarvisSession} does not exist a new one is created using
-     * {@link DialogFlowApi#createSession(String)}.
+     * {@link IntentRecognitionProvider#createSession(String)}.
      *
      * @param sessionId the identifier to get or retrieve a session from
      * @return the {@link JarvisSession} associated to the provided {@code sessionId}
@@ -463,7 +460,7 @@ public class JarvisCore {
                 .class.getSimpleName(), sessionId);
         JarvisSession session = getJarvisSession(sessionId);
         if (isNull(session)) {
-            session = this.dialogFlowApi.createSession(sessionId);
+            session = this.intentRecognitionProvider.createSession(sessionId);
             sessions.put(sessionId, session);
         }
         return session;

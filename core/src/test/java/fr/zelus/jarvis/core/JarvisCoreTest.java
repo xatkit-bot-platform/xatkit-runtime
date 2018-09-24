@@ -3,13 +3,14 @@ package fr.zelus.jarvis.core;
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.dialogflow.DialogFlowApi;
+import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.module.*;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import fr.zelus.jarvis.recognition.DefaultIntentRecognitionProvider;
 import fr.zelus.jarvis.stubs.StubJarvisModule;
 import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
@@ -194,6 +195,26 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 "registered WebhookEventProvider").isInstanceOf(StubJsonWebhookEventProvider.class);
     }
 
+    @Test
+    public void constructDefaultIntentRecognitionProviderEmptyOrchestrationModel() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, OrchestrationFactory.eINSTANCE
+                .createOrchestrationModel());
+        jarvisCore = new JarvisCore(configuration);
+        assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses DefaultIntentRecognitionProvider")
+                .isInstanceOf(DefaultIntentRecognitionProvider.class);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void constructDefaultIntentRecognitionProviderIntentDefinitionInOrchestrationModel() {
+        /*
+         * This test should fail: the DefaultIntentRecognitionProvider does not allow to register IntentDefinitions.
+         */
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
+        jarvisCore = new JarvisCore(configuration);
+    }
+
     @Test(expected = JarvisException.class)
     public void getOrchestrationModelInvalidType() {
         jarvisCore = getValidJarvisCore();
@@ -277,7 +298,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         jarvisCore = getValidJarvisCore();
         jarvisCore.shutdown();
         softly.assertThat(jarvisCore.getExecutorService().isShutdown()).as("ExecutorService is shutdown");
-        softly.assertThat(jarvisCore.getDialogFlowApi().isShutdown()).as("DialogFlow API is shutdown");
+        softly.assertThat(jarvisCore.getIntentRecognitionProvider().isShutdown()).as("DialogFlow API is shutdown");
         softly.assertThat(jarvisCore.getJarvisModuleRegistry().getModules()).as("Empty module registry").isEmpty();
     }
 
@@ -356,14 +377,16 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         jarvisCore.handleEvent(instance, session);
         JarvisContext context = session.getJarvisContext();
         assertThat(context.getContextVariables("Context1")).as("Not null Context1 variable map").isNotNull();
-        assertThat(context.getContextVariables("Context1").keySet()).as("Context1 variable map contains a single variable")
+        assertThat(context.getContextVariables("Context1").keySet()).as("Context1 variable map contains a single " +
+                "variable")
                 .hasSize(1);
         assertThat(context.getContextValue("Context1", "Parameter1")).as("Not null Context1.Parameter1 value")
                 .isNotNull();
         assertThat(context.getContextValue("Context1", "Parameter1")).as("Valid Context1.Parameter1 value").isEqualTo
                 ("love");
         assertThat(context.getContextVariables("Context2")).as("Not null Context2 variable map").isNotNull();
-        assertThat(context.getContextVariables("Context2").keySet()).as("Context2 variable map contains a single variable")
+        assertThat(context.getContextVariables("Context2").keySet()).as("Context2 variable map contains a single " +
+                "variable")
                 .hasSize(1);
         assertThat(context.getContextValue("Context2", "Parameter2")).as("Not null Context2.Parameter2 value")
                 .isNotNull();
@@ -406,11 +429,14 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * isNotNull() assertions are not soft, otherwise the runner does not print the assertion error and fails on
          * a NullPointerException in the following assertions.
          */
-        assertThat(jarvisCore.getDialogFlowApi()).as("Not null DialogFlow API").isNotNull();
-        softly.assertThat(jarvisCore.getDialogFlowApi().getProjectId()).as("Valid DialogFlowAPI project ID").isEqualTo
+        assertThat(jarvisCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
+        assertThat(jarvisCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a DialogFlowApi " +
+                "instance").isInstanceOf(DialogFlowApi.class);
+        DialogFlowApi dialogFlowApi = (DialogFlowApi) jarvisCore.getIntentRecognitionProvider();
+        softly.assertThat(dialogFlowApi.getProjectId()).as("Valid DialogFlowAPI project ID").isEqualTo
                 (VALID_PROJECT_ID);
-        softly.assertThat(jarvisCore.getDialogFlowApi().getLanguageCode()).as("Valid DialogFlowAPI language code")
-                .isEqualTo(VALID_LANGUAGE_CODE);
+        softly.assertThat(dialogFlowApi.getLanguageCode()).as("Valid DialogFlowAPI language code").isEqualTo
+                (VALID_LANGUAGE_CODE);
         assertThat(jarvisCore.getOrchestrationModel()).as("Not null OrchestrationModel").isNotNull();
         softly.assertThat(jarvisCore.getOrchestrationModel()).as("Valid OrchestrationModel").isEqualTo
                 (orchestrationModel);

@@ -1,11 +1,11 @@
-package fr.zelus.jarvis.dialogflow;
+package fr.zelus.jarvis.recognition.dialogflow;
 
-import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.recognition.IntentRecognitionProviderException;
 
 /**
  * Wraps all the exceptions returned by the DialogFlow API.
  */
-public class DialogFlowException extends JarvisException {
+public class DialogFlowException extends IntentRecognitionProviderException {
 
     /**
      * Constructs a new {@link DialogFlowException}.
@@ -17,7 +17,7 @@ public class DialogFlowException extends JarvisException {
     }
 
     /**
-     * Constructs a new {@link DialogFlowException} frmo the provided {@code message}.
+     * Constructs a new {@link DialogFlowException} from the provided {@code message}.
      *
      * @param message the exception's message
      * @see RuntimeException#RuntimeException(String)
@@ -31,6 +31,7 @@ public class DialogFlowException extends JarvisException {
      *
      * @param message the exception's message
      * @param cause   the exception's cause
+     * @see RuntimeException#RuntimeException(String, Throwable)
      */
     public DialogFlowException(String message, Throwable cause) {
         super(message, cause);
@@ -48,7 +49,7 @@ public class DialogFlowException extends JarvisException {
 
     /**
      * Constructs a new {@link DialogFlowException} from the provided {@code message}, {@code cause}, {@code
-     * enableSuppression}, and {@code writableStackTrace}
+     * enableSuppression}, and {@code writableStackTrace}.
      *
      * @param message            the exception's message
      * @param cause              the exception's cause

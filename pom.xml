@@ -180,8 +180,12 @@
                                 <packages>fr.zelus.jarvis.io*</packages>
                             </group>
                             <group>
+                                <title>Intent Recognition</title>
+                                <packages>fr.zelus.jarvis.recognition*</packages>
+                            </group>
+                            <group>
                                 <title> DialogFlow Connector</title>
-                                <packages>fr.zelus.jarvis.dialogflow*</packages>
+                                <packages>fr.zelus.jarvis.recognition.dialogflow*</packages>
                             </group>
                             <group>
                                 <title>Intent Model</title>

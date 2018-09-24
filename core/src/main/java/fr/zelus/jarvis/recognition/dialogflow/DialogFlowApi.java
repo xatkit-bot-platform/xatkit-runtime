@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.dialogflow;
+package fr.zelus.jarvis.recognition.dialogflow;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.core.CredentialsProvider;
