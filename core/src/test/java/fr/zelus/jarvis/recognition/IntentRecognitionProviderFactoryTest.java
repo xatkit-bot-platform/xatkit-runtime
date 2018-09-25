@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.recognition;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
@@ -11,7 +12,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class IntentRecognitionProviderFactoryTest {
+public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
 
     private static JarvisCore stubJarvisCore = new StubJarvisCore();
 

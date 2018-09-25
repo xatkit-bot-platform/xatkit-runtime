@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.recognition;
 
+import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.IntentFactory;
@@ -10,7 +11,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultIntentRecognitionProviderTest {
+public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
 
     private DefaultIntentRecognitionProvider provider;
 
