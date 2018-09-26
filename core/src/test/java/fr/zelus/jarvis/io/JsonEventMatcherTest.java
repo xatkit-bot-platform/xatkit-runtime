@@ -56,7 +56,7 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         ContextParameter param = IntentFactory.eINSTANCE.createContextParameter();
         param.setName(validFieldValue.getKey());
         ContextParameter param2 = IntentFactory.eINSTANCE.createContextParameter();
-        param2.setName("top-level_inner-field");
+        param2.setName("top-level->inner-field");
         outContext.getParameters().add(param);
         outContext.getParameters().add(param2);
         eventRegistry.registerEventDefinition(validEventDefinition);
@@ -237,14 +237,13 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         assertThat(value1.getContextParameter()).as("Value1 context parameter not null").isNotNull();
         ContextParameter contextParameter1 = value1.getContextParameter();
         assertThat(contextParameter1.getName()).as("Valid value1 context parameter name").isEqualTo
-                ("top-level_inner-field");
-        assertThat(value1.getValue()).as("Valid value1 value").isEqualTo("inner-value");
+                (validFieldValue.getKey());
+        assertThat(value1.getValue()).as("Valid value1 value").isEqualTo(validFieldValue.getValue());
         ContextParameterValue value2 = eventInstance.getOutContextValues().get(1);
         assertThat(value2.getContextParameter()).as("Value2 context parameter not null").isNotNull();
         ContextParameter contextParameter2 = value2.getContextParameter();
-        assertThat(contextParameter2.getName()).as("Valid value2 context parameter name").isEqualTo(validFieldValue
-                .getKey());
-        assertThat(value2.getValue()).as("Valid value2 value").isEqualTo(validFieldValue.getValue());
+        assertThat(contextParameter2.getName()).as("Valid value2 context parameter name").isEqualTo("top-level->inner-field");
+        assertThat(value2.getValue()).as("Valid value2 value").isEqualTo("inner-value");
     }
 
     @Test(expected = JarvisException.class)
@@ -285,7 +284,7 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         ContextParameter param = IntentFactory.eINSTANCE.createContextParameter();
         param.setName(validFieldValue.getKey());
         ContextParameter param2 = IntentFactory.eINSTANCE.createContextParameter();
-        param2.setName("top-level_inner-field");
+        param2.setName("top-level->inner-field");
         ContextParameter param3 = IntentFactory.eINSTANCE.createContextParameter();
         param3.setName("another-field");
         outContext.getParameters().add(param);
