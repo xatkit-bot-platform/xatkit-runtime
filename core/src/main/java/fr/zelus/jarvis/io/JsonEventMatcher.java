@@ -78,11 +78,12 @@ public class JsonEventMatcher {
      * @throws NullPointerException if the provided {@code headerValue}, {@code fieldValue}, or {@code eventTypeName}
      *                              is {@code null}
      * @throws JarvisException      if the provided {@code headerValue} and {@code fieldValue} are already associated to
-     *                              another {@code eventTypeName}, or if the provided {@code headerValue} is
-     *                              associated to the {@link FieldValue#EMPTY_FIELD_VALUE} and the provided {@code
-     *                              fieldValue} is not the {@link FieldValue#EMPTY_FIELD_VALUE} one.
+     *                              another {@code eventTypeName}, or if calling this method would associate the
+     *                              {@link FieldValue#EMPTY_FIELD_VALUE} and specialized {@link FieldValue}s to the
+     *                              provided {@code headerValue}.
      * @see HeaderValue
      * @see FieldValue
+     * @see FieldValue#EMPTY_FIELD_VALUE
      */
     public void addMatchableEvent(HeaderValue headerValue, FieldValue fieldValue, String eventTypeName) {
         checkNotNull(headerValue, "Cannot register the EventType %s with the provided %s %s", eventTypeName,
@@ -99,9 +100,22 @@ public class JsonEventMatcher {
                  * EMPTY_FIELD_VALUE: the engine will always match the EMPTY_FIELD_VALUE.
                  */
                 throw new JarvisException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
-                                "empty FieldValue {1} is already registered for the HeaderValue {2}, and cannot be " +
-                                "overloaded with the specialized FieldValue {3}", eventTypeName, FieldValue
-                                .EMPTY_FIELD_VALUE, headerValue, fieldValue));
+                        "empty FieldValue {1} is already registered for the HeaderValue {2}, and cannot be " +
+                        "overloaded with the specialized FieldValue {3}", eventTypeName, FieldValue
+                        .EMPTY_FIELD_VALUE, headerValue, fieldValue));
+            } else if (!fields.keySet().isEmpty() && !fields.containsKey(FieldValue.EMPTY_FIELD_VALUE) && fieldValue
+                    .equals(FieldValue.EMPTY_FIELD_VALUE)) {
+                /*
+                 * Check if the FieldValue to add is the EMPTY_FIELD_VALUE. If so, the fields map should be empty, or
+                 * only contain a single EMPTY_FIELD_VALUE entry, because EMPTY_FIELD_VALUE cannot be registered with
+                 * specialized FieldValues.
+                 * Note that this condition allows to register the same EventTypeName to EMPTY_FIELD_VALUE multiple
+                 * times (the duplicate insertion is handled in the next conditions).
+                 */
+                throw new JarvisException(MessageFormat.format("Cannot register the provided EventType {0}, a " +
+                        "specialized FieldValue {1} is already registered for the HeaderValue {2}, and cannot be used" +
+                        " along with the empty FieldValue {3}", eventTypeName, fieldValue, headerValue, FieldValue
+                        .EMPTY_FIELD_VALUE));
             }
             if (fields.containsKey(fieldValue)) {
                 if (fields.get(fieldValue).equals(eventTypeName)) {

@@ -203,6 +203,36 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
     }
 
     @Test(expected = JarvisException.class)
+    public void addMatchableEventsSameHeaderValuesFirstEmptyFieldValuesSameEventNames() {
+        matcher.addMatchableEvent(validHeaderValue, JsonEventMatcher.FieldValue.EMPTY_FIELD_VALUE, validEventTypeName);
+        matcher.addMatchableEvent(validHeaderValue, validFieldValue, validEventTypeName);
+    }
+
+    @Test(expected = JarvisException.class)
+    public void addMatchableEventsSameHeaderValuesFirstValidSecondEmptyFieldValuesSameEventNames() {
+        matcher.addMatchableEvent(validHeaderValue, validFieldValue, validEventTypeName);
+        matcher.addMatchableEvent(validHeaderValue, JsonEventMatcher.FieldValue.EMPTY_FIELD_VALUE, validEventTypeName);
+    }
+
+    @Test
+    public void addMatchableEventsSameHeaderValuesBothEmptyFieldValuesSameEventName() {
+        matcher.addMatchableEvent(validHeaderValue, JsonEventMatcher.FieldValue.EMPTY_FIELD_VALUE, validEventTypeName);
+        matcher.addMatchableEvent(validHeaderValue, JsonEventMatcher.FieldValue.EMPTY_FIELD_VALUE, validEventTypeName);
+        assertThat(matcher.matchableEvents).as("Matchable events map not empty").isNotEmpty();
+        assertThat(matcher.matchableEvents).as("Matchable events map size is 1").hasSize(1);
+        assertThat(matcher.matchableEvents).as("Matchable events map contains the given HeaderValue").containsKey
+                (validHeaderValue);
+        Map<JsonEventMatcher.FieldValue, String> fieldValues = matcher.matchableEvents.get(validHeaderValue);
+        assertThat(fieldValues).as("Matchable events map HeaderValue is not null").isNotNull();
+        assertThat(fieldValues).as("FieldValue sub map size is 1").hasSize(1);
+        assertThat(fieldValues).as("FieldValue sub map contains the empty FieldValue").containsKey(JsonEventMatcher
+                .FieldValue.EMPTY_FIELD_VALUE);
+        String storedEventType = fieldValues.get(JsonEventMatcher.FieldValue.EMPTY_FIELD_VALUE);
+        assertThat(storedEventType).as("Not null EventTypeName").isNotNull();
+        assertThat(storedEventType).as("Valid EventTypeName").isEqualTo(validEventTypeName);
+    }
+
+    @Test(expected = JarvisException.class)
     public void addMatchableEventsSameHeaderValuesSameFieldValuesDifferentEventNames() {
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, validEventTypeName);
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, "EventName2");
