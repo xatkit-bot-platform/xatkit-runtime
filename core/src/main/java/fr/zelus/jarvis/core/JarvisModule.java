@@ -237,10 +237,6 @@ public abstract class JarvisModule {
         actionMap.clear();
     }
 
-    public final Class<? extends JarvisAction> getAction(String actionName) {
-        return actionMap.get(actionName);
-    }
-
     /**
      * Returns all the {@link JarvisAction} {@link Class}es associated to this {@link JarvisModule}.
      * <p>
