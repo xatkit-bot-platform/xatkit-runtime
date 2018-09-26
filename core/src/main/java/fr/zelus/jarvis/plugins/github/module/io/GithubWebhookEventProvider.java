@@ -1,94 +1,87 @@
 package fr.zelus.jarvis.plugins.github.module.io;
 
 import com.google.gson.JsonElement;
-import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;
+import fr.zelus.jarvis.io.EventInstanceBuilder;
+import fr.zelus.jarvis.io.JsonEventMatcher;
 import fr.zelus.jarvis.io.JsonWebhookEventProvider;
 import fr.zelus.jarvis.plugins.github.module.GithubModule;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
-
-import java.util.List;
-
-import static java.util.Objects.nonNull;
 
 public class GithubWebhookEventProvider extends JsonWebhookEventProvider<GithubModule> {
 
     private final static String GITHUB_EVENT_HEADER_KEY = "X-Github-Event";
 
-    private final static String GITHUB_ISSUES_EVENT = "issues";
+    private JsonEventMatcher matcher;
 
-    private final static String GITHUB_ISSUE_COMMENT_EVENT = "issue_comment";
-
-    // action on the wiki
-    private final static String GITHUB_GOLLUM_EVENT = "gollum";
-
-    private final static String GITHUB_PULL_REQUEST_EVENT = "pull_request";
-
-    private final static String GITHUB_LABEL_EVENT = "label";
-
-    private final static String GITHUB_FORK_EVENT = "fork";
-
-    public GithubWebhookEventProvider(GithubModule containingModule) {
-        super(containingModule);
+    public GithubWebhookEventProvider(GithubModule containingModule, Configuration configuration) {
+        super(containingModule, configuration);
+        matcher = new JsonEventMatcher(EventInstanceBuilder.newBuilder(this.jarvisCore.getEventDefinitionRegistry()),
+                configuration);
+        JsonEventMatcher.HeaderValue issueHeader = JsonEventMatcher.HeaderValue.of(GITHUB_EVENT_HEADER_KEY, "issues");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "opened"), "Issue_Opened");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "edited"), "Issue_Edited");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "closed"), "Issue_Closed");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "reopened"), "Issue_Reopened");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "assigned"), "Issue_Assigned");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "unassigned"),
+                "Issue_Unassigned");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "labeled"), "Issue_Labeled");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "unlabeled"),
+                "Issue_Unlabeled");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "milestoned"),
+                "Issue_Milestoned");
+        matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "demilestoned"),
+                "Issue_Demilestoned");
+        JsonEventMatcher.HeaderValue issueCommentHeader = JsonEventMatcher.HeaderValue.of(GITHUB_EVENT_HEADER_KEY, "issue_comment");
+        // Issue Comments
+        // TODO: should we differentiate pull requests and issues?
+        matcher.addMatchableEvent(issueCommentHeader, JsonEventMatcher.FieldValue.of("action", "created"),
+                "Issue_Comment_Created");
+        matcher.addMatchableEvent(issueCommentHeader, JsonEventMatcher.FieldValue.of("action", "edited"),
+                "Issue_Comment_Edited");
+        matcher.addMatchableEvent(issueCommentHeader, JsonEventMatcher.FieldValue.of("action", "deleted"),
+                "Issue_Comment_Deleted");
+        // Labels
+        JsonEventMatcher.HeaderValue labelHeader = JsonEventMatcher.HeaderValue.of(GITHUB_EVENT_HEADER_KEY, "label");
+        matcher.addMatchableEvent(labelHeader, JsonEventMatcher.FieldValue.of("action", "created"), "Label_Created");
+        matcher.addMatchableEvent(labelHeader, JsonEventMatcher.FieldValue.of("action", "edited"), "Label_Edited");
+        matcher.addMatchableEvent(labelHeader, JsonEventMatcher.FieldValue.of("action", "deleted"), "Label_Deleted");
+        // Pull Requests
+        JsonEventMatcher.HeaderValue pullRequestHeader = JsonEventMatcher.HeaderValue.of(GITHUB_EVENT_HEADER_KEY, "pull_request");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "opened"),
+                "Pull_Request_Opened");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "edited"),
+                "Pull_Request_Edited");
+        // TODO: differentiate between merged and not-merged pull requests
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "closed"),
+                "Pull_Request_Closed");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "reopened"),
+                "Pull_Request_Reopened");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "assigned"),
+                "Pull_Request_Assigned");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "unassigned"),
+                "Pull_Request_Unassigned");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "labeled"),
+                "Pull_Request_Labeled");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "unlabeled"),
+                "Pull_Request_Unlabeled");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "review_requested"),
+                "Pull_Request_Review_Requested");
+        matcher.addMatchableEvent(pullRequestHeader, JsonEventMatcher.FieldValue.of("action", "review_request_removed"),
+                "Pull_Request_Review_Request_Removed");
+        // Push
+        JsonEventMatcher.HeaderValue pushHeader = JsonEventMatcher.HeaderValue.of(GITHUB_EVENT_HEADER_KEY, "push");
+        matcher.addMatchableEvent(pushHeader, JsonEventMatcher.FieldValue.EMPTY_FIELD_VALUE, "Push");
     }
 
     @Override
     protected void handleParsedContent(JsonElement parsedContent, Header[] headers) {
-        String githubEvent = getHeaderValue(headers, GITHUB_EVENT_HEADER_KEY);
-        if (nonNull(githubEvent)) {
-            Log.info("Processing Github event {0}", githubEvent);
-            try {
-                // list because some builder flatten github events (e.g. GithubGollumEventBuilder)
-                List<EventInstance> eventInstances;
-                switch (githubEvent) {
-                    case GITHUB_ISSUES_EVENT:
-                        eventInstances = GithubIssueEventBuilder.handleGithubIssuesEvent(parsedContent, this
-                                .jarvisCore.getEventDefinitionRegistry());
-                        break;
-                    case GITHUB_ISSUE_COMMENT_EVENT:
-                        eventInstances = GithubIssueCommentEventBuilder.handleGithubIssueCommentEvent(parsedContent,
-                                this.jarvisCore.getEventDefinitionRegistry());
-                        break;
-                    case GITHUB_GOLLUM_EVENT:
-                        eventInstances = GithubGollumEventBuilder.handleGithubGollumEvent
-                                (parsedContent, this.jarvisCore.getEventDefinitionRegistry());
-                        break;
-                    case GITHUB_PULL_REQUEST_EVENT:
-                        eventInstances = GithubPullRequestEventBuilder.handleGithubPullRequestEvent(parsedContent,
-                                this.jarvisCore.getEventDefinitionRegistry());
-                        break;
-                    case GITHUB_LABEL_EVENT:
-                        eventInstances = GithubLabelEventBuilder.handleGithubLabelEvent(parsedContent, this
-                                .jarvisCore.getEventDefinitionRegistry());
-                        break;
-                    case GITHUB_FORK_EVENT:
-                        eventInstances = GithubForkEventBuilder.handleForkEvent(parsedContent, this.jarvisCore
-                                .getEventDefinitionRegistry());
-                        break;
-                    default:
-                        Log.warn("Unknown Github event type {0}", githubEvent);
-                        return;
-                }
-                JarvisSession session = this.jarvisCore.getOrCreateJarvisSession("github");
-                for(EventInstance eventInstance : eventInstances) {
-                    this.jarvisCore.handleEvent(eventInstance, session);
-                }
-            } catch(JarvisException e) {
-                /*
-                 * An error occurred when parsing the provided content.
-                 */
-                Log.error(e, "An error occurred when parsing the request content");
-                return;
-            }
-        } else {
-            /*
-             * The received request is not a GitHub event.
-             */
-            Log.info("The received request is not a Github request, skipping it");
-            return;
-        }
+        EventInstance eventInstance = matcher.match(headers, parsedContent);
+        JarvisSession jarvisSession = this.jarvisCore.getOrCreateJarvisSession("github");
+        this.jarvisCore.handleEvent(eventInstance, jarvisSession);
     }
 
     @Override
