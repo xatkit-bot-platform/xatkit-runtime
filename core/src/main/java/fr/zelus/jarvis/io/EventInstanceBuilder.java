@@ -159,7 +159,7 @@ public class EventInstanceBuilder {
      *                         the provided ones
      * @see #setEventDefinitionName(String)
      * @see #setOutContextValue(String, String)
-     * @see #clear() 
+     * @see #clear()
      */
     public EventInstance build() {
         EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
@@ -184,6 +184,10 @@ public class EventInstanceBuilder {
             eventInstance.getOutContextValues().add(contextParameterValue);
         }
         this.clear();
+        /*
+         * Note: this method does not check that all the out context parameter have been filled with values (see
+         * #142). This may be integrated in a future release based on the issue discussions.
+         */
         return eventInstance;
     }
 
@@ -195,6 +199,29 @@ public class EventInstanceBuilder {
     public void clear() {
         this.eventDefinitionName = null;
         this.contextValues = new HashMap<>();
+    }
+
+    /**
+     * Prints a pretty representation of the current {@link EventDefinition} to instantiate with this builder.
+     * <p>
+     * This method provides a human-readable view of the builder content that is used for debugging purposes.
+     *
+     * @return a pretty representation of the current {@link EventDefinition} to instantiate with this builder
+     */
+    public String prettyPrintEventDefinition() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.eventDefinitionName).append("\n");
+        /*
+         * The out context name is not known in the builder, it is not required to set context parameter values.
+         */
+        sb.append("outContext \"unknown\" {\n");
+        sb.append("\tparams {\n");
+        for (String contextKey : contextValues.keySet()) {
+            sb.append("\t\t").append(contextKey).append("\n");
+        }
+        sb.append("\t}\n");
+        sb.append("}");
+        return sb.toString();
     }
 
     /**
