@@ -129,7 +129,7 @@ public abstract class JarvisModule {
     }
 
     /**
-     * Return the {@link JarvisCore} instance associated to this module.
+     * Returns the {@link JarvisCore} instance associated to this module.
      *
      * @return the {@link JarvisCore} instance associated to this module
      */
