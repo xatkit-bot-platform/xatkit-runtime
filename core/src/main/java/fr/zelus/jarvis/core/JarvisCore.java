@@ -497,7 +497,7 @@ public class JarvisCore {
             String parameterValue = contextParameterValue.getValue();
             session.getJarvisContext().setContextValue(contextName, parameterName, parameterValue);
         }
-        List<ActionInstance> actionInstances = orchestrationService.getActionFromEvent(eventInstance);
+        List<ActionInstance> actionInstances = orchestrationService.getActionsFromEvent(eventInstance);
         if (actionInstances.isEmpty()) {
             Log.warn("The intent {0} is not associated to any action", eventInstance.getDefinition().getName());
         }

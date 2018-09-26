@@ -60,7 +60,7 @@ public class OrchestrationService {
      * recognizedIntent}.
      * @see JarvisModule#createJarvisAction(ActionInstance, JarvisSession)
      */
-    public List<ActionInstance> getActionFromEvent(EventInstance eventInstance) {
+    public List<ActionInstance> getActionsFromEvent(EventInstance eventInstance) {
         EventDefinition eventDefinition  = eventInstance.getDefinition();
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             if (link.getEvent().getName().equals(eventDefinition.getName())) {
