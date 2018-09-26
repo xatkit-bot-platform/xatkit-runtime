@@ -84,4 +84,4 @@ Parameter returns Parameter:
 	key=EString;
 
 EString returns ecore::EString:
-	STRING | ID;
+	STRING | ID('->'ID)*;
