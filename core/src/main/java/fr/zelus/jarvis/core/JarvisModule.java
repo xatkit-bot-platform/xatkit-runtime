@@ -244,9 +244,8 @@ public abstract class JarvisModule {
      * @param session        the {@link JarvisSession} associated to the action
      * @return a new {@link JarvisAction} instance from the provided {@link ActionInstance}
      * @throws NullPointerException if the provided {@code actionInstance} or {@code session} is {@code null}
-     * @throws JarvisException      if the provided {@link Action} does not match any {@link JarvisAction}, or if the
-     *                              provided {@link EventInstance} does not define all the parameters required by the
-     *                              action's constructor
+     * @throws JarvisException      if the provided {@link ActionInstance} does not match any {@link JarvisAction},
+     *                              or if an error occurred when building the {@link JarvisAction}
      * @see #getParameterValues(ActionInstance, JarvisContext)
      */
     public JarvisAction createJarvisAction(ActionInstance actionInstance, JarvisSession
