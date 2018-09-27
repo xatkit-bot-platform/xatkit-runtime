@@ -57,6 +57,7 @@ public abstract class IntentProvider<T extends JarvisModule> extends EventProvid
      *
      * @param containingModule the {@link JarvisModule} containing this {@link IntentProvider}
      * @param configuration    the {@link Configuration} used to initialize the {@link IntentProvider}
+     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
      */
     public IntentProvider(T containingModule, Configuration configuration) {
         super(containingModule, configuration);
