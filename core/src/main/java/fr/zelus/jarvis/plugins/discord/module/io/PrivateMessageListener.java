@@ -86,12 +86,12 @@ public class PrivateMessageListener extends ListenerAdapter {
             Log.trace("Skipping {0}, the message is empty");
             return;
         }
+        Log.info("Received message {0} from user {1} (id: {2})", content, author.getName(), author.getId());
         JarvisSession jarvisSession = discordIntentProvider.getModule().createSessionFromChannel(channel);
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
                 .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
                 .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
-        Log.info("Received message {0}", content);
         RecognizedIntent recognizedIntent = discordIntentProvider.getRecognizedIntent(content, jarvisSession);
         jarvisCore.handleEvent(recognizedIntent, jarvisSession);
     }
