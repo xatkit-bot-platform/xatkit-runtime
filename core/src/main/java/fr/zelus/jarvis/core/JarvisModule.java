@@ -215,7 +215,7 @@ public abstract class JarvisModule {
      * @param action the {@link Action} definition representing the {@link JarvisAction} to enable
      * @see Loader#loadClass(String, Class)
      */
-    public final void enableAction(Action action) {
+    public void enableAction(Action action) {
         String actionQualifiedName = this.getClass().getPackage().getName() + ".action." + action.getName();
         Class<? extends JarvisAction> jarvisAction = Loader.loadClass(actionQualifiedName, JarvisAction.class);
         actionMap.put(action.getName(), jarvisAction);
@@ -226,7 +226,7 @@ public abstract class JarvisModule {
      *
      * @param action the {@link Action} definition representing the {@link JarvisAction} to disable
      */
-    public final void disableAction(Action action) {
+    public void disableAction(Action action) {
         actionMap.remove(action.getName());
     }
 
