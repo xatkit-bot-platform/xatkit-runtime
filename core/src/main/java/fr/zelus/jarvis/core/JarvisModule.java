@@ -163,25 +163,7 @@ public abstract class JarvisModule {
                 .getName();
         Class<? extends EventProvider> eventProviderClass = Loader.loadClass(eventProviderQualifiedName,
                 EventProvider.class);
-        EventProvider eventProvider;
-        try {
-            eventProvider = Loader.construct(eventProviderClass, Arrays.asList
-                    (this.getClass(), Configuration.class), Arrays
-                    .asList(this, configuration));
-        } catch (NoSuchMethodException e) {
-            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the EventProvider using its " +
-                            "{0}({1}) constructor", eventProviderClass.getSimpleName(), JarvisCore.class
-                            .getSimpleName(),
-                    Configuration.class.getSimpleName());
-            try {
-                eventProvider = Loader.construct(eventProviderClass, this.getClass(), this);
-            } catch (NoSuchMethodException e1) {
-                String errorMessage = MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", eventProviderClass.getSimpleName(), this.getClass().getSimpleName());
-                Log.error(errorMessage);
-                throw new JarvisException(errorMessage, e1);
-            }
-        }
+        EventProvider eventProvider = Loader.constructEventProvider(eventProviderClass, this, configuration);
         if (eventProvider instanceof WebhookEventProvider) {
             /*
              * Register the WebhookEventProvider in the JarvisServer

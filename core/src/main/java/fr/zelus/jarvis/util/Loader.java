@@ -4,6 +4,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.io.EventProvider;
 import org.apache.commons.configuration2.Configuration;
 
 import java.lang.reflect.Constructor;
@@ -240,6 +241,48 @@ public class Loader {
             }
         }
         return module;
+    }
+
+    /**
+     * Constructs a new instance of the provided {@code eventProviderClass} with the given {@code jarvisCore} and
+     * {@code configuration}.
+     * <p>
+     * This method first tries to construct an instance of the provided {@code eventProviderClass} with the provided
+     * {@code jarvisCore} and {@code configuration}. If the {@link EventProvider} does not define such constructor,
+     * the method logs a warning and tries to construct an instance with only the {@code jarvisCore} parameter.
+     * <p>
+     * The {@code eventProviderClass} parameter can be loaded by using this class" {@link #loadClass(String, Class)}
+     * utility method.
+     *
+     * @param eventProviderClass the {@link EventProvider} {@link Class} to construct a new instance of
+     * @param jarvisModule       the {@link JarvisModule} instance used to construct the {@link EventProvider}
+     * @param configuration      the {@link Configuration} instance used to construct the {@link EventProvider}
+     * @return the constructed {@link EventProvider}
+     * @throws JarvisException if the {@link EventProvider} does not define a constructor matching the provided
+     *                         parameters.
+     * @see #construct(Class, Class, Class, Object, Object)
+     * @see #loadClass(String, Class)
+     */
+    public static EventProvider constructEventProvider(Class<? extends EventProvider> eventProviderClass, JarvisModule
+            jarvisModule, Configuration configuration) {
+        EventProvider eventProvider;
+        try {
+            eventProvider = Loader.construct(eventProviderClass, jarvisModule.getClass(), Configuration.class,
+                    jarvisModule,
+                    configuration);
+        } catch (NoSuchMethodException e) {
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the EventProvider using its " +
+                    "{0}({1}) constructor", eventProviderClass.getSimpleName(), jarvisModule.getClass()
+                    .getSimpleName(), Configuration.class.getSimpleName());
+            try {
+                eventProvider = Loader.construct(eventProviderClass, jarvisModule.getClass(), jarvisModule);
+            } catch (NoSuchMethodException e1) {
+                throw new JarvisException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+                        "not exist", eventProviderClass.getSimpleName(), jarvisModule.getClass().getSimpleName()), e1);
+            }
+        }
+        return eventProvider;
+
     }
 
     /**
