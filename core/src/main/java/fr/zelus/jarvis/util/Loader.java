@@ -1,7 +1,10 @@
 package fr.zelus.jarvis.util;
 
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.core.JarvisModule;
+import org.apache.commons.configuration2.Configuration;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -195,6 +198,48 @@ public class Loader {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new JarvisException(e);
         }
+    }
+
+    /**
+     * Constructs a new instance of the provided {@code jarvisModuleClass} with the given {@code jarvisCore} and
+     * {@code configuration}.
+     * <p>
+     * This method first tries to construct an instance of the provided {@code jarvisModuleClass} with the provided
+     * {@code jarvisCore} and {@code configuration}. If the {@link JarvisModule} does not define such constructor,
+     * the method logs a warning and tries to construct an instance with only the {@code jarvisCore} parameter.
+     * <p>
+     * The {@code jarvisModuleClass} parameter can be loaded by using this class' {@link #loadClass(String, Class)}
+     * utility method.
+     *
+     * @param jarvisModuleClass the {@link JarvisModule} {@link Class} to construct a new instance of
+     * @param jarvisCore        the {@link JarvisCore} instance used to construct the {@link JarvisModule}
+     * @param configuration     the {@link Configuration} instance used to construct the {@link JarvisModule}
+     * @return the constructed {@link JarvisModule}
+     * @throws JarvisException if the {@link JarvisModule} does not define a constructor matching the provided
+     *                         parameters.
+     * @see #construct(Class, Class, Class, Object, Object)
+     * @see #loadClass(String, Class)
+     */
+    public static JarvisModule constructJarvisModule(Class<? extends JarvisModule> jarvisModuleClass, JarvisCore
+            jarvisCore, Configuration configuration) {
+        JarvisModule module;
+        try {
+            module = Loader.construct(jarvisModuleClass, JarvisCore.class, Configuration.class, jarvisCore,
+                    configuration);
+        } catch (NoSuchMethodException e) {
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the module with the its {0}({1})" +
+                    "constructor", jarvisModuleClass.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
+                    .class.getSimpleName());
+            try {
+                module = Loader.construct(jarvisModuleClass, JarvisCore.class, jarvisCore);
+                Log.warn("Module {0} loaded with its default constructor, the module will not be initialized with " +
+                        "jarvis configuration", jarvisModuleClass.getSimpleName());
+            } catch (NoSuchMethodException e1) {
+                throw new JarvisException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+                        "not exist", jarvisModuleClass.getSimpleName(), JarvisCore.class.getSimpleName()), e1);
+            }
+        }
+        return module;
     }
 
     /**
