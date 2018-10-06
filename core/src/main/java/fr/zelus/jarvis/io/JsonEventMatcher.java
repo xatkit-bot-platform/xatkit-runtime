@@ -18,7 +18,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * A matcher that created {@link EventInstance}s from Json webhook calls.
+ * A matcher that creates {@link EventInstance}s from Json webhook calls.
  * <p>
  * This class is configured through the {@link #addMatchableEvent(HeaderValue, FieldValue, String)} method, that
  * allows to specify an {@link EventInstance} type for a given header and field content. Matched requests are reified
