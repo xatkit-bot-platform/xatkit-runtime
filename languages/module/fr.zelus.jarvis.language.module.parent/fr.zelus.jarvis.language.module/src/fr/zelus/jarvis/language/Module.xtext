@@ -70,7 +70,24 @@ OutContextDefinition returns intent::Context:
 
 ContextParameter returns intent::ContextParameter:
 	{intent::ContextParameter}
-	name=EString ('<-' textFragment=EString '('entityType=EString')')?
+	name=EString ('<-' textFragment=EString '('entity=EntityDefinition')')?
+;
+
+EntityDefinition returns intent::BaseEntityDefinition:
+	{intent::BaseEntityDefinition}
+	'@' entityType=EntityType
+;
+
+enum EntityType returns intent::EntityType:
+	ANY | CITY
+;
+
+enum ANY returns intent::EntityType:
+	ANY='any'
+;
+
+enum CITY returns intent::EntityType:
+	CITY='city'
 ;
 
 Action returns Action:

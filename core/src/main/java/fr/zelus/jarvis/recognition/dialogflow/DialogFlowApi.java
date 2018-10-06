@@ -14,8 +14,10 @@ import fr.zelus.jarvis.core.EventDefinitionRegistry;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
-import org.apache.commons.configuration2.Configuration;
+import fr.zelus.jarvis.intent.EntityType;
+import fr.zelus.jarvis.recognition.EntityMapper;
 import fr.zelus.jarvis.recognition.IntentRecognitionProvider;
+import org.apache.commons.configuration2.Configuration;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -169,6 +171,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     private IntentFactory intentFactory;
 
     /**
+     * The {@link EntityMapper} used to convert abstract entities from the intent model to DialogFlow entities.
+     * <p>
+     * This {@link EntityMapper} is initialized and configured by this class' constructor, that tailors its concrete
+     * entities to DialogFlow-compatible entities.
+     */
+    private EntityMapper entityMapper;
+
+    /**
      * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following keys:
@@ -237,6 +247,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             this.intentsClient = IntentsClient.create(intentsSettings);
             this.projectName = ProjectName.of(projectId);
             this.intentFactory = IntentFactory.eINSTANCE;
+            /*
+             * Initialize and configure the EntityMapper to convert entities from the intent metamodel to
+             * DialogFlow-compatible entities.
+             */
+            this.entityMapper = new EntityMapper();
+            this.entityMapper.addEntityMapping(EntityType.CITY.getLiteral(), "@sys.geo-city");
+            this.entityMapper.addEntityMapping(EntityType.ANY.getLiteral(), "@sys.any");
+            this.entityMapper.setFallbackEntityMapping("@sys.any");
         } catch (IOException e) {
             throw new DialogFlowException("Cannot construct the DialogFlow API", e);
         }
@@ -365,8 +383,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
                         preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(), "#"
-                                + parameter
-                                .getTextFragment() + "#");
+                                + parameter.getTextFragment() + "#");
                     }
                 }
             }
@@ -380,7 +397,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 for (fr.zelus.jarvis.intent.Context context : outContexts) {
                     for (ContextParameter parameter : context.getParameters()) {
                         if (sentencePart.equals(parameter.getTextFragment())) {
-                            partBuilder.setEntityType(parameter.getEntityType()).setAlias(parameter.getName());
+                            String dialogFlowEntity = entityMapper.getMappingFor(parameter.getEntity());
+                            partBuilder.setEntityType(dialogFlowEntity).setAlias(parameter.getName());
                         }
                     }
                 }
@@ -425,8 +443,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         List<Intent.Parameter> results = new ArrayList<>();
         for (fr.zelus.jarvis.intent.Context context : contexts) {
             for (ContextParameter contextParameter : context.getParameters()) {
+                String dialogFlowEntity = entityMapper.getMappingFor(contextParameter.getEntity());
                 Intent.Parameter parameter = Intent.Parameter.newBuilder().setDisplayName(contextParameter.getName())
-                        .setEntityTypeDisplayName(contextParameter.getEntityType()).setValue("$" + contextParameter
+                        .setEntityTypeDisplayName(dialogFlowEntity).setValue("$" + contextParameter
                                 .getName()).build();
                 results.add(parameter);
             }

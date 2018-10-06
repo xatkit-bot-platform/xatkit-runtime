@@ -44,6 +44,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     protected static EventInstance VALID_EVENT_INSTANCE;
 
+    protected static EntityDefinition VALID_ENTITY_DEFINITION;
+
     protected JarvisCore jarvisCore;
 
     public static Configuration buildConfiguration(String projectId, String languageCode, Object orchestrationModel) {
@@ -100,6 +102,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         testOrchestrationResource.getContents().clear();
         testOrchestrationResource.getContents().add(VALID_ORCHESTRATION_MODEL);
         testOrchestrationResource.save(Collections.emptyMap());
+        VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
     }
 
     @After
@@ -344,14 +348,14 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         outContext1.setName("Context1");
         ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter1.setName("Parameter1");
-        contextParameter1.setEntityType("@sys.any");
+        contextParameter1.setEntity(VALID_ENTITY_DEFINITION);
         contextParameter1.setTextFragment("love");
         outContext1.getParameters().add(contextParameter1);
         Context outContext2 = IntentFactory.eINSTANCE.createContext();
         outContext2.setName("Context2");
         ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter2.setName("Parameter2");
-        contextParameter2.setEntityType("@sys.any");
+        contextParameter2.setEntity(VALID_ENTITY_DEFINITION);
         contextParameter2.setTextFragment("monkey");
         outContext2.getParameters().add(contextParameter2);
         intentDefinition.getOutContexts().add(outContext1);

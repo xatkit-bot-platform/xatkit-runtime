@@ -21,7 +21,7 @@ class Context {
 class ContextParameter {
     String name
     String textFragment
-    String entityType
+    contains EntityDefinition entity
 }
 
 class EventInstance {
@@ -36,6 +36,25 @@ class RecognizedIntent extends EventInstance {
 class ContextParameterValue {
     refers ContextParameter contextParameter
     String value
+}
+
+abstract class EntityDefinition {
+
+}
+
+class BaseEntityDefinition extends EntityDefinition {
+    EntityType entityType
+}
+
+// class EntityDefinitionLink extends EntityDefinition {
+//   refers EntityDefinition referredEntityDefinition -> for CompositeEntityDefinitions created in modules
+// }
+
+// class CompositeEntityDefinition extends EntityDefinition
+
+enum EntityType {
+    ANY as "any" = 0
+    CITY as "city" = 1
 }
 
 

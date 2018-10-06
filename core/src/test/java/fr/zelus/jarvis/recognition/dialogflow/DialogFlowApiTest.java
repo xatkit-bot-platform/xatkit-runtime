@@ -35,6 +35,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     protected static String SAMPLE_INPUT = "hello";
 
+    protected static EntityDefinition VALID_ENTITY_DEFINITION;
+
+    /*
+     * EntityDefinition is contained in the context parameter, we need to create a second testing instance.
+     */
+    protected static EntityDefinition VALID_ENTITY_DEFINITION_2;
+
     protected DialogFlowApi api;
 
     /**
@@ -85,6 +92,10 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
         configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, orchestrationModel);
         jarvisCore = new JarvisCore(configuration);
+        VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
+        VALID_ENTITY_DEFINITION_2 = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        ((BaseEntityDefinition) VALID_ENTITY_DEFINITION_2).setEntityType(EntityType.ANY);
     }
 
     @After
@@ -162,14 +173,14 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * Ensures that the underlying IntentsClient credentials are valid by listing the Agent intents.
          */
         Log.info("Listing DialogFlow intents to check permissions");
-        for(Intent registeredIntent : api.getRegisteredIntents()) {
+        for (Intent registeredIntent : api.getRegisteredIntents()) {
             Log.info("Found intent {0}", registeredIntent.getDisplayName());
         }
         /*
          * Ensures that the underlying AgentsClient credentials are valid by training the Agent.
          */
         api.trainMLEngine();
-     }
+    }
 
     @Test(expected = NullPointerException.class)
     public void registerIntentDefinitionNullIntentDefinition() {
@@ -412,14 +423,14 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         outContext1.setName("Context1");
         ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter1.setName("Parameter1");
-        contextParameter1.setEntityType("@sys.any");
+        contextParameter1.setEntity(VALID_ENTITY_DEFINITION);
         contextParameter1.setTextFragment("cheese");
         outContext1.getParameters().add(contextParameter1);
         Context outContext2 = IntentFactory.eINSTANCE.createContext();
         outContext2.setName("Context2");
         ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter2.setName("Parameter2");
-        contextParameter2.setEntityType("@sys.any");
+        contextParameter2.setEntity(VALID_ENTITY_DEFINITION_2);
         contextParameter2.setTextFragment("steak");
         outContext2.getParameters().add(contextParameter2);
         intentDefinition.getOutContexts().add(outContext1);
