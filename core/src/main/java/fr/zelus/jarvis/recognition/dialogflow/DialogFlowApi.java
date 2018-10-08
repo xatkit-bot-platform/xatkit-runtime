@@ -12,6 +12,7 @@ import com.google.protobuf.Value;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.EventDefinitionRegistry;
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.intent.EntityType;
@@ -24,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -179,6 +181,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     private EntityMapper entityMapper;
 
     /**
+     * A local cache used to retrieve registered {@link Intent}s from their display name.
+     * <p>
+     * This cache is used to limit the number of calls to the DialogFlow API.
+     */
+    private Map<String, Intent> registeredIntents;
+
+
+    /**
      * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following keys:
@@ -255,6 +265,13 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             this.entityMapper.addEntityMapping(EntityType.CITY.getLiteral(), "@sys.geo-city");
             this.entityMapper.addEntityMapping(EntityType.ANY.getLiteral(), "@sys.any");
             this.entityMapper.setFallbackEntityMapping("@sys.any");
+            /*
+             * Initialize the registeredIntents map with the intents already stored in the DialogFlow project.
+             */
+            this.registeredIntents = new HashMap<>();
+            for (Intent intent : getRegisteredIntents()) {
+                registeredIntents.put(intent.getDisplayName(), intent);
+            }
         } catch (IOException e) {
             throw new DialogFlowException("Cannot construct the DialogFlow API", e);
         }
@@ -351,15 +368,43 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             dialogFlowTrainingPhrases.add(createTrainingPhrase(trainingSentence, intentDefinition.getOutContexts()));
         }
 
-        List<String> inContextNames = createInContextNames(intentDefinition.getInContexts());
-        List<Context> outContexts = createOutContexts(intentDefinition.getOutContexts());
+        List<String> inContextNames = createInContextNames(intentDefinition);
+        List<Context> outContexts = createOutContexts(intentDefinition);
         List<Intent.Parameter> parameters = createParameters(intentDefinition.getOutContexts());
 
-        Intent intent = Intent.newBuilder().setDisplayName(adaptIntentDefinitionNameToDialogFlow(intentDefinition
-                .getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases).addAllInputContextNames(inContextNames)
-                .addAllOutputContexts(outContexts).addAllParameters(parameters).build();
+        Intent.Builder builder = Intent.newBuilder().setDisplayName(adaptIntentDefinitionNameToDialogFlow
+                (intentDefinition.getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases)
+                .addAllInputContextNames(inContextNames)
+                .addAllOutputContexts(outContexts).addAllParameters(parameters);
+
+        if (nonNull(intentDefinition.getFollows())) {
+            Log.info("Registering intent {0} as a follow-up of {1}", intentDefinition.getName(), intentDefinition
+                    .getFollows().getName());
+            Intent parentIntent = registeredIntents.get(adaptIntentDefinitionNameToDialogFlow(intentDefinition
+                    .getFollows().getName()));
+            if (isNull(parentIntent)) {
+                Log.info(MessageFormat.format("Cannot find intent {0} in the DialogFlow project, trying to register " +
+                        "it", intentDefinition.getFollows().getName()));
+                registerIntentDefinition(intentDefinition.getFollows());
+                parentIntent = registeredIntents.get(adaptIntentDefinitionNameToDialogFlow(intentDefinition
+                        .getFollows().getName()));
+            }
+            if (nonNull(parentIntent)) {
+                builder.setParentFollowupIntentName(parentIntent.getName());
+            } else {
+                /*
+                 * The parentIntent registration has failed, there is no way to build a DialogFlow agent that is
+                 * consistent with the provided model.
+                 */
+                throw new JarvisException(MessageFormat.format("Cannot retrieve the parent intent {0}, check the logs" +
+                        " for additional information", intentDefinition.getFollows().getName()));
+            }
+        }
+
+        Intent intent = builder.build();
         try {
             Intent response = intentsClient.createIntent(projectAgentName, intent);
+            registeredIntents.put(response.getDisplayName(), response);
             Log.info("Intent {0} successfully registered", response.getDisplayName());
         } catch (FailedPreconditionException e) {
             if (e.getMessage().contains("already exists")) {
@@ -408,7 +453,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         }
     }
 
-    protected List<String> createInContextNames(List<fr.zelus.jarvis.intent.Context> contexts) {
+    protected List<String> createInContextNames(IntentDefinition intentDefinition) {
+        List<fr.zelus.jarvis.intent.Context> contexts = intentDefinition.getInContexts();
         List<String> results = new ArrayList<>();
         for (fr.zelus.jarvis.intent.Context context : contexts) {
             /*
@@ -421,12 +467,20 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              * Ignore the context parameters, they are not taken into account by DialogFlow for input contexts.
              */
         }
+        if (nonNull(intentDefinition.getFollows())) {
+            /*
+             * Use getName instead of toString, getFollowUpContext returns a fully built context, with a name that
+             * uniquely identifies it.
+             */
+            results.add(getFollowUpContext(intentDefinition.getFollows()).getName());
+        }
         return results;
     }
 
-    protected List<Context> createOutContexts(List<fr.zelus.jarvis.intent.Context> contexts) {
+    protected List<Context> createOutContexts(IntentDefinition intentDefinition) {
+        List<fr.zelus.jarvis.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
         List<Context> results = new ArrayList<>();
-        for (fr.zelus.jarvis.intent.Context context : contexts) {
+        for (fr.zelus.jarvis.intent.Context context : intentDefinitionContexts) {
             /*
              * Use a dummy session to create the context.
              */
@@ -436,7 +490,33 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                     .getLifeSpan()).build();
             results.add(dialogFlowContext);
         }
+        if (!intentDefinition.getFollowedBy().isEmpty()) {
+            results.add(getFollowUpContext(intentDefinition));
+        }
         return results;
+    }
+
+    /**
+     * Returns the DialogFlow context used to setup follow-up intent.
+     * <p>
+     * This method is used to create a context from the parent of a follow-up relationship between intents. The
+     * created context is unique for the provided {@code parentIntentDefinition}, and can be reused in all its follow-up
+     * intents.
+     * <p>
+     * The created context is set with a lifespan value of {@code 2}, following DialogFlow usage. Customization of
+     * follow-up intent lifespan is planned for a future release (see
+     * <a href="https://github.com/gdaniel/jarvis/issues/147">#147</a>)
+     *
+     * @param parentIntentDefinition the {@link IntentDefinition} to build the context from
+     * @return the built context
+     * @throws NullPointerException if the provided {@code parentIntentDefinition} is {@code null}
+     */
+    protected Context getFollowUpContext(IntentDefinition parentIntentDefinition) {
+        checkNotNull(parentIntentDefinition, "Cannot get the follow-up context name of the provided %s %s",
+                IntentDefinition.class.getSimpleName(), parentIntentDefinition);
+        ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
+                parentIntentDefinition.getName() + "_followUp");
+        return Context.newBuilder().setName(contextName.toString()).setLifespanCount(2).build();
     }
 
     protected List<Intent.Parameter> createParameters(List<fr.zelus.jarvis.intent.Context> contexts) {

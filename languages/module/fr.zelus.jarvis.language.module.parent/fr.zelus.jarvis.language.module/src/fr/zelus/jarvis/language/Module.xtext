@@ -38,12 +38,12 @@ EventDefinition returns intent::EventDefinition:
 	
 InputProviderDefinition returns InputProviderDefinition:
 	{InputProviderDefinition}
-	'input' name=EString
+	'input' name=EString 
 ;
 
 IntentDefinition returns intent::IntentDefinition:
 	{intent::IntentDefinition}
-	name=EString
+	name=EString ('follows' follows=[intent::IntentDefinition|ID])?
 	'{'
 		'inputs' '{'
 			trainingSentences+=EString (trainingSentences+=EString)*
