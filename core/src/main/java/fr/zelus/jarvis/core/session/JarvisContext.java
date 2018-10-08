@@ -246,7 +246,7 @@ public class JarvisContext {
         checkNotNull(message, "Cannot fill the context values of the null message");
         Log.info("Processing message {0}", message);
         String outMessage = message;
-        Matcher m = Pattern.compile("\\{\\$\\S+\\}").matcher(message);
+        Matcher m = Pattern.compile("\\{\\$[^\\s\\}]+\\}").matcher(message);
         while (m.find()) {
             String group = m.group();
             Log.info("Found context variable {0}", group);

@@ -278,6 +278,15 @@ public class JarvisContextTest extends AbstractJarvisTest {
     }
 
     @Test
+    public void fillContextValuesNoSpace() {
+        context = new JarvisContext();
+        context.setContextValue("context", "key1", "value1");
+        context.setContextValue("context", "key2", "value2");
+        String result = context.fillContextValues("{$context.key1}{$context.key2}");
+        assertThat(result).as("Replaced variables").isEqualTo("value1value2");
+    }
+
+    @Test
     public void fillContextValuesTwoFutureValuesSet() {
         context = new JarvisContext();
         Future<String> valueFuture = CompletableFuture.completedFuture("value");
@@ -333,7 +342,6 @@ public class JarvisContextTest extends AbstractJarvisTest {
         Boolean futureValue = future.get();
         assertThat(result).as("Replaced future variable").isEqualTo(MessageFormat.format("This is a boolean value: " +
                 "{0}", futureValue));
-
     }
 
     private void checkJarvisContext(JarvisContext context) {
