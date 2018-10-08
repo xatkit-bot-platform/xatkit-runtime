@@ -63,6 +63,10 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
         configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
+        /*
+         * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
+         */
+        configuration.addProperty(DialogFlowApi.ENABLE_INTENT_LOADING_KEY, false);
         return configuration;
     }
 

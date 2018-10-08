@@ -79,6 +79,20 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     public static String DEFAULT_LANGUAGE_CODE = "en-US";
 
     /**
+     * The {@link Configuration} key to store whether to initialize the {@link #registeredIntents} {@link Map} with
+     * the {@link Intent}s already stored in the DialogFlow project.
+     * <p>
+     * Intent loading is enabled by default, and should not be an issue when using the {@link DialogFlowApi} in
+     * development context. However, creating multiple instances of the {@link DialogFlowApi} (e.g. when running the
+     * Jarvis test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
+     * avoid Intent loading, limiting the number of queries to the DialogFlow API.
+     * <p>
+     * Note that disabling {@link Intent} loading may create consistency issues between the DialogFlow agent and the
+     * local {@link DialogFlowApi}, and is not recommended in development environment.
+     */
+    public static String ENABLE_INTENT_LOADING_KEY = "jarvis.dialogflow.intent.loading";
+
+    /**
      * The DialogFlow Default Fallback Intent that is returned when the user input does not match any registered Intent.
      *
      * @see #convertDialogFlowIntentToIntentDefinition(Intent)
@@ -107,13 +121,28 @@ public class DialogFlowApi implements IntentRecognitionProvider {
 
     /**
      * The unique identifier of the DialogFlow project.
+     *
+     * @see #PROJECT_ID_KEY
      */
     private String projectId;
 
     /**
      * The language code of the DialogFlow project.
+     *
+     * @see #LANGUAGE_CODE_KEY
      */
     private String languageCode;
+
+    /**
+     * A flag allowing the {@link DialogFlowApi} to load previously registered {@link Intent} from the DialogFlow agent.
+     * <p>
+     * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
+     * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
+     * {@link DialogFlowApi}.
+     *
+     * @see #ENABLE_INTENT_LOADING_KEY
+     */
+    private boolean enableIntentLoader;
 
     /**
      * Represents the DialogFlow project name.
@@ -201,12 +230,21 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * The value <b>jarvis.dialogflow.credentials.path</b> is not mandatory either: if no credential path is provided
      * in the {@link Configuration} the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
      * environment variable to retrieve the credentials file.
+     * <p>
+     * The value <b>jarvis.dialogflow.intent.loading</b> is not mandatory and allows to tune whether the
+     * {@link DialogFlowApi} should load registered DialogFlow {@link Intent}. This option is set to {@code true} by
+     * default. Disabling it will reduce the number of queries sent to the DialogFlow API, but may generate
+     * consistency issues between the DialogFlow agent and the local {@link DialogFlowApi}.
      *
      * @param jarvisCore    the {@link JarvisCore} instance managing the {@link DialogFlowApi}
      * @param configuration the {@link Configuration} holding the DialogFlow project ID and language code
      * @throws NullPointerException if the provided {@code jarvisCore}, {@code configuration} or one of the mandatory
      *                              {@code configuration} value is {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
+     * @see #PROJECT_ID_KEY
+     * @see #LANGUAGE_CODE_KEY
+     * @see #GOOGLE_CREDENTIALS_PATH_KEY
+     * @see #ENABLE_INTENT_LOADING_KEY
      */
     public DialogFlowApi(JarvisCore jarvisCore, Configuration configuration) {
         checkNotNull(jarvisCore, "Cannot construct a DialogFlow API instance with a null JarvisCore instance");
@@ -222,6 +260,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 Log.warn("No language code provided, using the default one ({0})", DEFAULT_LANGUAGE_CODE);
                 languageCode = DEFAULT_LANGUAGE_CODE;
             }
+            this.enableIntentLoader = configuration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
             this.projectAgentName = ProjectAgentName.of(projectId);
             String credentialsPath = configuration.getString(GOOGLE_CREDENTIALS_PATH_KEY);
             AgentsSettings agentsSettings;
@@ -269,8 +308,15 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              * Initialize the registeredIntents map with the intents already stored in the DialogFlow project.
              */
             this.registeredIntents = new HashMap<>();
-            for (Intent intent : getRegisteredIntents()) {
-                registeredIntents.put(intent.getDisplayName(), intent);
+            if (enableIntentLoader) {
+                Log.info("Loading Intents previously registered in the DialogFlow project {0}", projectName
+                        .getProject());
+                for (Intent intent : getRegisteredIntents()) {
+                    registeredIntents.put(intent.getDisplayName(), intent);
+                }
+            } else {
+                Log.info("Intent loading is disabled, existing Intents in the DialogFlow project {0} will not be " +
+                        "imported", projectName.getProject());
             }
         } catch (IOException e) {
             throw new DialogFlowException("Cannot construct the DialogFlow API", e);
