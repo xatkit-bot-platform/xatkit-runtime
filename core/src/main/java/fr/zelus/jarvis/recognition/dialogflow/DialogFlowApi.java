@@ -85,7 +85,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private static IntentDefinition DEFAULT_FALLBACK_INTENT = IntentFactory.eINSTANCE.createIntentDefinition();
 
-    /**
+    /*
      * Initializes the {@link #DEFAULT_FALLBACK_INTENT}'s name.
      */
     static {
@@ -307,7 +307,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @return the full descriptions of the {@link Intent}s that are registered in the DialogFlow project
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
-    protected List<Intent> getRegisteredIntentsFullView() {
+    List<Intent> getRegisteredIntentsFullView() {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot retrieve the registered Intents (full view), the DialogFlow API is " +
                     "shutdown");
@@ -332,7 +332,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @return the partial descriptions of the {@link Intent}s that are registered in the DialogFlow project
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
-    protected List<Intent> getRegisteredIntents() {
+    List<Intent> getRegisteredIntents() {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot retrieve the registered Intents (partial view), the DialogFlow API " +
                     "is shutdown");
@@ -352,6 +352,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      *
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown, or if the {@link Intent} already exists in
      *                             the DialogFlow project
+     * @see #createInContextNames(IntentDefinition)
+     * @see #createOutContexts(IntentDefinition)
+     * @see #createParameters(List)
      */
     @Override
     public void registerIntentDefinition(IntentDefinition intentDefinition) {
@@ -416,13 +419,40 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         }
     }
 
-    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<fr.zelus.jarvis.intent
+    /**
+     * Creates the DialogFlow's {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase} from the provided {@code
+     * trainingSentence} and {@code outContexts}.
+     * <p>
+     * This method splits the provided {@code trainingSentence} into DialogFlow's
+     * {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase.Part}s.
+     * {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase.Part}s corresponding to output context parameters
+     * are bound to the corresponding DialogFlow entities using the {@link #entityMapper}.
+     *
+     * @param trainingSentence the {@link IntentDefinition}'s training sentence to create a
+     *                         {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase} from
+     * @param outContexts      the {@link IntentDefinition}'s output {@link fr.zelus.jarvis.intent.Context}s
+     *                         associated to the provided training sentence
+     * @return the created DialogFlow's {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase}
+     * @throws NullPointerException if the provided {@code trainingSentence} or {@code outContexts} {@link List} is
+     *                              {@code null}
+     */
+    private Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<fr.zelus.jarvis.intent
             .Context> outContexts) {
+        checkNotNull(trainingSentence, "Cannot create a %s from the provided training sentence %s", Intent
+                .TrainingPhrase.class.getSimpleName(), trainingSentence);
+        checkNotNull(outContexts, "Cannot create a %s from the provided output %s list %s", Intent.TrainingPhrase
+                .class.getSimpleName(), fr.zelus.jarvis.intent.Context.class.getSimpleName(), outContexts);
         if (outContexts.isEmpty()) {
             return Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part.newBuilder().setText
                     (trainingSentence).build()).build();
         } else {
-            // prepare the string
+            /*
+             * First mark all the context parameter literals with #<literal>#. This pre-processing allows to easily
+             * split the training sentence into TrainingPhrase parts, that are bound to their concrete entity when
+             * needed, and sent to the DialogFlow API.
+             * We use this two-step process for simplicity. If the performance of TrainingPhrase creation become an
+             * issue we can reshape this method to avoid this pre-processing phase.
+             */
             String preparedTrainingSentence = trainingSentence;
             for (fr.zelus.jarvis.intent.Context context : outContexts) {
                 for (ContextParameter parameter : context.getParameters()) {
@@ -432,7 +462,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                     }
                 }
             }
-            // process the string
+
+            /*
+             * Process the pre-processed String and bind its entities.
+             */
             String[] splitTrainingSentence = preparedTrainingSentence.split("#");
             Intent.TrainingPhrase.Builder trainingPhraseBuilder = Intent.TrainingPhrase.newBuilder();
             for (int i = 0; i < splitTrainingSentence.length; i++) {
@@ -453,7 +486,19 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         }
     }
 
-    protected List<String> createInContextNames(IntentDefinition intentDefinition) {
+    /**
+     * Creates the DialogFlow input {@link Context} names from the provided {@code intentDefinition}.
+     * <p>
+     * This method iterates the provided {@code intentDefinition}'s in {@link fr.zelus.jarvis.intent.Context}s, and
+     * maps them to their concrete DialogFlow {@link String} identifier. The returned {@link String} can be used to
+     * refer to existing DialogFlow's {@link Context}s.
+     *
+     * @param intentDefinition the {@link IntentDefinition} to create the DialogFlow input {@link Context}s from
+     * @return the created {@link List} of DialogFlow {@link Context} identifiers
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
+     * @see IntentDefinition#getInContexts()
+     */
+    private List<String> createInContextNames(IntentDefinition intentDefinition) {
         List<fr.zelus.jarvis.intent.Context> contexts = intentDefinition.getInContexts();
         List<String> results = new ArrayList<>();
         for (fr.zelus.jarvis.intent.Context context : contexts) {
@@ -477,7 +522,20 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         return results;
     }
 
-    protected List<Context> createOutContexts(IntentDefinition intentDefinition) {
+    /**
+     * Creates the DialogFlow output {@link Context}s from the provided {@code intentDefinition}.
+     * <p>
+     * This method iterates the provided {@code intentDefinition}'s out {@link fr.zelus.jarvis.intent.Context}s, and
+     * maps them to their concrete DialogFlow implementations.
+     *
+     * @param intentDefinition the {@link IntentDefinition} to create the DialogFlow output {@link Context}s from
+     * @return the created {@link List} of DialogFlow {@link Context}s
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
+     * @see IntentDefinition#getOutContexts()
+     */
+    private List<Context> createOutContexts(IntentDefinition intentDefinition) {
+        checkNotNull(intentDefinition, "Cannot create the out contexts from the provided %s %s", IntentDefinition
+                .class.getSimpleName(), intentDefinition);
         List<fr.zelus.jarvis.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
         List<Context> results = new ArrayList<>();
         for (fr.zelus.jarvis.intent.Context context : intentDefinitionContexts) {
@@ -508,10 +566,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * <a href="https://github.com/gdaniel/jarvis/issues/147">#147</a>)
      *
      * @param parentIntentDefinition the {@link IntentDefinition} to build the context from
-     * @return the built context
+     * @return the built DialogFlow context
      * @throws NullPointerException if the provided {@code parentIntentDefinition} is {@code null}
      */
-    protected Context getFollowUpContext(IntentDefinition parentIntentDefinition) {
+    private Context getFollowUpContext(IntentDefinition parentIntentDefinition) {
         checkNotNull(parentIntentDefinition, "Cannot get the follow-up context name of the provided %s %s",
                 IntentDefinition.class.getSimpleName(), parentIntentDefinition);
         ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
@@ -519,11 +577,26 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         return Context.newBuilder().setName(contextName.toString()).setLifespanCount(2).build();
     }
 
-    protected List<Intent.Parameter> createParameters(List<fr.zelus.jarvis.intent.Context> contexts) {
+    /**
+     * Creates the DialogFlow context parameters from the provided Jarvis {@code contexts}.
+     * <p>
+     * This method iterates the provided {@link fr.zelus.jarvis.intent.Context}s, and maps their contained
+     * parameter's entities to their concrete DialogFlow implementation.
+     *
+     * @param contexts the {@link List} of Jarvis {@link fr.zelus.jarvis.intent.Context}s to create the parameters from
+     * @return the {@link List} of DialogFlow context parameters
+     * @throws NullPointerException if the provided {@code contexts} {@link List} is {@code null}
+     */
+    private List<Intent.Parameter> createParameters(List<fr.zelus.jarvis.intent.Context> contexts) {
+        checkNotNull(contexts, "Cannot create the DialogFlow parameters from the provided %s List %s", fr.zelus
+                .jarvis.intent.Context.class.getSimpleName(), contexts);
         List<Intent.Parameter> results = new ArrayList<>();
         for (fr.zelus.jarvis.intent.Context context : contexts) {
             for (ContextParameter contextParameter : context.getParameters()) {
                 String dialogFlowEntity = entityMapper.getMappingFor(contextParameter.getEntity());
+                /*
+                 * DialogFlow parameters are prefixed with a '$'.
+                 */
                 Intent.Parameter parameter = Intent.Parameter.newBuilder().setDisplayName(contextParameter.getName())
                         .setEntityTypeDisplayName(dialogFlowEntity).setValue("$" + contextParameter
                                 .getName()).build();
@@ -630,27 +703,6 @@ public class DialogFlowApi implements IntentRecognitionProvider {
 
     /**
      * {@inheritDoc}
-     */
-    @Override
-    public void shutdown() {
-        if (isShutdown()) {
-            throw new DialogFlowException("Cannot perform shutdown, DialogFlow API is already shutdown");
-        }
-        this.sessionsClient.shutdownNow();
-        this.intentsClient.shutdownNow();
-        this.agentsClient.shutdownNow();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isShutdown() {
-        return this.sessionsClient.isShutdown() || this.intentsClient.isShutdown() || this.agentsClient.isShutdown();
-    }
-
-    /**
-     * {@inheritDoc}
      * <p>
      * The returned {@link RecognizedIntent} is constructed from the raw {@link Intent} returned by the DialogFlow
      * API, using the mapping defined in {@link #convertDialogFlowIntentToRecognizedIntent(QueryResult)}.
@@ -690,23 +742,102 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         return convertDialogFlowIntentToRecognizedIntent(queryResult);
     }
 
-    private IntentDefinition convertDialogFlowIntentToIntentDefinition(Intent intent) {
-        if (nonNull(intent)) {
-            IntentDefinition result = jarvisCore.getEventDefinitionRegistry().getIntentDefinition(intent
-                    .getDisplayName());
-            if (isNull(result)) {
-                Log.warn("Cannot retrieve the {0} with the provided name {1}, returning the Default Fallback Intent",
-                        IntentDefinition.class.getSimpleName(), intent.getDisplayName());
-                result = DEFAULT_FALLBACK_INTENT;
+    /**
+     * Reifies the provided DialogFlow {@link QueryResult} into a {@link RecognizedIntent}.
+     * <p>
+     * This method relies on the {@link #convertDialogFlowIntentToIntentDefinition(Intent)} method to retrieve the
+     * {@link IntentDefinition} associated to the {@link QueryResult}'s {@link Intent}, and the
+     * {@link #getContextParameter(String, String)} method to retrieve the registered {@link ContextParameter}s
+     * from the DialogFlow contexts.
+     *
+     * @param result the DialogFlow {@link QueryResult} containing the {@link Intent} to reify
+     * @return the reified {@link RecognizedIntent}
+     * @throws NullPointerException     if the provided {@link QueryResult} is {@code null}
+     * @throws IllegalArgumentException if the provided {@link QueryResult}'s {@link Intent} is {@code null}
+     * @see #convertDialogFlowIntentToIntentDefinition(Intent)
+     * @see #getContextParameter(String, String)
+     */
+    private RecognizedIntent convertDialogFlowIntentToRecognizedIntent(QueryResult result) {
+        checkNotNull(result, "Cannot create a %s from the provided %s %s", RecognizedIntent.class.getSimpleName(),
+                QueryResult.class.getSimpleName(), result);
+        checkArgument(nonNull(result.getIntent()), "Cannot create a %s from the provided %s'%s %s", RecognizedIntent
+                .class.getSimpleName(), QueryResult.class.getSimpleName(), Intent.class.getSimpleName(), result
+                .getIntent());
+        Intent intent = result.getIntent();
+        RecognizedIntent recognizedIntent = intentFactory.createRecognizedIntent();
+        /*
+         * Retrieve the IntentDefinition corresponding to this Intent.
+         */
+        IntentDefinition intentDefinition = convertDialogFlowIntentToIntentDefinition(intent);
+        recognizedIntent.setDefinition(intentDefinition);
+        /*
+         * Set the output context values.
+         */
+        for (Context context : result.getOutputContextsList()) {
+            String contextName = ContextName.parse(context.getName()).getContext();
+            Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
+            for (String key : parameterValues.keySet()) {
+                /*
+                 * Ignore original: this variable contains the raw parsed value, we don't need this.
+                 */
+                if (!key.contains(".original")) {
+                    String parameterValue = parameterValues.get(key).getStringValue();
+                    ContextParameter contextParameter = getContextParameter(contextName, key);
+                    if (nonNull(contextParameter)) {
+                        ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
+                        contextParameterValue.setValue(parameterValue);
+                        contextParameterValue.setContextParameter(contextParameter);
+                        recognizedIntent.getOutContextValues().add(contextParameterValue);
+                    }
+                }
             }
-            return result;
-        } else {
-            Log.warn("Cannot convert null to IntentDefinition");
-            return null;
         }
+        return recognizedIntent;
     }
 
+    /**
+     * Reifies the provided DialogFlow {@code intent} into an Jarvis {@link IntentDefinition}.
+     * <p>
+     * This method looks in the {@link EventDefinitionRegistry} for an {@link IntentDefinition} associated to the
+     * provided {@code intent}'s name and returns it. If there is no such {@link IntentDefinition} the
+     * {@link #DEFAULT_FALLBACK_INTENT} is returned.
+     *
+     * @param intent the DialogFlow {@link Intent} to retrieve the Jarvis {@link IntentDefinition} from
+     * @return the {@link IntentDefinition} associated to the provided {@code intent}
+     * @throws NullPointerException if the provided {@code intent} is {@code null}
+     */
+    private IntentDefinition convertDialogFlowIntentToIntentDefinition(Intent intent) {
+        checkNotNull(intent, "Cannot retrieve the %s from the provided %s %s", IntentDefinition.class.getSimpleName()
+                , Intent.class.getSimpleName(), intent);
+        IntentDefinition result = jarvisCore.getEventDefinitionRegistry().getIntentDefinition(intent
+                .getDisplayName());
+        if (isNull(result)) {
+            Log.warn("Cannot retrieve the {0} with the provided name {1}, returning the Default Fallback Intent",
+                    IntentDefinition.class.getSimpleName(), intent.getDisplayName());
+            result = DEFAULT_FALLBACK_INTENT;
+        }
+        return result;
+    }
+
+    /**
+     * Retrieves the registered {@link ContextParameter} associated to the provided {@code contextName} and {@code
+     * parameterName}.
+     * <p>
+     * This method iterates the {@link IntentDefinition}s stored in the {@link EventDefinitionRegistry} and matches
+     * their output contexts against the provided {@code contextName} and {@code parameterName}. Note that DialogFlow
+     * merges all context values in all the available contexts, thus a complete lookup of the
+     * {@link EventDefinitionRegistry} is required to retrieve merged {@link ContextParameter}s.
+     *
+     * @param contextName   the name of the DialogFlow {@link Context} storing the parameter
+     * @param parameterName the name of the DialogFlow parameter to match
+     * @return the registered {@link ContextParameter} if it exist, {@code null} otherwise
+     * @throws NullPointerException if the provided {@code contextName} or {@code parameterName} is {@code null}
+     */
     private ContextParameter getContextParameter(String contextName, String parameterName) {
+        checkNotNull(contextName, "Cannot retrieve the %s associated to the provided context name %s",
+                ContextParameter.class.getSimpleName(), contextName);
+        checkNotNull(parameterName, "Cannot retrieve the %s associated to the provided parameter name %s",
+                ContextParameter.class.getSimpleName(), parameterName);
         EventDefinitionRegistry eventDefinitionRegistry = jarvisCore.getEventDefinitionRegistry();
         for (IntentDefinition intentDefinition : eventDefinitionRegistry.getAllIntentDefinitions()) {
             for (fr.zelus.jarvis.intent.Context context : intentDefinition.getOutContexts()) {
@@ -731,48 +862,25 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         return null;
     }
 
-    private RecognizedIntent convertDialogFlowIntentToRecognizedIntent(QueryResult result) {
-        Intent intent = result.getIntent();
-        if (nonNull(intent)) {
-            RecognizedIntent recognizedIntent = intentFactory.createRecognizedIntent();
-            /*
-             * Retrieve the IntentDefinition corresponding to this Intent.
-             */
-            IntentDefinition intentDefinition = convertDialogFlowIntentToIntentDefinition(intent);
-            if (isNull(intentDefinition)) {
-                String errorMessage = MessageFormat.format("Cannot retrieve the IntentDefinition associated to the " +
-                        "provided DialogFlow Intent {0}", intent.getDisplayName());
-                Log.error(errorMessage);
-                return null;
-            }
-            recognizedIntent.setDefinition(intentDefinition);
-            /*
-             * Set the output context values.
-             */
-            for (Context context : result.getOutputContextsList()) {
-                String contextName = ContextName.parse(context.getName()).getContext();
-                Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
-                for (String key : parameterValues.keySet()) {
-                    /*
-                     * Ignore original: this variable contains the raw parsed value, we don't need this.
-                     */
-                    if (!key.contains(".original")) {
-                        String parameterValue = parameterValues.get(key).getStringValue();
-                        ContextParameter contextParameter = getContextParameter(contextName, key);
-                        if (nonNull(contextParameter)) {
-                            ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
-                            contextParameterValue.setValue(parameterValue);
-                            contextParameterValue.setContextParameter(contextParameter);
-                            recognizedIntent.getOutContextValues().add(contextParameterValue);
-                        }
-                    }
-                }
-            }
-            return recognizedIntent;
-        } else {
-            Log.warn("Cannot convert null to a RecognizedIntent");
-            return null;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void shutdown() {
+        if (isShutdown()) {
+            throw new DialogFlowException("Cannot perform shutdown, DialogFlow API is already shutdown");
         }
+        this.sessionsClient.shutdownNow();
+        this.intentsClient.shutdownNow();
+        this.agentsClient.shutdownNow();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isShutdown() {
+        return this.sessionsClient.isShutdown() || this.intentsClient.isShutdown() || this.agentsClient.isShutdown();
     }
 
     /**
