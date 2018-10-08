@@ -73,7 +73,7 @@ public abstract class JarvisMessageAction<T extends JarvisModule> extends Jarvis
     public void init() {
         JarvisSession clientSession = getClientSession();
         if (!clientSession.equals(session)) {
-            Log.info("Merging %s session to the client one", this.getClass().getSimpleName());
+            Log.info("Merging {0} session to the client one", this.getClass().getSimpleName());
             try {
                 clientSession.getJarvisContext().merge(session.getJarvisContext());
             } catch (JarvisException e) {
