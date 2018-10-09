@@ -9,24 +9,57 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.File;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+
+/**
+ * The main {@link Jarvis} {@link Class} used to start a Jarvis bot instance.
+ * <p>
+ * This class is executed when invoking {@code java -jar jarvis.jar}. The {@link #main(String[])} method accepts a
+ * single {@link String} argument containing the path of the {@link org.apache.commons.configuration2.Configuration}
+ * file to use to setup the underlying {@link JarvisCore} engine.
+ */
 public class Jarvis {
 
+    /**
+     * The {@link JarvisCore} instance used to run the bot.
+     */
+    private static JarvisCore jarvisCore;
+
+    /**
+     * Starts the underlying {@link JarvisCore} engine with the
+     * {@link org.apache.commons.configuration2.Configuration} retrieved from the provided {@code args}.
+     * <p>
+     * The provided {@code args} must contain a single value representing the path of the
+     * {@link org.apache.commons.configuration2.Configuration} file to use to setup the {@link JarvisCore} engine.
+     *
+     * @param args the program's arguments
+     * @throws NullPointerException     if the provided {@code args} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code args} size is different than {@code 1}
+     */
     public static void main(String[] args) {
-        if(args.length == 0) {
-            throw new JarvisException("Cannot start jarvis, please provide a configuration file");
-        }
+        checkNotNull(args, "Cannot start Jarvis, please provide a parameter containing the path of the Jarvis " +
+                "configuration file");
+        checkArgument(args.length == 1, "Cannot start Jarvis, please provide a single parameter containing the " +
+                "path of the Jarvis configuration file");
         String configurationFilePath = args[0];
         Log.info("Starting jarvis with the configuration file {0}", configurationFilePath);
         File propertiesFile = new File(configurationFilePath);
-        try
-        {
+        try {
             Configurations configs = new Configurations();
             PropertiesConfiguration configuration = configs.properties(propertiesFile);
-            JarvisCore jarvisCore = new JarvisCore(configuration);
-        }
-        catch(ConfigurationException e)
-        {
+            jarvisCore = new JarvisCore(configuration);
+        } catch (ConfigurationException e) {
             throw new JarvisException("Cannot load the configuration file", e);
         }
+    }
+
+    /**
+     * Returns the {@link JarvisCore} instance used to run the bot.
+     *
+     * @return the {@link JarvisCore} instance used to run the bot
+     */
+    public static JarvisCore getJarvisCore() {
+        return jarvisCore;
     }
 }
