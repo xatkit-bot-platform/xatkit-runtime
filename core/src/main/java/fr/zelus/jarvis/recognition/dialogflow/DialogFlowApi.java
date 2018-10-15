@@ -8,6 +8,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.v2.*;
 import com.google.cloud.dialogflow.v2.Context;
 import com.google.longrunning.Operation;
+import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.EventDefinitionRegistry;
@@ -93,6 +94,19 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     public static String ENABLE_INTENT_LOADING_KEY = "jarvis.dialogflow.intent.loading";
 
     /**
+     * The {@link Configuration} key to store whether to merge the local {@link JarvisSession} in the DialogFlow one.
+     * <p>
+     * This option is enabled by default to ensure consistency between the local {@link JarvisSession} and the
+     * DialogFlow's one. However, bot implementations that strictly rely on the DialogFlow API and do not use local
+     * {@link JarvisSession}s can disable this option to improve the bot's performances and reduce the number of
+     * calls to the remote DialogFlow API.
+     * <p>
+     * Note that disabling this option for a bot implementation that manipulates local {@link JarvisSession}s may
+     * generate consistency issues and unexpected behaviors (such as unmatched intents and context value overwriting).
+     */
+    public static String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "jarvis.dialogflow.context.merge";
+
+    /**
      * The DialogFlow Default Fallback Intent that is returned when the user input does not match any registered Intent.
      *
      * @see #convertDialogFlowIntentToIntentDefinition(Intent)
@@ -145,6 +159,17 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     private boolean enableIntentLoader;
 
     /**
+     * A flag allowing the {@link DialogFlowApi} to merge local {@link JarvisSession}s in the DialogFlow one.
+     * <p>
+     * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
+     * sent to the DialogFlow API, but may generate consistency issues and unexpected behaviors for bot
+     * implementations that manipulate local {@link JarvisSession}s.
+     *
+     * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
+     */
+    private boolean enableContextMerge;
+
+    /**
      * Represents the DialogFlow project name.
      * <p>
      * This attribute is used to compute project-level operations, such as the training of the underlying
@@ -194,6 +219,21 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private SessionsClient sessionsClient;
 
+    /**
+     * The client instance managing DialogFlow contexts.
+     * <p>
+     * This {@link ContextsClient} is used to merge local context information in the DialogFlow session. This enables
+     * to match {@link IntentDefinition} with input contexts set from local computation (such as received events,
+     * custom variables, etc).
+     * <p>
+     * <b>Note:</b> the local {@link fr.zelus.jarvis.core.session.JarvisContext} is merged in DialogFlow before each
+     * intent recognition query (see {@link #getIntent(String, JarvisSession)}. This behavior can be disabled by
+     * setting the {@link #ENABLE_LOCAL_CONTEXT_MERGE_KEY} to {@code false} in the provided {@link Configuration}.
+     *
+     * @see #getIntent(String, JarvisSession)
+     * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
+     */
+    private ContextsClient contextsClient;
 
     /**
      * The {@link IntentFactory} used to create {@link RecognizedIntent} instances from DialogFlow computed
@@ -216,7 +256,6 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private Map<String, Intent> registeredIntents;
 
-
     /**
      * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
      * <p>
@@ -235,6 +274,13 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * {@link DialogFlowApi} should load registered DialogFlow {@link Intent}. This option is set to {@code true} by
      * default. Disabling it will reduce the number of queries sent to the DialogFlow API, but may generate
      * consistency issues between the DialogFlow agent and the local {@link DialogFlowApi}.
+     * <p>
+     * The vaule <b>jarvis.dialogflow.context.merge</b> is not mandatory and allows to tune whether the
+     * {@link DialogFlowApi} should merge the local {@link JarvisSession} in the DialogFlow one. This option is set
+     * to {@code true} by default, and may be set to {@code false} to improve the performances of bot implementations
+     * that strictly rely on the DialogFlow API, and do not manipulate local {@link JarvisSession}s. Disabling this
+     * option for a bot implementation that manipulates local {@link JarvisSession}s may generate consistency issues
+     * and unexpected behaviors (such as unmatched intents and context value overwriting).
      *
      * @param jarvisCore    the {@link JarvisCore} instance managing the {@link DialogFlowApi}
      * @param configuration the {@link Configuration} holding the DialogFlow project ID and language code
@@ -245,6 +291,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #LANGUAGE_CODE_KEY
      * @see #GOOGLE_CREDENTIALS_PATH_KEY
      * @see #ENABLE_INTENT_LOADING_KEY
+     * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
     public DialogFlowApi(JarvisCore jarvisCore, Configuration configuration) {
         checkNotNull(jarvisCore, "Cannot construct a DialogFlow API instance with a null JarvisCore instance");
@@ -261,11 +308,13 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 languageCode = DEFAULT_LANGUAGE_CODE;
             }
             this.enableIntentLoader = configuration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
+            this.enableContextMerge = configuration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
             this.projectAgentName = ProjectAgentName.of(projectId);
             String credentialsPath = configuration.getString(GOOGLE_CREDENTIALS_PATH_KEY);
             AgentsSettings agentsSettings;
             IntentsSettings intentsSettings;
             SessionsSettings sessionsSettings;
+            ContextsSettings contextsSettings;
             if (isNull(credentialsPath)) {
                 /*
                  * No credentials provided, using the GOOGLE_APPLICATION_CREDENTIALS environment variable.
@@ -274,6 +323,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 agentsSettings = AgentsSettings.newBuilder().build();
                 intentsSettings = IntentsSettings.newBuilder().build();
                 sessionsSettings = SessionsSettings.newBuilder().build();
+                contextsSettings = ContextsSettings.newBuilder().build();
             } else {
                 /*
                  * A credential file path is provided in the configuration, use it to initialize the AgentsClient.
@@ -290,10 +340,12 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 agentsSettings = AgentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
                 intentsSettings = IntentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
                 sessionsSettings = SessionsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
+                contextsSettings = ContextsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
             }
             this.agentsClient = AgentsClient.create(agentsSettings);
             this.sessionsClient = SessionsClient.create(sessionsSettings);
             this.intentsClient = IntentsClient.create(intentsSettings);
+            this.contextsClient = ContextsClient.create(contextsSettings);
             this.projectName = ProjectName.of(projectId);
             this.intentFactory = IntentFactory.eINSTANCE;
             /*
@@ -748,17 +800,73 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     }
 
     /**
+     * Merges the local {@link DialogFlowSession} in the remote DialogFlow API one.
+     * <p>
+     * This method ensures that the remote DialogFlow API stays consistent with the local {@link JarvisSession} by
+     * setting all the local context variables in the remote session. This allows to match intents with input
+     * contexts that have been defined locally, such as received events, custom variables, etc.
+     * <p>
+     * Local context values that are already defined in the remote DialogFlow API will be overridden by this method.
+     * <p>
+     * <b>Note:</b> this method resets the lifespan of context values to 5, meaning that remote context variables can
+     * never be deleted (see <a href="https://github.com/gdaniel/jarvis/issues/112">#112</a>.
+     * <p>
+     * This method sets all the variables from the local context in a single query in order to reduce the number of
+     * calls to the remote DialogFlow API.
+     *
+     * @param dialogFlowSession the local {@link DialogFlowSession} to merge in the remote one
+     * @throws JarvisException if at least one of the local context values' type is not supported.
+     * @see #getIntent(String, JarvisSession)
+     */
+    public void mergeLocalSessionInDialogFlow(DialogFlowSession dialogFlowSession) {
+        Log.info("Merging local context in the DialogFlow session {0}", dialogFlowSession.getSessionId());
+        dialogFlowSession.getJarvisContext().getContextMap().entrySet().stream().forEach(contextEntry ->
+                {
+                    String contextName = contextEntry.getKey();
+                    Context.Builder builder = Context.newBuilder().setName(ContextName.of(projectId,
+                            dialogFlowSession.getSessionName().getSession(), contextName).toString());
+                    Map<String, Object> contextVariables = contextEntry.getValue();
+                    Map<String, Value> dialogFlowContextVariables = new HashMap<>();
+                    contextVariables.entrySet().stream().forEach(contextVariableEntry -> {
+                                if (!(contextVariableEntry.getValue() instanceof String)) {
+                                    throw new JarvisException(MessageFormat.format("Cannot merge the current {0} in " +
+                                                    "DialogFlow, the context parameter value {1}.{2}={3} is not a " +
+                                                    "{4}", this.getClass().getSimpleName(), contextName,
+                                            contextVariableEntry.getKey(), contextVariableEntry.getValue(),
+                                            String.class.getSimpleName()));
+                                }
+                                Value value = Value.newBuilder().setStringValue((String) contextVariableEntry
+                                        .getValue()).build();
+                                dialogFlowContextVariables.put(contextVariableEntry.getKey(), value);
+                            }
+                    );
+                    /*
+                     * Need to put the lifespanCount otherwise the context is ignored.
+                     */
+                    builder.setParameters(Struct.newBuilder().putAllFields(dialogFlowContextVariables))
+                            .setLifespanCount(5);
+                    contextsClient.createContext(dialogFlowSession.getSessionName(), builder.build());
+                }
+        );
+    }
+
+    /**
      * {@inheritDoc}
      * <p>
      * The returned {@link RecognizedIntent} is constructed from the raw {@link Intent} returned by the DialogFlow
      * API, using the mapping defined in {@link #convertDialogFlowIntentToRecognizedIntent(QueryResult)}.
      * {@link RecognizedIntent}s are used to wrap the Intents returned by the Intent Recognition APIs and
      * decouple the application from the concrete API used.
+     * <p>
+     * If the {@link #ENABLE_LOCAL_CONTEXT_MERGE_KEY} property is set to {@code true} this method will first merge the
+     * local {@link JarvisSession} in the remote DialogFlow one, in order to ensure that all the local contexts are
+     * propagated to the recognition engine.
      *
      * @throws NullPointerException     if the provided {@code input} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code input} is empty
      * @throws DialogFlowException      if the {@link DialogFlowApi} is shutdown or if an exception is thrown by the
      *                                  underlying DialogFlow engine
+     * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
     @Override
     public RecognizedIntent getIntent(String input, JarvisSession session) {
@@ -774,6 +882,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         TextInput.Builder textInput = TextInput.newBuilder().setText(input).setLanguageCode(languageCode);
         QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
         DetectIntentResponse response;
+
+        DialogFlowSession dialogFlowSession = (DialogFlowSession) session;
+        if (enableContextMerge) {
+            mergeLocalSessionInDialogFlow(dialogFlowSession);
+        } else {
+            Log.debug("Local context not merged in DialogFlow, context merging has been disabled");
+        }
+
         try {
             response = sessionsClient.detectIntent(((DialogFlowSession) session).getSessionName(), queryInput);
         } catch (Exception e) {
@@ -821,8 +937,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
          */
         for (Context context : result.getOutputContextsList()) {
             String contextName = ContextName.parse(context.getName()).getContext();
+            Log.info("Processing context {0}", context.getName());
             Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
             for (String key : parameterValues.keySet()) {
+                Log.info("Processing context value {0} ({1})", key, parameterValues.get(key).getStringValue());
                 /*
                  * Ignore original: this variable contains the raw parsed value, we don't need this.
                  */

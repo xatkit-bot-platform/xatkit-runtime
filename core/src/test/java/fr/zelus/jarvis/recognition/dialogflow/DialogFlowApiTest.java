@@ -403,6 +403,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * https://productforums.google.com/forum/m/#!category-topic/dialogflow/type-troubleshooting/UDokzc7mOcY)
          */
 //        registeredIntentDefinition = intentDefinition;
+
         JarvisSession session = api.createSession(UUID.randomUUID().toString());
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
@@ -483,6 +484,48 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         } else {
             fail("ContextParameterValue2 doesn't match ContextParameter1 or ContextParameter2");
         }
+    }
+
+    @Test
+    public void getIntentInContextSetFromJarvisContext() {
+        /*
+         * Change the training sentence to avoid deleted intent definition matching (deleted intents can take some
+         * time to be completely removed from the DialogFlow Agent, see https://discuss.api
+         * .ai/t/intent-mismatch-issue/12042/17)
+         */
+        String trainingSentence = "how do you turn this on?";
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        intentDefinition.setName("TestHowDoYouTurn");
+        intentDefinition.getTrainingSentences().add(trainingSentence);
+        String inContextName = "testincontext";
+        Context inContext = IntentFactory.eINSTANCE.createContext();
+        inContext.setName(inContextName);
+        intentDefinition.getInContexts().add(inContext);
+        api = getValidDialogFlowApi();
+        try {
+            api.registerIntentDefinition(intentDefinition);
+        } catch (DialogFlowException e) {
+            Log.warn("The intent {0} is already registered", intentDefinition.getName());
+        }
+        api.trainMLEngine();
+        jarvisCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
+        /*
+         * Setting this variable will delete the intent after execution. This should be done to ensure that the
+         * intents are well created, but it causes intent propagation issues on the DialogFlow side (see
+         * https://productforums.google.com/forum/m/#!category-topic/dialogflow/type-troubleshooting/UDokzc7mOcY)
+         */
+//        registeredIntentDefinition = intentDefinition;
+        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        /*
+         * Set the input context in the JarvisSession's local context. If the intent is matched the local session has
+          * been successfully merged in the Dialogflow one.
+         */
+        session.getJarvisContext().setContextValue(inContextName, "testKey", "testValue");
+        RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
+        assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
+        assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
+        softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
+                (intentDefinition.getName());
     }
 
     private void checkContextParameterValue(ContextParameterValue value, ContextParameter expectedParameter, String
