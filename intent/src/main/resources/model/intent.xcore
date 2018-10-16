@@ -5,6 +5,15 @@ package fr.zelus.jarvis.intent
 class EventDefinition {
     String name
     contains Context[] outContexts
+    op Context getOutContext(String contextName) {
+        for(Context context : getOutContexts()) {
+            // not case-sensitive comparison should be put in the documentation
+            if(context.getName().toLowerCase().equals(contextName.toLowerCase())) {
+                return context;
+            }
+        }
+        return null;
+    }
 }
 
 class IntentDefinition extends EventDefinition {
@@ -18,6 +27,14 @@ class Context {
     String name
     int lifeSpan = "5"
     contains ContextParameter[] parameters
+    op ContextParameter getContextParameter(String parameterName) {
+        for(ContextParameter contextParameter : getParameters()) {
+            if(contextParameter.getName().equals(parameterName)) {
+                return contextParameter;
+            }
+        }
+        return null;
+    }
 }
 
 class ContextParameter {
@@ -28,11 +45,25 @@ class ContextParameter {
 
 class EventInstance {
     refers EventDefinition definition
-    contains ContextParameterValue[] outContextValues
+    contains ContextInstance[] outContextInstances
+    op ContextInstance getOutContextInstance(String contextInstanceName) {
+        for(ContextInstance contextInstance : getOutContextInstances()) {
+            if(contextInstance.getDefinition().getName().equals(contextInstanceName)) {
+                return contextInstance;
+            }
+        }
+        return null;
+    }
 }
 
 class RecognizedIntent extends EventInstance {
 
+}
+
+class ContextInstance {
+    refers Context definition
+    int lifespanCount
+    contains ContextParameterValue[] values
 }
 
 class ContextParameterValue {
