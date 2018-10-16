@@ -475,12 +475,12 @@ public class JarvisCore {
         /*
          * Register the returned context values
          */
-        for (ContextParameterValue contextParameterValue : eventInstance.getOutContextValues()) {
-            String contextName = ((Context) contextParameterValue.getContextParameter().eContainer()).getName();
-            String parameterName = contextParameterValue.getContextParameter().getName();
-            String parameterValue = contextParameterValue.getValue();
-            session.getJarvisContext().setContextValue(contextName, parameterName, parameterValue);
+        for(ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
+            for(ContextParameterValue value : contextInstance.getValues()) {
+                session.getJarvisContext().setContextValue(value);
+            }
         }
+
         List<ActionInstance> actionInstances = orchestrationService.getActionsFromEvent(eventInstance);
         if (actionInstances.isEmpty()) {
             Log.warn("The intent {0} is not associated to any action", eventInstance.getDefinition().getName());

@@ -2,6 +2,8 @@ package fr.zelus.jarvis.core.session;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.intent.Context;
+import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.io.EventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -124,8 +126,8 @@ public class JarvisContext {
      * @see #getContextValue(String, String)
      */
     public void setContextValue(String context, String key, Object value) {
-        checkNotNull(context, "Cannot set the value to the context null");
-        checkNotNull(key, "Cannot set the value to the context %s with the key null", context);
+        checkNotNull(context, "Cannot set the context value from the provided context %s", context);
+        checkNotNull(key, "Cannot set the context vaule value from the provided key %s", key);
         Log.info("Setting context variable {0}.{1} to {2}", context, key, value);
         if (contexts.containsKey(context)) {
             Map<String, Object> contextValues = contexts.get(context);
@@ -135,6 +137,27 @@ public class JarvisContext {
             contextValues.put(key, value);
             contexts.put(context, contextValues);
         }
+    }
+
+    /**
+     * Stores the provided {@code contextParameterValue} in the context.
+     * <p>
+     * This method extracts the context name and parameter key from the provided {@link ContextParameterValue}, by
+     * navigating its {@link fr.zelus.jarvis.intent.ContextParameter} and {@link Context} references. This method is
+     * used as syntactic sugar to register {@link ContextParameterValue}s received from {@link EventProvider}s, see
+     * {@link #setContextValue(String, String, Object)} to register a context value from {@link String} values.
+     *
+     * @param contextParameterValue the {@link ContextParameterValue} to store in the context.
+     * @throws NullPointerException if the provided {@code contextParameterValue} is {@code null}
+     * @see #setContextValue(String, String, Object)
+     */
+    public void setContextValue(ContextParameterValue contextParameterValue) {
+        checkNotNull(contextParameterValue, "Cannot set the context value from the provided %s %s",
+                ContextParameterValue.class.getSimpleName(), contextParameterValue);
+        String contextName = ((Context) contextParameterValue.getContextParameter().eContainer()).getName();
+        String parameterName = contextParameterValue.getContextParameter().getName();
+        String parameterValue = contextParameterValue.getValue();
+        this.setContextValue(contextName, parameterName, parameterValue);
     }
 
     /**

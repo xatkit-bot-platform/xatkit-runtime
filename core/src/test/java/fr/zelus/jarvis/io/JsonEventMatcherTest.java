@@ -34,6 +34,8 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
 
     private static EventDefinition validEventDefinition;
 
+    private static String validContextName = "outContext";
+
     private static EventInstanceBuilder builder;
 
     private JsonEventMatcher matcher;
@@ -52,7 +54,7 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         validEventDefinition.setName(validEventTypeName);
         Context outContext = IntentFactory.eINSTANCE.createContext();
         validEventDefinition.getOutContexts().add(outContext);
-        outContext.setName("outContext");
+        outContext.setName(validContextName);
         ContextParameter param = IntentFactory.eINSTANCE.createContextParameter();
         param.setName(validFieldValue.getKey());
         ContextParameter param2 = IntentFactory.eINSTANCE.createContextParameter();
@@ -261,15 +263,22 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         assertThat(eventInstance).as("Not null EventInstance").isNotNull();
         assertThat(eventInstance.getDefinition()).as("Not null EventDefinition").isNotNull();
         assertThat(eventInstance.getDefinition()).as("Valid EventDefinition").isEqualTo(validEventDefinition);
-        assertThat(eventInstance.getOutContextValues()).as("Event Instance contains two out context values").hasSize
+        assertThat(eventInstance.getOutContextInstances()).as("Event Instance contains one out context instance")
+                .hasSize(1);
+        ContextInstance outContextInstance = eventInstance.getOutContextInstances().get(0);
+        assertThat(outContextInstance).as("Not null out context instance").isNotNull();
+        assertThat(outContextInstance.getDefinition()).as("Not null out context instance definition").isNotNull();
+        assertThat(outContextInstance.getDefinition().getName()).as("Valid out context instance definition")
+                .isEqualTo(validContextName);
+        assertThat(outContextInstance.getValues()).as("Out context instance contains two out values").hasSize
                 (2);
-        ContextParameterValue value1 = eventInstance.getOutContextValues().get(0);
+        ContextParameterValue value1 = outContextInstance.getValues().get(0);
         assertThat(value1.getContextParameter()).as("Value1 context parameter not null").isNotNull();
         ContextParameter contextParameter1 = value1.getContextParameter();
         assertThat(contextParameter1.getName()).as("Valid value1 context parameter name").isEqualTo
                 (validFieldValue.getKey());
         assertThat(value1.getValue()).as("Valid value1 value").isEqualTo(validFieldValue.getValue());
-        ContextParameterValue value2 = eventInstance.getOutContextValues().get(1);
+        ContextParameterValue value2 = outContextInstance.getValues().get(1);
         assertThat(value2.getContextParameter()).as("Value2 context parameter not null").isNotNull();
         ContextParameter contextParameter2 = value2.getContextParameter();
         assertThat(contextParameter2.getName()).as("Valid value2 context parameter name").isEqualTo("top-level->inner-field");

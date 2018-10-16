@@ -909,15 +909,15 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * <p>
      * This method relies on the {@link #convertDialogFlowIntentToIntentDefinition(Intent)} method to retrieve the
      * {@link IntentDefinition} associated to the {@link QueryResult}'s {@link Intent}, and the
-     * {@link #getContextParameter(String, String)} method to retrieve the registered {@link ContextParameter}s
-     * from the DialogFlow contexts.
+     * {@link EventDefinitionRegistry#getEventDefinitionOutContext(String)} method to retrieve the registered
+     * {@link ContextParameter}s from the DialogFlow contexts.
      *
      * @param result the DialogFlow {@link QueryResult} containing the {@link Intent} to reify
      * @return the reified {@link RecognizedIntent}
      * @throws NullPointerException     if the provided {@link QueryResult} is {@code null}
      * @throws IllegalArgumentException if the provided {@link QueryResult}'s {@link Intent} is {@code null}
      * @see #convertDialogFlowIntentToIntentDefinition(Intent)
-     * @see #getContextParameter(String, String)
+     * @see EventDefinitionRegistry#getEventDefinitionOutContext(String)
      */
     private RecognizedIntent convertDialogFlowIntentToRecognizedIntent(QueryResult result) {
         checkNotNull(result, "Cannot create a %s from the provided %s %s", RecognizedIntent.class.getSimpleName(),
@@ -937,23 +937,43 @@ public class DialogFlowApi implements IntentRecognitionProvider {
          */
         for (Context context : result.getOutputContextsList()) {
             String contextName = ContextName.parse(context.getName()).getContext();
-            Log.info("Processing context {0}", context.getName());
-            Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
-            for (String key : parameterValues.keySet()) {
-                Log.info("Processing context value {0} ({1})", key, parameterValues.get(key).getStringValue());
-                /*
-                 * Ignore original: this variable contains the raw parsed value, we don't need this.
-                 */
-                if (!key.contains(".original")) {
-                    String parameterValue = parameterValues.get(key).getStringValue();
-                    ContextParameter contextParameter = getContextParameter(contextName, key);
-                    if (nonNull(contextParameter)) {
-                        ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
-                        contextParameterValue.setValue(parameterValue);
-                        contextParameterValue.setContextParameter(contextParameter);
-                        recognizedIntent.getOutContextValues().add(contextParameterValue);
+            /*
+             * Search if the Context exists in the retrieved IntentDefinition. It may not be the case because
+             * DialogFlow merges all the context values in the active contexts. In that case the only solution is to
+             * find the Context from the global registry, that may return inconsistent result if there are multiple
+             * contexts defined with the same name.
+             */
+            fr.zelus.jarvis.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
+            if(isNull(contextDefinition)) {
+                contextDefinition = this.jarvisCore.getEventDefinitionRegistry().getEventDefinitionOutContext
+                        (contextName);
+            }
+            if(nonNull(contextDefinition)) {
+                int lifespanCount = context.getLifespanCount();
+                ContextInstance contextInstance = intentFactory.createContextInstance();
+                contextInstance.setDefinition(contextDefinition);
+                contextInstance.setLifespanCount(lifespanCount);
+                Log.info("Processing context {0}", context.getName());
+                Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
+                for (String key : parameterValues.keySet()) {
+                    Log.info("Processing context value {0} ({1})", key, parameterValues.get(key).getStringValue());
+                    /*
+                     * Ignore original: this variable contains the raw parsed value, we don't need this.
+                     */
+                    if (!key.contains(".original")) {
+                        String parameterValue = parameterValues.get(key).getStringValue();
+                        ContextParameter contextParameter = contextDefinition.getContextParameter(key);
+                        if (nonNull(contextParameter)) {
+                            ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
+                            contextParameterValue.setValue(parameterValue);
+                            contextParameterValue.setContextParameter(contextParameter);
+                            contextInstance.getValues().add(contextParameterValue);
+                        }
                     }
                 }
+                recognizedIntent.getOutContextInstances().add(contextInstance);
+            } else {
+                Log.warn("Cannot retrieve the context definition for the context value {0}", contextName);
             }
         }
         return recognizedIntent;
@@ -981,49 +1001,6 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             result = DEFAULT_FALLBACK_INTENT;
         }
         return result;
-    }
-
-    /**
-     * Retrieves the registered {@link ContextParameter} associated to the provided {@code contextName} and {@code
-     * parameterName}.
-     * <p>
-     * This method iterates the {@link IntentDefinition}s stored in the {@link EventDefinitionRegistry} and matches
-     * their output contexts against the provided {@code contextName} and {@code parameterName}. Note that DialogFlow
-     * merges all context values in all the available contexts, thus a complete lookup of the
-     * {@link EventDefinitionRegistry} is required to retrieve merged {@link ContextParameter}s.
-     *
-     * @param contextName   the name of the DialogFlow {@link Context} storing the parameter
-     * @param parameterName the name of the DialogFlow parameter to match
-     * @return the registered {@link ContextParameter} if it exist, {@code null} otherwise
-     * @throws NullPointerException if the provided {@code contextName} or {@code parameterName} is {@code null}
-     */
-    private ContextParameter getContextParameter(String contextName, String parameterName) {
-        checkNotNull(contextName, "Cannot retrieve the %s associated to the provided context name %s",
-                ContextParameter.class.getSimpleName(), contextName);
-        checkNotNull(parameterName, "Cannot retrieve the %s associated to the provided parameter name %s",
-                ContextParameter.class.getSimpleName(), parameterName);
-        EventDefinitionRegistry eventDefinitionRegistry = jarvisCore.getEventDefinitionRegistry();
-        for (IntentDefinition intentDefinition : eventDefinitionRegistry.getAllIntentDefinitions()) {
-            for (fr.zelus.jarvis.intent.Context context : intentDefinition.getOutContexts()) {
-                /*
-                 * Use toLowerCase() because context are stored in lower case by DialogFlow
-                 */
-                if (context.getName().toLowerCase().equals(contextName)) {
-                    for (ContextParameter parameter : context.getParameters()) {
-                        if (parameter.getName().equals(parameterName)) {
-                            return parameter;
-                        }
-                    }
-                }
-            }
-        }
-        /*
-         * DialogFlow merges all the parameters in the current contexts, so we can have context containing parameter
-         * keys that are not defined in the module model. We should ignore these parameter accesses, it is not
-         * straightforward to access a merged key, we should use its defining context.
-         */
-        Log.warn("Unable to find the context parameter {0}.{1}", contextName, parameterName);
-        return null;
     }
 
     /**

@@ -97,7 +97,7 @@ public class EventInstanceBuilderTest extends AbstractJarvisTest {
         EventInstance eventInstance = builder.setEventDefinitionName("EventName").build();
         assertThat(eventInstance).as("Not null EventInstance").isNotNull();
         softly.assertThat(eventInstance.getDefinition()).as("Valid EventDefinition").isEqualTo(eventDefinition);
-        softly.assertThat(eventInstance.getOutContextValues()).as("Empty out context values").isEmpty();
+        softly.assertThat(eventInstance.getOutContextInstances()).as("Empty out contexts").isEmpty();
         softly.assertThat(builder.getEventDefinitionName()).as("Builder EventDefinitionName cleared").isNull();
         softly.assertThat(builder.getOutContextValues()).as("Builder OutContextValues cleared").isEmpty();
     }
@@ -119,9 +119,16 @@ public class EventInstanceBuilderTest extends AbstractJarvisTest {
                 .build();
         assertThat(eventInstance).as("Not null EventInstance").isNotNull();
         softly.assertThat(eventInstance.getDefinition()).as("Valid EventDefinition").isEqualTo(eventDefinition);
-        assertThat(eventInstance.getOutContextValues()).as("Out context value list contains one element")
-                .hasSize(1);
-        ContextParameterValue contextParameterValue = eventInstance.getOutContextValues().get(0);
+        assertThat(eventInstance.getOutContextInstances()).as("Out context list contains one element").hasSize(1);
+        ContextInstance outContextInstance = eventInstance.getOutContextInstances().get(0);
+        assertThat(outContextInstance).as("Not null out ContextInstance").isNotNull();
+        assertThat(outContextInstance.getDefinition()).as("Not null out ContextInstance definition").isNotNull();
+        softly.assertThat(outContextInstance.getDefinition().getName()).as("Valid out ContextInstance definition " +
+                "name").isEqualTo("OutContext");
+        softly.assertThat(outContextInstance.getLifespanCount()).as("ContextInstance lifespanCount is the default " +
+                "lifespan").isEqualTo(5);
+        assertThat(outContextInstance.getValues()).as("Out ContextInstance value list contains one element").hasSize(1);
+        ContextParameterValue contextParameterValue = outContextInstance.getValues().get(0);
         assertThat(contextParameterValue.getContextParameter()).as("Not null ContextParameter").isNotNull();
         softly.assertThat(contextParameterValue.getContextParameter().getName()).as("Valid ContextParameter")
                 .isEqualTo("key");

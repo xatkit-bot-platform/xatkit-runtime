@@ -403,14 +403,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * https://productforums.google.com/forum/m/#!category-topic/dialogflow/type-troubleshooting/UDokzc7mOcY)
          */
 //        registeredIntentDefinition = intentDefinition;
-
         JarvisSession session = api.createSession(UUID.randomUUID().toString());
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
-        assertThat(recognizedIntent.getOutContextValues()).as("Empty out context values").isEmpty();
+        assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context instances").isEmpty();
     }
 
     @Test
@@ -460,30 +459,38 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
-        assertThat(recognizedIntent.getOutContextValues()).as("Valid out context value list size").hasSize(2);
-        ContextParameterValue value1 = recognizedIntent.getOutContextValues().get(0);
-        assertThat(value1).as("Not null ContextParameterValue1").isNotNull();
-        assertThat(value1.getContextParameter()).as("Not null ContextParameter1").isNotNull();
+        assertThat(recognizedIntent.getOutContextInstances()).as("Valid out context instance list size").hasSize(2);
+
         /*
-         * The order is not known, relies on the DialogFlow API
+         * The first context is actually the second one defined in the IntentDefinition. DialogFlow does not provide
+         * any specification on the order of the returned context. This test should be refactored to ensure that the
+         * two contexts are defined without taking into account the order.
          */
-        if (value1.getContextParameter().getName().equals(contextParameter1.getName())) {
-            checkContextParameterValue(value1, contextParameter1, "cheese");
-        } else if (value1.getContextParameter().getName().equals(contextParameter2.getName())) {
-            checkContextParameterValue(value1, contextParameter2, "steak");
-        } else {
-            fail("ContextParameterValue1 doesn't match ContextParameter1 or ContextParameter2");
-        }
-        ContextParameterValue value2 = recognizedIntent.getOutContextValues().get(1);
+        ContextInstance contextInstance2 = recognizedIntent.getOutContextInstances().get(0);
+        assertThat(contextInstance2).as("Not null out context instance 2").isNotNull();
+        assertThat(contextInstance2.getDefinition()).as("Not null out context instance 2 definition").isNotNull();
+        softly.assertThat(contextInstance2.getDefinition().getName()).as("Valid out context instance 2 definition")
+                .isEqualTo("Context2");
+        assertThat(contextInstance2.getValues()).as("Out context instance 2 contains one value").hasSize(1);
+        ContextParameterValue value2 = contextInstance2.getValues().get(0);
         assertThat(value2).as("Not null ContextParameterValue2").isNotNull();
         assertThat(value2.getContextParameter()).as("Not null ContextParameter2").isNotNull();
-        if (value2.getContextParameter().getName().equals(contextParameter1.getName())) {
-            checkContextParameterValue(value2, contextParameter1, "cheese");
-        } else if (value2.getContextParameter().getName().equals(contextParameter2.getName())) {
-            checkContextParameterValue(value2, contextParameter2, "steak");
-        } else {
-            fail("ContextParameterValue2 doesn't match ContextParameter1 or ContextParameter2");
-        }
+        softly.assertThat(value2.getContextParameter().getName()).as("Valid ContextParameter 2").isEqualTo
+                (contextParameter2.getName());
+        softly.assertThat(value2.getValue()).as("Valid ContextParameterValue 2").isEqualTo("steak");
+
+        ContextInstance contextInstance1 = recognizedIntent.getOutContextInstances().get(1);
+        assertThat(contextInstance1).as("Not null out context instance 1").isNotNull();
+        assertThat(contextInstance1.getDefinition()).as("Not null out context instance 1 definition").isNotNull();
+        softly.assertThat(contextInstance1.getDefinition().getName()).as("Valid out context instance 1 definition")
+                .isEqualTo("Context1");
+        assertThat(contextInstance1.getValues()).as("Out context instance 1 contains one value").hasSize(1);
+        ContextParameterValue value1 = contextInstance1.getValues().get(0);
+        assertThat(value1).as("Not null ContextParameterValue1").isNotNull();
+        assertThat(value1.getContextParameter()).as("Not null ContextParameter1").isNotNull();
+        softly.assertThat(value1.getContextParameter().getName()).as("Valid ContextParameter 1").isEqualTo
+                (contextParameter1.getName());
+        softly.assertThat(value1.getValue()).as("Valid ContextParameterValue 1").isEqualTo("cheese");
     }
 
     @Test
@@ -526,13 +533,6 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
-    }
-
-    private void checkContextParameterValue(ContextParameterValue value, ContextParameter expectedParameter, String
-            expectedValue) {
-        softly.assertThat(value.getContextParameter().getName()).as("Valid ContextParameter").isEqualTo
-                (expectedParameter.getName());
-        softly.assertThat(value.getValue()).as("Valid ContextParameterValue1").isEqualTo(expectedValue);
     }
 
     private void checkDialogFlowSession(JarvisSession session, String expectedProjectId, String expectedSessionId) {

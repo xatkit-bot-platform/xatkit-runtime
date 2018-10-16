@@ -372,11 +372,19 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         ContextParameterValue value1 = IntentFactory.eINSTANCE.createContextParameterValue();
         value1.setContextParameter(contextParameter1);
         value1.setValue("love");
-        instance.getOutContextValues().add(value1);
+        ContextInstance contextInstance1 = IntentFactory.eINSTANCE.createContextInstance();
+        contextInstance1.setDefinition(outContext1);
+        contextInstance1.setLifespanCount(outContext1.getLifeSpan());
+        contextInstance1.getValues().add(value1);
+        instance.getOutContextInstances().add(contextInstance1);
         ContextParameterValue value2 = IntentFactory.eINSTANCE.createContextParameterValue();
         value2.setContextParameter(contextParameter2);
         value2.setValue("monkey");
-        instance.getOutContextValues().add(value2);
+        ContextInstance contextInstance2 = IntentFactory.eINSTANCE.createContextInstance();
+        contextInstance2.setDefinition(outContext2);
+        contextInstance2.setLifespanCount(outContext2.getLifeSpan());
+        contextInstance2.getValues().add(value2);
+        instance.getOutContextInstances().add(contextInstance2);
         jarvisCore = getValidJarvisCore();
         JarvisSession session = new JarvisSession(UUID.randomUUID().toString());
         /*

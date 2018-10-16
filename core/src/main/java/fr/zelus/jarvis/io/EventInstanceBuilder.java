@@ -11,6 +11,7 @@ import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * A fluent {@link EventInstance} builder.
@@ -126,8 +127,8 @@ public class EventInstanceBuilder {
      * @throws NullPointerException if the provided {@code contextKey} or {@code contextValue} is {@code null}
      */
     public EventInstanceBuilder setOutContextValue(String contextKey, String contextValue) {
-        checkNotNull(contextKey, "Cannot set the out context value %s with the key null", contextValue);
-        checkNotNull(contextValue, "Cannot set the out context value null");
+        checkNotNull(contextKey, "Cannot set the out context key %s", contextValue);
+        checkNotNull(contextValue, "Cannot set the out context value %s", contextValue);
         this.contextValues.put(contextKey, contextValue);
         return this;
     }
@@ -171,17 +172,41 @@ public class EventInstanceBuilder {
         }
         eventInstance.setDefinition(eventDefinition);
         for (String contextKey : contextValues.keySet()) {
-            ContextParameter contextParameter = getContextParameter(eventDefinition, contextKey);
-            if (isNull(contextParameter)) {
-                String errorMessage = MessageFormat.format("Cannot build the EventInstance, the EventDefinition {0} " +
-                                "does not define the output context parameter value {1}", eventDefinition.getName(),
-                        contextKey);
-                throw new JarvisException(errorMessage);
+
+            Context context = null;
+            for(Context outContext : eventDefinition.getOutContexts()) {
+                if(nonNull(outContext.getContextParameter(contextKey))) {
+                    context = outContext;
+                }
+            }
+            if(isNull(context)) {
+                throw new JarvisException(MessageFormat.format("Cannot retrieve the out context associated to the " +
+                        "context parameter {0}", contextKey));
+            }
+            /*
+             * Retrieve the context instance bound to the retrieved context. Create it if it does not exist.
+             */
+            ContextInstance contextInstance = eventInstance.getOutContextInstance(context.getName());
+            if(isNull(contextInstance)) {
+                contextInstance = IntentFactory.eINSTANCE.createContextInstance();
+                contextInstance.setDefinition(context);
+                eventInstance.getOutContextInstances().add(contextInstance);
+            }
+            /*
+             * Set the default lifespan here, we do not support custom lifespancounts at the instance level.
+             */
+            contextInstance.setLifespanCount(context.getLifeSpan());
+
+            ContextParameter contextParameter = context.getContextParameter(contextKey);
+            if(isNull(contextParameter)) {
+                throw new JarvisException(MessageFormat.format("Cannot build the EventInstance, the " +
+                        "EventDefinition {0} does not define the output context parameter {1}", eventDefinition
+                        .getName(), contextKey));
             }
             ContextParameterValue contextParameterValue = IntentFactory.eINSTANCE.createContextParameterValue();
             contextParameterValue.setContextParameter(contextParameter);
             contextParameterValue.setValue(contextValues.get(contextKey));
-            eventInstance.getOutContextValues().add(contextParameterValue);
+            contextInstance.getValues().add(contextParameterValue);
         }
         this.clear();
         /*
@@ -224,23 +249,4 @@ public class EventInstanceBuilder {
         return sb.toString();
     }
 
-    /**
-     * Retrieves the {@link ContextParameter} of the provided {@code eventDefinition} matching the given {@code
-     * parameterName}.
-     *
-     * @param eventDefinition the {@link EventDefinition} to retrieve the {@link ContextParameter} from
-     * @param parameterName   the name of the {@link ContextParameter} to retrieve
-     * @return the {@link ContextParameter} matching the given {@code parameterName}, or {@code null} if it does not
-     * exist
-     */
-    private ContextParameter getContextParameter(EventDefinition eventDefinition, String parameterName) {
-        for (Context context : eventDefinition.getOutContexts()) {
-            for (ContextParameter contextParameter : context.getParameters()) {
-                if (contextParameter.getName().equals(parameterName)) {
-                    return contextParameter;
-                }
-            }
-        }
-        return null;
-    }
 }
