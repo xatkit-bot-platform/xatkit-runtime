@@ -63,10 +63,11 @@ class RecognizedIntent extends EventInstance {
 class ContextInstance {
     refers Context definition
     int lifespanCount
-    contains ContextParameterValue[] values
+    contains ContextParameterValue[] values opposite contextInstance
 }
 
 class ContextParameterValue {
+    container ContextInstance contextInstance opposite values
     refers ContextParameter contextParameter
     String value
 }
