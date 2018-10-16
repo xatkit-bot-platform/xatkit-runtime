@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.util.Objects.nonNull;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class DialogFlowApiTest extends AbstractJarvisTest {
 
@@ -409,7 +410,18 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
-        assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context instances").isEmpty();
+        /*
+         * The ContextInstances are set, but they should not contain any value.
+         */
+        assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context instances").hasSize(2);
+        assertThat(recognizedIntent.getOutContextInstance("Context1")).as("RecognizedIntent contains Context1")
+                .isNotNull();
+        assertThat(recognizedIntent.getOutContextInstance("Context1").getValues()).as("ContextInstance 1 does not " +
+                "contain any value").isEmpty();;
+        assertThat(recognizedIntent.getOutContextInstance("Context2")).as("RecognizedIntent contains Context2")
+                .isNotNull();
+        assertThat(recognizedIntent.getOutContextInstance("Context2").getValues()).as("ContextInstance 2 does not " +
+                "contain any value").isEmpty();
     }
 
     @Test
