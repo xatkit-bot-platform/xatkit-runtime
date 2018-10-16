@@ -186,7 +186,7 @@ public class JarvisCore {
                     this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
                     intentRegistered = true;
                 } catch (IntentRecognitionProviderException e) {
-                    Log.warn(e);
+                    Log.warn(e.getMessage());
                 }
             }
             /*
