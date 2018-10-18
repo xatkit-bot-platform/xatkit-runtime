@@ -11,11 +11,13 @@ import org.apache.commons.configuration2.Configuration;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
@@ -56,6 +58,18 @@ public class JarvisContext {
     private Map<String, Map<String, Object>> contexts;
 
     /**
+     * The internal {@link Map} storing context lifespan counts.
+     * <p>
+     * This map is used to keep track of the number of user interactions that can be handled before removing each
+     * context value stored in the current {@link JarvisContext}. Lifespan counters are decremented by calling
+     * {@link #decrementLifespanCounts()}, that takes care of removing context when there lifespan counter reaches
+     * {@code 0}.
+     *
+     * @see #decrementLifespanCounts()
+     */
+    private Map<String, Integer> lifespanCounts;
+
+    /**
      * The amount of time to spend waiting for a context variable (in seconds).
      * <p>
      * This attribute is equals to {@link #DEFAULT_VARIABLE_TIMEOUT_VALUE} unless a specific value is provided in this
@@ -90,6 +104,7 @@ public class JarvisContext {
         checkNotNull(configuration, "Cannot construct a %s from the provided %s: %s", JarvisContext.class
                 .getSimpleName(), Configuration.class.getSimpleName(), configuration);
         this.contexts = new HashMap<>();
+        this.lifespanCounts = new HashMap<>();
         if (configuration.containsKey(VARIABLE_TIMEOUT_KEY)) {
             this.variableTimeout = configuration.getInt(VARIABLE_TIMEOUT_KEY);
             Log.info("Setting context variable timeout to {0}s", variableTimeout);
@@ -111,23 +126,35 @@ public class JarvisContext {
     }
 
     /**
-     * Stores the provided {@code value} in the given {@code context} with the provided {@code key}.
+     * Stores the provided {@code value} in the given {@code context} with the provided {@code key} and {@code
+     * lifespanCount}.
      * <p>
-     * As an example, calling setContextValue("slack", "username", "myUsername") sets the variable
-     * <i>username</i> with the value <i>myUsername</i> in the <i>slack</i> context.
+     * <b>Note:</b> the context lifespan count is only updated if {@code lifespanCount > #getContextLifespanCount
+     * (context)}. Context lifespan counts can only be decremented by calling {@link #decrementLifespanCounts()}.
+     * This architecture ensures the global lifespan count consistency among context variables.
+     * <p>
+     * As an example, calling setContextValue("slack", 5, "username", "myUsername") sets the variable
+     * <i>username</i> with the value <i>myUsername</i> in the <i>slack</i> context, and sets its lifespan count to
+     * {@code 5}.
      * <p>
      * To retrieve all the variables of a given sub-context see {@link #getContextVariables(String)}.
      *
-     * @param context the sub-context to store the value in
-     * @param key     the sub-context key associated to the value
-     * @param value   the value to store
-     * @throws NullPointerException if the provided {@code context} or {@code key} is {@code null}
+     * @param context       the sub-context to store the value in
+     * @param lifespanCount the lifespan count of the context to set
+     * @param key           the sub-context key associated to the value
+     * @param value         the value to store
+     * @throws NullPointerException     if the provided {@code context} or {@code key} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code lifespanCount <= 0}
      * @see #getContextVariables(String)
      * @see #getContextValue(String, String)
+     * @see #getContextLifespanCount(String)
+     * @see #decrementLifespanCounts()
      */
-    public void setContextValue(String context, String key, Object value) {
+    public void setContextValue(String context, int lifespanCount, String key, Object value) {
         checkNotNull(context, "Cannot set the context value from the provided context %s", context);
         checkNotNull(key, "Cannot set the context vaule value from the provided key %s", key);
+        checkArgument(lifespanCount > 0, "Cannot set the context lifespan count to %s, the lifespan count should be " +
+                "strictly greater than 0", lifespanCount);
         Log.info("Setting context variable {0}.{1} to {2}", context, key, value);
         if (contexts.containsKey(context)) {
             Map<String, Object> contextValues = contexts.get(context);
@@ -137,6 +164,30 @@ public class JarvisContext {
             contextValues.put(key, value);
             contexts.put(context, contextValues);
         }
+        if (lifespanCounts.containsKey(context)) {
+            int currentLifespan = lifespanCounts.get(context);
+            if (currentLifespan < lifespanCount) {
+                /*
+                 * The provided lifespanCount is greater than the stored one, this means that we are dealing with a
+                 * new context (i.e. a new Intent recognized from the IntentRecognitionProvider or a new Event
+                 * received by an EventProvider). Override the current value to keep the variable alive.
+                 */
+                Log.info("Overriding context {0} lifespanCount (previous: {1}, new: {2})", context, currentLifespan,
+                        lifespanCount);
+                lifespanCounts.put(context, lifespanCount);
+            } else {
+                /*
+                 * We should not support lifespan count decrement when setting context values. Lifespan counts are
+                 * globally handled by the decrementLifespanCounts() method.
+                 */
+                Log.warn("Ignoring the provided lifespan for context {0} ({1}): the lifespan is lower than the stored" +
+                        " one ({2}). Context lifespan counts can only be decremented through JarvisContext" +
+                        ".decrementLifespanCounts()", context, lifespanCount, currentLifespan);
+            }
+        } else {
+            Log.info("Setting context {0} lifespanCount to {1}", context, lifespanCount);
+            lifespanCounts.put(context, lifespanCount);
+        }
     }
 
     /**
@@ -145,11 +196,11 @@ public class JarvisContext {
      * This method extracts the context name and parameter key from the provided {@link ContextParameterValue}, by
      * navigating its {@link fr.zelus.jarvis.intent.ContextParameter} and {@link Context} references. This method is
      * used as syntactic sugar to register {@link ContextParameterValue}s received from {@link EventProvider}s, see
-     * {@link #setContextValue(String, String, Object)} to register a context value from {@link String} values.
+     * {@link #setContextValue(String, int, String, Object)} to register a context value from {@link String} values.
      *
      * @param contextParameterValue the {@link ContextParameterValue} to store in the context.
      * @throws NullPointerException if the provided {@code contextParameterValue} is {@code null}
-     * @see #setContextValue(String, String, Object)
+     * @see #setContextValue(String, int, String, Object)
      */
     public void setContextValue(ContextParameterValue contextParameterValue) {
         checkNotNull(contextParameterValue, "Cannot set the context value from the provided %s %s",
@@ -157,7 +208,8 @@ public class JarvisContext {
         String contextName = ((Context) contextParameterValue.getContextParameter().eContainer()).getName();
         String parameterName = contextParameterValue.getContextParameter().getName();
         String parameterValue = contextParameterValue.getValue();
-        this.setContextValue(contextName, parameterName, parameterValue);
+        int lifespanCount = contextParameterValue.getContextInstance().getLifespanCount();
+        this.setContextValue(contextName, lifespanCount, parameterName, parameterValue);
     }
 
     /**
@@ -207,12 +259,60 @@ public class JarvisContext {
     }
 
     /**
+     * Returns the lifespan count of the provided {@code context}.
+     * <p>
+     * Context lifespan counts are set by {@link #setContextValue(String, int, String, Object)}, and decrementing after
+     * each user input by {@link #decrementLifespanCounts()}, and are synchronized with the
+     * {@link fr.zelus.jarvis.recognition.IntentRecognitionProvider}'s remote context lifespan counts.
+     *
+     * @param context the context to retrieve the lifespan count of
+     * @return the lifespan count of the provided {@code context}
+     * @see #setContextValue(ContextParameterValue)
+     * @see #setContextValue(String, int, String, Object)
+     * @see #decrementLifespanCounts()
+     */
+    public int getContextLifespanCount(String context) {
+        checkNotNull(context, "Cannot find the lifespan count of context %s", context);
+        Integer lifespanCount = this.lifespanCounts.get(context);
+        if (nonNull(lifespanCount)) {
+            return lifespanCount;
+        } else {
+            throw new JarvisException(MessageFormat.format("Cannot retrieve the lifespan count for the provided " +
+                    "context {0} the context is not registered", context));
+        }
+    }
+
+    /**
+     * Decrements the lifespanCount of all the stored contexts, and remove them if there lifespanCount decreases to 0.
+     * <p>
+     * LifespanCounts corresponds to the number of user inputs that can be handled before removing the variable from
+     * the current context. This method is called after each user input to take into account the new interaction and
+     * decrement the lifespan counters from the live contexts.
+     */
+    public void decrementLifespanCounts() {
+        Log.info("Decrementing JarvisContext lifespanCounts");
+        Iterator<Map.Entry<String, Integer>> it = lifespanCounts.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Integer> entry = it.next();
+            if (entry.getValue() - 1 == 0) {
+                it.remove();
+                contexts.remove(entry.getKey());
+            } else {
+                entry.setValue(entry.getValue() - 1);
+            }
+        }
+    }
+
+    /**
      * Merges the provided {@code other} {@link JarvisContext} into this one.
      * <p>
      * This method adds all the {@code contexts} and {@code values} of the provided {@code other}
      * {@link JarvisContext} to this one, performing a deep copy of the underlying {@link Map} structure, ensuring
      * that future updates on the {@code other} {@link JarvisContext} will not be applied on this one (such as value
      * and context additions/deletions).
+     * <p>
+     * Lifespan counts are also copied from the {@code other} {@link JarvisContext} to this one, ensuring that their
+     * lifespan remains consistent in all the {@link JarvisContext}s containing them.
      * <p>
      * However, note that the values stored in the context {@link Map}s are not cloned, meaning that
      * {@link fr.zelus.jarvis.core.JarvisAction}s updating existing values will update them for all the merged
@@ -239,6 +339,10 @@ public class JarvisContext {
                     variableMap.put(k1, v1);
                 });
                 this.contexts.put(k, variableMap);
+                /*
+                 * Merge the lifespan counts in the current context.
+                 */
+                this.lifespanCounts.put(k, other.getContextLifespanCount(k));
             }
         });
     }
@@ -250,6 +354,15 @@ public class JarvisContext {
      */
     public Map<String, Map<String, Object>> getContextMap() {
         return Collections.unmodifiableMap(contexts);
+    }
+
+    /**
+     * Returns an unmodifiable {@link Map} representing the stored lifespan counts.
+     *
+     * @return an unmodifiable {@link Map} representing the stored lifespan counts
+     */
+    public Map<String, Integer> getLifespanCountsMap() {
+        return Collections.unmodifiableMap(lifespanCounts);
     }
 
     /**

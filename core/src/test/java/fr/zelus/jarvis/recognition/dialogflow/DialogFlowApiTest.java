@@ -383,8 +383,10 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         intentDefinition.getTrainingSentences().add(trainingSentence);
         Context outContext1 = IntentFactory.eINSTANCE.createContext();
         outContext1.setName("Context1");
+        // default lifespan count
         Context outContext2 = IntentFactory.eINSTANCE.createContext();
         outContext2.setName("Context2");
+        outContext2.setLifeSpan(4);
         intentDefinition.getOutContexts().add(outContext1);
         intentDefinition.getOutContexts().add(outContext2);
         api = getValidDialogFlowApi();
@@ -416,12 +418,19 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context instances").hasSize(2);
         assertThat(recognizedIntent.getOutContextInstance("Context1")).as("RecognizedIntent contains Context1")
                 .isNotNull();
-        assertThat(recognizedIntent.getOutContextInstance("Context1").getValues()).as("ContextInstance 1 does not " +
-                "contain any value").isEmpty();;
+        softly.assertThat(recognizedIntent.getOutContextInstance("Context1").getValues()).as("ContextInstance 1 does " +
+                "not contain any value").isEmpty();;
         assertThat(recognizedIntent.getOutContextInstance("Context2")).as("RecognizedIntent contains Context2")
                 .isNotNull();
-        assertThat(recognizedIntent.getOutContextInstance("Context2").getValues()).as("ContextInstance 2 does not " +
-                "contain any value").isEmpty();
+        softly.assertThat(recognizedIntent.getOutContextInstance("Context2").getValues()).as("ContextInstance 2 does " +
+                "not contain any value").isEmpty();
+        /*
+         * Check that the lifespan counts have been properly set.
+         */
+        softly.assertThat(recognizedIntent.getOutContextInstance("Context1").getLifespanCount()).as("Valid " +
+                "ContextInstance 1 lifespan count").isEqualTo(outContext1.getLifeSpan());
+        softly.assertThat(recognizedIntent.getOutContextInstance("Context2").getLifespanCount()).as("Valid " +
+                "ContextInstance 2 lifespan count").isEqualTo(outContext2.getLifeSpan());
     }
 
     @Test
@@ -449,6 +458,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         contextParameter2.setEntity(VALID_ENTITY_DEFINITION_2);
         contextParameter2.setTextFragment("steak");
         outContext2.getParameters().add(contextParameter2);
+        outContext2.setLifeSpan(4);
         intentDefinition.getOutContexts().add(outContext1);
         intentDefinition.getOutContexts().add(outContext2);
         api = getValidDialogFlowApi();
@@ -503,6 +513,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         softly.assertThat(value1.getContextParameter().getName()).as("Valid ContextParameter 1").isEqualTo
                 (contextParameter1.getName());
         softly.assertThat(value1.getValue()).as("Valid ContextParameterValue 1").isEqualTo("cheese");
+        /*
+         * Check that the lifespan counts have been properly set.
+         */
+        softly.assertThat(recognizedIntent.getOutContextInstance("Context1").getLifespanCount()).as("Valid " +
+                "ContextInstance 1 lifespan count").isEqualTo(outContext1.getLifeSpan());
+        softly.assertThat(recognizedIntent.getOutContextInstance("Context2").getLifespanCount()).as("Valid " +
+                "ContextInstance 2 lifespan count").isEqualTo(outContext2.getLifeSpan());
     }
 
     @Test
@@ -539,7 +556,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * Set the input context in the JarvisSession's local context. If the intent is matched the local session has
           * been successfully merged in the Dialogflow one.
          */
-        session.getJarvisContext().setContextValue(inContextName, "testKey", "testValue");
+        session.getJarvisContext().setContextValue(inContextName, 5, "testKey", "testValue");
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();

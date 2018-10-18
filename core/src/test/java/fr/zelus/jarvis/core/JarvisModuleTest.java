@@ -267,7 +267,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
-        session.getJarvisContext().setContextValue("variables", "param", CompletableFuture.completedFuture("test"));
+        session.getJarvisContext().setContextValue("variables", 5, "param", CompletableFuture.completedFuture("test"));
         JarvisAction jarvisAction = module.createJarvisAction(actionInstance, session);
         assertThat(jarvisAction).as("Created JarvisAction type is valid").isInstanceOf
                 (StubJarvisActionTwoConstructors.class);
@@ -291,7 +291,8 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         JarvisSession session = new JarvisSession("sessionID");
         List<String> listParam = new ArrayList<>();
         listParam.add("test");
-        session.getJarvisContext().setContextValue("variables", "param", CompletableFuture.completedFuture(listParam));
+        session.getJarvisContext().setContextValue("variables", 5, "param", CompletableFuture.completedFuture
+                (listParam));
         JarvisAction jarvisAction = module.createJarvisAction(actionInstance, session);
         assertThat(jarvisAction).as("Created JarvisAction type is valid").isInstanceOf
                 (StubJarvisActionTwoConstructors.class);
@@ -331,7 +332,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
         // Register an integer in the context, there is no constructor to handle it
-        session.getJarvisContext().setContextValue("variables", "param", CompletableFuture.completedFuture(1));
+        session.getJarvisContext().setContextValue("variables", 5, "param", CompletableFuture.completedFuture(1));
         module.createJarvisAction(actionInstance, session);
     }
 
@@ -360,8 +361,10 @@ public class JarvisModuleTest extends AbstractJarvisTest {
         JarvisSession session = new JarvisSession("sessionID");
         List<String> listParam = new ArrayList<>();
         listParam.add("test");
-        session.getJarvisContext().setContextValue("variables", "param", CompletableFuture.completedFuture(listParam));
-        session.getJarvisContext().setContextValue("variables", "param2", CompletableFuture.completedFuture(listParam));
+        session.getJarvisContext().setContextValue("variables", 5, "param", CompletableFuture.completedFuture
+                (listParam));
+        session.getJarvisContext().setContextValue("variables", 5, "param2", CompletableFuture.completedFuture
+                (listParam));
         module.createJarvisAction(actionInstance, session);
     }
 

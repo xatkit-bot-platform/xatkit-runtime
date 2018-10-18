@@ -154,14 +154,24 @@ public class SlackIntentProvider extends IntentProvider<SlackModule> {
                                                         user, channel);
                                                 JarvisSession session = this.module
                                                         .createSessionFromChannel(channel);
-                                                session.getJarvisContext().setContextValue(JarvisSlackUtils
-                                                        .SLACK_CONTEXT_KEY, JarvisSlackUtils
-                                                        .SLACK_CHANNEL_CONTEXT_KEY, channel);
-                                                session.getJarvisContext().setContextValue(JarvisSlackUtils
-                                                        .SLACK_CONTEXT_KEY, JarvisSlackUtils
-                                                        .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
+                                                /*
+                                                 * Call getRecognizedIntent before setting any context variable, the
+                                                 * recognition triggers a decrement of all the context variables.
+                                                 */
                                                 RecognizedIntent recognizedIntent = this.getRecognizedIntent(text,
                                                         session);
+                                                /*
+                                                 * The slack-related values are stored in the local context with a
+                                                 * lifespan count of 1: they are reset every time a message is
+                                                 * received, and may cause consistency issues when using multiple
+                                                 * IntentProviders.
+                                                 */
+                                                session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                                        .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
+                                                        .SLACK_CHANNEL_CONTEXT_KEY, channel);
+                                                session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                                        .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
+                                                        .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
                                                 jarvisCore.handleEvent(recognizedIntent, session);
                                             } else {
                                                 Log.warn("Received an empty message, skipping it");

@@ -492,10 +492,12 @@ public class JarvisCore {
             Future<Object> result = executorService.submit(action);
             if (nonNull(action.getReturnVariable())) {
                 /*
-                 * Store the Future, so we can run concurrently JarvisActions that are not related.
+                 * Store the Future, so we can run concurrently JarvisActions that are not related. The lifespanCount
+                 * is set to 1, so the variables in the current context will be discarded on the next user interaction.
                  */
                 Log.info("Registering context variable {0} with value {1}", action.getReturnVariable(), result);
-                session.getJarvisContext().setContextValue("variables", action.getReturnVariable(), result);
+                session.getJarvisContext().setContextValue("variables", 1, action.getReturnVariable(),
+                        result);
             }
         }
     }

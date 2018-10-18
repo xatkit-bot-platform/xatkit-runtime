@@ -88,11 +88,19 @@ public class PrivateMessageListener extends ListenerAdapter {
         }
         Log.info("Received message {0} from user {1} (id: {2})", content, author.getName(), author.getId());
         JarvisSession jarvisSession = discordIntentProvider.getModule().createSessionFromChannel(channel);
-        jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
-                .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
-        jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
-                .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
+        /*
+         * Call getRecognizedIntent before setting any context variable, the recognition triggers a decrement of all
+         * the context variables.
+         */
         RecognizedIntent recognizedIntent = discordIntentProvider.getRecognizedIntent(content, jarvisSession);
+        /*
+         * The discord-related values are stored in the local context with a lifespan count of 1: they are reset
+         * every time a message is received, and may cause consistency issues when using multiple IntentProviders.
+         */
+        jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
+                .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
+        jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
+                .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
         jarvisCore.handleEvent(recognizedIntent, jarvisSession);
     }
 }

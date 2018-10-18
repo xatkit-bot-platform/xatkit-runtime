@@ -823,6 +823,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         dialogFlowSession.getJarvisContext().getContextMap().entrySet().stream().forEach(contextEntry ->
                 {
                     String contextName = contextEntry.getKey();
+                    int contextLifespanCount = dialogFlowSession.getJarvisContext().getContextLifespanCount
+                            (contextName);
                     Context.Builder builder = Context.newBuilder().setName(ContextName.of(projectId,
                             dialogFlowSession.getSessionName().getSession(), contextName).toString());
                     Map<String, Object> contextVariables = contextEntry.getValue();
@@ -844,7 +846,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                      * Need to put the lifespanCount otherwise the context is ignored.
                      */
                     builder.setParameters(Struct.newBuilder().putAllFields(dialogFlowContextVariables))
-                            .setLifespanCount(5);
+                            .setLifespanCount(contextLifespanCount);
                     contextsClient.createContext(dialogFlowSession.getSessionName(), builder.build());
                 }
         );
@@ -1013,6 +1015,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         }
         this.sessionsClient.shutdownNow();
         this.intentsClient.shutdownNow();
+        this.contextsClient.shutdownNow();
         this.agentsClient.shutdownNow();
     }
 
@@ -1036,6 +1039,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         if (!intentsClient.isShutdown()) {
             Log.warn("DialogFlow Intent client was not closed properly, calling automatic shutdown");
             this.intentsClient.shutdownNow();
+        }
+        if(!contextsClient.isShutdown()) {
+            this.contextsClient.shutdownNow();
         }
         if (!agentsClient.isShutdown()) {
             Log.warn("DialogFlow Agent client was not closed properly, calling automatic shutdown");

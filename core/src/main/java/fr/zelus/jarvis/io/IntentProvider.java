@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.io;
 
 import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.recognition.IntentRecognitionProvider;
@@ -70,6 +71,12 @@ public abstract class IntentProvider<T extends JarvisModule> extends EventProvid
      * This method wraps the access to the underlying {@link IntentRecognitionProvider}, and avoid uncontrolled
      * accesses to the {@link IntentRecognitionProvider} from {@link IntentProvider}s (such as intent creation,
      * removal, and context manipulation).
+     * <p>
+     * <b>Note:</b> this method decrements the lifespan counts of the variables in the current context (context
+     * lifespan are used to represent the number of user interaction to handled before deleting the variable).
+     * <b>Client classes must call this method before setting any context variable</b> otherwise there lifespan
+     * counts may be inconsistent from their expected values (e.g. context variables with a lifespan count of {@code
+     * 1} will be immediately removed by the {@link JarvisContext#decrementLifespanCounts()} call).
      *
      * @param input   the textual user input to extract the {@link RecognizedIntent} from
      * @param session the {@link JarvisSession} wrapping the underlying {@link IntentRecognitionProvider}'s session
@@ -84,6 +91,11 @@ public abstract class IntentProvider<T extends JarvisModule> extends EventProvid
      *                                                                        engine
      */
     public final RecognizedIntent getRecognizedIntent(String input, JarvisSession session) {
+        /*
+         * We are trying to recognize an intent from a new input, decrement the current context variables lifespan
+         * counts.
+         */
+        session.getJarvisContext().decrementLifespanCounts();
         return intentRecognitionProvider.getIntent(input, session);
     }
 }
