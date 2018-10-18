@@ -808,9 +808,6 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * <p>
      * Local context values that are already defined in the remote DialogFlow API will be overridden by this method.
      * <p>
-     * <b>Note:</b> this method resets the lifespan of context values to 5, meaning that remote context variables can
-     * never be deleted (see <a href="https://github.com/gdaniel/jarvis/issues/112">#112</a>.
-     * <p>
      * This method sets all the variables from the local context in a single query in order to reduce the number of
      * calls to the remote DialogFlow API.
      *
