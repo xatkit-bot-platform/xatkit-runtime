@@ -20,6 +20,14 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     private JarvisServer server;
 
+    /**
+     * A second server used to check multiple starts on the same port.
+     * <p>
+     * This variable is defined as a class attribute to allow to {@link JarvisServer#stop()} the server if an exception
+     * occurred during the test cases it is involved in.
+     */
+    private JarvisServer server2;
+
     private StubJarvisCore stubJarvisCore;
 
     @After
@@ -29,6 +37,9 @@ public class JarvisServerTest extends AbstractJarvisTest {
         }
         if (nonNull(stubJarvisCore)) {
             stubJarvisCore.shutdown();
+        }
+        if(nonNull(server2) && server2.isStarted()) {
+            server2.stop();
         }
     }
 
@@ -70,6 +81,14 @@ public class JarvisServerTest extends AbstractJarvisTest {
         this.server.start();
         softly.assertThat(server.getHttpServer().getLocalPort()).as("Valid port number").isEqualTo(1234);
         softly.assertThat(server.isStarted()).as("Server started").isTrue();
+    }
+
+    @Test(expected = JarvisException.class)
+    public void startTwoServersSamePort() {
+        this.server = new JarvisServer(new BaseConfiguration());
+        this.server.start();
+        this.server2 = new JarvisServer(new BaseConfiguration());
+        this.server2.start();
     }
 
     @Test(expected = JarvisException.class)

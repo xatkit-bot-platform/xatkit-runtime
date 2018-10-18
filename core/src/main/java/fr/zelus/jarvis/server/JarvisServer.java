@@ -10,6 +10,7 @@ import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +57,14 @@ public class JarvisServer {
     private boolean isStarted;
 
     /**
+     * The port the {@link JarvisServer} should listen to.
+     * <p>
+     * The {@link JarvisServer} port can be specified in the constructor's {@link Configuration} with the key
+     * {@link #SERVER_PORT_KEY}. The default value is {@code 5000}.
+     */
+    private int port;
+
+    /**
      * The {@link WebhookEventProvider}s to notify when a request is received.
      * <p>
      * These {@link WebhookEventProvider}s are used to parse the input requests and create the corresponding
@@ -83,14 +92,8 @@ public class JarvisServer {
                 (), Configuration.class.getSimpleName(), configuration);
         Log.info("Creating {0}", this.getClass().getSimpleName());
         this.isStarted = false;
-        int portNumber;
-        if (configuration.containsKey(SERVER_PORT_KEY)) {
-            portNumber = configuration.getInt(SERVER_PORT_KEY);
-            Log.info("Sever listening to port {0}", portNumber);
-        } else {
-            portNumber = DEFAULT_SERVER_PORT;
-            Log.info("No port to listen to specified, using the default port {0}", DEFAULT_SERVER_PORT);
-        }
+        this.port = configuration.getInt(SERVER_PORT_KEY, DEFAULT_SERVER_PORT);
+        Log.info("{0} listening to port {1}", this.getClass().getSimpleName(), port);
         webhookEventProviders = new HashSet<>();
         SocketConfig socketConfig = SocketConfig.custom()
                 .setSoTimeout(15000)
@@ -98,7 +101,7 @@ public class JarvisServer {
                 .build();
 
         server = ServerBootstrap.bootstrap()
-                .setListenerPort(portNumber)
+                .setListenerPort(port)
                 .setServerInfo("Jarvis/1.1")
                 .setSocketConfig(socketConfig)
                 .registerHandler("*", new HttpHandler(this))
@@ -135,8 +138,14 @@ public class JarvisServer {
         Log.info("Starting {0}", this.getClass().getSimpleName());
         try {
             this.server.start();
+        } catch (BindException e) {
+            throw new JarvisException(MessageFormat.format("Cannot start the {0}, the port {1} cannot be bound. This " +
+                    "may happen if another bot is started on the same port, if a previously started bot was not shut " +
+                    "down properly, or if another application is already using the port", this.getClass()
+                    .getSimpleName(), port), e);
         } catch (IOException e) {
-            throw new JarvisException("Cannot start the JarvisServer", e);
+            throw new JarvisException(MessageFormat.format("Cannot start the {0}, see attached exception", this
+                    .getClass().getSimpleName()), e);
         }
         isStarted = true;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
