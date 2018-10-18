@@ -1021,7 +1021,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     @Override
     public boolean isShutdown() {
-        return this.sessionsClient.isShutdown() || this.intentsClient.isShutdown() || this.agentsClient.isShutdown();
+        return this.sessionsClient.isShutdown() && this.intentsClient.isShutdown() && this.agentsClient.isShutdown()
+                && contextsClient.isShutdown();
     }
 
     /**
