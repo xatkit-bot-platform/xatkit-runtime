@@ -426,7 +426,7 @@ public class JarvisCore {
      * @return {@code true} if the {@link JarvisCore} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
-        return executorService.isShutdown() || intentRecognitionProvider.isShutdown();
+        return (!jarvisServer.isStarted()) && executorService.isShutdown() && intentRecognitionProvider.isShutdown();
     }
 
     /**
