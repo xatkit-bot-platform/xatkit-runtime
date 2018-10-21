@@ -380,7 +380,7 @@ public class JarvisContext {
      */
     public String fillContextValues(String message) {
         checkNotNull(message, "Cannot fill the context values of the null message");
-        Log.info("Processing message {0}", message);
+        Log.info("Filling context values for message {0}", message);
         String outMessage = message;
         Matcher m = Pattern.compile("\\{\\$[^\\s\\}]+\\}").matcher(message);
         while (m.find()) {
