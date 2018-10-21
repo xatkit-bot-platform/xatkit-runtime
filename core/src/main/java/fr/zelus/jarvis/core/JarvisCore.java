@@ -28,15 +28,10 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 /**
  * The core component of the jarvis framework.
@@ -77,8 +72,7 @@ public class JarvisCore {
 
     /**
      * The {@link JarvisModuleRegistry} used to cache loaded module, and provides utility method to retrieve,
-     * unregister,
-     * and clear them.
+     * unregister, and clear them.
      *
      * @see #getJarvisModuleRegistry()
      */
@@ -95,21 +89,13 @@ public class JarvisCore {
     private EventDefinitionRegistry eventDefinitionRegistry;
 
     /**
-     * The {@link OrchestrationService} used to find {@link JarvisAction}s to execute from the received textual inputs.
+     * The {@link OrchestrationService} used to handle {@link EventInstance}s and execute the associated
+     * {@link JarvisAction}s.
      *
-     * @see #handleEvent(EventInstance, JarvisSession)
+     * @see OrchestrationService#handleEventInstance(EventInstance, JarvisSession)
      * @see JarvisAction
      */
-    private OrchestrationService orchestrationService;
-
-    /**
-     * The {@link ExecutorService} used to process {@link JarvisAction}s returned by the registered
-     * {@link JarvisModule}s.
-     *
-     * @see JarvisModule
-     * @see JarvisAction
-     */
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    protected OrchestrationService orchestrationService;
 
     /**
      * The {@link Map} used to store and retrieve {@link JarvisSession}s associated to users.
@@ -154,8 +140,8 @@ public class JarvisCore {
         this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                 configuration);
         this.sessions = new HashMap<>();
-        this.orchestrationService = new OrchestrationService(orchestrationModel);
         this.jarvisModuleRegistry = new JarvisModuleRegistry();
+        this.orchestrationService = new OrchestrationService(orchestrationModel, jarvisModuleRegistry);
         this.eventDefinitionRegistry = new EventDefinitionRegistry();
         /*
          * Start the server before processing the EventProviderDefinitions, we need to have a valid JarvisServer
@@ -314,6 +300,15 @@ public class JarvisCore {
     }
 
     /**
+     * Returns the underlying {@link OrchestrationService}.
+     *
+     * @return the underlying {@link OrchestrationService}
+     */
+    public OrchestrationService getOrchestrationService() {
+        return this.orchestrationService;
+    }
+
+    /**
      * Returns the underlying {@link IntentRecognitionProvider}.
      * <p>
      * <b>Note:</b> this method is designed to ease debugging and testing, direct interactions with the
@@ -353,31 +348,6 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link OrchestrationModel} associated to this class' {@link OrchestrationService}.
-     * <p>
-     * This method eases the access to the underlying {@link OrchestrationModel} for client applications.
-     *
-     * @return the {@link OrchestrationModel} associated to this class' {@link OrchestrationService}
-     * @see OrchestrationService#getOrchestrationModel()
-     */
-    public OrchestrationModel getOrchestrationModel() {
-        return orchestrationService.getOrchestrationModel();
-    }
-
-    /**
-     * Returns the {@link ExecutorService} used to process {@link JarvisAction}s.
-     * <p>
-     * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications.
-     * Manipulating {@link JarvisCore}'s {@link ExecutorService} may create consistency issues on currently executed
-     * {@link JarvisAction}s.
-     *
-     * @return the {@link ExecutorService} used to process {@link JarvisAction}s
-     */
-    protected ExecutorService getExecutorService() {
-        return executorService;
-    }
-
-    /**
      * Returns the {@link JarvisServer} used to capture incoming webhooks.
      *
      * @return the {@link JarvisServer} used to capture incoming webhooks
@@ -390,23 +360,27 @@ public class JarvisCore {
      * Shuts down the {@link JarvisCore} and the underlying engines.
      * <p>
      * This method shuts down the underlying {@link IntentRecognitionProvider}, unloads and shuts down all the
-     * {@link JarvisModule}s associated to this instance, unregisters the
-     * {@link EventDefinition} from the associated {@link EventDefinitionRegistry}, and shuts down the
-     * {@link #executorService} and {@link #jarvisServer}.
+     * {@link JarvisModule}s associated to this instance, unregisters the {@link EventDefinition} from the associated
+     * {@link EventDefinitionRegistry}, shuts down the {@link OrchestrationService}, and stops the {@link JarvisServer}.
      * <p>
      * <b>Note:</b> calling this method invalidates the {@link IntentRecognitionProvider} connection, and thus shuts
-     * down intent detections and voice recognitions features. New {@link JarvisAction}s cannot be processed either.
+     * down intent recognition features. New {@link JarvisAction}s cannot be processed either.
      *
-     * @see JarvisModule#shutdown()
      * @see IntentRecognitionProvider#shutdown()
+     * @see JarvisModule#shutdown()
+     * @see EventDefinitionRegistry#unregisterEventDefinition(EventDefinition)
+     * @see OrchestrationService#shutdown()
+     * @see JarvisServer#stop()
      */
     public void shutdown() {
         Log.info("Shutting down JarvisCore");
         if (isShutdown()) {
             throw new JarvisException("Cannot perform shutdown, JarvisCore is already shutdown");
         }
-        // Shutdown the executor first in case there are running tasks using the IntentRecognitionProvider API.
-        this.executorService.shutdownNow();
+        /* Shutdown the orchestration service first in case there are running tasks using the IntentRecognitionProvider
+         * API.
+         */
+        this.orchestrationService.shutdown();
         this.jarvisServer.stop();
         this.intentRecognitionProvider.shutdown();
         Collection<JarvisModule> jarvisModules = this.getJarvisModuleRegistry().getModules();
@@ -420,13 +394,14 @@ public class JarvisCore {
     /**
      * Returns whether the {@link JarvisCore} client is shutdown.
      * <p>
-     * This class is considered as shutdown if either its underlying {@link ExecutorService} or
-     * {@link IntentRecognitionProvider} is shutdown.
+     * This class is considered as shutdown if its underlying {@link OrchestrationService},
+     * {@link IntentRecognitionProvider}, and {@link JarvisServer} are shutdown.
      *
      * @return {@code true} if the {@link JarvisCore} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
-        return (!jarvisServer.isStarted()) && executorService.isShutdown() && intentRecognitionProvider.isShutdown();
+        return (!jarvisServer.isStarted()) && orchestrationService.isShutdown() && intentRecognitionProvider
+                .isShutdown();
     }
 
     /**
@@ -467,38 +442,5 @@ public class JarvisCore {
      */
     public void clearJarvisSessions() {
         this.sessions.clear();
-    }
-
-    public void handleEvent(EventInstance eventInstance, JarvisSession session) {
-        checkNotNull(eventInstance, "Cannot handle the %s %s", EventInstance.class.getSimpleName(), eventInstance);
-        checkNotNull(session, "Cannot handle the %s %s", JarvisSession.class.getSimpleName(), session);
-        /*
-         * Register the returned context values
-         */
-        for(ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
-            for(ContextParameterValue value : contextInstance.getValues()) {
-                session.getJarvisContext().setContextValue(value);
-            }
-        }
-
-        List<ActionInstance> actionInstances = orchestrationService.getActionsFromEvent(eventInstance);
-        if (actionInstances.isEmpty()) {
-            Log.warn("The intent {0} is not associated to any action", eventInstance.getDefinition().getName());
-        }
-        for (ActionInstance actionInstance : actionInstances) {
-            JarvisModule jarvisModule = this.getJarvisModuleRegistry().getJarvisModule((Module) actionInstance
-                    .getAction().eContainer());
-            JarvisAction action = jarvisModule.createJarvisAction(actionInstance, session);
-            Future<Object> result = executorService.submit(action);
-            if (nonNull(action.getReturnVariable())) {
-                /*
-                 * Store the Future, so we can run concurrently JarvisActions that are not related. The lifespanCount
-                 * is set to 1, so the variables in the current context will be discarded on the next user interaction.
-                 */
-                Log.info("Registering context variable {0} with value {1}", action.getReturnVariable(), result);
-                session.getJarvisContext().setContextValue("variables", 1, action.getReturnVariable(),
-                        result);
-            }
-        }
     }
 }

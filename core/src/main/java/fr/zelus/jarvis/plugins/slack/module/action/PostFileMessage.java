@@ -114,7 +114,7 @@ public class PostFileMessage extends PostMessage {
      * @return {@code null}
      */
     @Override
-    public Object call() {
+    public Object compute() {
         FilesUploadRequest.FilesUploadRequestBuilder builder = FilesUploadRequest.builder();
         builder.token(module.getSlackToken())
                 .channels(Arrays.asList(channel))

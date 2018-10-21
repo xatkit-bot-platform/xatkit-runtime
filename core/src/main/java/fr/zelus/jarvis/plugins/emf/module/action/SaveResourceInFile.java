@@ -53,7 +53,7 @@ public class SaveResourceInFile extends JarvisAction<EMFModule> {
      * {@link Resource}
      */
     @Override
-    public Object call() {
+    public Object compute() {
         try {
             Log.info("Saving resource {0}", resource.getURI().toFileString());
             resource.save(Collections.emptyMap());

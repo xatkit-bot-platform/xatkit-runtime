@@ -63,7 +63,7 @@ public class PostMessage extends JarvisMessageAction<SlackModule> {
      * @throws SlackApiException if the provided token does not authenticate the bot
      */
     @Override
-    public Object call() {
+    public Object compute() {
         ChatPostMessageRequest request = ChatPostMessageRequest.builder()
                 .token(module.getSlackToken())
                 .channel(channel)

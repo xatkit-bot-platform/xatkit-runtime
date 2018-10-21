@@ -24,7 +24,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * @see JarvisCore
  * @see JarvisModule
  */
-public abstract class JarvisAction<T extends JarvisModule> implements Callable<Object> {
+public abstract class JarvisAction<T extends JarvisModule> implements Callable<JarvisActionResult> {
 
     /**
      * The {@link JarvisModule} subclass containing this action.
@@ -100,15 +100,48 @@ public abstract class JarvisAction<T extends JarvisModule> implements Callable<O
     }
 
     /**
-     * Runs the action and returns its result.
+     * Runs the action and returns its result wrapped in a {@link JarvisActionResult}.
      * <p>
      * This method should not be called manually, and is handled by the {@link JarvisCore} component, that
      * orchestrates the {@link JarvisAction}s returned by the registered {@link JarvisModule}s.
+     * <p>
+     * This method does not throw any {@link Exception} if the underlying {@link JarvisAction}'s computation does not
+     * complete. Exceptions thrown during the underlying computation can be accessed through the
+     * {@link JarvisActionResult#getThrownException()} method.
      *
-     * @return the result of executing the {@link JarvisAction}, or {@code null} if the action does not return a value
+     * @return the {@link JarvisActionResult} containing the raw result of the computation and monitoring information
      * @see JarvisCore
+     * @see JarvisActionResult
      */
     @Override
-    public abstract Object call();
+    public final JarvisActionResult call() {
+        Object computationResult = null;
+        Exception thrownException = null;
+        long before = System.currentTimeMillis();
+        try {
+            computationResult = compute();
+        } catch (Exception e) {
+            thrownException = e;
+        }
+        long after = System.currentTimeMillis();
+        /*
+         * Construct the JarvisAction result from the gathered information. Note that the constructor accepts a null
+         * value for the thrownException parameter, that will set accordingly the isError() helper.
+         */
+        return new JarvisActionResult(computationResult, thrownException, (after - before));
+    }
+
+    /**
+     * The concrete implementation of the {@link JarvisAction}'s computation.
+     * <p>
+     * This method is internally called by the {@link #call()} method to perform the raw computation and wrap the
+     * results in a {@link JarvisActionResult}. Note that {@link #compute()} can return raw computation result, and
+     * do not have to deal with setting the monitoring information of the created {@link JarvisActionResult}.
+     * <p>
+     * This method should be overriden by subclasses to implement the {@link JarvisAction}'s computation logic.
+     *
+     * @return the raw result of the {@link JarvisAction}'s computation
+     */
+    protected abstract Object compute();
 
 }

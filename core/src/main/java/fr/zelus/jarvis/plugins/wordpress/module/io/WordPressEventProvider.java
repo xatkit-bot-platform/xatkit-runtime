@@ -100,7 +100,7 @@ public class WordPressEventProvider extends EventProvider<WordPressModule> {
                             .setOutContextValue(JarvisWordPressUtils.WORDPRESS_POST_LINK_CONTEXT_KEY, p.getLink())
                             .build();
 
-                    jarvisCore.handleEvent(updatedPostInstance, session);
+                    jarvisCore.getOrchestrationService().handleEventInstance(updatedPostInstance, session);
                     break; // TODO support multiple updates
                 }
             }

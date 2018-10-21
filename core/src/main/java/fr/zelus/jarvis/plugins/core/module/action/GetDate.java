@@ -34,7 +34,7 @@ public class GetDate extends JarvisAction<CoreModule> {
      * @return the formatted date.
      */
     @Override
-    public Object call() {
+    public Object compute() {
         return new SimpleDateFormat("dd/MM/yyyy").format(Calendar.getInstance().getTime());
     }
 }

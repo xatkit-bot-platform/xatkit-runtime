@@ -52,7 +52,7 @@ public class GenericChatAction extends JarvisAction<GenericChatModule> {
      * @return {@code null}
      */
     @Override
-    public Object call() {
+    public Object compute() {
         for (JarvisAction concreteAction : concreteActions) {
             concreteAction.call();
         }

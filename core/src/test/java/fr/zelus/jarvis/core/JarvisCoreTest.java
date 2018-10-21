@@ -1,17 +1,16 @@
 package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
-import fr.zelus.jarvis.intent.*;
+import fr.zelus.jarvis.intent.IntentDefinition;
+import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.module.*;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.recognition.DefaultIntentRecognitionProvider;
-import fr.zelus.jarvis.stubs.StubJarvisModule;
+import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -29,7 +28,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.UUID;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,24 +39,6 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     protected static String VALID_LANGUAGE_CODE = "en-US";
 
     protected static OrchestrationModel VALID_ORCHESTRATION_MODEL;
-
-    protected static EventInstance VALID_EVENT_INSTANCE;
-
-    protected static EntityDefinition VALID_ENTITY_DEFINITION;
-
-    protected JarvisCore jarvisCore;
-
-    public static Configuration buildConfiguration(String projectId, String languageCode, Object orchestrationModel) {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
-        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
-        /*
-         * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
-         */
-        configuration.addProperty(DialogFlowApi.ENABLE_INTENT_LOADING_KEY, false);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, orchestrationModel);
-        return configuration;
-    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
@@ -74,11 +54,6 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         stubModule.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
-        /*
-         * Create the valid EventInstance used in handleEvent tests
-         */
-        VALID_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
-        VALID_EVENT_INSTANCE.setDefinition(stubIntentDefinition);
         // No parameters, keep it simple
         stubModule.getIntentDefinitions().add(stubIntentDefinition);
         VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
@@ -106,8 +81,20 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         testOrchestrationResource.getContents().clear();
         testOrchestrationResource.getContents().add(VALID_ORCHESTRATION_MODEL);
         testOrchestrationResource.save(Collections.emptyMap());
-        VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
+    }
+
+    protected JarvisCore jarvisCore;
+
+    public static Configuration buildConfiguration(String projectId, String languageCode, Object orchestrationModel) {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
+        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
+        /*
+         * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
+         */
+        configuration.addProperty(DialogFlowApi.ENABLE_INTENT_LOADING_KEY, false);
+        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, orchestrationModel);
+        return configuration;
     }
 
     @After
@@ -122,6 +109,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     /**
      * Returns a valid {@link JarvisCore} instance.
+     * <p>
+     * The returned {@link JarvisCore} instance contains an empty {@link OrchestrationModel}, see
+     * {@link OrchestrationServiceTest} for orchestration-related test cases.
      *
      * @return a valid {@link JarvisCore} instance
      */
@@ -305,122 +295,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     public void shutdown() {
         jarvisCore = getValidJarvisCore();
         jarvisCore.shutdown();
-        softly.assertThat(jarvisCore.getExecutorService().isShutdown()).as("ExecutorService is shutdown");
+        softly.assertThat(jarvisCore.getOrchestrationService().isShutdown()).as("ExecutorService is shutdown");
         softly.assertThat(jarvisCore.getIntentRecognitionProvider().isShutdown()).as("DialogFlow API is shutdown");
         softly.assertThat(jarvisCore.getJarvisModuleRegistry().getModules()).as("Empty module registry").isEmpty();
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void handleEventNullEvent() {
-        jarvisCore = getValidJarvisCore();
-        jarvisCore.handleEvent(null, new JarvisSession("sessionID"));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void handleEventNullSession() {
-        jarvisCore = getValidJarvisCore();
-        jarvisCore.handleEvent(VALID_EVENT_INSTANCE, null);
-    }
-
-    @Test
-    public void handleEventValidEvent() throws InterruptedException {
-        jarvisCore = getValidJarvisCore();
-        /*
-         * It is not necessary to check the the module list is not null and contains at least one element, this is
-         * done in loadModule test.
-         */
-        StubJarvisModule stubJarvisModule = (StubJarvisModule) jarvisCore.getJarvisModuleRegistry().getJarvisModule
-                ("StubJarvisModule");
-        jarvisCore.handleEvent(VALID_EVENT_INSTANCE, jarvisCore.getOrCreateJarvisSession("sessionID"));
-        /*
-         * Sleep to ensure that the Action has been processed.
-         */
-        Thread.sleep(1000);
-        softly.assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action processed").isTrue();
-    }
-
-    @Test
-    public void handleEventMultiOutputContext() {
-        /*
-         * Create the EventDefinition
-         */
-        String trainingSentence = "I love the monkey head";
-        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        intentDefinition.setName("TestMonkeyHead");
-        intentDefinition.getTrainingSentences().add(trainingSentence);
-        Context outContext1 = IntentFactory.eINSTANCE.createContext();
-        outContext1.setName("Context1");
-        ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
-        contextParameter1.setName("Parameter1");
-        contextParameter1.setEntity(VALID_ENTITY_DEFINITION);
-        contextParameter1.setTextFragment("love");
-        outContext1.getParameters().add(contextParameter1);
-        Context outContext2 = IntentFactory.eINSTANCE.createContext();
-        outContext2.setName("Context2");
-        ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
-        contextParameter2.setName("Parameter2");
-        contextParameter2.setEntity(VALID_ENTITY_DEFINITION);
-        contextParameter2.setTextFragment("monkey");
-        outContext2.getParameters().add(contextParameter2);
-        intentDefinition.getOutContexts().add(outContext1);
-        intentDefinition.getOutContexts().add(outContext2);
-        /*
-         * Create the EventInstance
-         */
-        EventInstance instance = IntentFactory.eINSTANCE.createEventInstance();
-        instance.setDefinition(intentDefinition);
-        ContextParameterValue value1 = IntentFactory.eINSTANCE.createContextParameterValue();
-        value1.setContextParameter(contextParameter1);
-        value1.setValue("love");
-        ContextInstance contextInstance1 = IntentFactory.eINSTANCE.createContextInstance();
-        contextInstance1.setDefinition(outContext1);
-        contextInstance1.setLifespanCount(outContext1.getLifeSpan());
-        contextInstance1.getValues().add(value1);
-        instance.getOutContextInstances().add(contextInstance1);
-        ContextParameterValue value2 = IntentFactory.eINSTANCE.createContextParameterValue();
-        value2.setContextParameter(contextParameter2);
-        value2.setValue("monkey");
-        ContextInstance contextInstance2 = IntentFactory.eINSTANCE.createContextInstance();
-        contextInstance2.setDefinition(outContext2);
-        contextInstance2.setLifespanCount(outContext2.getLifeSpan());
-        contextInstance2.getValues().add(value2);
-        instance.getOutContextInstances().add(contextInstance2);
-        jarvisCore = getValidJarvisCore();
-        JarvisSession session = new JarvisSession(UUID.randomUUID().toString());
-        /*
-         * Should not trigger any action, the EventDefinition is not registered in the orchestration model.
-         */
-        jarvisCore.handleEvent(instance, session);
-        JarvisContext context = session.getJarvisContext();
-        assertThat(context.getContextVariables("Context1")).as("Not null Context1 variable map").isNotNull();
-        assertThat(context.getContextVariables("Context1").keySet()).as("Context1 variable map contains a single " +
-                "variable")
-                .hasSize(1);
-        assertThat(context.getContextValue("Context1", "Parameter1")).as("Not null Context1.Parameter1 value")
-                .isNotNull();
-        assertThat(context.getContextValue("Context1", "Parameter1")).as("Valid Context1.Parameter1 value").isEqualTo
-                ("love");
-        assertThat(context.getContextVariables("Context2")).as("Not null Context2 variable map").isNotNull();
-        assertThat(context.getContextVariables("Context2").keySet()).as("Context2 variable map contains a single " +
-                "variable")
-                .hasSize(1);
-        assertThat(context.getContextValue("Context2", "Parameter2")).as("Not null Context2.Parameter2 value")
-                .isNotNull();
-        assertThat(context.getContextValue("Context2", "Parameter2")).as("Valid Context2.Parameter2 value").isEqualTo
-                ("monkey");
-    }
-
-    @Test
-    public void handleEventNotHandledEvent() {
-        jarvisCore = getValidJarvisCore();
-        StubJarvisModule stubJarvisModule = (StubJarvisModule) jarvisCore.getJarvisModuleRegistry().getJarvisModule
-                ("StubJarvisModule");
-        EventDefinition notHandledDefinition = IntentFactory.eINSTANCE.createEventDefinition();
-        notHandledDefinition.setName("NotHandled");
-        EventInstance notHandledEventInstance = IntentFactory.eINSTANCE.createEventInstance();
-        notHandledEventInstance.setDefinition(notHandledDefinition);
-        jarvisCore.handleEvent(notHandledEventInstance, jarvisCore.getOrCreateJarvisSession("sessionID"));
-        assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action not processed").isFalse();
     }
 
     /**
@@ -453,9 +330,10 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 (VALID_PROJECT_ID);
         softly.assertThat(dialogFlowApi.getLanguageCode()).as("Valid DialogFlowAPI language code").isEqualTo
                 (VALID_LANGUAGE_CODE);
-        assertThat(jarvisCore.getOrchestrationModel()).as("Not null OrchestrationModel").isNotNull();
-        softly.assertThat(jarvisCore.getOrchestrationModel()).as("Valid OrchestrationModel").isEqualTo
-                (orchestrationModel);
+        assertThat(jarvisCore.getOrchestrationService().getOrchestrationModel()).as("Not null OrchestrationModel")
+                .isNotNull();
+        softly.assertThat(jarvisCore.getOrchestrationService().getOrchestrationModel()).as("Valid " +
+                "OrchestrationModel").isEqualTo(orchestrationModel);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
         assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
     }

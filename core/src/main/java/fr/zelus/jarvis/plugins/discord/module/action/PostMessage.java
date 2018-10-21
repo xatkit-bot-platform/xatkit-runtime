@@ -73,7 +73,7 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
      * @return {@code null}
      */
     @Override
-    public Object call() {
+    public Object compute() {
         channel.sendMessage(message).queue();
         return null;
     }

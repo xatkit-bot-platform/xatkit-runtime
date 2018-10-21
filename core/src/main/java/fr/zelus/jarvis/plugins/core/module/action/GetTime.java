@@ -34,7 +34,7 @@ public class GetTime extends JarvisAction<CoreModule> {
      * @return the formatted time
      */
     @Override
-    public Object call() {
+    public Object compute() {
         return new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
     }
 }

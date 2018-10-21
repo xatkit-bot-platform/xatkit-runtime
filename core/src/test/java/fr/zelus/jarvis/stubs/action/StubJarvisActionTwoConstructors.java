@@ -32,7 +32,7 @@ public class StubJarvisActionTwoConstructors extends JarvisAction {
     }
 
     @Override
-    public Object call() {
+    public Object compute() {
         return null;
     }
 }

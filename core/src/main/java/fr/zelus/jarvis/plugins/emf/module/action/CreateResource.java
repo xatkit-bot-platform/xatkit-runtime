@@ -60,7 +60,7 @@ public class CreateResource extends JarvisAction<EMFModule> {
      * {@link Resource}
      */
     @Override
-    public Object call() {
+    public Object compute() {
         ResourceSet rSet = new ResourceSetImpl();
         rSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
         Resource resource = rSet.createResource(URI.createURI(this.uri));
