@@ -33,10 +33,6 @@ public class VariableLoaderHelper {
         return getVariable(JARVIS_DIALOGFLOW_PROJECT);
     }
 
-    public static String getJarvisTestDialogFlowProject() {
-        return getVariable(JARVIS_TEST_DIALOGFLOW_PROJECT);
-    }
-
     public static String getJarvisSlackToken() {
         return getVariable(JARVIS_SLACK_TOKEN_KEY);
     }

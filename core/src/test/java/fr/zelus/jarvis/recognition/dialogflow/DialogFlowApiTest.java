@@ -170,8 +170,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @Test
     public void constructCredentialsFilePath() {
-        Configuration configuration = buildConfiguration(VariableLoaderHelper.getJarvisTestDialogFlowProject(), null);
-        String credentialsFilePath = this.getClass().getClassLoader().getResource("jarvis-test2-secret.json").getFile();
+        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, null);
+        String credentialsFilePath = this.getClass().getClassLoader().getResource("jarvis-secret.json").getFile();
         configuration.addProperty(DialogFlowApi.GOOGLE_CREDENTIALS_PATH_KEY, credentialsFilePath);
         api = new DialogFlowApi(jarvisCore, configuration);
         /*
