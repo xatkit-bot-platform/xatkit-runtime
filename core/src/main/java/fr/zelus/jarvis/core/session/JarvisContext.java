@@ -103,8 +103,12 @@ public class JarvisContext {
     public JarvisContext(Configuration configuration) {
         checkNotNull(configuration, "Cannot construct a %s from the provided %s: %s", JarvisContext.class
                 .getSimpleName(), Configuration.class.getSimpleName(), configuration);
-        this.contexts = new HashMap<>();
-        this.lifespanCounts = new HashMap<>();
+        /*
+         * Use ConcurrentHashMaps: the JarvisContext may be accessed and modified by multiple threads, in case of
+         * multiple input messages or parallel JarvisAction execution.
+         */
+        this.contexts = new ConcurrentHashMap<>();
+        this.lifespanCounts = new ConcurrentHashMap<>();
         if (configuration.containsKey(VARIABLE_TIMEOUT_KEY)) {
             this.variableTimeout = configuration.getInt(VARIABLE_TIMEOUT_KEY);
             Log.info("Setting context variable timeout to {0}s", variableTimeout);
