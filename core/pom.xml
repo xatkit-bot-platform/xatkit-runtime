@@ -26,7 +26,6 @@
         <google.gmail.version>v1-rev91-1.23.0</google.gmail.version>
         <google.api.version>1.23.0</google.api.version>
         <commons-beanutils.version>1.9.3</commons-beanutils.version>
-        <wp-api-v2.version>4.8.1</wp-api-v2.version>
         <httpcomponents.version>4.4.10</httpcomponents.version>
     </properties>
 
@@ -103,14 +102,6 @@
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
         </dependency>
-
-        <!-- WordPress -->
-
-        <dependency>
-            <groupId>com.afrozaar.wordpress</groupId>
-            <artifactId>wp-api-v2-client-java</artifactId>
-        </dependency>
-
 
         <!-- Utils -->
 
@@ -256,32 +247,6 @@
                     <exclusion>
                         <groupId>com.fasterxml.jackson.core</groupId>
                         <artifactId>jackson-core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <!-- WordPress -->
-
-            <dependency>
-                <groupId>com.afrozaar.wordpress</groupId>
-                <artifactId>wp-api-v2-client-java</artifactId>
-                <version>${wp-api-v2.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>ch.qos.logback</groupId>
-                        <artifactId>logback-classic</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-beanutils</groupId>
-                        <artifactId>commons-beanutils</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-beanutils</groupId>
-                        <artifactId>commons-beanutils-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
