@@ -22,9 +22,6 @@
         <javax.websocket-api.version>1.1</javax.websocket-api.version>
         <tyrus.version>1.13</tyrus.version>
         <jda.version>3.6.0_376</jda.version>
-        <javax.mail.version>1.6.1</javax.mail.version>
-        <google.gmail.version>v1-rev91-1.23.0</google.gmail.version>
-        <google.api.version>1.23.0</google.api.version>
         <commons-beanutils.version>1.9.3</commons-beanutils.version>
         <httpcomponents.version>4.4.10</httpcomponents.version>
     </properties>
@@ -79,28 +76,6 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-        </dependency>
-
-        <!-- Mail -->
-
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.apis</groupId>
-            <artifactId>google-api-services-gmail</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.oauth-client</groupId>
-            <artifactId>google-oauth-client-jetty</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.api-client</groupId>
-            <artifactId>google-api-client</artifactId>
         </dependency>
 
         <!-- Utils -->
@@ -213,42 +188,6 @@
                 <groupId>net.dv8tion</groupId>
                 <artifactId>JDA</artifactId>
                 <version>${jda.version}</version>
-            </dependency>
-
-            <!-- Mail -->
-
-            <dependency>
-                <groupId>com.sun.mail</groupId>
-                <artifactId>javax.mail</artifactId>
-                <version>${javax.mail.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.apis</groupId>
-                <artifactId>google-api-services-gmail</artifactId>
-                <version>${google.gmail.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.oauth-client</groupId>
-                <artifactId>google-oauth-client-jetty</artifactId>
-                <version>${google.api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.api-client</groupId>
-                <artifactId>google-api-client</artifactId>
-                <version>${google.api.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava-jdk5</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.core</groupId>
-                        <artifactId>jackson-core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <!-- Utils -->
