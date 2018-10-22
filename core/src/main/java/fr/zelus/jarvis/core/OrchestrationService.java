@@ -142,7 +142,7 @@ public class OrchestrationService {
      * @param eventInstance the {@link EventInstance} to handle
      * @param session       the {@link JarvisSession} used to define and access context variables
      * @throws NullPointerException if the provided {@code eventInstance} or {@code session} is {@code null}
-     * @see #executeJarvisAction(JarvisAction, JarvisSession)
+     * @see #executeJarvisAction(JarvisAction, ActionInstance, JarvisSession)
      */
     public void handleEventInstance(EventInstance eventInstance, JarvisSession session) {
         checkNotNull(eventInstance, "Cannot handle the %s %s", EventInstance.class.getSimpleName(), eventInstance);
@@ -161,10 +161,8 @@ public class OrchestrationService {
                 Log.warn("The intent {0} is not associated to any action", eventInstance.getDefinition().getName());
             }
             for (ActionInstance actionInstance : actionInstances) {
-                JarvisModule jarvisModule = this.getJarvisModuleRegistry().getJarvisModule((Module) actionInstance
-                        .getAction().eContainer());
-                JarvisAction action = jarvisModule.createJarvisAction(actionInstance, session);
-                executeJarvisAction(action, session);
+                JarvisAction action = getJarvisActionFromActionInstance(actionInstance, session);
+                executeJarvisAction(action, actionInstance, session);
             }
         }, executorService).exceptionally((throwable) -> {
             Log.error("An error occurred when running the actions associated to {0}: {1} {2}", eventInstance
@@ -181,17 +179,19 @@ public class OrchestrationService {
      * {@link #handleEventInstance(EventInstance, JarvisSession)} method, that wraps all the computation in a single
      * asynchronous task.
      * <p>
-     * This method processes the {@link JarvisActionResult} returned by the computed {@code action} by logging an
-     * error if the {@code action} threw an exception, and setting the corresponding context variables from the
-     * provided {@code session} if the {@code action} completed normally. This method also logs an information
-     * message showing the execution time of the computed {@link JarvisAction}.
+     * This method processes the {@link JarvisActionResult} returned by the computed {@code action}. If the {@code
+     * action} threw an exception an error message is logged and the {@code onError} {@link ActionInstance}s are
+     * retrieved and executed. If the {@code action} terminated successfully the corresponding context variables are
+     * set and the {@code onSuccess} {@link ActionInstance}s are retrieved and executed.
      *
-     * @param action  the {@link JarvisAction} to execute
-     * @param session the {@link JarvisSession} used to define and access the context variables associated to the
-     *                provided {@code action}
+     * @param action         the {@link JarvisAction} to execute
+     * @param actionInstance the {@link ActionInstance} representing the signature of the {@link JarvisAction} to
+     *                       execute
+     * @param session        the {@link JarvisSession} used to define and access the context variables associated to the
+     *                       provided {@code action}
      * @throws NullPointerException if the provided {@code action} or {@code session} is {@code null}
      */
-    private void executeJarvisAction(JarvisAction action, JarvisSession session) {
+    private void executeJarvisAction(JarvisAction action, ActionInstance actionInstance, JarvisSession session) {
         checkNotNull(action, "Cannot execute the provided %s %s", JarvisAction.class.getSimpleName(), action);
         checkNotNull(session, "Cannot execute the provided %s with the provided %s %s", JarvisAction.class
                 .getSimpleName(), JarvisSession.class.getSimpleName(), session);
@@ -200,7 +200,15 @@ public class OrchestrationService {
             Log.error("An error occurred when executing the action {0}: {1} {2}", action.getClass().getSimpleName
                     (), result.getThrownException().getClass().getSimpleName(), result.getThrownException()
                     .getMessage());
-            // TODO execute onError actions (see <a href="https://github.com/gdaniel/jarvis/issues/153">#153</a>
+            /*
+             * Retrieve the ActionInstances to execute when the computed ActionInstance returns an error and execute
+             * them.
+             */
+            for(ActionInstance onErrorActionInstance : actionInstance.getOnError()) {
+                Log.info("Executing fallback action {0}", onErrorActionInstance.getAction().getName());
+                JarvisAction onErrorJarvisAction = getJarvisActionFromActionInstance(onErrorActionInstance, session);
+                executeJarvisAction(onErrorJarvisAction, onErrorActionInstance, session);
+            }
         } else {
             if (nonNull(action.getReturnVariable())) {
                 Log.info("Registering context variable {0} with value {1}", action.getReturnVariable(), result);
@@ -209,6 +217,22 @@ public class OrchestrationService {
             }
         }
         Log.info("Action {0} executed in {1} ms", action.getClass().getSimpleName(), result.getExecutionTime());
+    }
+
+    /**
+     * Constructs a {@link JarvisAction} instance corresponding to the provided {@code actionInstance}, initialized
+     * in the provided {@code session}.
+     * <p>
+     * This method is used as a bridge between the {@link ActionInstance}s (from the orchestration model), and the
+     * {@link JarvisAction}s (from the internal Jarvis execution engine).
+     * @param actionInstance the {@link ActionInstance} to construct a {@link JarvisAction} from
+     * @param session the {@link JarvisSession} used to define and access context variables
+     * @return the constructed {@link JarvisAction}
+     */
+    private JarvisAction getJarvisActionFromActionInstance(ActionInstance actionInstance, JarvisSession session) {
+        JarvisModule jarvisModule = this.getJarvisModuleRegistry().getJarvisModule((Module) actionInstance
+                .getAction().eContainer());
+        return jarvisModule.createJarvisAction(actionInstance, session);
     }
 
     /**

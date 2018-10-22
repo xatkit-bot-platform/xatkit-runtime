@@ -19,7 +19,7 @@ OrchestrationModel returns OrchestrationModel:
 
 OrchestrationLink returns OrchestrationLink:
 	{OrchestrationLink}
-		'on' 'intent' event=[intent::EventDefinition|ID] 'do'
+		'on intent' event=[intent::EventDefinition|ID] 'do'
 		('var' variables+=VariableDefinition (',' variables+=VariableDefinition)*)?
 		actions+=ActionInstance (actions+=ActionInstance)*
 	;
@@ -33,6 +33,8 @@ ActionInstance returns ActionInstance:
 	((returnVariable=VariableAccess) '=')?
 	action=[module::Action|ID]
 	('(' values+=ParameterValue (',' values+=ParameterValue)* ')')?
+	('on error do' '{' (onError+=ActionInstance)+ '}')?
+	
 ;
 
 ParameterValue returns ParameterValue:

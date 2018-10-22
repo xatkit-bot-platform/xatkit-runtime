@@ -11,6 +11,7 @@ import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.eclipse.xtext.Assignment
 import fr.zelus.jarvis.language.util.ModuleRegistry
 import fr.zelus.jarvis.orchestration.OrchestrationModel
+import static java.util.Objects.isNull
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -43,7 +44,18 @@ class OrchestrationProposalProvider extends AbstractOrchestrationProposalProvide
 		ICompletionProposalAcceptor acceptor) {
 		println("completion")
 		println(model)
-		var modules = ModuleRegistry.instance.loadOrchestrationModelModules(model.eContainer as OrchestrationModel)
+		/*
+		 * Retrieve the OrchestrationModel, it can be different than the direct parent in case of nested on error ActionInstances.
+		 */
+		var OrchestrationModel orchestrationModel = null
+		var currentObject = model
+		while(isNull(orchestrationModel)) {
+			currentObject = currentObject.eContainer
+			if(currentObject instanceof OrchestrationModel) {
+				orchestrationModel = currentObject
+			}
+		}
+		var modules = ModuleRegistry.instance.loadOrchestrationModelModules(orchestrationModel)
 		modules.map[m|m.actions].flatten.forEach [ a |
 			var parameterString = ""
 			if(!a.parameters.empty) {

@@ -23,6 +23,7 @@ class ActionInstance {
     refers Action action
     contains ParameterValue[] values
     contains VariableAccess returnVariable
+    contains ActionInstance[] onError
 }
 
 class Variable {

@@ -106,8 +106,19 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				 * Trying to retrieve an Action from a loaded module
 				 */
 				try {
+					/*
+					 * Retrieve the OrchestrationModel
+					 */
+					OrchestrationModel orchestrationModel = null;
+					EObject currentObject = context;
+					while(isNull(orchestrationModel)) {
+						currentObject = currentObject.eContainer();
+						if(currentObject instanceof OrchestrationModel) {
+							orchestrationModel = (OrchestrationModel)currentObject;
+						}
+					}
 					Collection<Module> modules = ModuleRegistry.getInstance()
-							.loadOrchestrationModelModules((OrchestrationModel) context.eContainer().eContainer());
+							.loadOrchestrationModelModules(orchestrationModel);
 					System.out.println("found " + modules.size() + " modules");
 					for (Module module : modules) {
 						for (Action action : module.getActions()) {

@@ -37,6 +37,11 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
 
     protected static EventInstance VALID_EVENT_INSTANCE;
 
+    /*
+     * The EventInstance used to trigger onError ActionInstance computations.
+     */
+    protected static EventInstance ON_ERROR_EVENT_INSTANCE;
+
     protected static EntityDefinition VALID_ENTITY_DEFINITION;
 
     protected static JarvisCore VALID_JARVIS_CORE;
@@ -48,18 +53,26 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModule");
         Action stubAction = ModuleFactory.eINSTANCE.createAction();
         stubAction.setName("StubJarvisAction");
+        Action errorAction = ModuleFactory.eINSTANCE.createAction();
+        errorAction.setName("ErroringStubJarvisAction");
         // No parameters, keep it simple
         stubModule.getActions().add(stubAction);
+        stubModule.getActions().add(errorAction);
         InputProviderDefinition stubInputProvider = ModuleFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
         stubModule.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
+        IntentDefinition onErrorIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        onErrorIntentDefinition.setName("On error");
+
         /*
          * Create the valid EventInstance used in handleEvent tests
          */
         VALID_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
         VALID_EVENT_INSTANCE.setDefinition(stubIntentDefinition);
+        ON_ERROR_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
+        ON_ERROR_EVENT_INSTANCE.setDefinition(onErrorIntentDefinition);
         // No parameters, keep it simple
         stubModule.getIntentDefinitions().add(stubIntentDefinition);
         VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
@@ -68,7 +81,19 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(stubAction);
         link.getActions().add(actionInstance);
+        OrchestrationLink notMatchedLink = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
+        notMatchedLink.setEvent(onErrorIntentDefinition);
+        ActionInstance errorActionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        errorActionInstance.setAction(errorAction);
+        /*
+         * The ActionInstance that is executed when the errorActionInstance throws an exception.
+         */
+        ActionInstance onErrorActionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        onErrorActionInstance.setAction(stubAction);
+        errorActionInstance.getOnError().add(onErrorActionInstance);
+        notMatchedLink.getActions().add(errorActionInstance);
         VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().add(link);
+        VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().add(notMatchedLink);
         VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
         ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
 
@@ -143,7 +168,7 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
          */
         StubJarvisModule stubJarvisModule = (StubJarvisModule) VALID_JARVIS_CORE.getJarvisModuleRegistry()
                 .getJarvisModule
-                ("StubJarvisModule");
+                        ("StubJarvisModule");
         orchestrationService.handleEventInstance(VALID_EVENT_INSTANCE, VALID_JARVIS_CORE.getOrCreateJarvisSession
                 ("sessionID"));
         /*
@@ -233,17 +258,30 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         /*
          * Retrieve the stub JarvisModule to check that its action has been processed.
          */
-        StubJarvisModule stubJarvisModule = (StubJarvisModule) VALID_JARVIS_CORE.getJarvisModuleRegistry().getJarvisModule
-                ("StubJarvisModule");
+        StubJarvisModule stubJarvisModule = (StubJarvisModule) VALID_JARVIS_CORE.getJarvisModuleRegistry()
+                .getJarvisModule("StubJarvisModule");
         EventDefinition notHandledDefinition = IntentFactory.eINSTANCE.createEventDefinition();
         notHandledDefinition.setName("NotHandled");
         EventInstance notHandledEventInstance = IntentFactory.eINSTANCE.createEventInstance();
         notHandledEventInstance.setDefinition(notHandledDefinition);
-        orchestrationService.handleEventInstance(notHandledEventInstance, VALID_JARVIS_CORE.getOrCreateJarvisSession("sessionID"));
+        orchestrationService.handleEventInstance(notHandledEventInstance, VALID_JARVIS_CORE.getOrCreateJarvisSession
+                ("sessionID"));
         /*
          * Sleep to ensure that the Action has been processed.
          */
         Thread.sleep(1000);
         assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action not processed").isFalse();
+    }
+
+    @Test
+    public void executedJarvisActionErroringAction() throws InterruptedException {
+        orchestrationService = getValidOrchestrationService();
+        StubJarvisModule stubJarvisModule = (StubJarvisModule) VALID_JARVIS_CORE.getJarvisModuleRegistry()
+                .getJarvisModule("StubJarvisModule");
+        orchestrationService.handleEventInstance(ON_ERROR_EVENT_INSTANCE, new JarvisSession(UUID.randomUUID()
+                .toString()));
+        Thread.sleep(1000);
+        assertThat(stubJarvisModule.getErroringAction().isActionProcessed()).as("Erroring action processed").isTrue();
+        assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Fallback action processed").isTrue();
     }
 }
