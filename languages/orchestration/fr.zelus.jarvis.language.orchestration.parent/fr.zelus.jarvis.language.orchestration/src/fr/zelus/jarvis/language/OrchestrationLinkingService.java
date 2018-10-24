@@ -175,6 +175,13 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				 * ActionInstance are processed and updated to fit the new parent Action.
 				 */
 				Module module = (Module) action.eContainer();
+				if(isNull(module)) {
+					/*
+					 * The Module may be null if there is an issue when loading the import. In that case we can ignore the linking, the model is
+					 * false anyway
+					 */
+					return Collections.emptyList();
+				}
 				Parameter result = null;
 				for (Action moduleAction : module.getActions()) {
 					if (!moduleAction.equals(action) && moduleAction.getName().equals(action.getName())) {
