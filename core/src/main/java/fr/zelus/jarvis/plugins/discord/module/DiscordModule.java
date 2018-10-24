@@ -23,8 +23,8 @@ import static java.util.Objects.nonNull;
  * channel</li>
  * </ul>
  * <p>
- * This class is part of jarvis' core modules, and can be used in an orchestration model by importing the <i>core
- * .DiscordModule</i> package.
+ * This class is part of jarvis' core modules, and can be used in an orchestration model by importing the
+ * <i>DiscordModule</i> package.
  */
 public class DiscordModule extends JarvisModule {
 

@@ -16,7 +16,7 @@ import org.apache.commons.configuration2.Configuration;
  * </ul>
  * <p>
  * This class is part of jarvis' core modules, and can be used in an orchestration model by importing the
- * <i>core.LogModule</i> package.
+ * <i>LogModule</i> package.
  *
  * @see fr.zelus.jarvis.plugins.log.module.action.LogAction
  */

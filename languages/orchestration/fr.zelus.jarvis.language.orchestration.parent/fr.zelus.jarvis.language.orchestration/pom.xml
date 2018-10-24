@@ -44,6 +44,12 @@
 			<artifactId>orchestration</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>fr.zelus.jarvis</groupId>
+			<artifactId>core_modules</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 	</dependencies>
 
