@@ -160,6 +160,13 @@ public class JarvisCore {
         this.jarvisServer = new JarvisServer(configuration);
         boolean intentRegistered = false;
         for (EventProviderDefinition eventProviderDefinition : orchestrationModel.getEventProviderDefinitions()) {
+            /*
+             * The EventProviderDefinition is still a proxy, meaning that the proxy resolution failed.
+             */
+            if (eventProviderDefinition.eIsProxy()) {
+                throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} from " +
+                        "the orchestration model", eventProviderDefinition));
+            }
             Module eventProviderModule = (Module) eventProviderDefinition.eContainer();
             JarvisModule eventProviderJarvisModule = this.jarvisModuleRegistry.getJarvisModule(eventProviderModule
                     .getName());
@@ -171,7 +178,8 @@ public class JarvisCore {
         }
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             /*
-             * Extracts the IntentDefinitions
+             * We don't need to check whether the EventDefinition is a proxy, EventDefinitions are contained in
+             * EventProviderDefinitions, that have been checked before.
              */
             EventDefinition eventDefinition = link.getEvent();
             this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
@@ -190,6 +198,13 @@ public class JarvisCore {
              */
             for (ActionInstance actionInstance : link.getActions()) {
                 Action action = actionInstance.getAction();
+                /*
+                 * The Action is still a proxy, meaning that the proxy resolution failed.
+                 */
+                if (action.eIsProxy()) {
+                    throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
+                            "from the orchestration model", action));
+                }
                 Module module = (Module) action.eContainer();
                 JarvisModule jarvisModule = this.jarvisModuleRegistry.getJarvisModule(module.getName());
                 if (isNull(jarvisModule)) {
