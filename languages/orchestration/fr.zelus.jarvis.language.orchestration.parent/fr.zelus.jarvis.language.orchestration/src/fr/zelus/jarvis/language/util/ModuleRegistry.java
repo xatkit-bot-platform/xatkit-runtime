@@ -165,6 +165,7 @@ public class ModuleRegistry {
 					Resource modelResource = this.rSet.createResource(URI.createURI(CoreModulesUtils.CORE_MODULE_PATHMAP + modelPath.getFileName().toString()));
 					modelResource.load(is, Collections.emptyMap());
 					System.out.println(MessageFormat.format("Module resource {0} loaded (uri={1})", modelPath.getFileName(), modelResource.getURI()));
+					is.close();
 				} catch(IOException e) {
 					System.out.println(MessageFormat.format("An error occurred when loading the module resource {0}", modelPath.getFileName()));
 				}
