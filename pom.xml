@@ -35,6 +35,7 @@
         <module>orchestration</module>
         <module>module</module>
         <module>intent</module>
+        <module>core_modules</module>
     </modules>
 
     <developers>
