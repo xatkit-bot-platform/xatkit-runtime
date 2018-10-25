@@ -44,24 +44,19 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				/*
 				 * Trying to retrieve an InputProvider from a loaded module
 				 */
-				try {
-					Collection<Module> modules = ModuleRegistry.getInstance()
-							.loadOrchestrationModelModules((OrchestrationModel) context);
-					System.out.println("found " + modules.size() + " modules");
-					for (Module module : modules) {
-						for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
-							System.out.println("comparing EventProvider " + eventProviderDefinition.getName());
-							System.out.println("Node text: " + node.getText());
-							if (eventProviderDefinition.getName().equals(node.getText())) {
-								return Arrays.asList(eventProviderDefinition);
-							}
+				Collection<Module> modules = ModuleRegistry.getInstance()
+						.loadOrchestrationModelModules((OrchestrationModel) context);
+				System.out.println("found " + modules.size() + " modules");
+				for (Module module : modules) {
+					for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+						System.out.println("comparing EventProvider " + eventProviderDefinition.getName());
+						System.out.println("Node text: " + node.getText());
+						if (eventProviderDefinition.getName().equals(node.getText())) {
+							return Arrays.asList(eventProviderDefinition);
 						}
 					}
-					return Collections.emptyList();
-				} catch (IOException e) {
-					System.out.println("Cannot retrieve the linked object");
-					return Collections.emptyList();
 				}
+				return Collections.emptyList();
 			} else {
 				return super.getLinkedObjects(context, ref, node);
 			}
@@ -70,33 +65,28 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				/*
 				 * Trying to retrieve an Event from a loaded module
 				 */
-				try {
-					Collection<Module> modules = ModuleRegistry.getInstance()
-							.loadOrchestrationModelModules((OrchestrationModel) context.eContainer());
-					System.out.println("found " + modules.size() + "modules");
-					for (Module module : modules) {
-						for (IntentDefinition intentDefinition : module.getIntentDefinitions()) {
-							System.out.println("comparing Intent " + intentDefinition.getName());
-							System.out.println("Node text: " + node.getText());
-							if (intentDefinition.getName().equals(node.getText())) {
-								return Arrays.asList(intentDefinition);
-							}
+				Collection<Module> modules = ModuleRegistry.getInstance()
+						.loadOrchestrationModelModules((OrchestrationModel) context.eContainer());
+				System.out.println("found " + modules.size() + "modules");
+				for (Module module : modules) {
+					for (IntentDefinition intentDefinition : module.getIntentDefinitions()) {
+						System.out.println("comparing Intent " + intentDefinition.getName());
+						System.out.println("Node text: " + node.getText());
+						if (intentDefinition.getName().equals(node.getText())) {
+							return Arrays.asList(intentDefinition);
 						}
-						for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
-							for (EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
-								System.out.println("comparing Event " + eventDefinition.getName());
-								System.out.println("Note text: " + node.getText());
-								if (eventDefinition.getName().equals(node.getText())) {
-									return Arrays.asList(eventDefinition);
-								}
+					}
+					for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+						for (EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
+							System.out.println("comparing Event " + eventDefinition.getName());
+							System.out.println("Note text: " + node.getText());
+							if (eventDefinition.getName().equals(node.getText())) {
+								return Arrays.asList(eventDefinition);
 							}
 						}
 					}
-					return Collections.emptyList();
-				} catch (IOException e) {
-					System.out.println("Cannot retrieve the linked object");
-					return Collections.emptyList();
 				}
+				return Collections.emptyList();
 			} else {
 				return super.getLinkedObjects(context, ref, node);
 			}
@@ -105,42 +95,34 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				/*
 				 * Trying to retrieve an Action from a loaded module
 				 */
-				try {
-					/*
-					 * Retrieve the OrchestrationModel
-					 */
-					OrchestrationModel orchestrationModel = null;
-					EObject currentObject = context;
-					while(isNull(orchestrationModel)) {
-						currentObject = currentObject.eContainer();
-						if(currentObject instanceof OrchestrationModel) {
-							orchestrationModel = (OrchestrationModel)currentObject;
-						}
+				OrchestrationModel orchestrationModel = null;
+				EObject currentObject = context;
+				while(isNull(orchestrationModel)) {
+					currentObject = currentObject.eContainer();
+					if(currentObject instanceof OrchestrationModel) {
+						orchestrationModel = (OrchestrationModel)currentObject;
 					}
-					Collection<Module> modules = ModuleRegistry.getInstance()
-							.loadOrchestrationModelModules(orchestrationModel);
-					System.out.println("found " + modules.size() + " modules");
-					for (Module module : modules) {
-						for (Action action : module.getActions()) {
-							System.out.println("comparing Action " + action.getName());
-							System.out.println("Node text: " + node.getText());
-							if (action.getName().equals(node.getText())) {
-								/*
-								 * Infers that the first action we find is the one associated to the ActionInstance.
-								 * This is generally the case when dealing with Modules that do not contain multiple
-								 * Actions with the same name (i.e. same JarvisAction but different constructors). If
-								 * this is the case the set Action might be wrong, and will be updated when checking
-								 * ParameterValues.
-								 */
-								return Arrays.asList(action);
-							}
-						}
-					}
-					return Collections.emptyList();
-				} catch (IOException e) {
-					System.out.println("Cannot retrieve the linked object");
-					return Collections.emptyList();
 				}
+				Collection<Module> modules = ModuleRegistry.getInstance()
+						.loadOrchestrationModelModules(orchestrationModel);
+				System.out.println("found " + modules.size() + " modules");
+				for (Module module : modules) {
+					for (Action action : module.getActions()) {
+						System.out.println("comparing Action " + action.getName());
+						System.out.println("Node text: " + node.getText());
+						if (action.getName().equals(node.getText())) {
+							/*
+							 * Infers that the first action we find is the one associated to the ActionInstance.
+							 * This is generally the case when dealing with Modules that do not contain multiple
+							 * Actions with the same name (i.e. same JarvisAction but different constructors). If
+							 * this is the case the set Action might be wrong, and will be updated when checking
+							 * ParameterValues.
+							 */
+							return Arrays.asList(action);
+						}
+					}
+				}
+				return Collections.emptyList();
 			} else {
 				return super.getLinkedObjects(context, ref, node);
 			}

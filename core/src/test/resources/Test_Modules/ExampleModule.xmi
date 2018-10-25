@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ASCII"?>
+<module:Module xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:module="fr.zelus.jarvis.module" name="ExampleModule" jarvisModulePath="fr.zelus.jarvis.example.ExampleModule">
+  <intentDefinitions name="HowAreYou">
+    <trainingSentences>how are you?</trainingSentences>
+  </intentDefinitions>
+</module:Module>

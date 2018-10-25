@@ -10,7 +10,12 @@ import fr.zelus.jarvis.module.Parameter
 class OrchestrationModel {
     refers EventProviderDefinition[] eventProviderDefinitions
 	contains OrchestrationLink[] orchestrationLinks
-	String[] imports
+	contains ImportDeclaration[] imports
+}
+
+class ImportDeclaration {
+    String path
+    String alias
 }
 
 class OrchestrationLink {

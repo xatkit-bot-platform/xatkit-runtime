@@ -2,7 +2,7 @@ package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core_modules.CoreModulesUtils;
+import fr.zelus.jarvis.core_modules.utils.ModulesLoaderUtils;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.module.Action;
@@ -26,14 +26,12 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,6 +62,20 @@ public class JarvisCore {
      * @see #JarvisCore(Configuration)
      */
     public static String ORCHESTRATION_MODEL_KEY = "jarvis.orchestration.model";
+
+    /**
+     * The {@link Configuration} key prefix to store the custom module paths.
+     * <p>
+     * This prefix is used to specify the paths of the custom modules that are needed by the provided
+     * {@link OrchestrationModel}. Note that custom module path properties are only required if the
+     * {@link OrchestrationModel} defines an {@code alias} for the imported module models.
+     * {@link OrchestrationModel}s relying on absolute paths are directly loaded from the file system, but are not
+     * portable.
+     * <p>
+     * Custom module properties must be set following this pattern: {@code CUSTOM_MODULES_KEY_PREFIX + <module alias>
+     * = <module path>}.
+     */
+    public static String CUSTOM_MODULES_KEY_PREFIX = "jarvis.modules.custom.";
 
     /**
      * The {@link Configuration} used to initialize this class.
@@ -97,6 +109,17 @@ public class JarvisCore {
      * @see #getEventDefinitionRegistry() ()
      */
     private EventDefinitionRegistry eventDefinitionRegistry;
+
+    /**
+     * The {@link ResourceSet} used to load the {@link OrchestrationModel} and the referenced models.
+     * <p>
+     * The {@code orchestrationResourceSet} is initialized with the {@link #initializeOrchestrationResourceSet()}
+     * method, that loads the core module models from the classpath, and dynamically retrieves the custom module
+     * models.
+     *
+     * @see #CUSTOM_MODULES_KEY_PREFIX
+     */
+    protected ResourceSet orchestrationResourceSet;
 
     /**
      * The {@link OrchestrationService} used to handle {@link EventInstance}s and execute the associated
@@ -144,6 +167,7 @@ public class JarvisCore {
     public JarvisCore(Configuration configuration) {
         checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
         this.configuration = configuration;
+        this.orchestrationResourceSet = initializeOrchestrationResourceSet();
         OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
                 (ORCHESTRATION_MODEL_KEY));
         checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
@@ -234,9 +258,6 @@ public class JarvisCore {
      * <p>
      * This method supports loading of model path defined by {@link String}s and {@link URI}s. Support for additional
      * types is planned in the next releases.
-     * <p>
-     * This method loads Jarvis core module {@link Resource}s and add them to the local {@link ResourceSet}, enabling
-     * EMF proxy resolution from the loaded {@link OrchestrationModel} to Jarvis core modules.
      *
      * @param property the {@link Object} representing the {@link OrchestrationModel} to extract
      * @return the {@link OrchestrationModel} from the provided {@code property}
@@ -245,17 +266,10 @@ public class JarvisCore {
      *                              {@link OrchestrationModel} top-level
      *                              element, or if the loaded {@link OrchestrationModel} is empty.
      * @throws NullPointerException if the provided {@code property} is {@code null}
-     * @see #loadJarvisCoreModuleResources(ResourceSet)
      */
     protected OrchestrationModel getOrchestrationModel(Object property) {
         checkNotNull(property, "Cannot retrieve the OrchestrationModel from the property null, please ensure it is " +
                 "set in the %s property of the jarvis configuration", ORCHESTRATION_MODEL_KEY);
-        /*
-         * Register the EPackages used in the OrchestrationModel
-         */
-        EPackage.Registry.INSTANCE.put(OrchestrationPackage.eINSTANCE.getNsURI(), OrchestrationPackage.eINSTANCE);
-        EPackage.Registry.INSTANCE.put(IntentPackage.eINSTANCE.getNsURI(), IntentPackage.eINSTANCE);
-        EPackage.Registry.INSTANCE.put(ModulePackage.eINSTANCE.getNsURI(), ModulePackage.eINSTANCE);
         if (property instanceof OrchestrationModel) {
             return (OrchestrationModel) property;
         } else {
@@ -272,13 +286,9 @@ public class JarvisCore {
                         "provided property {0}, the property type ({1}) is not supported", property, property
                         .getClass().getSimpleName()));
             }
-            ResourceSet resourceSet = new ResourceSetImpl();
-            resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
-                    ());
-            loadJarvisCoreModuleResources(resourceSet);
             Resource orchestrationModelResource;
             try {
-                orchestrationModelResource = resourceSet.getResource(uri, true);
+                orchestrationModelResource = orchestrationResourceSet.getResource(uri, true);
             } catch (Exception e) {
                 throw new JarvisException(MessageFormat.format("Cannot load the orchestration model at the given " +
                         "location: {0}", uri.toString()), e);
@@ -296,8 +306,8 @@ public class JarvisCore {
                 orchestrationModel = (OrchestrationModel) orchestrationModelResource.getContents().get(0);
             } catch (ClassCastException e) {
                 String errorMessage = MessageFormat.format("The provided orchestration model does not contain a " +
-                        "top-level" +
-                        " element with the type OrchestrationModel (uri: {0})", orchestrationModelResource.getURI());
+                        "top-level element with the type OrchestrationModel (uri: {0})", orchestrationModelResource
+                        .getURI());
                 throw new JarvisException(MessageFormat.format("The provided orchestration model does not contain an " +
                         "OrchestrationModel top-level element (uri: {0})", orchestrationModelResource.getURI()), e);
             }
@@ -306,25 +316,42 @@ public class JarvisCore {
     }
 
     /**
-     * Loads the core module {@link Resource}s and adds them to the provided {@code resourceSet}.
+     * Creates and initializes the {@link ResourceSet} used to load the provided {@link OrchestrationModel}.
      * <p>
-     * This method searches in the classpath the {@code modules/} folder, that is typically stored in the {@code
-     * core_modules} project. The contents of the folder are then iterated and each {@code xmi} file is loaded as a
-     * core module {@link Resource} that is added to the provided {@code resourceSet}
+     * This method registers the Jarvis language's {@link EPackage}s  and loads the <i>core module</i>
+     * {@link Resource}s and the <i>custom module</i> {@link Resource}s in the created {@link ResourceSet}.
      * <p>
-     * This method loads <b>all</b> the core module {@link Resource}s in the provided {@code resourceSet}, even if
-     * they are not used in the application's {@link OrchestrationModel}.
+     * <i>Core module</i> loading is done by searching in the classpath the {@code core_modules/modules/} folder,
+     * and loads each {@code xmi} file it contains as a module {@link Resource}. Note that this method loads
+     * <b>all</b> the <i>core module</i> {@link Resource}s, even if they are not used in the application's
+     * {@link OrchestrationModel}.
      * <p>
      * <b>Note:</b> this method loads the {@code modules/} folder from the {@code core_modules} jar file if the
-     * application is executed in a standalone mode. In a development environment (i.e. with all the project sources
-     * imported) this method will retrieve the {@code modules/} folder from the local installation, if it exist.
+     * application is executed in a standalone mode. In a development environment (i.e. with all the project
+     * sources imported) this method will retrieve the {@code modules/} folder from the local installation, if it
+     * exist.
+     * <p>
+     * <i>Custom module</i> loading is done by searching in the provided {@link Configuration} file the entries
+     * starting with {@link #CUSTOM_MODULES_KEY_PREFIX}. These entries are handled as absolute paths to the
+     * <i>custom module</i> {@link Resource}s, and are configures to be the target of the corresponding custom module
+     * proxies in the provided {@link OrchestrationModel}.
+     * <p>
+     * This method ensures that the loaded {@link Resource}s corresponds to the {@code pathmaps} specified in the
+     * provided {@code xmi} file. See {@link ModulesLoaderUtils#CORE_MODULE_PATHMAP} and
+     * {@link ModulesLoaderUtils#CUSTOM_MODULE_PATHMAP} for further information.
      *
-     * @param resourceSet the {@link ResourceSet} to load and register the core module {@link Resource}s from
-     * @throws JarvisException if an error occurred when loading the core module resources
+     * @throws JarvisException if an error occurred when loading the module {@link Resource}s
+     * @see ModulesLoaderUtils#CORE_MODULE_PATHMAP
+     * @see ModulesLoaderUtils#CUSTOM_MODULE_PATHMAP
      */
-    private void loadJarvisCoreModuleResources(ResourceSet resourceSet) {
-        checkNotNull(resourceSet, "Cannot load the Jarvis core modules from the provided {0} {1}", ResourceSet.class
-                .getSimpleName(), resourceSet);
+    private ResourceSet initializeOrchestrationResourceSet() {
+        ResourceSet resourceSet = new ResourceSetImpl();
+        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
+                ());
+        resourceSet.getPackageRegistry().put(OrchestrationPackage.eNS_URI, OrchestrationPackage.eINSTANCE);
+        resourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
+        resourceSet.getPackageRegistry().put(ModulePackage.eNS_URI, ModulePackage.eINSTANCE);
+
         Log.info("Loading Jarvis core modules");
         URL url = this.getClass().getClassLoader().getResource("modules/");
         java.net.URI uri;
@@ -337,12 +364,26 @@ public class JarvisCore {
          * Jarvis is imported as a jar, we need to setup a FileSystem that handles jar file loading.
          */
         if (uri.getScheme().equals("jar")) {
-            Map<String, String> env = new HashMap<>();
-            env.put("create", "true");
             try {
-                FileSystems.newFileSystem(uri, env);
-            } catch (IOException e) {
-                throw new JarvisException("An error occurred when loading the core modules, see attached exception", e);
+                /*
+                 * Try to get the FileSystem if it exists, this may be the case when running the test cases, and if a
+                  * JarvisCore instance wasn't shut down correctly.
+                 */
+                FileSystems.getFileSystem(uri);
+            } catch(FileSystemNotFoundException e) {
+                Map<String, String> env = new HashMap<>();
+                env.put("create", "true");
+                try {
+                    /*
+                     * Getting the FileSystem threw an exception, try to create a new one with the provided URI. This
+                      * is typically the case when running Jarvis in a standalone mode, and when only a single
+                      * JarvisCore instance is constructed.
+                     */
+                    FileSystems.newFileSystem(uri, env);
+                } catch (IOException e1) {
+                    throw new JarvisException("An error occurred when loading the core modules, see attached " +
+                            "exception", e1);
+                }
             }
         }
         Path modulesPath = Paths.get(uri);
@@ -350,12 +391,11 @@ public class JarvisCore {
             Files.walk(modulesPath, 1).filter(p -> !Files.isDirectory(p)).forEach(modulePath -> {
                 try {
                     InputStream is = Files.newInputStream(modulePath);
-                    URI modulePathmapURI = URI.createURI(CoreModulesUtils.CORE_MODULE_PATHMAP + modulePath
+                    URI modulePathmapURI = URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + modulePath
                             .getFileName());
 
                     resourceSet.getURIConverter().getURIMap().put(modulePathmapURI, URI.createURI(modulePath
-                            .getFileName()
-                            .toString()));
+                            .getFileName().toString()));
                     Resource moduleResource = resourceSet.createResource(modulePathmapURI);
                     moduleResource.load(is, Collections.emptyMap());
                     Module module = (Module) moduleResource.getContents().get(0);
@@ -369,6 +409,33 @@ public class JarvisCore {
         } catch (IOException e) {
             throw new JarvisException("An error occurred when crawling the core modules, see attached exception", e);
         }
+        Log.info("Loading Jarvis custom modules");
+        configuration.getKeys().forEachRemaining(key -> {
+            if (key.startsWith(CUSTOM_MODULES_KEY_PREFIX)) {
+                String modulePath = configuration.getString(key);
+                String moduleName = key.substring(CUSTOM_MODULES_KEY_PREFIX.length());
+                URI modulePathmapURI = URI.createURI(ModulesLoaderUtils.CUSTOM_MODULE_PATHMAP + moduleName);
+                /*
+                 * The provided path is handled as a File path. Loading custom modules from external jars is left for
+                 * a future release.
+                 */
+                File moduleFile = new File(modulePath);
+                if (moduleFile.exists() && moduleFile.isFile()) {
+                    URI moduleFileURI = URI.createFileURI(moduleFile.getAbsolutePath());
+                    resourceSet.getURIConverter().getURIMap().put(modulePathmapURI, moduleFileURI);
+                    Resource moduleResource = resourceSet.getResource(moduleFileURI, true);
+                    Module module = (Module) moduleResource.getContents().get(0);
+                    Log.info("Module {0} loaded", module.getName());
+                } else {
+                    throw new JarvisException(MessageFormat.format("Cannot load the custom module {0}, the provided " +
+                            "path {1} is not a valid file", modulePath, modulePath));
+                }
+            }
+            /*
+             * The key is not a custom module path, skipping it.
+             */
+        });
+        return resourceSet;
     }
 
     /**
