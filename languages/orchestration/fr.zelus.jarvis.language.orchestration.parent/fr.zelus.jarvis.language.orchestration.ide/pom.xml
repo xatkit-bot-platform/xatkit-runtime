@@ -12,6 +12,14 @@
 	<packaging>eclipse-plugin</packaging>
 
 	<dependencies>
+	
+		<!-- Eclipse -->
+		<!-- This dependency is only required to dynamically load the core Modules -->
+		<!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
+		<dependency>
+		    <groupId>org.eclipse.platform</groupId>
+		    <artifactId>org.eclipse.core.runtime</artifactId>
+		</dependency>
 
 		<!-- jarvis Internal -->
 
@@ -19,6 +27,12 @@
 			<groupId>fr.zelus.jarvis</groupId>
 			<artifactId>orchestration</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			 <groupId>fr.zelus.jarvis</groupId>
+			 <artifactId>core_modules</artifactId>
+			 <version>${project.version}</version>
 		</dependency>
 	</dependencies>
 

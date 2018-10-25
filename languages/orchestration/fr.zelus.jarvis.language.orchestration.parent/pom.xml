@@ -22,6 +22,25 @@
 		<module>fr.zelus.jarvis.language.orchestration.tests</module>
 		<module>fr.zelus.jarvis.language.orchestration.ui.tests</module>
 	</modules>
+	
+	<properties>
+		<eclipse.runtime.version>3.13.0</eclipse.runtime.version>
+	</properties>
+	
+	<dependencyManagement>
+		<dependencies>
+		
+			<!-- Eclipse -->
+			<!-- This dependency is only required to dynamically load the core Modules -->
+			<!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
+			<dependency>
+			    <groupId>org.eclipse.platform</groupId>
+			    <artifactId>org.eclipse.core.runtime</artifactId>
+			    <version>${eclipse.runtime.version}</version>
+			</dependency>
+		
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>

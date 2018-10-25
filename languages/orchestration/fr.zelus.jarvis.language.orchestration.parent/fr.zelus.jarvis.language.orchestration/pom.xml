@@ -36,6 +36,14 @@
 			<groupId>org.eclipse.emf</groupId>
 			<artifactId>org.eclipse.emf.codegen.ecore.xtext</artifactId>
 		</dependency>
+		
+		<!-- Eclipse -->
+		<!-- This dependency is only required to dynamically load the core Modules -->
+		<!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
+		<dependency>
+		    <groupId>org.eclipse.platform</groupId>
+		    <artifactId>org.eclipse.core.runtime</artifactId>
+		</dependency>
 
         <!-- jarvis Internal -->
 

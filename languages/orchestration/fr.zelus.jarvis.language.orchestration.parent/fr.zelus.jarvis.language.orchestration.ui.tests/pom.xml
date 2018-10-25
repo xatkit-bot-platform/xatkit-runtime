@@ -13,11 +13,25 @@
 
 	<dependencies>
 
+		<!-- Eclipse -->
+		<!-- This dependency is only required to dynamically load the core Modules -->
+		<!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
+		<dependency>
+		    <groupId>org.eclipse.platform</groupId>
+		    <artifactId>org.eclipse.core.runtime</artifactId>
+		</dependency>
+
         <!-- jarvis Internal -->
 
 		<dependency>
 			<groupId>fr.zelus.jarvis</groupId>
 			<artifactId>orchestration</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>fr.zelus.jarvis</groupId>
+			<artifactId>core_modules</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -51,11 +65,14 @@
 							if the target platform is Luna or later.
 							(backward compatible with kepler and previous versions)
 							see https://bugs.eclipse.org/bugs/show_bug.cgi?id=492149 -->
-							<requirement>
+							<!-- Removed because of conflicting dependencies to eclipse.core.runtime -->
+							<!-- We probably need to change the core_module loader to avoid an unnecessary dependency to this plugin -->
+							<!-- See #161 -->
+							<!-- <requirement>
 								<type>eclipse-feature</type>
 								<id>org.eclipse.rcp</id>
 								<versionRange>0.0.0</versionRange>
-							</requirement>
+							</requirement> -->
 						</extraRequirements>
 					</dependency-resolution>
 				</configuration>
