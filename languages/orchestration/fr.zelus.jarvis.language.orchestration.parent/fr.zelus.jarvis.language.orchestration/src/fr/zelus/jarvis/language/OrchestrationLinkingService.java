@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,28 +98,29 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				 */
 				OrchestrationModel orchestrationModel = null;
 				EObject currentObject = context;
-				while(isNull(orchestrationModel)) {
+				while (isNull(orchestrationModel)) {
 					currentObject = currentObject.eContainer();
-					if(currentObject instanceof OrchestrationModel) {
-						orchestrationModel = (OrchestrationModel)currentObject;
+					if (currentObject instanceof OrchestrationModel) {
+						orchestrationModel = (OrchestrationModel) currentObject;
 					}
 				}
+				String[] splittedActionName = node.getText().trim().split("\\.");
+				if (splittedActionName.length != 2) {
+					System.out.println(MessageFormat.format(
+							"Cannot handle the action {0}, expecting a qualified name <Module>.<Action>",
+							node.getText().trim()));
+					return Collections.emptyList();
+				}
+				String moduleName = splittedActionName[0];
+				String actionName = splittedActionName[1];
 				Collection<Module> modules = ModuleRegistry.getInstance()
 						.loadOrchestrationModelModules(orchestrationModel);
-				System.out.println("found " + modules.size() + " modules");
 				for (Module module : modules) {
-					for (Action action : module.getActions()) {
-						System.out.println("comparing Action " + action.getName());
-						System.out.println("Node text: " + node.getText());
-						if (action.getName().equals(node.getText())) {
-							/*
-							 * Infers that the first action we find is the one associated to the ActionInstance.
-							 * This is generally the case when dealing with Modules that do not contain multiple
-							 * Actions with the same name (i.e. same JarvisAction but different constructors). If
-							 * this is the case the set Action might be wrong, and will be updated when checking
-							 * ParameterValues.
-							 */
-							return Arrays.asList(action);
+					if(module.getName().equals(moduleName)) {
+						for (Action action : module.getActions()) {
+							if (action.getName().equals(actionName)) {
+								return Arrays.asList(action);
+							}
 						}
 					}
 				}
@@ -157,10 +159,10 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				 * ActionInstance are processed and updated to fit the new parent Action.
 				 */
 				Module module = (Module) action.eContainer();
-				if(isNull(module)) {
+				if (isNull(module)) {
 					/*
-					 * The Module may be null if there is an issue when loading the import. In that case we can ignore the linking, the model is
-					 * false anyway
+					 * The Module may be null if there is an issue when loading the import. In that case we can ignore
+					 * the linking, the model is false anyway
 					 */
 					return Collections.emptyList();
 				}

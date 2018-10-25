@@ -36,7 +36,7 @@ VariableDefinition returns Variable:
 	
 ActionInstance returns ActionInstance:
 	((returnVariable=VariableAccess) '=')?
-	action=[module::Action|ID]
+	action=[module::Action|QualifiedName]
 	('(' values+=ParameterValue (',' values+=ParameterValue)* ')')?
 	('on error do' '{' (onError+=ActionInstance)+ '}')?
 	

@@ -12,6 +12,7 @@ import org.eclipse.xtext.Assignment
 import fr.zelus.jarvis.language.util.ModuleRegistry
 import fr.zelus.jarvis.orchestration.OrchestrationModel
 import static java.util.Objects.isNull
+import fr.zelus.jarvis.module.Module
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -55,15 +56,16 @@ class OrchestrationProposalProvider extends AbstractOrchestrationProposalProvide
 				orchestrationModel = currentObject
 			}
 		}
-		var modules = ModuleRegistry.instance.loadOrchestrationModelModules(orchestrationModel)
+		val modules = ModuleRegistry.instance.loadOrchestrationModelModules(orchestrationModel)
 		modules.map[m|m.actions].flatten.forEach [ a |
+			var String prefix = (a.eContainer as Module).name + ".";
 			var parameterString = ""
 			if(!a.parameters.empty) {
 				parameterString += '('
 				parameterString += a.parameters.map[p|p.key + " : \"\""].join(", ")
 				parameterString += ')'
 			}
-			acceptor.accept(createCompletionProposal(a.name + parameterString, context))
+			acceptor.accept(createCompletionProposal(prefix + a.name + parameterString, context))
 		]
 		super.completeActionInstance_Action(model, assignment, context, acceptor)
 	}
