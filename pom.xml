@@ -12,6 +12,11 @@
     <name>jarvis</name>
     <description>A generic bot platform</description>
 
+    <organization>
+        <name>SOM Research Lab</name>
+        <url>https://som-research.uoc.edu/</url>
+    </organization>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -159,6 +164,7 @@
                     <extensions>true</extensions>
                     <configuration>
                         <instructions>
+                            <Bundle-Vendor>${pom.organization.name}</Bundle-Vendor>
                             <Bundle-Version>
                                 1.0.0.${maven.build.timestamp}
                             </Bundle-Version>
