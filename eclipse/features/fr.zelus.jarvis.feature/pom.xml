@@ -15,36 +15,33 @@
 
     <name>Jarvis Core Eclipse Feature</name>
 
-    <properties>
-    	<!-- Duplicated from orchestration language -->
-    	<eclipse.runtime.version>3.13.0</eclipse.runtime.version>
-    </properties>
-
     <dependencies>
-    	<dependency>
+
+		<!-- jarvis Internal -->
+
+		<dependency>
     		<groupId>fr.zelus.jarvis</groupId>
     		<artifactId>module</artifactId>
     		<version>${project.version}</version>
     	</dependency>
-    	<dependency>
+
+		<dependency>
     		<groupId>fr.zelus.jarvis</groupId>
     		<artifactId>orchestration</artifactId>
     		<version>${project.version}</version>
     	</dependency>
-    	<dependency>
+
+		<dependency>
     		<groupId>fr.zelus.jarvis</groupId>
     		<artifactId>intent</artifactId>
     		<version>${project.version}</version>
     	</dependency>
-    	<dependency>
+
+		<dependency>
     		<groupId>fr.zelus.jarvis</groupId>
     		<artifactId>core_modules</artifactId>
     		<version>${project.version}</version>
     	</dependency>
-    	<!-- <dependency>
-			    <groupId>org.eclipse.platform</groupId>
-			    <artifactId>org.eclipse.core.runtime</artifactId>
-			    <version>${eclipse.runtime.version}</version>
-		</dependency> -->
+
     </dependencies>
 </project>

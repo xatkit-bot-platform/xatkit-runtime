@@ -22,81 +22,27 @@
 		<module>fr.zelus.jarvis.language.orchestration.tests</module>
 		<module>fr.zelus.jarvis.language.orchestration.ui.tests</module>
 	</modules>
-	
-	<properties>
-		<eclipse.runtime.version>3.13.0</eclipse.runtime.version>
-	</properties>
-	
-	<dependencyManagement>
-		<dependencies>
-		
-			<!-- Eclipse -->
-			<!-- This dependency is only required to dynamically load the core Modules -->
-			<!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
-			<dependency>
-			    <groupId>org.eclipse.platform</groupId>
-			    <artifactId>org.eclipse.core.runtime</artifactId>
-			    <version>${eclipse.runtime.version}</version>
-			</dependency>
-		
-		</dependencies>
-	</dependencyManagement>
 
 	<build>
-		<plugins>
-
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-maven-plugin</artifactId>
-				<extensions>true</extensions>
-			</plugin>
-
-            <plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>target-platform-configuration</artifactId>
-				<configuration>
-					<target>
-						<artifact>
-							<groupId>fr.zelus.jarvis.language.orchestration</groupId>
-							<artifactId>fr.zelus.jarvis.language.orchestration.target</artifactId>
-							<version>${project.version}</version>
-						</artifact>
-					</target>
-				</configuration>
-			</plugin>
-
-		</plugins>
 		<pluginManagement>
 			<plugins>
 
-                <plugin>
-					<groupId>org.eclipse.xtend</groupId>
-					<artifactId>xtend-maven-plugin</artifactId>
-				</plugin>
-
-                <plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-clean-plugin</artifactId>
-				</plugin>
-
-                <plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-				</plugin>
-
-                <plugin>
-					<!--
-						Can be removed after first generator execution
-						https://bugs.eclipse.org/bugs/show_bug.cgi?id=480097
-					-->
+				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
-					<artifactId>tycho-compiler-plugin</artifactId>
+					<artifactId>target-platform-configuration</artifactId>
+					<configuration>
+						<target>
+							<artifact>
+								<groupId>fr.zelus.jarvis.language.orchestration</groupId>
+								<artifactId>fr.zelus.jarvis.language.orchestration.target</artifactId>
+								<version>${project.version}</version>
+							</artifact>
+						</target>
+					</configuration>
 				</plugin>
 
 			</plugins>
 		</pluginManagement>
-
 	</build>
 
 </project>

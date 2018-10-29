@@ -15,9 +15,15 @@
 
     <name>Javis Update Site</name>
 
+	<properties>
+		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+	</properties>
+
     <dependencies>
 
-    	<dependency>
+		<!-- jarvis feature -->
+
+		<dependency>
     		<groupId>fr.zelus.jarvis</groupId>
     		<artifactId>fr.zelus.jarvis.feature</artifactId>
     		<version>${project.version}</version>
@@ -27,23 +33,36 @@
 
     <build>
     	<plugins>
+
     		<plugin>
     			<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-p2-repository-plugin</artifactId>
     		</plugin>
 
-    		<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
 			</plugin>
+
     	</plugins>
+
+		<pluginManagement>
+			<plugins>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>${maven-source-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<phase>none</phase>
+						</execution>
+					</executions>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
     </build>
 
 </project>

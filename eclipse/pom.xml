@@ -16,7 +16,9 @@
 
 	<properties>
 		<maven.test.skip>true</maven.test.skip>
-		<tycho-version>1.1.0</tycho-version>
+
+		<!-- Plugin versions -->
+		<tycho-maven-plugin.version>1.1.0</tycho-maven-plugin.version>
 	</properties>
 
 	<repositories>
@@ -48,20 +50,20 @@
 				<plugin>
 	                <groupId>org.eclipse.tycho</groupId>
 	                <artifactId>tycho-maven-plugin</artifactId>
-	                <version>${tycho-version}</version>
+	                <version>${tycho-maven-plugin.version}</version>
 	                <extensions>true</extensions>
             	</plugin>
 
             	<plugin>
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-p2-repository-plugin</artifactId>
-                    <version>${tycho-version}</version>
+                    <version>${tycho-maven-plugin.version}</version>
 				</plugin>
 
             	<plugin>
 	                <groupId>org.eclipse.tycho</groupId>
 	                <artifactId>target-platform-configuration</artifactId>
-	                <version>${tycho-version}</version>
+	                <version>${tycho-maven-plugin.version}</version>
 	                <configuration>
 	                    <pomDependencies>consider</pomDependencies>
 	                    <!-- <target> needs to be specified in child projects -->
@@ -84,6 +86,13 @@
 	                    </environments>
 	            	</configuration>
             	</plugin>
+
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>${lifecycle-mapping.version}</version>
+				</plugin>
+
 			</plugins>
 		</pluginManagement>
 	</build>
