@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: fr.zelus.jarvis.language.module.ui
-Bundle-Vendor: My Company
+Bundle-Vendor: SOM Research Lab
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: fr.zelus.jarvis.language.module.ui; singleton:=true
 Bundle-ActivationPolicy: lazy

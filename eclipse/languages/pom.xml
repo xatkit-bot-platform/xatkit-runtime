@@ -4,9 +4,8 @@
 
     <parent>
 	    <groupId>fr.zelus.jarvis</groupId>
-	    <artifactId>jarvis</artifactId>
+	    <artifactId>eclipse</artifactId>
 	    <version>1.0.0-SNAPSHOT</version>
-	    <relativePath>../..</relativePath>
     </parent>
 
     <artifactId>languages</artifactId>
@@ -14,7 +13,6 @@
     <packaging>pom</packaging>
 
     <properties>
-        <tycho-version>1.1.0</tycho-version>
         <xtext.version>2.12.0</xtext.version>
         <codegen.ecore.xtext.version>1.2.0</codegen.ecore.xtext.version>
         <project.build.sourceEncoding>windows-1252</project.build.sourceEncoding>
@@ -211,40 +209,6 @@
                 <version>${tycho-version}</version>
                 <configuration>
                     <compilerArgument>-err:-forbidden</compilerArgument>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-maven-plugin</artifactId>
-                <version>${tycho-version}</version>
-                <extensions>true</extensions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>target-platform-configuration</artifactId>
-                <version>${tycho-version}</version>
-                <configuration>
-                    <pomDependencies>consider</pomDependencies>
-                    <!-- <target> needs to be specified in child projects -->
-                    <environments>
-                        <environment>
-                            <os>macosx</os>
-                            <ws>cocoa</ws>
-                            <arch>x86_64</arch>
-                        </environment>
-                        <environment>
-                            <os>win32</os>
-                            <ws>win32</ws>
-                            <arch>x86_64</arch>
-                        </environment>
-                        <environment>
-                            <os>linux</os>
-                            <ws>gtk</ws>
-                            <arch>x86_64</arch>
-                        </environment>
-                        </environments>
                 </configuration>
             </plugin>
 

@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>fr.zelus.jarvis</groupId>
+		<artifactId>jarvis</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>eclipse</artifactId>
+
+	<packaging>pom</packaging>
+
+	<name>Jarvis Eclipse Components</name>
+
+	<properties>
+		<maven.test.skip>true</maven.test.skip>
+		<tycho-version>1.1.0</tycho-version>
+	</properties>
+
+	<repositories>
+		<!-- Adding the p2 repository allows to fetch MANIFEST dependencies from the eclipse repository -->
+        <repository>
+            <id>eclipse</id>
+            <layout>p2</layout>
+            <url>http://download.eclipse.org/releases/oxygen</url>
+        </repository>
+	</repositories>
+
+	<modules>
+		<module>languages</module>
+		<module>features/fr.zelus.jarvis.feature</module>
+		<module>update/fr.zelus.jarvis.update</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-maven-plugin</artifactId>
+                <extensions>true</extensions>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+	                <groupId>org.eclipse.tycho</groupId>
+	                <artifactId>tycho-maven-plugin</artifactId>
+	                <version>${tycho-version}</version>
+	                <extensions>true</extensions>
+            	</plugin>
+
+            	<plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-p2-repository-plugin</artifactId>
+                    <version>${tycho-version}</version>
+				</plugin>
+
+            	<plugin>
+	                <groupId>org.eclipse.tycho</groupId>
+	                <artifactId>target-platform-configuration</artifactId>
+	                <version>${tycho-version}</version>
+	                <configuration>
+	                    <pomDependencies>consider</pomDependencies>
+	                    <!-- <target> needs to be specified in child projects -->
+	                    <environments>
+	                        <environment>
+	                            <os>macosx</os>
+	                            <ws>cocoa</ws>
+	                            <arch>x86_64</arch>
+	                        </environment>
+	                        <environment>
+	                            <os>win32</os>
+	                            <ws>win32</ws>
+	                            <arch>x86_64</arch>
+	                        </environment>
+	                        <environment>
+	                            <os>linux</os>
+	                            <ws>gtk</ws>
+	                            <arch>x86_64</arch>
+	                        </environment>
+	                    </environments>
+	            	</configuration>
+            	</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

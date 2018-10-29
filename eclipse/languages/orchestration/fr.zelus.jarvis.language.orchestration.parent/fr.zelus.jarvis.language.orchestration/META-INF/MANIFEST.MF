@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: fr.zelus.jarvis.language.orchestration
-Bundle-Vendor: My Company
+Bundle-Vendor: SOM Research Lab
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: fr.zelus.jarvis.language.orchestration; singleton:=true
 Bundle-ActivationPolicy: lazy
@@ -27,3 +27,4 @@ Export-Package: fr.zelus.jarvis.language,
  fr.zelus.jarvis.language.util,
  fr.zelus.jarvis.language.validation
 Import-Package: org.apache.log4j
+Bundle-Activator: fr.zelus.jarvis.language.Activator
