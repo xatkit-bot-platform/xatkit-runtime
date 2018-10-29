@@ -14,7 +14,7 @@
 
     <packaging>bundle</packaging>
 
-    <name>jarvis core module resources</name>
+    <name>Jarvis Core Module Descriptors</name>
 
     <build>
         <plugins>
