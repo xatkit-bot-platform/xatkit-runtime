@@ -8,6 +8,8 @@ import com.github.seratch.jslack.api.methods.response.auth.AuthTestResponse;
 import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
 import com.github.seratch.jslack.api.model.User;
 import com.github.seratch.jslack.api.rtm.RTMClient;
+import com.github.seratch.jslack.api.rtm.RTMCloseHandler;
+import com.github.seratch.jslack.api.rtm.RTMMessageHandler;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -21,6 +23,7 @@ import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import fr.zelus.jarvis.plugins.slack.module.SlackModule;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -51,6 +54,17 @@ public class SlackIntentProvider extends IntentProvider<SlackModule> {
      * @see #getUsernameFromUserId(String)
      */
     private static String DEFAULT_USERNAME = "unknown user";
+
+    /**
+     * The delay (in ms) to wait before attempting to reconnect the RTM client.
+     * <p>
+     * When the RTM client is disconnected abnormally the {@link SlackIntentProvider} attempts to reconnect it by
+     * waiting {@code RECONNECT_WAIT_TIME * <number_of_attempts>} ms. The delay is reset after each successful
+     * reconnection.
+     *
+     * @see JarvisRTMCloseHandler
+     */
+    private static int RECONNECT_WAIT_TIME = 2000;
 
     /**
      * The {@link String} representing the Slack bot API token.
@@ -98,6 +112,8 @@ public class SlackIntentProvider extends IntentProvider<SlackModule> {
      * @throws NullPointerException     if the provided {@code containingModule} or {@code configuration} is {@code
      *                                  null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
+     * @see JarvisRTMMessageHandler
+     * @see JarvisRTMCloseHandler
      */
     public SlackIntentProvider(SlackModule containingModule, Configuration configuration) {
         super(containingModule, configuration);
@@ -112,92 +128,14 @@ public class SlackIntentProvider extends IntentProvider<SlackModule> {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
             String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the " +
-                    "bot" +
-                    " API token is valid and stored in jarvis configuration with the key {0}", SLACK_TOKEN_KEY);
+                    "bot API token is valid and stored in jarvis configuration with the key {0}", SLACK_TOKEN_KEY);
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
         }
         this.jsonParser = new JsonParser();
         Log.info("Starting to listen jarvis Slack direct messages");
-        rtmClient.addMessageHandler((message) -> {
-                    JsonObject json = jsonParser.parse(message).getAsJsonObject();
-                    if (nonNull(json.get("type"))) {
-                        /*
-                         * The message has a type, this should always be true
-                         */
-                        Log.info("received {0}", json);
-                        if (json.get("type").getAsString().equals(HELLO_TYPE)) {
-                            Log.info("Slack listener connected");
-                        }
-                        if (json.get("type").getAsString().equals(MESSAGE_TYPE)) {
-                            /*
-                             * The message hasn't been sent by a bot
-                             */
-                            JsonElement channelObject = json.get("channel");
-                            if (nonNull(channelObject)) {
-                                /*
-                                 * The message channel is set
-                                 */
-                                String channel = channelObject.getAsString();
-                                JsonElement userObject = json.get("user");
-                                if (nonNull(userObject)) {
-                                    /*
-                                     * The name of the user that sent the message
-                                     */
-                                    String user = userObject.getAsString();
-                                    if (!user.equals(this.botId)) {
-                                        JsonElement textObject = json.get("text");
-                                        if (nonNull(textObject)) {
-                                            String text = textObject.getAsString();
-                                            if (!text.isEmpty()) {
-                                                Log.info("Received message {0} from user {1} (channel: {2})", text,
-                                                        user, channel);
-                                                JarvisSession session = this.module
-                                                        .createSessionFromChannel(channel);
-                                                /*
-                                                 * Call getRecognizedIntent before setting any context variable, the
-                                                 * recognition triggers a decrement of all the context variables.
-                                                 */
-                                                RecognizedIntent recognizedIntent = this.getRecognizedIntent(text,
-                                                        session);
-                                                /*
-                                                 * The slack-related values are stored in the local context with a
-                                                 * lifespan count of 1: they are reset every time a message is
-                                                 * received, and may cause consistency issues when using multiple
-                                                 * IntentProviders.
-                                                 */
-                                                session.getJarvisContext().setContextValue(JarvisSlackUtils
-                                                        .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
-                                                        .SLACK_CHANNEL_CONTEXT_KEY, channel);
-                                                session.getJarvisContext().setContextValue(JarvisSlackUtils
-                                                        .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
-                                                        .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
-                                                jarvisCore.getOrchestrationService().handleEventInstance
-                                                        (recognizedIntent, session);
-                                            } else {
-                                                Log.warn("Received an empty message, skipping it");
-                                            }
-                                        } else {
-                                            Log.warn("The message does not contain a \"text\" field, skipping it");
-                                        }
-                                    } else {
-                                        Log.trace("Skipping {0}, the message was sent by this bot", json);
-                                    }
-                                } else {
-                                    Log.warn("Skipping {0}, the message does not contain a \"user\" field",
-                                            json);
-                                }
-                            } else {
-                                Log.warn("Skipping {0}, the message does not contain a \"channel\" field", json);
-                            }
-                        } else {
-                            Log.trace("Skipping {0}, the message type is not \"{1}\"", json, MESSAGE_TYPE);
-                        }
-                    } else {
-                        Log.error("The message does not define a \"type\" field, skipping it");
-                    }
-                }
-        );
+        rtmClient.addMessageHandler(new JarvisRTMMessageHandler());
+        rtmClient.addCloseHandler(new JarvisRTMCloseHandler());
         try {
             rtmClient.connect();
         } catch (DeploymentException | IOException e) {
@@ -296,6 +234,130 @@ public class SlackIntentProvider extends IntentProvider<SlackModule> {
             String errorMessage = "Cannot close the Slack RTM connection";
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
+        }
+    }
+
+    /**
+     * The {@link RTMMessageHandler} used to process user messages.
+     */
+    private class JarvisRTMMessageHandler implements RTMMessageHandler {
+
+        @Override
+        public void handle(String message) {
+            JsonObject json = jsonParser.parse(message).getAsJsonObject();
+            if (nonNull(json.get("type"))) {
+                /*
+                 * The message has a type, this should always be true
+                 */
+                Log.info("received {0}", json);
+                if (json.get("type").getAsString().equals(HELLO_TYPE)) {
+                    Log.info("Slack listener connected");
+                }
+                if (json.get("type").getAsString().equals(MESSAGE_TYPE)) {
+                    /*
+                     * The message hasn't been sent by a bot
+                     */
+                    JsonElement channelObject = json.get("channel");
+                    if (nonNull(channelObject)) {
+                        /*
+                         * The message channel is set
+                         */
+                        String channel = channelObject.getAsString();
+                        JsonElement userObject = json.get("user");
+                        if (nonNull(userObject)) {
+                            /*
+                             * The name of the user that sent the message
+                             */
+                            String user = userObject.getAsString();
+                            if (!user.equals(botId)) {
+                                JsonElement textObject = json.get("text");
+                                if (nonNull(textObject)) {
+                                    String text = textObject.getAsString();
+                                    if (!text.isEmpty()) {
+                                        Log.info("Received message {0} from user {1} (channel: {2})", text,
+                                                user, channel);
+                                        JarvisSession session = module.createSessionFromChannel(channel);
+                                        /*
+                                         * Call getRecognizedIntent before setting any context variable, the
+                                         * recognition triggers a decrement of all the context variables.
+                                         */
+                                        RecognizedIntent recognizedIntent = SlackIntentProvider.this
+                                                .getRecognizedIntent(text, session);
+                                        /*
+                                         * The slack-related values are stored in the local context with a
+                                         * lifespan count of 1: they are reset every time a message is
+                                         * received, and may cause consistency issues when using multiple
+                                         * IntentProviders.
+                                         */
+                                        session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                                .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
+                                                .SLACK_CHANNEL_CONTEXT_KEY, channel);
+                                        session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                                .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
+                                                .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
+                                        jarvisCore.getOrchestrationService().handleEventInstance
+                                                (recognizedIntent, session);
+                                    } else {
+                                        Log.warn("Received an empty message, skipping it");
+                                    }
+                                } else {
+                                    Log.warn("The message does not contain a \"text\" field, skipping it");
+                                }
+                            } else {
+                                Log.trace("Skipping {0}, the message was sent by this bot", json);
+                            }
+                        } else {
+                            Log.warn("Skipping {0}, the message does not contain a \"user\" field",
+                                    json);
+                        }
+                    } else {
+                        Log.warn("Skipping {0}, the message does not contain a \"channel\" field", json);
+                    }
+                } else {
+                    Log.trace("Skipping {0}, the message type is not \"{1}\"", json, MESSAGE_TYPE);
+                }
+            } else {
+                Log.error("The message does not define a \"type\" field, skipping it");
+            }
+        }
+    }
+
+    /**
+     * The {@link RTMCloseHandler} used to handle RTM client connection issues.
+     * <p>
+     * This handler will attempt to reconnect the RTM client by creating a new {@link RTMClient} instance after
+     * waiting {@code RECONNECT_WAIT_TIME * <number_of_attempts>} ms. Note that reconnecting the RTM client will be
+     * executed in the main thread and will block Jarvis execution.
+     *
+     * @see #RECONNECT_WAIT_TIME
+     */
+    private class JarvisRTMCloseHandler implements RTMCloseHandler {
+
+        @Override
+        public void handle(CloseReason reason) {
+            if (reason.getCloseCode().equals(CloseReason.CloseCodes.CLOSED_ABNORMALLY)) {
+                Log.error("Connection to the Slack RTM client lost");
+                int attempts = 1;
+                while (true) {
+                    try {
+                        int waitTime = attempts * RECONNECT_WAIT_TIME;
+                        Log.info("Trying to reconnect in {0}ms", waitTime);
+                        Thread.sleep(waitTime);
+                        rtmClient = slack.rtm(slackToken);
+                        rtmClient.addMessageHandler(new JarvisRTMMessageHandler());
+                        rtmClient.addCloseHandler(new JarvisRTMCloseHandler());
+                        rtmClient.connect();
+                        /*
+                         * The RTM client is reconnected and the handlers are set.
+                         */
+                        break;
+                    } catch (DeploymentException | IOException e) {
+                        Log.error("Unable to reconnect the RTM client");
+                    } catch (InterruptedException e) {
+                        Log.error("An error occurred while waiting to reconnect the RTM client");
+                    }
+                }
+            }
         }
     }
 }
