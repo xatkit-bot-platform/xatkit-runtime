@@ -6,10 +6,17 @@ import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.JarvisMessageAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.discord.module.DiscordModule;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.exceptions.ErrorResponseException;
+import net.dv8tion.jda.core.requests.RequestFuture;
 
+import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.isNull;
@@ -58,7 +65,7 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
                 this.channel = user.openPrivateChannel().complete();
             } else {
                 throw new JarvisException(MessageFormat.format("Cannot construct the %s action: the provided channel " +
-                        "ID ({0}) does not correspond to an existing private channel or a valid Discord user",
+                                "ID ({0}) does not correspond to an existing private channel or a valid Discord user",
                         channel));
             }
         }
@@ -69,12 +76,38 @@ public class PostMessage extends JarvisMessageAction<DiscordModule> {
      * <p>
      * This method relies on the containing {@link DiscordModule}'s Discord {@link net.dv8tion.jda.core.JDA} client
      * to authenticate the bot and post the {@code message} to the given {@code channel}.
+     * <p>
+     * This method is not executed asynchronously and waits for the response from the Discord platform in order to
+     * detect potential connection issues and throw an {@link IOException}.
      *
      * @return {@code null}
+     * @throws IOException if a network error occurred when sending the message
+     * @throws Exception   if any other error occurred when sending the message
      */
     @Override
-    public Object compute() {
-        channel.sendMessage(message).queue();
+    public Object compute() throws Exception {
+        RequestFuture<Message> result = channel.sendMessage(message).submit();
+        try {
+            result.get(500, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Log.error("An error occurred when computing {0}", this.getClass().getSimpleName());
+            throw e;
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof ErrorResponseException) {
+                /*
+                 * The error is associated to an ErrorResponseException, this means that the JDA client was not able to
+                 * access the Discord platform, throwing an IOException to trigger JarvisMessageAction's retries.
+                 */
+                throw new IOException("Cannot reach the Discord platform", e);
+            } else {
+                throw e;
+            }
+        } catch (TimeoutException e) {
+            /*
+             * Wrap it in an IOException that triggers JarvisMessageAction's retries.
+             */
+            throw new IOException("Cannot reach the Discord platform", e);
+        }
         return null;
     }
 

@@ -59,11 +59,11 @@ public class PostMessage extends JarvisMessageAction<SlackModule> {
      * post the {@code message} to the given {@code channel}.
      *
      * @return {@code null}
-     * @throws IOException       if an error occurs when connecting to the Slack API
-     * @throws SlackApiException if the provided token does not authenticate the bot
+     * @throws IOException       if an I/O error occurred when sending the message
+     * @throws JarvisException if the provided token does not authenticate the bot
      */
     @Override
-    public Object compute() {
+    public Object compute() throws IOException {
         ChatPostMessageRequest request = ChatPostMessageRequest.builder()
                 .token(module.getSlackToken())
                 .channel(channel)
@@ -77,7 +77,7 @@ public class PostMessage extends JarvisMessageAction<SlackModule> {
                 Log.error("An error occurred when processing the request {0}: received response {1}", request,
                         response);
             }
-        } catch (IOException | SlackApiException e) {
+        } catch (SlackApiException e) {
             throw new JarvisException(MessageFormat.format("Cannot send the message {0} to the Slack API", request), e);
         }
         return null;
