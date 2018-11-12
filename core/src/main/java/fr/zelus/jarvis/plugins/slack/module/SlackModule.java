@@ -11,7 +11,7 @@ import static fr.zelus.jarvis.plugins.slack.JarvisSlackUtils.SLACK_TOKEN_KEY;
 import static java.util.Objects.nonNull;
 
 /**
- * A {@link JarvisModule} class that connect and interacts with the Slack API.
+ * A {@link JarvisModule} class that connects and interacts with the Slack API.
  * <p>
  * This module manages a connection to the Slack API, and provides a set of
  * {@link fr.zelus.jarvis.core.JarvisAction}s to interact with the Slack API:
