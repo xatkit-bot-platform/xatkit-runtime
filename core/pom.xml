@@ -78,6 +78,13 @@
             <artifactId>JDA</artifactId>
         </dependency>
 
+        <!-- Github -->
+
+        <dependency>
+            <groupId>com.jcabi</groupId>
+            <artifactId>jcabi-github</artifactId>
+        </dependency>
+
         <!-- Utils -->
 
         <dependency>
@@ -194,6 +201,19 @@
                 <groupId>net.dv8tion</groupId>
                 <artifactId>JDA</artifactId>
                 <version>${jda.version}</version>
+            </dependency>
+
+            <!-- Github -->
+            <dependency>
+                <groupId>com.jcabi</groupId>
+                <artifactId>jcabi-github</artifactId>
+                <version>0.41</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- Utils -->

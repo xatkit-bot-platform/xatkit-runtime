@@ -6800,4 +6800,10 @@
       </outContexts>
     </eventDefinitions>
   </eventProviderDefinitions>
+  <actions name="OpenIssue">
+    <parameters key="user"/>
+    <parameters key="repository"/>
+    <parameters key="issueTitle"/>
+    <parameters key="issueContent"/>
+  </actions>
 </module:Module>
