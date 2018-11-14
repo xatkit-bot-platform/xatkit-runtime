@@ -5,14 +5,14 @@ import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.core_modules.utils.ModulesLoaderUtils;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.io.EventProvider;
-import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.EventProviderDefinition;
-import fr.zelus.jarvis.module.Module;
-import fr.zelus.jarvis.module.ModulePackage;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
+import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.EventProviderDefinition;
+import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformPackage;
 import fr.zelus.jarvis.recognition.IntentRecognitionProvider;
 import fr.zelus.jarvis.recognition.IntentRecognitionProviderException;
 import fr.zelus.jarvis.recognition.IntentRecognitionProviderFactory;
@@ -81,9 +81,9 @@ public class JarvisCore {
      * The {@link Configuration} used to initialize this class.
      * <p>
      * This {@link Configuration} is used to load and initialize modules, see
-     * {@link #loadJarvisModuleFromModuleModel(Module)} for more information on module loading.
+     * {@link #loadJarvisModuleFromPlatformModel(Platform)} for more information on module loading.
      *
-     * @see #loadJarvisModuleFromModuleModel(Module)
+     * @see #loadJarvisModuleFromPlatformModel(Platform)
      */
     private Configuration configuration;
 
@@ -191,11 +191,11 @@ public class JarvisCore {
                 throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} from " +
                         "the orchestration model", eventProviderDefinition));
             }
-            Module eventProviderModule = (Module) eventProviderDefinition.eContainer();
-            JarvisModule eventProviderJarvisModule = this.jarvisModuleRegistry.getJarvisModule(eventProviderModule
+            Platform eventProviderPlatform = (Platform) eventProviderDefinition.eContainer();
+            JarvisModule eventProviderJarvisModule = this.jarvisModuleRegistry.getJarvisModule(eventProviderPlatform
                     .getName());
             if (isNull(eventProviderJarvisModule)) {
-                eventProviderJarvisModule = loadJarvisModuleFromModuleModel(eventProviderModule);
+                eventProviderJarvisModule = loadJarvisModuleFromPlatformModel(eventProviderPlatform);
                 this.jarvisModuleRegistry.registerJarvisModule(eventProviderJarvisModule);
             }
             eventProviderJarvisModule.startEventProvider(eventProviderDefinition);
@@ -229,10 +229,10 @@ public class JarvisCore {
                     throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
                             "from the orchestration model", action));
                 }
-                Module module = (Module) action.eContainer();
-                JarvisModule jarvisModule = this.jarvisModuleRegistry.getJarvisModule(module.getName());
+                Platform platform = (Platform) action.eContainer();
+                JarvisModule jarvisModule = this.jarvisModuleRegistry.getJarvisModule(platform.getName());
                 if (isNull(jarvisModule)) {
-                    jarvisModule = loadJarvisModuleFromModuleModel(module);
+                    jarvisModule = loadJarvisModuleFromPlatformModel(platform);
                     this.jarvisModuleRegistry.registerJarvisModule(jarvisModule);
                 }
                 jarvisModule.enableAction(action);
@@ -350,10 +350,10 @@ public class JarvisCore {
                 ());
         resourceSet.getPackageRegistry().put(OrchestrationPackage.eNS_URI, OrchestrationPackage.eINSTANCE);
         resourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
-        resourceSet.getPackageRegistry().put(ModulePackage.eNS_URI, ModulePackage.eINSTANCE);
+        resourceSet.getPackageRegistry().put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
 
         Log.info("Loading Jarvis core modules");
-        URL url = this.getClass().getClassLoader().getResource("modules/");
+        URL url = this.getClass().getClassLoader().getResource("modules/xmi/");
         java.net.URI uri;
         try {
             uri = url.toURI();
@@ -398,9 +398,9 @@ public class JarvisCore {
                             .getFileName().toString()));
                     Resource moduleResource = resourceSet.createResource(modulePathmapURI);
                     moduleResource.load(is, Collections.emptyMap());
-                    Module module = (Module) moduleResource.getContents().get(0);
+                    Platform platform = (Platform) moduleResource.getContents().get(0);
                     is.close();
-                    Log.info("Module {0} loaded", module.getName());
+                    Log.info("Module {0} loaded", platform.getName());
                 } catch (IOException e) {
                     throw new JarvisException(MessageFormat.format("An error occurred when loading the module {0}, " +
                             "see attached exception", modulePath), e);
@@ -424,8 +424,8 @@ public class JarvisCore {
                     URI moduleFileURI = URI.createFileURI(moduleFile.getAbsolutePath());
                     resourceSet.getURIConverter().getURIMap().put(modulePathmapURI, moduleFileURI);
                     Resource moduleResource = resourceSet.getResource(moduleFileURI, true);
-                    Module module = (Module) moduleResource.getContents().get(0);
-                    Log.info("Module {0} loaded", module.getName());
+                    Platform platform = (Platform) moduleResource.getContents().get(0);
+                    Log.info("Module {0} loaded", platform.getName());
                 } else {
                     throw new JarvisException(MessageFormat.format("Cannot load the custom module {0}, the provided " +
                             "path {1} is not a valid file", modulePath, modulePath));
@@ -439,21 +439,21 @@ public class JarvisCore {
     }
 
     /**
-     * Loads the {@link JarvisModule} defined by the provided {@link Module} definition.
+     * Loads the {@link JarvisModule} defined by the provided {@link Platform} definition.
      * <p>
-     * This method searches in the classpath a {@link Class} matching the input {@link Module#getJarvisModulePath()}
+     * This method searches in the classpath a {@link Class} matching the input {@link Platform#getRuntimePath()}
      * value and calls its default constructor.
      *
-     * @param moduleModel the jarvis {@link Module} definition to load
+     * @param platformModel the jarvis {@link Platform} definition to load
      * @return an instance of the loaded {@link JarvisModule}
      * @throws JarvisException if their is no {@link Class} matching the provided {@code moduleModel} or if the
      *                         {@link JarvisModule} can not be constructed
-     * @see Module
+     * @see Platform
      * @see JarvisModule
      */
-    private JarvisModule loadJarvisModuleFromModuleModel(Module moduleModel) throws JarvisException {
-        Log.info("Loading JarvisModule {0}", moduleModel.getName());
-        Class<? extends JarvisModule> jarvisModuleClass = Loader.loadClass(moduleModel.getJarvisModulePath(),
+    private JarvisModule loadJarvisModuleFromPlatformModel(Platform platformModel) throws JarvisException {
+        Log.info("Loading JarvisModule {0}", platformModel.getName());
+        Class<? extends JarvisModule> jarvisModuleClass = Loader.loadClass(platformModel.getRuntimePath(),
                 JarvisModule.class);
         return Loader.constructJarvisModule(jarvisModuleClass, this, configuration);
     }

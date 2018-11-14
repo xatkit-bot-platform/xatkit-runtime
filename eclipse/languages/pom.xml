@@ -27,7 +27,7 @@
     </properties>
 
     <modules>
-        <module>module/fr.zelus.jarvis.language.module.parent</module>
+        <module>platform/fr.zelus.jarvis.language.platform.parent</module>
         <module>orchestration/fr.zelus.jarvis.language.orchestration.parent</module>
     </modules>
 

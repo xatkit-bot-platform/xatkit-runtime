@@ -1,0 +1,9 @@
+Platform LogModule
+
+path "fr.zelus.jarvis.plugins.log.module.LogModule"
+
+actions {
+	LogInfo(message)
+	LogWarning(message)
+	LogError(message)
+}

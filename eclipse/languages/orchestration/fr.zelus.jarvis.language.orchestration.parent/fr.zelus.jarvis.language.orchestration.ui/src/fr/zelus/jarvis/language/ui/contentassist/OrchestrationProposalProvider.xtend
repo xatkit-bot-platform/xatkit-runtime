@@ -9,10 +9,10 @@ import org.eclipse.xtext.RuleCall
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.eclipse.xtext.Assignment
-import fr.zelus.jarvis.language.util.ModuleRegistry
 import fr.zelus.jarvis.orchestration.OrchestrationModel
 import static java.util.Objects.isNull
-import fr.zelus.jarvis.module.Module
+import fr.zelus.jarvis.language.util.PlatformRegistry
+import fr.zelus.jarvis.platform.Platform
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -22,8 +22,8 @@ class OrchestrationProposalProvider extends AbstractOrchestrationProposalProvide
 
 	override completeOrchestrationModel_EventProviderDefinitions(EObject model, Assignment assignment,
 		ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
-		var modules = ModuleRegistry.instance.loadOrchestrationModelModules(model as OrchestrationModel)
-		modules.map[m|m.eventProviderDefinitions.map[i|i.name]].flatten.forEach [ iName |
+		var platforms = PlatformRegistry.getInstance.loadOrchestrationModelPlatforms(model as OrchestrationModel)
+		platforms.map[m|m.eventProviderDefinitions.map[i|i.name]].flatten.forEach [ iName |
 			acceptor.accept(createCompletionProposal(iName, context))
 		]
 		super.completeOrchestrationModel_EventProviderDefinitions(model, assignment, context, acceptor)
@@ -31,11 +31,11 @@ class OrchestrationProposalProvider extends AbstractOrchestrationProposalProvide
 
 	override completeOrchestrationLink_Event(EObject model, Assignment assignment, ContentAssistContext context,
 		ICompletionProposalAcceptor acceptor) {
-		var modules = ModuleRegistry.instance.loadOrchestrationModelModules(model.eContainer as OrchestrationModel)
-		modules.map[m|m.intentDefinitions.map[i|i.name]].flatten.forEach [ iName |
+		var platforms = PlatformRegistry.getInstance.loadOrchestrationModelPlatforms(model.eContainer as OrchestrationModel)
+		platforms.map[m|m.intentDefinitions.map[i|i.name]].flatten.forEach [ iName |
 			acceptor.accept(createCompletionProposal(iName, context))
 		]
-		modules.map[m|m.eventProviderDefinitions.map[e|e.eventDefinitions.map[ed|ed.name]].flatten].flatten.forEach [ edName |
+		platforms.map[m|m.eventProviderDefinitions.map[e|e.eventDefinitions.map[ed|ed.name]].flatten].flatten.forEach [ edName |
 			acceptor.accept(createCompletionProposal(edName, context))
 		]
 		super.completeOrchestrationLink_Event(model, assignment, context, acceptor)
@@ -56,9 +56,9 @@ class OrchestrationProposalProvider extends AbstractOrchestrationProposalProvide
 				orchestrationModel = currentObject
 			}
 		}
-		val modules = ModuleRegistry.instance.loadOrchestrationModelModules(orchestrationModel)
-		modules.map[m|m.actions].flatten.forEach [ a |
-			var String prefix = (a.eContainer as Module).name + ".";
+		val platforms = PlatformRegistry.getInstance.loadOrchestrationModelPlatforms(orchestrationModel)
+		platforms.map[m|m.actions].flatten.forEach [ a |
+			var String prefix = (a.eContainer as Platform).name + ".";
 			var parameterString = ""
 			if(!a.parameters.empty) {
 				parameterString += '('

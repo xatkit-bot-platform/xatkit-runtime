@@ -34,7 +34,7 @@ Workflow {
 			fileExtensions = "orchestration"
 			referencedResource = "platform:/resource/fr.zelus.jarvis.orchestration/model/orchestration.xcore"
 			referencedResource = "platform:/resource/fr.zelus.jarvis.intent/model/intent.xcore"
-			referencedResource = "platform:/resource/fr.zelus.jarvis.module/model/module.xcore"
+			referencedResource = "platform:/resource/fr.zelus.jarvis.platform/model/platform.xcore"
 			fragment = ecore2xtext.Ecore2XtextValueConverterServiceFragment2 auto-inject {}
 
 			formatter = {

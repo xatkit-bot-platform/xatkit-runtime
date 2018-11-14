@@ -3,8 +3,6 @@
  */
 package fr.zelus.jarvis.language.validation
 
-import fr.zelus.jarvis.language.util.ModuleRegistry
-import fr.zelus.jarvis.module.Parameter
 import fr.zelus.jarvis.orchestration.ActionInstance
 import fr.zelus.jarvis.orchestration.OrchestrationModel
 import fr.zelus.jarvis.orchestration.OrchestrationPackage
@@ -12,6 +10,8 @@ import java.io.IOException
 import org.eclipse.xtext.validation.Check
 import org.eclipse.emf.ecore.resource.Resource
 import static java.util.Objects.isNull
+import fr.zelus.jarvis.language.util.PlatformRegistry
+import fr.zelus.jarvis.platform.Parameter
 
 /**
  * This class contains custom validation rules. 
@@ -24,7 +24,7 @@ class OrchestrationValidator extends AbstractOrchestrationValidator {
 	def checkOrchestrationModelValidImports(OrchestrationModel model) {
 		model.imports.forEach[i | 
 			println("Checking import " + i)
-			var Resource moduleResource =ModuleRegistry.instance.loadModule(i)
+			var Resource moduleResource =PlatformRegistry.getInstance.loadPlatform(i)
 			if(isNull(moduleResource)) {
 				error('Module ' + i + "does not exist", OrchestrationPackage.Literals.ORCHESTRATION_MODEL__IMPORTS)
 			}

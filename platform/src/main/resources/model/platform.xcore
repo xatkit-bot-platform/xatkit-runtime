@@ -1,0 +1,33 @@
+@Ecore(nsURI="fr.zelus.jarvis.platform")
+@GenModel(modelDirectory="/platform/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8
+.0")
+package fr.zelus.jarvis.platform
+
+import fr.zelus.jarvis.intent.EventDefinition
+import fr.zelus.jarvis.intent.IntentDefinition
+
+class Platform {
+    String name
+    String runtimePath
+    contains EventProviderDefinition[] eventProviderDefinitions
+    contains IntentDefinition[] intentDefinitions
+	contains Action[] actions
+}
+
+class EventProviderDefinition {
+    String name
+    contains EventDefinition[] eventDefinitions
+}
+
+class InputProviderDefinition extends EventProviderDefinition {
+
+}
+
+class Action {
+	String name
+	contains Parameter[] parameters
+}
+
+class Parameter {
+    String key
+}

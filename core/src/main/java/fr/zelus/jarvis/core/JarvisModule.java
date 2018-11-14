@@ -6,10 +6,10 @@ import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.io.WebhookEventProvider;
-import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.EventProviderDefinition;
-import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.*;
+import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.EventProviderDefinition;
+import fr.zelus.jarvis.platform.Parameter;
 import fr.zelus.jarvis.server.JarvisServer;
 import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -27,7 +27,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * The concrete implementation of a {@link fr.zelus.jarvis.module.Module} definition.
+ * The concrete implementation of a {@link fr.zelus.jarvis.platform.Platform} definition.
  * <p>
  * A {@link JarvisModule} manages a set of {@link JarvisAction}s that represent the concrete actions that can
  * be executed by the module. This class provides primitives to enable/disable specific actions, and construct

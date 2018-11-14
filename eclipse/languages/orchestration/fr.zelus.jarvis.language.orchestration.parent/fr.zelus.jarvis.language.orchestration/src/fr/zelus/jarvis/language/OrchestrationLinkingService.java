@@ -3,7 +3,6 @@ package fr.zelus.jarvis.language;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,16 +17,16 @@ import org.eclipse.xtext.nodemodel.INode;
 
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.language.util.ModuleRegistry;
-import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.EventProviderDefinition;
-import fr.zelus.jarvis.module.Module;
-import fr.zelus.jarvis.module.Parameter;
+import fr.zelus.jarvis.language.util.PlatformRegistry;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
 import fr.zelus.jarvis.orchestration.ParameterValue;
+import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.EventProviderDefinition;
+import fr.zelus.jarvis.platform.Parameter;
+import fr.zelus.jarvis.platform.Platform;
 
 public class OrchestrationLinkingService extends DefaultLinkingService {
 
@@ -43,13 +42,13 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 		if (context instanceof OrchestrationModel) {
 			if (ref.equals(OrchestrationPackage.eINSTANCE.getOrchestrationModel_EventProviderDefinitions())) {
 				/*
-				 * Trying to retrieve an InputProvider from a loaded module
+				 * Trying to retrieve an InputProvider from a loaded platform
 				 */
-				Collection<Module> modules = ModuleRegistry.getInstance()
-						.loadOrchestrationModelModules((OrchestrationModel) context);
-				System.out.println("found " + modules.size() + " modules");
-				for (Module module : modules) {
-					for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+				Collection<Platform> platforms = PlatformRegistry.getInstance()
+						.loadOrchestrationModelPlatforms((OrchestrationModel) context);
+				System.out.println("found " + platforms.size() + " platforms");
+				for (Platform platform : platforms) {
+					for (EventProviderDefinition eventProviderDefinition : platform.getEventProviderDefinitions()) {
 						System.out.println("comparing EventProvider " + eventProviderDefinition.getName());
 						System.out.println("Node text: " + node.getText());
 						if (eventProviderDefinition.getName().equals(node.getText())) {
@@ -64,23 +63,23 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 		} else if (context instanceof OrchestrationLink) {
 			if (ref.equals(OrchestrationPackage.eINSTANCE.getOrchestrationLink_Event())) {
 				/*
-				 * Trying to retrieve an Event from a loaded module
+				 * Trying to retrieve an Event from a loaded platform
 				 */
-				Collection<Module> modules = ModuleRegistry.getInstance()
-						.loadOrchestrationModelModules((OrchestrationModel) context.eContainer());
-				System.out.println("found " + modules.size() + "modules");
-				for (Module module : modules) {
-					for (IntentDefinition intentDefinition : module.getIntentDefinitions()) {
+				Collection<Platform> platforms = PlatformRegistry.getInstance()
+						.loadOrchestrationModelPlatforms((OrchestrationModel) context.eContainer());
+				System.out.println("found " + platforms.size() + "platforms");
+				for (Platform platform : platforms) {
+					for (IntentDefinition intentDefinition : platform.getIntentDefinitions()) {
 						System.out.println("comparing Intent " + intentDefinition.getName());
 						System.out.println("Node text: " + node.getText());
 						if (intentDefinition.getName().equals(node.getText())) {
 							return Arrays.asList(intentDefinition);
 						}
 					}
-					for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+					for (EventProviderDefinition eventProviderDefinition : platform.getEventProviderDefinitions()) {
 						for (EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
 							System.out.println("comparing Event " + eventDefinition.getName());
-							System.out.println("Note text: " + node.getText());
+							System.out.println("Node text: " + node.getText());
 							if (eventDefinition.getName().equals(node.getText())) {
 								return Arrays.asList(eventDefinition);
 							}
@@ -94,7 +93,7 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 		} else if (context instanceof ActionInstance) {
 			if (ref.equals(OrchestrationPackage.eINSTANCE.getActionInstance_Action())) {
 				/*
-				 * Trying to retrieve an Action from a loaded module
+				 * Trying to retrieve an Action from a loaded platform
 				 */
 				OrchestrationModel orchestrationModel = null;
 				EObject currentObject = context;
@@ -107,17 +106,17 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				String[] splittedActionName = node.getText().trim().split("\\.");
 				if (splittedActionName.length != 2) {
 					System.out.println(MessageFormat.format(
-							"Cannot handle the action {0}, expecting a qualified name <Module>.<Action>",
+							"Cannot handle the action {0}, expecting a qualified name <Platform>.<Action>",
 							node.getText().trim()));
 					return Collections.emptyList();
 				}
-				String moduleName = splittedActionName[0];
+				String platformName = splittedActionName[0];
 				String actionName = splittedActionName[1];
-				Collection<Module> modules = ModuleRegistry.getInstance()
-						.loadOrchestrationModelModules(orchestrationModel);
-				for (Module module : modules) {
-					if(module.getName().equals(moduleName)) {
-						for (Action action : module.getActions()) {
+				Collection<Platform> platforms = PlatformRegistry.getInstance()
+						.loadOrchestrationModelPlatforms(orchestrationModel);
+				for (Platform platform : platforms) {
+					if(platform.getName().equals(platformName)) {
+						for (Action action : platform.getActions()) {
 							if (action.getName().equals(actionName)) {
 								return Arrays.asList(action);
 							}
@@ -142,7 +141,7 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 					System.out.println("Cannot retrieve the Action associated to " + actionInstance);
 				}
 				/*
-				 * First look for the parameters in the defined containing Action. For modules containing multiple
+				 * First look for the parameters in the defined containing Action. For platform containing multiple
 				 * Actions with the same name (i.e. same JarvisAction but different constructors) this iteration can
 				 * fail, because the inferred Action was not right.
 				 */
@@ -158,22 +157,22 @@ public class OrchestrationLinkingService extends DefaultLinkingService {
 				 * name and check their parameters. If such Action is found all the defined ParameterValues of this
 				 * ActionInstance are processed and updated to fit the new parent Action.
 				 */
-				Module module = (Module) action.eContainer();
-				if (isNull(module)) {
+				Platform platform = (Platform) action.eContainer();
+				if (isNull(platform)) {
 					/*
-					 * The Module may be null if there is an issue when loading the import. In that case we can ignore
+					 * The platform may be null if there is an issue when loading the import. In that case we can ignore
 					 * the linking, the model is false anyway
 					 */
 					return Collections.emptyList();
 				}
 				Parameter result = null;
-				for (Action moduleAction : module.getActions()) {
-					if (!moduleAction.equals(action) && moduleAction.getName().equals(action.getName())) {
-						for (Parameter p : moduleAction.getParameters()) {
+				for (Action platformAction : platform.getActions()) {
+					if (!platformAction.equals(action) && platformAction.getName().equals(action.getName())) {
+						for (Parameter p : platformAction.getParameters()) {
 							if (p.getKey().equals(node.getText())) {
 								System.out.println("Found the parameter " + p.getKey() + " in a variant "
 										+ action.getName() + " returning it and updating the action instance");
-								actionInstance.setAction(moduleAction);
+								actionInstance.setAction(platformAction);
 								result = p;
 							}
 						}

@@ -2,10 +2,10 @@
 @GenModel(modelDirectory="/orchestration/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
 package fr.zelus.jarvis.orchestration
 
-import fr.zelus.jarvis.module.Action
-import fr.zelus.jarvis.module.EventProviderDefinition
+import fr.zelus.jarvis.platform.Action
+import fr.zelus.jarvis.platform.EventProviderDefinition
 import fr.zelus.jarvis.intent.EventDefinition
-import fr.zelus.jarvis.module.Parameter
+import fr.zelus.jarvis.platform.Parameter
 
 class OrchestrationModel {
     refers EventProviderDefinition[] eventProviderDefinitions

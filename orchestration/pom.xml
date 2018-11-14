@@ -34,7 +34,7 @@
 
         <dependency>
             <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>module</artifactId>
+            <artifactId>platform</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -84,7 +84,7 @@
                         </Embed-Dependency>
                         <Require-Bundle>
                             fr.zelus.jarvis.intent;visibility:=reexport,
-                            fr.zelus.jarvis.module;visibility:=reexport,
+                            fr.zelus.jarvis.platform;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>

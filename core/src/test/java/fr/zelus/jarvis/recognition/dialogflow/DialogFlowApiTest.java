@@ -7,14 +7,14 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.InputProviderDefinition;
-import fr.zelus.jarvis.module.Module;
-import fr.zelus.jarvis.module.ModuleFactory;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.InputProviderDefinition;
+import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformFactory;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -57,7 +57,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
      */
     private IntentDefinition registeredIntentDefinition;
 
-    // not tested here, only instantiated to enable IntentDefinition registration and Module retrieval
+    // not tested here, only instantiated to enable IntentDefinition registration and Platform retrieval
     protected static JarvisCore jarvisCore;
 
     private static Configuration buildConfiguration(String projectId, String languageCode) {
@@ -73,20 +73,20 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        Module stubModule = ModuleFactory.eINSTANCE.createModule();
-        stubModule.setName("StubJarvisModule");
-        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModule");
-        Action stubAction = ModuleFactory.eINSTANCE.createAction();
+        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
+        stubPlatform.setName("StubJarvisModule");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        Action stubAction = PlatformFactory.eINSTANCE.createAction();
         stubAction.setName("StubJarvisAction");
         // No parameters, keep it simple
-        stubModule.getActions().add(stubAction);
-        InputProviderDefinition stubInputProvider = ModuleFactory.eINSTANCE.createInputProviderDefinition();
+        stubPlatform.getActions().add(stubAction);
+        InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
-        stubModule.getEventProviderDefinitions().add(stubInputProvider);
+        stubPlatform.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
-        stubModule.getIntentDefinitions().add(stubIntentDefinition);
+        stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
         OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
         OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
         link.setEvent(stubIntentDefinition);

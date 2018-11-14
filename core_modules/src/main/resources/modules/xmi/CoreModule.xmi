@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ASCII"?>
+<platform:Platform xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="fr.zelus.jarvis.platform" name="CoreModule" runtimePath="fr.zelus.jarvis.plugins.core.module.CoreModule">
+  <intentDefinitions name="Default_Fallback_Intent">
+    <trainingSentences></trainingSentences>
+  </intentDefinitions>
+  <intentDefinitions name="Default_Welcome_Intent">
+    <trainingSentences></trainingSentences>
+  </intentDefinitions>
+  <intentDefinitions name="WhatTimeIsIt">
+    <outContexts name="WhatTimeIsIt"/>
+    <trainingSentences>what time is it?</trainingSentences>
+  </intentDefinitions>
+  <intentDefinitions name="WhatDateIsIt">
+    <outContexts name="WhatDateIsIt"/>
+    <trainingSentences>what is today's date?</trainingSentences>
+  </intentDefinitions>
+  <actions name="GetTime"/>
+  <actions name="GetDate"/>
+</platform:Platform>

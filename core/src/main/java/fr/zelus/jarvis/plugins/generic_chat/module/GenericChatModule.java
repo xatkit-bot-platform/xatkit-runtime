@@ -7,8 +7,8 @@ import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.JarvisModule;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.module.Action;
 import fr.zelus.jarvis.orchestration.*;
+import fr.zelus.jarvis.platform.Action;
 import fr.zelus.jarvis.plugins.generic_chat.module.action.GenericChatAction;
 import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.Configuration;
@@ -185,7 +185,7 @@ public class GenericChatModule extends JarvisModule {
      * {@link JarvisModule#createJarvisAction(ActionInstance, JarvisSession)} method with the provided {@code
      * actionInstance} and {@code session}. The returned {@link JarvisAction}s are then wrapped into a
      * {@link GenericChatAction} that takes care of executing them through the regular
-     * {@link JarvisCore#handleEvent(EventInstance, JarvisSession)} process.
+     * {@link fr.zelus.jarvis.core.OrchestrationService#handleEventInstance(EventInstance, JarvisSession)} process.
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link JarvisAction} to create
      * @param session        the {@link JarvisSession} associated to the action

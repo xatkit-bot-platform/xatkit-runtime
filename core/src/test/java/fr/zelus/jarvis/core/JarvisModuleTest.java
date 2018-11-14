@@ -3,11 +3,11 @@ package fr.zelus.jarvis.core;
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.io.WebhookEventProvider;
-import fr.zelus.jarvis.module.Action;
-import fr.zelus.jarvis.module.EventProviderDefinition;
-import fr.zelus.jarvis.module.ModuleFactory;
-import fr.zelus.jarvis.module.Parameter;
 import fr.zelus.jarvis.orchestration.*;
+import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.EventProviderDefinition;
+import fr.zelus.jarvis.platform.Parameter;
+import fr.zelus.jarvis.platform.PlatformFactory;
 import fr.zelus.jarvis.server.JarvisServer;
 import fr.zelus.jarvis.stubs.EmptyJarvisModule;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
@@ -89,14 +89,14 @@ public class JarvisModuleTest extends AbstractJarvisTest {
 
     @Test(expected = JarvisException.class)
     public void startEventProviderInvalidName() {
-        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("Test");
         module.startEventProvider(eventProviderDefinition);
     }
 
     @Test
     public void startValidEventProviderNotWebhook() {
-        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProvider");
         module.startEventProvider(eventProviderDefinition);
         assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
@@ -113,7 +113,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
 
     @Test
     public void startValidEventProviderNotWebhookNoConfigurationConstructor() {
-        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProviderNoConfigurationConstructor");
         module.startEventProvider(eventProviderDefinition);
         assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
@@ -130,7 +130,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
 
     @Test
     public void startValidEventProviderWebhook() {
-        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubJsonWebhookEventProvider");
         module.startEventProvider(eventProviderDefinition);
         assertThat(module.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
@@ -226,7 +226,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     public void createJarvisActionTooManyParametersInAction() {
         Action action = getNoParameterAction();
         ActionInstance actionInstance = createActionInstanceFor(action);
-        Parameter param = ModuleFactory.eINSTANCE.createParameter();
+        Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         action.getParameters().add(param);
         ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
@@ -242,7 +242,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     public void createJarvisActionTooManyParametersInActionInstance() {
         Action action = getNoParameterAction();
         ActionInstance actionInstance = createActionInstanceFor(action);
-        Parameter param = ModuleFactory.eINSTANCE.createParameter();
+        Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         // Do not attach the Parameter to the Action
         ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
@@ -339,7 +339,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     @Test(expected = JarvisException.class)
     public void createJarvisParameterActionTooManyParametersInActionInstance() {
         Action action = getParameterAction();
-        Parameter param2 = ModuleFactory.eINSTANCE.createParameter();
+        Parameter param2 = PlatformFactory.eINSTANCE.createParameter();
         param2.setKey("param2");
         action.getParameters().add(param2);
         ActionInstance actionInstance = createActionInstanceFor(action);
@@ -370,7 +370,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
 
     @Test
     public void shutdownRegisteredEventProviderAndAction() {
-        EventProviderDefinition eventProviderDefinition = ModuleFactory.eINSTANCE.createEventProviderDefinition();
+        EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProvider");
         module.startEventProvider(eventProviderDefinition);
         Action action = getNoParameterAction();
@@ -382,15 +382,15 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     }
 
     private Action getNoParameterAction() {
-        Action action = ModuleFactory.eINSTANCE.createAction();
+        Action action = PlatformFactory.eINSTANCE.createAction();
         action.setName("StubJarvisActionNoParameter");
         return action;
     }
 
     private Action getParameterAction() {
-        Action action = ModuleFactory.eINSTANCE.createAction();
+        Action action = PlatformFactory.eINSTANCE.createAction();
         action.setName("StubJarvisActionTwoConstructors");
-        Parameter param = ModuleFactory.eINSTANCE.createParameter();
+        Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("param");
         action.getParameters().add(param);
         return action;
@@ -404,7 +404,7 @@ public class JarvisModuleTest extends AbstractJarvisTest {
     }
 
     private Action getNotRegisteredAction() {
-        Action action = ModuleFactory.eINSTANCE.createAction();
+        Action action = PlatformFactory.eINSTANCE.createAction();
         action.setName("NotRegisteredAction");
         return action;
     }

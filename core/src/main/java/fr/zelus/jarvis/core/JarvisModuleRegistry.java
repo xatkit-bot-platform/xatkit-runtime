@@ -1,6 +1,6 @@
 package fr.zelus.jarvis.core;
 
-import fr.zelus.jarvis.module.Module;
+import fr.zelus.jarvis.platform.Platform;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -71,14 +71,14 @@ public class JarvisModuleRegistry {
     /**
      * Returns the {@link JarvisModule} associated to the provided {@code moduleDefinition}.
      * <p>
-     * The provided {@link Module} should follow jarvis' naming conventions, and provide a {@link Module#getName()}
+     * The provided {@link Platform} should follow jarvis' naming conventions, and provide a {@link Platform#getName()}
      * method that returns the name of the concrete {@link JarvisModule} class to retrieve.
      *
-     * @param moduleDefiniton the {@link Module} representing the {@link JarvisModule} to retrieve
+     * @param platformDefinition the {@link Platform} representing the {@link JarvisModule} to retrieve
      * @return the {@link JarvisModule} associated to the provided {@code moduleDefinition}
      */
-    public JarvisModule getJarvisModule(Module moduleDefiniton) {
-        return this.moduleMap.get(moduleDefiniton.getName());
+    public JarvisModule getJarvisModule(Platform platformDefinition) {
+        return this.moduleMap.get(platformDefinition.getName());
     }
 
     /**

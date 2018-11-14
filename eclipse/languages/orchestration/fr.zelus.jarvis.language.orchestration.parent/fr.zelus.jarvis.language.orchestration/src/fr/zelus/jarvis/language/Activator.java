@@ -5,8 +5,8 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 import fr.zelus.jarvis.intent.IntentPackage;
-import fr.zelus.jarvis.module.ModulePackage;
 import fr.zelus.jarvis.orchestration.OrchestrationPackage;
+import fr.zelus.jarvis.platform.PlatformPackage;
 
 /**
  * Starts the orchestration plugin and registers the related metamodels.
@@ -30,7 +30,7 @@ public class Activator implements BundleActivator {
 	public void start(BundleContext context) throws Exception {
 		System.out.println("Registering EPackages (Activator)");
 		EPackage.Registry.INSTANCE.put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
-		EPackage.Registry.INSTANCE.put(ModulePackage.eNS_URI, ModulePackage.eINSTANCE);
+		EPackage.Registry.INSTANCE.put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
 		EPackage.Registry.INSTANCE.put(OrchestrationPackage.eNS_URI, OrchestrationPackage.eINSTANCE);
 
 	}

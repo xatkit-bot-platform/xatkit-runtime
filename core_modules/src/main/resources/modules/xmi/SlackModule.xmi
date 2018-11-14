@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ASCII"?>
+<platform:Platform xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:platform="fr.zelus.jarvis.platform" name="SlackModule" runtimePath="fr.zelus.jarvis.plugins.slack.module.SlackModule">
+  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="SlackIntentProvider"/>
+  <actions name="PostMessage">
+    <parameters key="message"/>
+    <parameters key="channel"/>
+  </actions>
+  <actions name="Reply">
+    <parameters key="message"/>
+  </actions>
+  <actions name="PostFileMessage">
+    <parameters key="message"/>
+    <parameters key="file"/>
+    <parameters key="channel"/>
+  </actions>
+  <actions name="PostFileMessage">
+    <parameters key="title"/>
+    <parameters key="message"/>
+    <parameters key="content"/>
+    <parameters key="channel"/>
+  </actions>
+  <actions name="ReplyFileMessage">
+    <parameters key="message"/>
+    <parameters key="file"/>
+  </actions>
+</platform:Platform>

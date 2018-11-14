@@ -5,11 +5,11 @@ import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.core_modules.utils.ModulesLoaderUtils;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.module.*;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationFactory;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import fr.zelus.jarvis.platform.*;
 import fr.zelus.jarvis.recognition.DefaultIntentRecognitionProvider;
 import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
@@ -46,20 +46,20 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
-        Module stubModule = ModuleFactory.eINSTANCE.createModule();
-        stubModule.setName("StubJarvisModule");
-        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModule");
-        Action stubAction = ModuleFactory.eINSTANCE.createAction();
+        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
+        stubPlatform.setName("StubJarvisModule");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        Action stubAction = PlatformFactory.eINSTANCE.createAction();
         stubAction.setName("StubJarvisAction");
         // No parameters, keep it simple
-        stubModule.getActions().add(stubAction);
-        InputProviderDefinition stubInputProvider = ModuleFactory.eINSTANCE.createInputProviderDefinition();
+        stubPlatform.getActions().add(stubAction);
+        InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
-        stubModule.getEventProviderDefinitions().add(stubInputProvider);
+        stubPlatform.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
-        stubModule.getIntentDefinitions().add(stubIntentDefinition);
+        stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
         VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
         OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
         link.setEvent(stubIntentDefinition);
@@ -77,7 +77,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Resource testIntentResource = testResourceSet.createResource(URI.createURI("/tmp/jarvisTestIntentResource" +
                 ".xmi"));
         testIntentResource.getContents().clear();
-        testIntentResource.getContents().add(stubModule);
+        testIntentResource.getContents().add(stubPlatform);
         testIntentResource.save(Collections.emptyMap());
 
         Resource testOrchestrationResource = testResourceSet.createResource(URI.createURI
@@ -182,20 +182,20 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * Use another OrchestrationModel linking to the StubJarvisModuleJarvisCoreConstructor stub class, that only
          * defines a default constructor.
          */
-        Module stubModule = ModuleFactory.eINSTANCE.createModule();
-        stubModule.setName("StubJarvisModuleJarvisCoreConstructor");
-        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.StubJarvisModuleJarvisCoreConstructor");
-        Action stubAction = ModuleFactory.eINSTANCE.createAction();
+        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
+        stubPlatform.setName("StubJarvisModuleJarvisCoreConstructor");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubJarvisModuleJarvisCoreConstructor");
+        Action stubAction = PlatformFactory.eINSTANCE.createAction();
         stubAction.setName("StubJarvisAction");
         // No parameters, keep it simple
-        stubModule.getActions().add(stubAction);
-        InputProviderDefinition stubInputProvider = ModuleFactory.eINSTANCE.createInputProviderDefinition();
+        stubPlatform.getActions().add(stubAction);
+        InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
-        stubModule.getEventProviderDefinitions().add(stubInputProvider);
+        stubPlatform.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
-        stubModule.getIntentDefinitions().add(stubIntentDefinition);
+        stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
         OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
         OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
         link.setEvent(stubIntentDefinition);
@@ -209,13 +209,13 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @Test
     public void constructValidWebhookEventProvider() {
-        Module stubModule = ModuleFactory.eINSTANCE.createModule();
-        stubModule.setName("EmptyJarvisModule");
-        stubModule.setJarvisModulePath("fr.zelus.jarvis.stubs.EmptyJarvisModule");
-        EventProviderDefinition stubWebhookEventProviderDefinition = ModuleFactory.eINSTANCE
+        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
+        stubPlatform.setName("EmptyJarvisModule");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.EmptyJarvisModule");
+        EventProviderDefinition stubWebhookEventProviderDefinition = PlatformFactory.eINSTANCE
                 .createEventProviderDefinition();
         stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");
-        stubModule.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
+        stubPlatform.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
         orchestrationModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel));

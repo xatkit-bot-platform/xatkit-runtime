@@ -6,10 +6,10 @@ import fr.zelus.jarvis.intent.ContextInstance;
 import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.module.Module;
 import fr.zelus.jarvis.orchestration.ActionInstance;
 import fr.zelus.jarvis.orchestration.OrchestrationLink;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
+import fr.zelus.jarvis.platform.Platform;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import java.util.Collections;
@@ -230,7 +230,7 @@ public class OrchestrationService {
      * @return the constructed {@link JarvisAction}
      */
     private JarvisAction getJarvisActionFromActionInstance(ActionInstance actionInstance, JarvisSession session) {
-        JarvisModule jarvisModule = this.getJarvisModuleRegistry().getJarvisModule((Module) actionInstance
+        JarvisModule jarvisModule = this.getJarvisModuleRegistry().getJarvisModule((Platform) actionInstance
                 .getAction().eContainer());
         return jarvisModule.createJarvisAction(actionInstance, session);
     }

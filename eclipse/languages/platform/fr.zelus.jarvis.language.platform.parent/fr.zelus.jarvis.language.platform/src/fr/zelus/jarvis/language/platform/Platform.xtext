@@ -1,0 +1,104 @@
+grammar fr.zelus.jarvis.language.platform.Platform with org.eclipse.xtext.common.Terminals
+
+import "fr.zelus.jarvis.platform" 
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+import "fr.zelus.jarvis.intent" as intent
+
+Platform returns Platform:
+	{Platform}
+	'Platform' name=EString
+	'path' runtimePath=EString
+	('providers' '{'
+		eventProviderDefinitions+=(InputProviderDefinition|EventProviderDefinition)
+		(eventProviderDefinitions+=(InputProviderDefinition|EventProviderDefinition))*
+	'}')?
+	('intents' '{'
+		intentDefinitions+=IntentDefinition
+		(intentDefinitions+=IntentDefinition)*
+	'}')?
+	('actions' '{' 
+		actions+=Action 
+		(actions+=Action)* 
+	'}')?
+	;
+	
+EventProviderDefinition returns EventProviderDefinition:
+	{EventProviderDefinition}
+	'event' name=EString
+	'{'
+		(eventDefinitions+=EventDefinition)*
+	'}'
+;
+
+EventDefinition returns intent::EventDefinition:
+	{intent::EventDefinition}
+	name=EString
+	(outContexts+=OutContextDefinition)?
+;
+	
+InputProviderDefinition returns InputProviderDefinition:
+	{InputProviderDefinition}
+	'input' name=EString 
+;
+
+IntentDefinition returns intent::IntentDefinition:
+	{intent::IntentDefinition}
+	name=EString ('follows' follows=[intent::IntentDefinition|ID])?
+	'{'
+		'inputs' '{'
+			trainingSentences+=EString (trainingSentences+=EString)*
+		'}'
+		(inContexts+=InContextDefinition)*
+		(outContexts+=OutContextDefinition)*
+	'}'
+	;
+
+InContextDefinition returns intent::Context:
+	{intent::Context}
+	'inContext' name=EString ('(' 'lifeSpan' '='lifeSpan=INT ')')?
+;
+	
+OutContextDefinition returns intent::Context:
+	{intent::Context}
+	'outContext' name=EString ('(' 'lifeSpan' '=' lifeSpan=INT ')')?
+	('{'
+		'params' '{'
+			(parameters+=ContextParameter)+
+		'}'
+	'}')?
+;
+
+ContextParameter returns intent::ContextParameter:
+	{intent::ContextParameter}
+	name=EString ('<-' textFragment=EString '('entity=EntityDefinition')')?
+;
+
+EntityDefinition returns intent::BaseEntityDefinition:
+	{intent::BaseEntityDefinition}
+	'@' entityType=EntityType
+;
+
+enum EntityType returns intent::EntityType:
+	ANY | CITY
+;
+
+enum ANY returns intent::EntityType:
+	ANY='any'
+;
+
+enum CITY returns intent::EntityType:
+	CITY='city'
+;
+
+Action returns Action:
+	{Action}
+	name=EString ('('parameters+=Parameter (',' parameters+=Parameter)*')')?;
+
+
+
+Parameter returns Parameter:
+	{Parameter}
+	key=EString;
+
+EString returns ecore::EString:
+	STRING | ID('->'ID)*;
