@@ -39,7 +39,7 @@
 
 		<dependency>
     		<groupId>fr.zelus.jarvis</groupId>
-    		<artifactId>core_modules</artifactId>
+    		<artifactId>core_platforms</artifactId>
     		<version>${project.version}</version>
     	</dependency>
 

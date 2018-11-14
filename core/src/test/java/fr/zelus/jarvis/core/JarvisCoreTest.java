@@ -2,7 +2,7 @@ package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core_modules.utils.ModulesLoaderUtils;
+import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
 import fr.zelus.jarvis.orchestration.ActionInstance;
@@ -141,7 +141,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     public void constructInvalidCustomModulePathInConfiguration() {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
                 VALID_ORCHESTRATION_MODEL);
-        configuration.addProperty(JarvisCore.CUSTOM_MODULES_KEY_PREFIX + "Example", "test");
+        configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", "test");
         jarvisCore = new JarvisCore(configuration);
     }
 
@@ -151,7 +151,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 VALID_ORCHESTRATION_MODEL);
         File validFile = new File(this.getClass().getClassLoader().getResource("Test_Modules/ExampleModule.xmi").getFile
                 ());
-        configuration.addProperty(JarvisCore.CUSTOM_MODULES_KEY_PREFIX + "Example", validFile.getAbsolutePath());
+        configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
@@ -159,7 +159,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 .getURI()).collect(Collectors.toList());
         assertThat(registeredResourceURIs).as("Custom module URI contained in the registered resource URIs").contains
                 (expectedURI);
-        URI expectedPathmapURI = URI.createURI(ModulesLoaderUtils.CUSTOM_MODULE_PATHMAP + "Example");
+        URI expectedPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + "Example");
         assertThat(jarvisCore.orchestrationResourceSet.getURIConverter().getURIMap().keySet()).as("Custom module " +
                 "pathmap contained in the ResourceSet's URI map").contains(expectedPathmapURI);
         assertThat(jarvisCore.orchestrationResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
@@ -369,23 +369,23 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 "OrchestrationModel").isEqualTo(orchestrationModel);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
         assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
-        URI coreModulePathmapURI = URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + "CoreModule.xmi");
+        URI coreModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "CoreModule.xmi");
         assertThat(jarvisCore.orchestrationResourceSet.getResource(coreModulePathmapURI, false)).as("CoreModule " +
                 "pathmap resolved").isNotNull();
-        URI discordModulePathmapURI = URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + "DiscordModule.xmi");
+        URI discordModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "DiscordModule.xmi");
         assertThat(jarvisCore.orchestrationResourceSet.getResource(discordModulePathmapURI, false)).as("DiscordModule" +
                 " pathmap resolved").isNotNull();
-        URI genericChatModulePathmapURI = URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + "GenericChatModule" +
-                ".xmi");
+        URI genericChatModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP +
+                "GenericChatModule.xmi");
         assertThat(jarvisCore.orchestrationResourceSet.getResource(genericChatModulePathmapURI, false)).as
                 ("GenericChatModule pathmap resolved").isNotNull();
-        URI githubModulePathmapURI = URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + "GithubModule.xmi");
+        URI githubModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "GithubModule.xmi");
         assertThat(jarvisCore.orchestrationResourceSet.getResource(githubModulePathmapURI, false)).as("GithubModule " +
                 "pathmap resolved").isNotNull();
-        URI logModulePathmapURI = URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + "LogModule.xmi");
+        URI logModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "LogModule.xmi");
         assertThat(jarvisCore.orchestrationResourceSet.getResource(logModulePathmapURI, false)).as("LogModule " +
                 "pathmap resolved").isNotNull();
-        URI slackModulePathmapURI = URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + "SlackModule.xmi");
+        URI slackModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "SlackModule.xmi");
         assertThat(jarvisCore.orchestrationResourceSet.getResource(slackModulePathmapURI, false)).as("SlackModule " +
                 "pathmap resolved").isNotNull();
 

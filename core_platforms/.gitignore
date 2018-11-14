@@ -1,6 +1,6 @@
 # Generated Platform XMI files
 # That are stored with their .platform definition
-src/main/resources/modules/*.xmi
+src/main/resources/platforms/*.xmi
 
 # Generated EMF Code
 **/java-gen

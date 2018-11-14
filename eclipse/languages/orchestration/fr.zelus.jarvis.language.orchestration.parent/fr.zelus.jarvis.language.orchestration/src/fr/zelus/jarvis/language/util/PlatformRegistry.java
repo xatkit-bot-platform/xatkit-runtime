@@ -29,7 +29,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.osgi.framework.Bundle;
 
-import fr.zelus.jarvis.core_modules.utils.ModulesLoaderUtils;
+import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
 import fr.zelus.jarvis.intent.IntentPackage;
 import fr.zelus.jarvis.orchestration.ImportDeclaration;
 import fr.zelus.jarvis.orchestration.OrchestrationModel;
@@ -87,12 +87,12 @@ public class PlatformRegistry {
 		 */
 		Resource resource = null;
 		try {
-			resource = rSet.getResource(URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + path + ".xmi"), false);
+			resource = rSet.getResource(URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + path + ".xmi"), false);
 			if(isNull(resource)) {
 				/*
 				 * In case .xmi has been specified
 				 */
-				resource = rSet.getResource(URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + path), false);
+				resource = rSet.getResource(URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + path), false);
 			}
 		} catch(Exception e) {
 			System.out.println("Cannot load the platform as a core platform");
@@ -107,7 +107,7 @@ public class PlatformRegistry {
 			URI platformResourceFileURI = URI.createFileURI(platformResourceFile.getAbsolutePath());
 			URI platformResourceURI = platformResourceFileURI;
 			if(nonNull(alias)) {
-				URI platformResourceAliasURI = URI.createURI(ModulesLoaderUtils.CUSTOM_MODULE_PATHMAP + alias);
+				URI platformResourceAliasURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + alias);
 				rSet.getURIConverter().getURIMap().put(platformResourceAliasURI, platformResourceFileURI);
 				Iterator<Resource> registeredResources = rSet.getResources().iterator();
 				/*
@@ -181,27 +181,27 @@ public class PlatformRegistry {
 	}
 	
 	public void loadJarvisCorePlatforms() throws IOException, URISyntaxException {
-		Bundle bundle = org.eclipse.core.runtime.Platform.getBundle("fr.zelus.jarvis.core_modules");
+		Bundle bundle = org.eclipse.core.runtime.Platform.getBundle("fr.zelus.jarvis.core_platforms");
 		if(isNull(bundle)) {
-			throw new RuntimeException("Cannot find the bundle fr.zelus.jarvis.core_modules");
+			throw new RuntimeException("Cannot find the bundle fr.zelus.jarvis.core_platforms");
 		}
-		URL platformFolderURL = bundle.getEntry("modules/xmi/");
+		URL platformFolderURL = bundle.getEntry("platforms/xmi/");
 		if(isNull(platformFolderURL)) {
-			System.out.println(MessageFormat.format("Cannot load the modules/xmi/ folder from the bundle {0}, trying to load it in development mode", bundle));
+			System.out.println(MessageFormat.format("Cannot load the platforms/xmi/ folder from the bundle {0}, trying to load it in development mode", bundle));
 			/*
 			 * If the plugin is not installed (i.e. if we are running an eclipse application from a workspace that contains
 			 * the plugin sources) the folder is located in src/main/resources.
 			 */
-			platformFolderURL = bundle.getEntry("src/main/resources/modules/xmi/");
+			platformFolderURL = bundle.getEntry("src/main/resources/platforms/xmi/");
 			if(isNull(platformFolderURL)) {
-				throw new RuntimeException(MessageFormat.format("Cannot load the modules/xmi/ folder from the bundle {0} (development mode failed)", bundle));
+				throw new RuntimeException(MessageFormat.format("Cannot load the platforms/xmi/ folder from the bundle {0} (development mode failed)", bundle));
 			} else {
-				System.out.println("modules/xmi/ folder loaded from the bundle in development mode");
+				System.out.println("platforms/xmi/ folder loaded from the bundle in development mode");
 			}
 		}
 		
 		java.net.URI resolvedPlatformFolderURI = FileLocator.resolve(platformFolderURL).toURI();
-		System.out.println(MessageFormat.format("Resolved modules/xmi/ folder URI: {0}", resolvedPlatformFolderURI));
+		System.out.println(MessageFormat.format("Resolved platforms/xmi/ folder URI: {0}", resolvedPlatformFolderURI));
 		
 		if(resolvedPlatformFolderURI.getScheme().equals("jar")) {
 			FileSystem fs = FileSystems.newFileSystem(resolvedPlatformFolderURI, Collections.emptyMap());
@@ -213,8 +213,8 @@ public class PlatformRegistry {
 			{
 				try {
 					InputStream is = Files.newInputStream(modelPath);
-					rSet.getURIConverter().getURIMap().put(URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + modelPath.getFileName()), URI.createURI(modelPath.getFileName().toString()));
-					Resource modelResource = this.rSet.createResource(URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + modelPath.getFileName().toString()));
+					rSet.getURIConverter().getURIMap().put(URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + modelPath.getFileName()), URI.createURI(modelPath.getFileName().toString()));
+					Resource modelResource = this.rSet.createResource(URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + modelPath.getFileName().toString()));
 					modelResource.load(is, Collections.emptyMap());
 					System.out.println(MessageFormat.format("Platform resource {0} loaded (uri={1})", modelPath.getFileName(), modelResource.getURI()));
 					is.close();

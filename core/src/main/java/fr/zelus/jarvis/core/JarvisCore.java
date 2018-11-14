@@ -2,7 +2,7 @@ package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core_modules.utils.ModulesLoaderUtils;
+import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.orchestration.ActionInstance;
@@ -72,10 +72,10 @@ public class JarvisCore {
      * {@link OrchestrationModel}s relying on absolute paths are directly loaded from the file system, but are not
      * portable.
      * <p>
-     * Custom module properties must be set following this pattern: {@code CUSTOM_MODULES_KEY_PREFIX + <module alias>
+     * Custom module properties must be set following this pattern: {@code CUSTOM_PLATFORMS_KEY_PREFIX + <module alias>
      * = <module path>}.
      */
-    public static String CUSTOM_MODULES_KEY_PREFIX = "jarvis.modules.custom.";
+    public static String CUSTOM_PLATFORMS_KEY_PREFIX = "jarvis.platforms.custom.";
 
     /**
      * The {@link Configuration} used to initialize this class.
@@ -117,7 +117,7 @@ public class JarvisCore {
      * method, that loads the core module models from the classpath, and dynamically retrieves the custom module
      * models.
      *
-     * @see #CUSTOM_MODULES_KEY_PREFIX
+     * @see #CUSTOM_PLATFORMS_KEY_PREFIX
      */
     protected ResourceSet orchestrationResourceSet;
 
@@ -318,31 +318,31 @@ public class JarvisCore {
     /**
      * Creates and initializes the {@link ResourceSet} used to load the provided {@link OrchestrationModel}.
      * <p>
-     * This method registers the Jarvis language's {@link EPackage}s  and loads the <i>core module</i>
-     * {@link Resource}s and the <i>custom module</i> {@link Resource}s in the created {@link ResourceSet}.
+     * This method registers the Jarvis language's {@link EPackage}s  and loads the <i>core platforms</i>
+     * {@link Resource}s and the <i>custom platforms</i> {@link Resource}s in the created {@link ResourceSet}.
      * <p>
-     * <i>Core module</i> loading is done by searching in the classpath the {@code core_modules/modules/} folder,
-     * and loads each {@code xmi} file it contains as a module {@link Resource}. Note that this method loads
-     * <b>all</b> the <i>core module</i> {@link Resource}s, even if they are not used in the application's
+     * <i>Core platforms</i> loading is done by searching in the classpath the {@code core_platforms/platforms/} folder,
+     * and loads each {@code xmi} file it contains as a platform {@link Resource}. Note that this method loads
+     * <b>all</b> the <i>core platforms</i> {@link Resource}s, even if they are not used in the application's
      * {@link OrchestrationModel}.
      * <p>
-     * <b>Note:</b> this method loads the {@code modules/} folder from the {@code core_modules} jar file if the
+     * <b>Note:</b> this method loads the {@code platforms/} folder from the {@code core_modules} jar file if the
      * application is executed in a standalone mode. In a development environment (i.e. with all the project
-     * sources imported) this method will retrieve the {@code modules/} folder from the local installation, if it
+     * sources imported) this method will retrieve the {@code platforms/} folder from the local installation, if it
      * exist.
      * <p>
-     * <i>Custom module</i> loading is done by searching in the provided {@link Configuration} file the entries
-     * starting with {@link #CUSTOM_MODULES_KEY_PREFIX}. These entries are handled as absolute paths to the
-     * <i>custom module</i> {@link Resource}s, and are configures to be the target of the corresponding custom module
-     * proxies in the provided {@link OrchestrationModel}.
+     * <i>Custom platforms</i> loading is done by searching in the provided {@link Configuration} file the entries
+     * starting with {@link #CUSTOM_PLATFORMS_KEY_PREFIX}. These entries are handled as absolute paths to the
+     * <i>custom platform</i> {@link Resource}s, and are configures to be the target of the corresponding custom
+     * platform proxies in the provided {@link OrchestrationModel}.
      * <p>
      * This method ensures that the loaded {@link Resource}s corresponds to the {@code pathmaps} specified in the
-     * provided {@code xmi} file. See {@link ModulesLoaderUtils#CORE_MODULE_PATHMAP} and
-     * {@link ModulesLoaderUtils#CUSTOM_MODULE_PATHMAP} for further information.
+     * provided {@code xmi} file. See {@link PlatformLoaderUtils#CORE_PLATFORM_PATHMAP} and
+     * {@link PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP} for further information.
      *
      * @throws JarvisException if an error occurred when loading the module {@link Resource}s
-     * @see ModulesLoaderUtils#CORE_MODULE_PATHMAP
-     * @see ModulesLoaderUtils#CUSTOM_MODULE_PATHMAP
+     * @see PlatformLoaderUtils#CORE_PLATFORM_PATHMAP
+     * @see PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP
      */
     private ResourceSet initializeOrchestrationResourceSet() {
         ResourceSet resourceSet = new ResourceSetImpl();
@@ -352,13 +352,13 @@ public class JarvisCore {
         resourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
         resourceSet.getPackageRegistry().put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
 
-        Log.info("Loading Jarvis core modules");
-        URL url = this.getClass().getClassLoader().getResource("modules/xmi/");
+        Log.info("Loading Jarvis core platforms");
+        URL url = this.getClass().getClassLoader().getResource("platforms/xmi/");
         java.net.URI uri;
         try {
             uri = url.toURI();
         } catch (URISyntaxException e) {
-            throw new JarvisException("An error occurred when loading the core modules, see attached exception", e);
+            throw new JarvisException("An error occurred when loading the core platforms, see attached exception", e);
         }
         /*
          * Jarvis is imported as a jar, we need to setup a FileSystem that handles jar file loading.
@@ -367,72 +367,72 @@ public class JarvisCore {
             try {
                 /*
                  * Try to get the FileSystem if it exists, this may be the case when running the test cases, and if a
-                  * JarvisCore instance wasn't shut down correctly.
+                 * JarvisCore instance wasn't shut down correctly.
                  */
                 FileSystems.getFileSystem(uri);
-            } catch(FileSystemNotFoundException e) {
+            } catch (FileSystemNotFoundException e) {
                 Map<String, String> env = new HashMap<>();
                 env.put("create", "true");
                 try {
                     /*
                      * Getting the FileSystem threw an exception, try to create a new one with the provided URI. This
-                      * is typically the case when running Jarvis in a standalone mode, and when only a single
-                      * JarvisCore instance is constructed.
+                     * is typically the case when running Jarvis in a standalone mode, and when only a single
+                     * JarvisCore instance is constructed.
                      */
                     FileSystems.newFileSystem(uri, env);
                 } catch (IOException e1) {
-                    throw new JarvisException("An error occurred when loading the core modules, see attached " +
+                    throw new JarvisException("An error occurred when loading the core platforms, see attached " +
                             "exception", e1);
                 }
             }
         }
-        Path modulesPath = Paths.get(uri);
+        Path platformsPath = Paths.get(uri);
         try {
-            Files.walk(modulesPath, 1).filter(p -> !Files.isDirectory(p)).forEach(modulePath -> {
+            Files.walk(platformsPath, 1).filter(p -> !Files.isDirectory(p)).forEach(platformPath -> {
                 try {
-                    InputStream is = Files.newInputStream(modulePath);
-                    URI modulePathmapURI = URI.createURI(ModulesLoaderUtils.CORE_MODULE_PATHMAP + modulePath
+                    InputStream is = Files.newInputStream(platformPath);
+                    URI platformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + platformPath
                             .getFileName());
 
-                    resourceSet.getURIConverter().getURIMap().put(modulePathmapURI, URI.createURI(modulePath
+                    resourceSet.getURIConverter().getURIMap().put(platformPathmapURI, URI.createURI(platformPath
                             .getFileName().toString()));
-                    Resource moduleResource = resourceSet.createResource(modulePathmapURI);
-                    moduleResource.load(is, Collections.emptyMap());
-                    Platform platform = (Platform) moduleResource.getContents().get(0);
+                    Resource platformResource = resourceSet.createResource(platformPathmapURI);
+                    platformResource.load(is, Collections.emptyMap());
+                    Platform platform = (Platform) platformResource.getContents().get(0);
                     is.close();
-                    Log.info("Module {0} loaded", platform.getName());
+                    Log.info("Platform {0} loaded", platform.getName());
                 } catch (IOException e) {
-                    throw new JarvisException(MessageFormat.format("An error occurred when loading the module {0}, " +
-                            "see attached exception", modulePath), e);
+                    throw new JarvisException(MessageFormat.format("An error occurred when loading the platform {0}, " +
+                            "see attached exception", platformPath), e);
                 }
             });
         } catch (IOException e) {
-            throw new JarvisException("An error occurred when crawling the core modules, see attached exception", e);
+            throw new JarvisException("An error occurred when crawling the core platforms, see attached exception", e);
         }
-        Log.info("Loading Jarvis custom modules");
+        Log.info("Loading Jarvis custom platforms");
         configuration.getKeys().forEachRemaining(key -> {
-            if (key.startsWith(CUSTOM_MODULES_KEY_PREFIX)) {
-                String modulePath = configuration.getString(key);
-                String moduleName = key.substring(CUSTOM_MODULES_KEY_PREFIX.length());
-                URI modulePathmapURI = URI.createURI(ModulesLoaderUtils.CUSTOM_MODULE_PATHMAP + moduleName);
+            if (key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)) {
+                String platformPath = configuration.getString(key);
+                String platformName = key.substring(CUSTOM_PLATFORMS_KEY_PREFIX.length());
+                URI platformPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + platformName);
                 /*
-                 * The provided path is handled as a File path. Loading custom modules from external jars is left for
+                 * The provided path is handled as a File path. Loading custom platforms from external jars is left for
                  * a future release.
                  */
-                File moduleFile = new File(modulePath);
-                if (moduleFile.exists() && moduleFile.isFile()) {
-                    URI moduleFileURI = URI.createFileURI(moduleFile.getAbsolutePath());
-                    resourceSet.getURIConverter().getURIMap().put(modulePathmapURI, moduleFileURI);
-                    Resource moduleResource = resourceSet.getResource(moduleFileURI, true);
-                    Platform platform = (Platform) moduleResource.getContents().get(0);
-                    Log.info("Module {0} loaded", platform.getName());
+                File platformFile = new File(platformPath);
+                if (platformFile.exists() && platformFile.isFile()) {
+                    URI platformFileURI = URI.createFileURI(platformFile.getAbsolutePath());
+                    resourceSet.getURIConverter().getURIMap().put(platformPathmapURI, platformFileURI);
+                    Resource platformResource = resourceSet.getResource(platformFileURI, true);
+                    Platform platform = (Platform) platformResource.getContents().get(0);
+                    Log.info("Platform {0} loaded", platform.getName());
                 } else {
-                    throw new JarvisException(MessageFormat.format("Cannot load the custom module {0}, the provided " +
-                            "path {1} is not a valid file", modulePath, modulePath));
+                    throw new JarvisException(MessageFormat.format("Cannot load the custom platform {0}, the provided" +
+                            "path {1} is not a valid file", platformPath, platformPath));
                 }
             }
             /*
-             * The key is not a custom module path, skipping it.
+             * The key is not a custom platform path, skipping it.
              */
         });
         return resourceSet;

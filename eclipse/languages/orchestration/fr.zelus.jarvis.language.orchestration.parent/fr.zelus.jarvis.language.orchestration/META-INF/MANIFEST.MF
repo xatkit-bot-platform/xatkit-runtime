@@ -13,8 +13,8 @@ Require-Bundle: fr.zelus.jarvis.orchestration,
  org.antlr.runtime,
  org.eclipse.xtext.util,
  org.eclipse.xtend.lib,
- fr.zelus.jarvis.core_modules;bundle-version="1.0.0",
- org.eclipse.core.runtime;bundle-version="3.13.0"
+ org.eclipse.core.runtime;bundle-version="3.13.0",
+ fr.zelus.jarvis.core_platforms;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: fr.zelus.jarvis.language,
  fr.zelus.jarvis.language.formatting2,
