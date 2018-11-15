@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="ASCII"?>
-<platform:Platform xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="fr.zelus.jarvis.platform" name="ExampleModule" runtimePath="fr.zelus.jarvis.example.ExampleModule">
-  <intentDefinitions name="HowAreYou">
-    <trainingSentences>how are you?</trainingSentences>
-  </intentDefinitions>
-</platform:Platform>

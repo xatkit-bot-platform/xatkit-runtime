@@ -45,14 +45,14 @@ import static java.util.Objects.isNull;
  * The core component of the jarvis framework.
  * <p>
  * This class is constructed from an {@link OrchestrationModel}, that defines the Intent to Action bindings that are
- * executed by the application. Constructing an instance of this class will load the {@link JarvisModule}s used by
- * the provided {@link OrchestrationModel}, and enable the corresponding {@link JarvisAction}s. It also creates an
+ * executed by the application. Constructing an instance of this class will load the {@link RuntimePlatform}s used by
+ * the provided {@link OrchestrationModel}, and enable the corresponding {@link RuntimeAction}s. It also creates an
  * instance of {@link EventDefinitionRegistry} that can be accessed to retrieve and manage {@link EventDefinition} .
  *
  * @see EventDefinitionRegistry
- * @see JarvisModuleRegistry
+ * @see RuntimePlatformRegistry
  * @see OrchestrationService
- * @see JarvisModule
+ * @see RuntimePlatform
  */
 public class JarvisCore {
 
@@ -64,26 +64,26 @@ public class JarvisCore {
     public static String ORCHESTRATION_MODEL_KEY = "jarvis.orchestration.model";
 
     /**
-     * The {@link Configuration} key prefix to store the custom module paths.
+     * The {@link Configuration} key prefix to store the custom platform paths.
      * <p>
-     * This prefix is used to specify the paths of the custom modules that are needed by the provided
-     * {@link OrchestrationModel}. Note that custom module path properties are only required if the
-     * {@link OrchestrationModel} defines an {@code alias} for the imported module models.
+     * This prefix is used to specify the paths of the custom platforms that are needed by the provided
+     * {@link OrchestrationModel}. Note that custom platform path properties are only required if the
+     * {@link OrchestrationModel} defines an {@code alias} for the imported platform models.
      * {@link OrchestrationModel}s relying on absolute paths are directly loaded from the file system, but are not
      * portable.
      * <p>
-     * Custom module properties must be set following this pattern: {@code CUSTOM_PLATFORMS_KEY_PREFIX + <module alias>
-     * = <module path>}.
+     * Custom platform properties must be set following this pattern: {@code CUSTOM_PLATFORMS_KEY_PREFIX + <platform
+     * alias> = <platform path>}.
      */
     public static String CUSTOM_PLATFORMS_KEY_PREFIX = "jarvis.platforms.custom.";
 
     /**
      * The {@link Configuration} used to initialize this class.
      * <p>
-     * This {@link Configuration} is used to load and initialize modules, see
-     * {@link #loadJarvisModuleFromPlatformModel(Platform)} for more information on module loading.
+     * This {@link Configuration} is used to load and initialize platforms, see
+     * {@link #loadRuntimePlatformFromPlatformModel(Platform)} for more information on platform loading.
      *
-     * @see #loadJarvisModuleFromPlatformModel(Platform)
+     * @see #loadRuntimePlatformFromPlatformModel(Platform)
      */
     private Configuration configuration;
 
@@ -93,12 +93,12 @@ public class JarvisCore {
     private IntentRecognitionProvider intentRecognitionProvider;
 
     /**
-     * The {@link JarvisModuleRegistry} used to cache loaded module, and provides utility method to retrieve,
-     * unregister, and clear them.
+     * The {@link RuntimePlatformRegistry} used to cache loaded {@link RuntimePlatform}, and provides utility method
+     * to retrieve, unregister, and clear them.
      *
-     * @see #getJarvisModuleRegistry()
+     * @see #getRuntimePlatformRegistry()
      */
-    private JarvisModuleRegistry jarvisModuleRegistry;
+    private RuntimePlatformRegistry runtimePlatformRegistry;
 
     /**
      * The {@link EventDefinitionRegistry} used to cache {@link fr.zelus.jarvis.intent.EventDefinition}s and
@@ -114,7 +114,7 @@ public class JarvisCore {
      * The {@link ResourceSet} used to load the {@link OrchestrationModel} and the referenced models.
      * <p>
      * The {@code orchestrationResourceSet} is initialized with the {@link #initializeOrchestrationResourceSet()}
-     * method, that loads the core module models from the classpath, and dynamically retrieves the custom module
+     * method, that loads the core platforms models from the classpath, and dynamically retrieves the custom platforms
      * models.
      *
      * @see #CUSTOM_PLATFORMS_KEY_PREFIX
@@ -123,10 +123,10 @@ public class JarvisCore {
 
     /**
      * The {@link OrchestrationService} used to handle {@link EventInstance}s and execute the associated
-     * {@link JarvisAction}s.
+     * {@link RuntimeAction}s.
      *
      * @see OrchestrationService#handleEventInstance(EventInstance, JarvisSession)
-     * @see JarvisAction
+     * @see RuntimeAction
      */
     protected OrchestrationService orchestrationService;
 
@@ -146,17 +146,17 @@ public class JarvisCore {
      * Constructs a new {@link JarvisCore} instance from the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following key (note that additional values may
-     * be required according to the used {@link EventProvider}s and {@link JarvisModule}s):
+     * be required according to the used {@link EventProvider}s and {@link RuntimePlatform}s):
      * <ul>
      * <li><b>jarvis.orchestration.model</b>: the {@link OrchestrationModel} defining the Intent to
      * Action bindings (or the string representing its location)</li>
      * </ul>
      * <p>
      * The provided {@link OrchestrationModel} defines the Intent to Action bindings that are executed by the
-     * application. This constructor takes care of loading the {@link JarvisModule}s associated to the provided
-     * {@code orchestrationModel} and enables the corresponding {@link JarvisAction}s.
+     * application. This constructor takes care of loading the {@link RuntimePlatform}s associated to the provided
+     * {@code orchestrationModel} and enables the corresponding {@link RuntimeAction}s.
      * <p>
-     * <b>Note:</b> the {@link JarvisModule}s associated to the provided {@code orchestrationModel} have to be
+     * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@code orchestrationModel} have to be
      * in the classpath in order to be dynamically loaded and instantiated.
      *
      * @param configuration the {@link Configuration} to construct the instance from
@@ -174,8 +174,8 @@ public class JarvisCore {
         this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                 configuration);
         this.sessions = new HashMap<>();
-        this.jarvisModuleRegistry = new JarvisModuleRegistry();
-        this.orchestrationService = new OrchestrationService(orchestrationModel, jarvisModuleRegistry);
+        this.runtimePlatformRegistry = new RuntimePlatformRegistry();
+        this.orchestrationService = new OrchestrationService(orchestrationModel, runtimePlatformRegistry);
         this.eventDefinitionRegistry = new EventDefinitionRegistry();
         /*
          * Start the server before processing the EventProviderDefinitions, we need to have a valid JarvisServer
@@ -192,13 +192,14 @@ public class JarvisCore {
                         "the orchestration model", eventProviderDefinition));
             }
             Platform eventProviderPlatform = (Platform) eventProviderDefinition.eContainer();
-            JarvisModule eventProviderJarvisModule = this.jarvisModuleRegistry.getJarvisModule(eventProviderPlatform
-                    .getName());
-            if (isNull(eventProviderJarvisModule)) {
-                eventProviderJarvisModule = loadJarvisModuleFromPlatformModel(eventProviderPlatform);
-                this.jarvisModuleRegistry.registerJarvisModule(eventProviderJarvisModule);
+            RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
+                    (eventProviderPlatform
+                            .getName());
+            if (isNull(eventProviderRuntimePlatform)) {
+                eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform);
+                this.runtimePlatformRegistry.registerRuntimePlatform(eventProviderRuntimePlatform);
             }
-            eventProviderJarvisModule.startEventProvider(eventProviderDefinition);
+            eventProviderRuntimePlatform.startEventProvider(eventProviderDefinition);
         }
         for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
             /*
@@ -218,7 +219,7 @@ public class JarvisCore {
                 }
             }
             /*
-             * Load the action modules
+             * Load the action platforms
              */
             for (ActionInstance actionInstance : link.getActions()) {
                 Action action = actionInstance.getAction();
@@ -230,12 +231,12 @@ public class JarvisCore {
                             "from the orchestration model", action));
                 }
                 Platform platform = (Platform) action.eContainer();
-                JarvisModule jarvisModule = this.jarvisModuleRegistry.getJarvisModule(platform.getName());
-                if (isNull(jarvisModule)) {
-                    jarvisModule = loadJarvisModuleFromPlatformModel(platform);
-                    this.jarvisModuleRegistry.registerJarvisModule(jarvisModule);
+                RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform.getName());
+                if (isNull(runtimePlatform)) {
+                    runtimePlatform = loadRuntimePlatformFromPlatformModel(platform);
+                    this.runtimePlatformRegistry.registerRuntimePlatform(runtimePlatform);
                 }
-                jarvisModule.enableAction(action);
+                runtimePlatform.enableAction(action);
             }
         }
         if (intentRegistered) {
@@ -326,7 +327,7 @@ public class JarvisCore {
      * <b>all</b> the <i>core platforms</i> {@link Resource}s, even if they are not used in the application's
      * {@link OrchestrationModel}.
      * <p>
-     * <b>Note:</b> this method loads the {@code platforms/} folder from the {@code core_modules} jar file if the
+     * <b>Note:</b> this method loads the {@code platforms/} folder from the {@code core_platforms} jar file if the
      * application is executed in a standalone mode. In a development environment (i.e. with all the project
      * sources imported) this method will retrieve the {@code platforms/} folder from the local installation, if it
      * exist.
@@ -340,7 +341,7 @@ public class JarvisCore {
      * provided {@code xmi} file. See {@link PlatformLoaderUtils#CORE_PLATFORM_PATHMAP} and
      * {@link PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP} for further information.
      *
-     * @throws JarvisException if an error occurred when loading the module {@link Resource}s
+     * @throws JarvisException if an error occurred when loading the platform {@link Resource}s
      * @see PlatformLoaderUtils#CORE_PLATFORM_PATHMAP
      * @see PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP
      */
@@ -439,23 +440,23 @@ public class JarvisCore {
     }
 
     /**
-     * Loads the {@link JarvisModule} defined by the provided {@link Platform} definition.
+     * Loads the {@link RuntimePlatform} defined by the provided {@link Platform} definition.
      * <p>
      * This method searches in the classpath a {@link Class} matching the input {@link Platform#getRuntimePath()}
      * value and calls its default constructor.
      *
      * @param platformModel the jarvis {@link Platform} definition to load
-     * @return an instance of the loaded {@link JarvisModule}
-     * @throws JarvisException if their is no {@link Class} matching the provided {@code moduleModel} or if the
-     *                         {@link JarvisModule} can not be constructed
+     * @return an instance of the loaded {@link RuntimePlatform}
+     * @throws JarvisException if their is no {@link Class} matching the provided {@code platformModel} or if the
+     *                         {@link RuntimePlatform} can not be constructed
      * @see Platform
-     * @see JarvisModule
+     * @see RuntimePlatform
      */
-    private JarvisModule loadJarvisModuleFromPlatformModel(Platform platformModel) throws JarvisException {
-        Log.info("Loading JarvisModule {0}", platformModel.getName());
-        Class<? extends JarvisModule> jarvisModuleClass = Loader.loadClass(platformModel.getRuntimePath(),
-                JarvisModule.class);
-        return Loader.constructJarvisModule(jarvisModuleClass, this, configuration);
+    private RuntimePlatform loadRuntimePlatformFromPlatformModel(Platform platformModel) throws JarvisException {
+        Log.info("Loading RuntimePlatform {0}", platformModel.getName());
+        Class<? extends RuntimePlatform> runtimePlatformClass = Loader.loadClass(platformModel.getRuntimePath(),
+                RuntimePlatform.class);
+        return Loader.constructRuntimePlatform(runtimePlatformClass, this, configuration);
     }
 
     /**
@@ -472,7 +473,7 @@ public class JarvisCore {
      * <p>
      * <b>Note:</b> this method is designed to ease debugging and testing, direct interactions with the
      * {@link IntentRecognitionProvider} API may create consistency issues. In particular, jarvis does not ensure
-     * that {@link JarvisAction}s will be triggered in case of direct queries to the
+     * that {@link RuntimeAction}s will be triggered in case of direct queries to the
      * {@link IntentRecognitionProvider} API.
      *
      * @return the underlying {@link IntentRecognitionProvider}
@@ -495,15 +496,15 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link JarvisModuleRegistry} associated to this instance.
+     * Returns the {@link RuntimePlatformRegistry} associated to this instance.
      * <p>
-     * This registry is used to cache loaded module, and provides utility method to retrieve, unregister, and clear
-     * them.
+     * This registry is used to cache loaded {@link RuntimePlatform}s, and provides utility method to retrieve,
+     * unregister, and clear them.
      *
-     * @return the {@link JarvisModuleRegistry} associated to this instance
+     * @return the {@link RuntimePlatformRegistry} associated to this instance
      */
-    public JarvisModuleRegistry getJarvisModuleRegistry() {
-        return jarvisModuleRegistry;
+    public RuntimePlatformRegistry getRuntimePlatformRegistry() {
+        return runtimePlatformRegistry;
     }
 
     /**
@@ -519,14 +520,14 @@ public class JarvisCore {
      * Shuts down the {@link JarvisCore} and the underlying engines.
      * <p>
      * This method shuts down the underlying {@link IntentRecognitionProvider}, unloads and shuts down all the
-     * {@link JarvisModule}s associated to this instance, unregisters the {@link EventDefinition} from the associated
+     * {@link RuntimePlatform}s associated to this instance, unregisters the {@link EventDefinition} from the associated
      * {@link EventDefinitionRegistry}, shuts down the {@link OrchestrationService}, and stops the {@link JarvisServer}.
      * <p>
      * <b>Note:</b> calling this method invalidates the {@link IntentRecognitionProvider} connection, and thus shuts
-     * down intent recognition features. New {@link JarvisAction}s cannot be processed either.
+     * down intent recognition features. New {@link RuntimeAction}s cannot be processed either.
      *
      * @see IntentRecognitionProvider#shutdown()
-     * @see JarvisModule#shutdown()
+     * @see RuntimePlatform#shutdown()
      * @see EventDefinitionRegistry#unregisterEventDefinition(EventDefinition)
      * @see OrchestrationService#shutdown()
      * @see JarvisServer#stop()
@@ -542,11 +543,11 @@ public class JarvisCore {
         this.orchestrationService.shutdown();
         this.jarvisServer.stop();
         this.intentRecognitionProvider.shutdown();
-        Collection<JarvisModule> jarvisModules = this.getJarvisModuleRegistry().getModules();
-        for (JarvisModule jarvisModule : jarvisModules) {
-            jarvisModule.shutdown();
+        Collection<RuntimePlatform> runtimePlatforms = this.getRuntimePlatformRegistry().getRuntimePlatforms();
+        for (RuntimePlatform runtimePlatform : runtimePlatforms) {
+            runtimePlatform.shutdown();
         }
-        this.getJarvisModuleRegistry().clearJarvisModules();
+        this.getRuntimePlatformRegistry().clearRuntimePlatforms();
         this.getEventDefinitionRegistry().clearEventDefinitions();
     }
 

@@ -74,10 +74,10 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("StubJarvisModule");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        stubPlatform.setName("StubRuntimePlatform");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
         Action stubAction = PlatformFactory.eINSTANCE.createAction();
-        stubAction.setName("StubJarvisAction");
+        stubAction.setName("StubRuntimeAction");
         // No parameters, keep it simple
         stubPlatform.getActions().add(stubAction);
         InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();

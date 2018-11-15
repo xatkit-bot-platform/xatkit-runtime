@@ -1,0 +1,39 @@
+Platform CorePlatform
+
+path "fr.zelus.jarvis.plugins.core.platform.CorePlatform"
+
+intents {
+	
+	Default_Fallback_Intent {
+		inputs {
+			""
+		}
+	}
+	
+	Default_Welcome_Intent {
+		inputs {
+			""
+		}
+	}
+	
+	WhatTimeIsIt {
+		inputs {
+			"what time is it?"
+			"what time"
+		}
+		outContext "WhatTimeIsIt"
+	}
+	
+	WhatDateIsIt {
+		inputs {
+			"what is today's date?"
+			"what day is it?"
+		}
+		outContext "WhatDateIsIt"
+	}
+}
+
+actions {
+	GetTime
+	GetDate
+}

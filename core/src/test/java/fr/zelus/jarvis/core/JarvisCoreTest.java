@@ -47,10 +47,10 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
         Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("StubJarvisModule");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        stubPlatform.setName("StubRuntimePlatform");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
         Action stubAction = PlatformFactory.eINSTANCE.createAction();
-        stubAction.setName("StubJarvisAction");
+        stubAction.setName("StubRuntimeAction");
         // No parameters, keep it simple
         stubPlatform.getActions().add(stubAction);
         InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
@@ -138,7 +138,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     }
 
     @Test(expected = JarvisException.class)
-    public void constructInvalidCustomModulePathInConfiguration() {
+    public void constructInvalidCustomPlatformPathInConfiguration() {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
                 VALID_ORCHESTRATION_MODEL);
         configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", "test");
@@ -146,10 +146,10 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     }
 
     @Test
-    public void constructValidCustomModulePathInConfiguration() {
+    public void constructValidCustomPlatformPathInConfiguration() {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
                 VALID_ORCHESTRATION_MODEL);
-        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Modules/ExampleModule.xmi").getFile
+        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform.xmi").getFile
                 ());
         configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         jarvisCore = new JarvisCore(configuration);
@@ -157,10 +157,10 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
         List<URI> registeredResourceURIs = jarvisCore.orchestrationResourceSet.getResources().stream().map(r -> r
                 .getURI()).collect(Collectors.toList());
-        assertThat(registeredResourceURIs).as("Custom module URI contained in the registered resource URIs").contains
+        assertThat(registeredResourceURIs).as("Custom runtimePlatform URI contained in the registered resource URIs").contains
                 (expectedURI);
         URI expectedPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + "Example");
-        assertThat(jarvisCore.orchestrationResourceSet.getURIConverter().getURIMap().keySet()).as("Custom module " +
+        assertThat(jarvisCore.orchestrationResourceSet.getURIConverter().getURIMap().keySet()).as("Custom runtimePlatform " +
                 "pathmap contained in the ResourceSet's URI map").contains(expectedPathmapURI);
         assertThat(jarvisCore.orchestrationResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
                 ("Valid concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
@@ -177,16 +177,16 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     }
 
     @Test
-    public void constructValidDefaultModuleConstructor() {
+    public void constructValidDefaultRuntimePlatformConstructor() {
         /*
-         * Use another OrchestrationModel linking to the StubJarvisModuleJarvisCoreConstructor stub class, that only
+         * Use another OrchestrationModel linking to the StubRuntimePlatformJarvisCoreConstructor stub class, that only
          * defines a default constructor.
          */
         Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("StubJarvisModuleJarvisCoreConstructor");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubJarvisModuleJarvisCoreConstructor");
+        stubPlatform.setName("StubRuntimePlatformJarvisCoreConstructor");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatformJarvisCoreConstructor");
         Action stubAction = PlatformFactory.eINSTANCE.createAction();
-        stubAction.setName("StubJarvisAction");
+        stubAction.setName("StubRuntimeAction");
         // No parameters, keep it simple
         stubPlatform.getActions().add(stubAction);
         InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
@@ -210,8 +210,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void constructValidWebhookEventProvider() {
         Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("EmptyJarvisModule");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.EmptyJarvisModule");
+        stubPlatform.setName("EmptyRuntimePlatform");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.EmptyRuntimePlatform");
         EventProviderDefinition stubWebhookEventProviderDefinition = PlatformFactory.eINSTANCE
                 .createEventProviderDefinition();
         stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");
@@ -330,7 +330,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         jarvisCore.shutdown();
         softly.assertThat(jarvisCore.getOrchestrationService().isShutdown()).as("ExecutorService is shutdown");
         softly.assertThat(jarvisCore.getIntentRecognitionProvider().isShutdown()).as("DialogFlow API is shutdown");
-        softly.assertThat(jarvisCore.getJarvisModuleRegistry().getModules()).as("Empty module registry").isEmpty();
+        softly.assertThat(jarvisCore.getRuntimePlatformRegistry().getRuntimePlatforms()).as("Empty runtimePlatform registry").isEmpty();
     }
 
     /**
@@ -369,24 +369,24 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 "OrchestrationModel").isEqualTo(orchestrationModel);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
         assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
-        URI coreModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "CoreModule.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(coreModulePathmapURI, false)).as("CoreModule " +
+        URI corePlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "CorePlatform.xmi");
+        assertThat(jarvisCore.orchestrationResourceSet.getResource(corePlatformPathmapURI, false)).as("CorePlatform " +
                 "pathmap resolved").isNotNull();
-        URI discordModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "DiscordModule.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(discordModulePathmapURI, false)).as("DiscordModule" +
+        URI discordPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "DiscordPlatform.xmi");
+        assertThat(jarvisCore.orchestrationResourceSet.getResource(discordPlatformPathmapURI, false)).as("DiscordPlatform" +
                 " pathmap resolved").isNotNull();
-        URI genericChatModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP +
-                "GenericChatModule.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(genericChatModulePathmapURI, false)).as
-                ("GenericChatModule pathmap resolved").isNotNull();
-        URI githubModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "GithubModule.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(githubModulePathmapURI, false)).as("GithubModule " +
+        URI genericChatPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP +
+                "GenericChatPlatform.xmi");
+        assertThat(jarvisCore.orchestrationResourceSet.getResource(genericChatPlatformPathmapURI, false)).as
+                ("GenericChatPlatform pathmap resolved").isNotNull();
+        URI githubPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "GithubPlatform.xmi");
+        assertThat(jarvisCore.orchestrationResourceSet.getResource(githubPlatformPathmapURI, false)).as("GithubPlatform " +
                 "pathmap resolved").isNotNull();
-        URI logModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "LogModule.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(logModulePathmapURI, false)).as("LogModule " +
+        URI logPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "LogPlatform.xmi");
+        assertThat(jarvisCore.orchestrationResourceSet.getResource(logPlatformPathmapURI, false)).as("LogPlatform " +
                 "pathmap resolved").isNotNull();
-        URI slackModulePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "SlackModule.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(slackModulePathmapURI, false)).as("SlackModule " +
+        URI slackPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "SlackPlatform.xmi");
+        assertThat(jarvisCore.orchestrationResourceSet.getResource(slackPlatformPathmapURI, false)).as("SlackPlatform " +
                 "pathmap resolved").isNotNull();
 
     }

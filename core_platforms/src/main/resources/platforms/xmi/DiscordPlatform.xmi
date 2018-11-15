@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ASCII"?>
+<platform:Platform xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:platform="fr.zelus.jarvis.platform" name="DiscordPlatform" runtimePath="fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform">
+  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="DiscordIntentProvider"/>
+  <actions name="PostMessage">
+    <parameters key="message"/>
+    <parameters key="channel"/>
+  </actions>
+  <actions name="Reply">
+    <parameters key="message"/>
+  </actions>
+</platform:Platform>

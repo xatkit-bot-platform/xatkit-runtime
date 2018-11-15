@@ -1,0 +1,11 @@
+Platform  GenericChatPlatform
+
+path "fr.zelus.jarvis.plugins.generic_chat.platform.GenericChatPlatform"
+
+providers {
+	input GenericChatIntentProvider
+}
+
+actions {
+	PostMessage(message, channel)
+}

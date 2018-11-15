@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="ASCII"?>
-<platform:Platform xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:platform="fr.zelus.jarvis.platform" name="GenericChatModule" runtimePath="fr.zelus.jarvis.plugins.generic_chat.module.GenericChatModule">
-  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="GenericChatIntentProvider"/>
-  <actions name="PostMessage">
-    <parameters key="message"/>
-    <parameters key="channel"/>
-  </actions>
-</platform:Platform>

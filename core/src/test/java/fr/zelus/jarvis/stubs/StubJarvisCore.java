@@ -1,9 +1,6 @@
 package fr.zelus.jarvis.stubs;
 
-import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.JarvisCoreTest;
-import fr.zelus.jarvis.core.JarvisModuleRegistry;
-import fr.zelus.jarvis.core.OrchestrationService;
+import fr.zelus.jarvis.core.*;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.EventInstance;
@@ -50,7 +47,7 @@ public class StubJarvisCore extends JarvisCore {
          */
         this.orchestrationService.shutdown();
         this.orchestrationService = new StubOrchestrationService(VALID_ORCHESTRATION_MODEL, this
-                .getJarvisModuleRegistry());
+                .getRuntimePlatformRegistry());
     }
 
     /**
@@ -71,7 +68,7 @@ public class StubJarvisCore extends JarvisCore {
 
     private class StubOrchestrationService extends OrchestrationService {
 
-        public StubOrchestrationService(OrchestrationModel orchestrationModel, JarvisModuleRegistry registry) {
+        public StubOrchestrationService(OrchestrationModel orchestrationModel, RuntimePlatformRegistry registry) {
             super(orchestrationModel, registry);
         }
 
@@ -79,7 +76,7 @@ public class StubJarvisCore extends JarvisCore {
          * Stores the provided {@code eventInstance} definition in the {@link #handledEvents} list.
          * <p>
          * <b>Note:</b> this method does not process the {@code message}, and does not build
-         * {@link fr.zelus.jarvis.core.JarvisAction}s from the provided {@code message}.
+         * {@link RuntimeAction}s from the provided {@code message}.
          *
          * @param eventInstance the {@link EventInstance} to store in the {@link #handledEvents} list
          * @param session the user session to use to process the message

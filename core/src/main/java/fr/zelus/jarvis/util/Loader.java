@@ -3,7 +3,7 @@ package fr.zelus.jarvis.util;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.core.RuntimePlatform;
 import fr.zelus.jarvis.io.EventProvider;
 import org.apache.commons.configuration2.Configuration;
 
@@ -202,45 +202,46 @@ public class Loader {
     }
 
     /**
-     * Constructs a new instance of the provided {@code jarvisModuleClass} with the given {@code jarvisCore} and
+     * Constructs a new instance of the provided {@code runtimePlatformClass} with the given {@code jarvisCore} and
      * {@code configuration}.
      * <p>
-     * This method first tries to construct an instance of the provided {@code jarvisModuleClass} with the provided
-     * {@code jarvisCore} and {@code configuration}. If the {@link JarvisModule} does not define such constructor,
+     * This method first tries to construct an instance of the provided {@code runtimePlatformClass} with the provided
+     * {@code jarvisCore} and {@code configuration}. If the {@link RuntimePlatform} does not define such constructor,
      * the method logs a warning and tries to construct an instance with only the {@code jarvisCore} parameter.
      * <p>
-     * The {@code jarvisModuleClass} parameter can be loaded by using this class' {@link #loadClass(String, Class)}
+     * The {@code runtimePlatformClass} parameter can be loaded by using this class' {@link #loadClass(String, Class)}
      * utility method.
      *
-     * @param jarvisModuleClass the {@link JarvisModule} {@link Class} to construct a new instance of
-     * @param jarvisCore        the {@link JarvisCore} instance used to construct the {@link JarvisModule}
-     * @param configuration     the {@link Configuration} instance used to construct the {@link JarvisModule}
-     * @return the constructed {@link JarvisModule}
-     * @throws JarvisException if the {@link JarvisModule} does not define a constructor matching the provided
+     * @param runtimePlatformClass the {@link RuntimePlatform} {@link Class} to construct a new instance of
+     * @param jarvisCore        the {@link JarvisCore} instance used to construct the {@link RuntimePlatform}
+     * @param configuration     the {@link Configuration} instance used to construct the {@link RuntimePlatform}
+     * @return the constructed {@link RuntimePlatform}
+     * @throws JarvisException if the {@link RuntimePlatform} does not define a constructor matching the provided
      *                         parameters.
      * @see #construct(Class, Class, Class, Object, Object)
      * @see #loadClass(String, Class)
      */
-    public static JarvisModule constructJarvisModule(Class<? extends JarvisModule> jarvisModuleClass, JarvisCore
+    public static RuntimePlatform constructRuntimePlatform(Class<? extends RuntimePlatform> runtimePlatformClass, JarvisCore
             jarvisCore, Configuration configuration) {
-        JarvisModule module;
+        RuntimePlatform platform;
         try {
-            module = Loader.construct(jarvisModuleClass, JarvisCore.class, Configuration.class, jarvisCore,
+            platform = Loader.construct(runtimePlatformClass, JarvisCore.class, Configuration.class, jarvisCore,
                     configuration);
         } catch (NoSuchMethodException e) {
-            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the module with the its {0}({1})" +
-                    "constructor", jarvisModuleClass.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the platform with the its {0}({1})" +
+                    "constructor", runtimePlatformClass.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
                     .class.getSimpleName());
             try {
-                module = Loader.construct(jarvisModuleClass, JarvisCore.class, jarvisCore);
-                Log.warn("Module {0} loaded with its default constructor, the module will not be initialized with " +
-                        "jarvis configuration", jarvisModuleClass.getSimpleName());
+                platform = Loader.construct(runtimePlatformClass, JarvisCore.class, jarvisCore);
+                Log.warn("{0} {1} loaded with its default constructor, the platform will not be initialized with " +
+                        "jarvis configuration", RuntimePlatform.class.getSimpleName(), runtimePlatformClass
+                        .getSimpleName());
             } catch (NoSuchMethodException e1) {
                 throw new JarvisException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", jarvisModuleClass.getSimpleName(), JarvisCore.class.getSimpleName()), e1);
+                        "not exist", runtimePlatformClass.getSimpleName(), JarvisCore.class.getSimpleName()), e1);
             }
         }
-        return module;
+        return platform;
     }
 
     /**
@@ -255,7 +256,7 @@ public class Loader {
      * utility method.
      *
      * @param eventProviderClass the {@link EventProvider} {@link Class} to construct a new instance of
-     * @param jarvisModule       the {@link JarvisModule} instance used to construct the {@link EventProvider}
+     * @param runtimePlatform       the {@link RuntimePlatform} instance used to construct the {@link EventProvider}
      * @param configuration      the {@link Configuration} instance used to construct the {@link EventProvider}
      * @return the constructed {@link EventProvider}
      * @throws JarvisException if the {@link EventProvider} does not define a constructor matching the provided
@@ -263,22 +264,22 @@ public class Loader {
      * @see #construct(Class, Class, Class, Object, Object)
      * @see #loadClass(String, Class)
      */
-    public static EventProvider constructEventProvider(Class<? extends EventProvider> eventProviderClass, JarvisModule
-            jarvisModule, Configuration configuration) {
+    public static EventProvider constructEventProvider(Class<? extends EventProvider> eventProviderClass, RuntimePlatform
+            runtimePlatform, Configuration configuration) {
         EventProvider eventProvider;
         try {
-            eventProvider = Loader.construct(eventProviderClass, jarvisModule.getClass(), Configuration.class,
-                    jarvisModule,
+            eventProvider = Loader.construct(eventProviderClass, runtimePlatform.getClass(), Configuration.class,
+                    runtimePlatform,
                     configuration);
         } catch (NoSuchMethodException e) {
             Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the EventProvider using its " +
-                    "{0}({1}) constructor", eventProviderClass.getSimpleName(), jarvisModule.getClass()
+                    "{0}({1}) constructor", eventProviderClass.getSimpleName(), runtimePlatform.getClass()
                     .getSimpleName(), Configuration.class.getSimpleName());
             try {
-                eventProvider = Loader.construct(eventProviderClass, jarvisModule.getClass(), jarvisModule);
+                eventProvider = Loader.construct(eventProviderClass, runtimePlatform.getClass(), runtimePlatform);
             } catch (NoSuchMethodException e1) {
                 throw new JarvisException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", eventProviderClass.getSimpleName(), jarvisModule.getClass().getSimpleName()), e1);
+                        "not exist", eventProviderClass.getSimpleName(), runtimePlatform.getClass().getSimpleName()), e1);
             }
         }
         return eventProvider;

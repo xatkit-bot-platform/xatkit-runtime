@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.io;
 
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.core.RuntimePlatform;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -17,64 +17,64 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Instances of this class can be configured using the {@link Configuration}-based constructor, that enable to pass
  * additional parameters to the constructor.
  *
- * @param <T> the concrete {@link JarvisModule} subclass type containing the provider
+ * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
  */
-public abstract class EventProvider<T extends JarvisModule> implements Runnable {
+public abstract class EventProvider<T extends RuntimePlatform> implements Runnable {
 
     /**
      * The {@link JarvisCore} instance used to handle events.
      * <p>
-     * This attribute is a shortcut for {@code containingModule.getJarvisCore()}.
+     * This attribute is a shortcut for {@code runtimePlatform.getJarvisCore()}.
      */
     protected JarvisCore jarvisCore;
 
     /**
-     * The {@link JarvisModule} subclass containing this action.
+     * The {@link RuntimePlatform} subclass containing this action.
      */
-    protected T module;
+    protected T runtimePlatform;
 
     /**
-     * Constructs a new {@link EventProvider} with the provided {@code containingModule}.
+     * Constructs a new {@link EventProvider} with the provided {@code runtimePlatform}.
      * <p>
      * <b>Note</b>: this constructor should be used by {@link EventProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #EventProvider(JarvisModule, Configuration)}.
+     * parameters to be initialized. In that case see {@link #EventProvider(RuntimePlatform, Configuration)}.
      *
-     * @param containingModule the {@link JarvisModule} containing this {@link EventProvider}
-     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link EventProvider}
+     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public EventProvider(T containingModule) {
-        this(containingModule, new BaseConfiguration());
+    public EventProvider(T runtimePlatform) {
+        this(runtimePlatform, new BaseConfiguration());
     }
 
     /**
-     * Constructs a new {@link EventProvider} with the provided {@code containingModule} and {@code configuration}.
+     * Constructs a new {@link EventProvider} with the provided {@code runtimePlatform} and {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param containingModule the {@link JarvisModule} containing this {@link EventProvider}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link EventProvider}
      * @param configuration    the {@link Configuration} used to initialize the {@link EventProvider}
-     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
+     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public EventProvider(T containingModule, Configuration configuration) {
+    public EventProvider(T runtimePlatform, Configuration configuration) {
         /*
          * Do nothing with the configuration, it can be used by subclasses that require additional initialization
          * information.
          */
-        checkNotNull(containingModule, "Cannot construct an instance of %s with a null %s", this.getClass()
-                .getSimpleName(), JarvisModule.class.getSimpleName());
-        this.module = containingModule;
-        this.jarvisCore = containingModule.getJarvisCore();
+        checkNotNull(runtimePlatform, "Cannot construct an instance of %s with a null %s", this.getClass()
+                .getSimpleName(), RuntimePlatform.class.getSimpleName());
+        this.runtimePlatform = runtimePlatform;
+        this.jarvisCore = runtimePlatform.getJarvisCore();
     }
 
     /**
-     * Returns the {@link JarvisModule} containing this {@link EventProvider}.
+     * Returns the {@link RuntimePlatform} containing this {@link EventProvider}.
      *
-     * @return the {@link JarvisModule} containing this {@link EventProvider}
+     * @return the {@link RuntimePlatform} containing this {@link EventProvider}
      */
-    public T getModule() {
-        return module;
+    public T getRuntimePlatform() {
+        return runtimePlatform;
     }
 
     /**

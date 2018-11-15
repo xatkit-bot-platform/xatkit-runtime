@@ -1,0 +1,12 @@
+Platform DiscordPlatform
+
+path "fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform"
+
+providers {
+	input DiscordIntentProvider
+}
+
+actions {
+	PostMessage(message, channel)
+	Reply(message)
+}

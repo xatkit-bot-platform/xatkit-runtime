@@ -1,12 +1,12 @@
 package fr.zelus.jarvis.stubs.io;
 
         import fr.zelus.jarvis.io.EventProvider;
-import fr.zelus.jarvis.stubs.EmptyJarvisModule;
+import fr.zelus.jarvis.stubs.EmptyRuntimePlatform;
 
-public class StubInputProviderNoConfigurationConstructor extends EventProvider<EmptyJarvisModule> {
+public class StubInputProviderNoConfigurationConstructor extends EventProvider<EmptyRuntimePlatform> {
 
-    public StubInputProviderNoConfigurationConstructor(EmptyJarvisModule containingModule) {
-        super(containingModule);
+    public StubInputProviderNoConfigurationConstructor(EmptyRuntimePlatform runtimePlatform) {
+        super(runtimePlatform);
     }
 
     @Override

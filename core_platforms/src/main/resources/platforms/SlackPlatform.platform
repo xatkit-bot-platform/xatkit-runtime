@@ -1,0 +1,15 @@
+Platform SlackPlatform
+
+path "fr.zelus.jarvis.plugins.slack.platform.SlackPlatform"
+
+providers {
+	input SlackIntentProvider
+}
+
+actions {
+	PostMessage(message, channel)
+	Reply(message)
+	PostFileMessage(message, file, channel)
+	PostFileMessage(title, message, content, channel)
+	ReplyFileMessage(message, file)
+}

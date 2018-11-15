@@ -1,6 +1,6 @@
 package fr.zelus.jarvis.io;
 
-import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.core.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.RecognizedIntent;
@@ -17,9 +17,9 @@ import org.apache.commons.configuration2.Configuration;
  * should use {@link #getRecognizedIntent(String, JarvisSession)} to retrieve {@link RecognizedIntent}s from textual
  * user inputs.
  *
- * @param <T> the concrete {@link JarvisModule} subclass type containing the provider
+ * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
  */
-public abstract class IntentProvider<T extends JarvisModule> extends EventProvider<T> {
+public abstract class IntentProvider<T extends RuntimePlatform> extends EventProvider<T> {
 
     /**
      * The {@link IntentRecognitionProvider} used to parse user input and retrieve {@link RecognizedIntent}s.
@@ -37,17 +37,17 @@ public abstract class IntentProvider<T extends JarvisModule> extends EventProvid
      * and retrieve {@link RecognizedIntent}s.
      * <p>
      * <b>Note</b>: this constructor should be used by {@link IntentProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #IntentProvider(JarvisModule, Configuration)}.
+     * parameters to be initialized. In that case see {@link #IntentProvider(RuntimePlatform, Configuration)}.
      *
-     * @param containingModule the {@link JarvisModule} containing this {@link IntentProvider}
-     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link IntentProvider}
+     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public IntentProvider(T containingModule) {
-        this(containingModule, new BaseConfiguration());
+    public IntentProvider(T runtimePlatform) {
+        this(runtimePlatform, new BaseConfiguration());
     }
 
     /**
-     * Constructs a new {@link IntentProvider} with the provided {@code containingModule} and {@code configuration}.
+     * Constructs a new {@link IntentProvider} with the provided {@code runtimePlatform} and {@code configuration}.
      * <p>
      * This constructor sets the internal {@link IntentRecognitionProvider} instance that is used to parse user input
      * and retrieve {@link RecognizedIntent}s.
@@ -56,12 +56,12 @@ public abstract class IntentProvider<T extends JarvisModule> extends EventProvid
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param containingModule the {@link JarvisModule} containing this {@link IntentProvider}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link IntentProvider}
      * @param configuration    the {@link Configuration} used to initialize the {@link IntentProvider}
-     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
+     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public IntentProvider(T containingModule, Configuration configuration) {
-        super(containingModule, configuration);
+    public IntentProvider(T runtimePlatform, Configuration configuration) {
+        super(runtimePlatform, configuration);
         this.intentRecognitionProvider = jarvisCore.getIntentRecognitionProvider();
     }
 

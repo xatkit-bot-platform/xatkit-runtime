@@ -214,38 +214,6 @@
                                 <title>Core</title>
                                 <packages>fr.zelus.jarvis.core*</packages>
                             </group>
-                            <group>
-                                <title>I/O</title>
-                                <packages>fr.zelus.jarvis.io*</packages>
-                            </group>
-                            <group>
-                                <title>Intent Recognition</title>
-                                <packages>fr.zelus.jarvis.recognition*</packages>
-                            </group>
-                            <group>
-                                <title> DialogFlow Connector</title>
-                                <packages>fr.zelus.jarvis.recognition.dialogflow*</packages>
-                            </group>
-                            <group>
-                                <title>Intent Model</title>
-                                <packages>fr.zelus.jarvis.intent*</packages>
-                            </group>
-                            <group>
-                                <title>Module Model</title>
-                                <packages>fr.zelus.jarvis.module*</packages>
-                            </group>
-                            <group>
-                                <title>Orchestration Model</title>
-                                <packages>fr.zelus.jarvis.orchestration*</packages>
-                            </group>
-                            <group>
-                                <title>Plugins</title>
-                                <packages>fr.zelus.jarvis.plugins*</packages>
-                            </group>
-                            <group>
-                                <title>Utils</title>
-                                <packages>fr.zelus.jarvis.utils*</packages>
-                            </group>
                         </groups>
                         <tags>
                             <tag>

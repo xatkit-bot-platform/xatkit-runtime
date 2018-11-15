@@ -2,6 +2,7 @@ package fr.zelus.jarvis.core.session;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.core.RuntimeAction;
 import fr.zelus.jarvis.intent.Context;
 import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.io.EventProvider;
@@ -25,16 +26,16 @@ import static java.util.Objects.nonNull;
  * A variable container bound to a {@link JarvisSession}.
  * <p>
  * This class stores the different variables that can be set during user input processing and accessed by executed
- * {@link fr.zelus.jarvis.core.JarvisAction}. {@link JarvisContext} is used to store:
+ * {@link RuntimeAction}. {@link JarvisContext} is used to store:
  * <ul>
  * <li><b>{@link EventProvider} values</b> such as the user name, the channel where the
  * message was received, etc</li>
  * <li><b>Intent recognition values</b>, that are computed by the Intent recognition engine and used to pass
  * information between messages</li>
- * <li><b>Action values</b>, that are returned by {@link fr.zelus.jarvis.core.JarvisAction}s</li>
+ * <li><b>Action values</b>, that are returned by {@link RuntimeAction}s</li>
  * </ul>
  * <p>
- * This class is heavily used by jarvis core component to pass {@link fr.zelus.jarvis.core.JarvisAction} parameters,
+ * This class is heavily used by jarvis core component to pass {@link RuntimeAction} parameters,
  * and replace output message variables by their concrete values.
  */
 public class JarvisContext {
@@ -105,7 +106,7 @@ public class JarvisContext {
                 .getSimpleName(), Configuration.class.getSimpleName(), configuration);
         /*
          * Use ConcurrentHashMaps: the JarvisContext may be accessed and modified by multiple threads, in case of
-         * multiple input messages or parallel JarvisAction execution.
+         * multiple input messages or parallel RuntimeAction execution.
          */
         this.contexts = new ConcurrentHashMap<>();
         this.lifespanCounts = new ConcurrentHashMap<>();
@@ -319,7 +320,7 @@ public class JarvisContext {
      * lifespan remains consistent in all the {@link JarvisContext}s containing them.
      * <p>
      * However, note that the values stored in the context {@link Map}s are not cloned, meaning that
-     * {@link fr.zelus.jarvis.core.JarvisAction}s updating existing values will update them for all the merged
+     * {@link RuntimeAction}s updating existing values will update them for all the merged
      * context (see #129).
      *
      * @param other the {@link JarvisContext} to merge into this one

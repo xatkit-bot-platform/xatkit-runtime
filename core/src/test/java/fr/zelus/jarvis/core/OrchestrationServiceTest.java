@@ -13,14 +13,11 @@ import fr.zelus.jarvis.platform.InputProviderDefinition;
 import fr.zelus.jarvis.platform.Platform;
 import fr.zelus.jarvis.platform.PlatformFactory;
 import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
-import fr.zelus.jarvis.stubs.StubJarvisModule;
+import fr.zelus.jarvis.stubs.StubRuntimePlatform;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.UUID;
 
@@ -49,12 +46,12 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("StubJarvisModule");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubJarvisModule");
+        stubPlatform.setName("StubRuntimePlatform");
+        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
         Action stubAction = PlatformFactory.eINSTANCE.createAction();
-        stubAction.setName("StubJarvisAction");
+        stubAction.setName("StubRuntimeAction");
         Action errorAction = PlatformFactory.eINSTANCE.createAction();
-        errorAction.setName("ErroringStubJarvisAction");
+        errorAction.setName("ErroringStubRuntimeAction");
         // No parameters, keep it simple
         stubPlatform.getActions().add(stubAction);
         stubPlatform.getActions().add(errorAction);
@@ -112,6 +109,18 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         }
     }
 
+    @Before
+    public void setUp() {
+        RuntimePlatform runtimePlatform = VALID_JARVIS_CORE.getRuntimePlatformRegistry().getRuntimePlatform
+                ("StubRuntimePlatform");
+        if(nonNull(runtimePlatform)) {
+            /*
+             * Call init() to reset the platform actions and avoid comparison issues when checking their state.
+             */
+            ((StubRuntimePlatform) runtimePlatform).init();
+        }
+    }
+
     @After
     public void tearDown() {
         if (nonNull(orchestrationService) && !orchestrationService.isShutdown()) {
@@ -123,17 +132,17 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
 
     private OrchestrationService getValidOrchestrationService() {
         orchestrationService = new OrchestrationService(VALID_ORCHESTRATION_MODEL, VALID_JARVIS_CORE
-                .getJarvisModuleRegistry());
+                .getRuntimePlatformRegistry());
         return orchestrationService;
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullOrchestrationModel() {
-        orchestrationService = new OrchestrationService(null, VALID_JARVIS_CORE.getJarvisModuleRegistry());
+        orchestrationService = new OrchestrationService(null, VALID_JARVIS_CORE.getRuntimePlatformRegistry());
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructNullJarvisModuleRegistry() {
+    public void constructNullRuntimePlatformRegistry() {
         orchestrationService = new OrchestrationService(VALID_ORCHESTRATION_MODEL, null);
     }
 
@@ -142,8 +151,8 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         orchestrationService = getValidOrchestrationService();
         assertThat(orchestrationService.getOrchestrationModel()).as("Valid orchestration model").isEqualTo
                 (VALID_ORCHESTRATION_MODEL);
-        assertThat(orchestrationService.getJarvisModuleRegistry()).as("Valid Jarvis module registry").isEqualTo
-                (VALID_JARVIS_CORE.getJarvisModuleRegistry());
+        assertThat(orchestrationService.getRuntimePlatformRegistry()).as("Valid Jarvis runtimePlatform registry").isEqualTo
+                (VALID_JARVIS_CORE.getRuntimePlatformRegistry());
         assertThat(orchestrationService.getExecutorService()).as("Not null ExecutorService").isNotNull();
         assertThat(orchestrationService.isShutdown()).as("Orchestration service started").isFalse();
     }
@@ -164,18 +173,17 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
     public void handleEventValidEvent() throws InterruptedException {
         orchestrationService = getValidOrchestrationService();
         /*
-         * Retrieve the stub JarvisModule to check that its action has been processed.
+         * Retrieve the stub RuntimePlatform to check that its action has been processed.
          */
-        StubJarvisModule stubJarvisModule = (StubJarvisModule) VALID_JARVIS_CORE.getJarvisModuleRegistry()
-                .getJarvisModule
-                        ("StubJarvisModule");
+        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_JARVIS_CORE.getRuntimePlatformRegistry()
+                .getRuntimePlatform("StubRuntimePlatform");
         orchestrationService.handleEventInstance(VALID_EVENT_INSTANCE, VALID_JARVIS_CORE.getOrCreateJarvisSession
                 ("sessionID"));
         /*
          * Sleep to ensure that the Action has been processed.
          */
         Thread.sleep(1000);
-        assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action processed").isTrue();
+        assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Action processed").isTrue();
     }
 
     @Test
@@ -256,10 +264,10 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
     public void handleEventNotHandledEvent() throws InterruptedException {
         orchestrationService = getValidOrchestrationService();
         /*
-         * Retrieve the stub JarvisModule to check that its action has been processed.
+         * Retrieve the stub RuntimePlatform to check that its action has been processed.
          */
-        StubJarvisModule stubJarvisModule = (StubJarvisModule) VALID_JARVIS_CORE.getJarvisModuleRegistry()
-                .getJarvisModule("StubJarvisModule");
+        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_JARVIS_CORE.getRuntimePlatformRegistry()
+                .getRuntimePlatform("StubRuntimePlatform");
         EventDefinition notHandledDefinition = IntentFactory.eINSTANCE.createEventDefinition();
         notHandledDefinition.setName("NotHandled");
         EventInstance notHandledEventInstance = IntentFactory.eINSTANCE.createEventInstance();
@@ -270,18 +278,18 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
          * Sleep to ensure that the Action has been processed.
          */
         Thread.sleep(1000);
-        assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Action not processed").isFalse();
+        assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Action not processed").isFalse();
     }
 
     @Test
-    public void executedJarvisActionErroringAction() throws InterruptedException {
+    public void executedRuntimeActionErroringAction() throws InterruptedException {
         orchestrationService = getValidOrchestrationService();
-        StubJarvisModule stubJarvisModule = (StubJarvisModule) VALID_JARVIS_CORE.getJarvisModuleRegistry()
-                .getJarvisModule("StubJarvisModule");
+        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_JARVIS_CORE.getRuntimePlatformRegistry()
+                .getRuntimePlatform("StubRuntimePlatform");
         orchestrationService.handleEventInstance(ON_ERROR_EVENT_INSTANCE, new JarvisSession(UUID.randomUUID()
                 .toString()));
         Thread.sleep(1000);
-        assertThat(stubJarvisModule.getErroringAction().isActionProcessed()).as("Erroring action processed").isTrue();
-        assertThat(stubJarvisModule.getAction().isActionProcessed()).as("Fallback action processed").isTrue();
+        assertThat(stubRuntimePlatform.getErroringAction().isActionProcessed()).as("Erroring action processed").isTrue();
+        assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Fallback action processed").isTrue();
     }
 }

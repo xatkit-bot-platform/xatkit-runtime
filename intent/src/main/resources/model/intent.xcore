@@ -81,7 +81,7 @@ class BaseEntityDefinition extends EntityDefinition {
 }
 
 // class EntityDefinitionLink extends EntityDefinition {
-//   refers EntityDefinition referredEntityDefinition -> for CompositeEntityDefinitions created in modules
+//   refers EntityDefinition referredEntityDefinition -> for CompositeEntityDefinitions created in platforms
 // }
 
 // class CompositeEntityDefinition extends EntityDefinition

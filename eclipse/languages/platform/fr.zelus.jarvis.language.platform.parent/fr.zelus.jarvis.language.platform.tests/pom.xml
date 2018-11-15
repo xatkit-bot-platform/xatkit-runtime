@@ -14,7 +14,7 @@
 	<dependencies>
 
 		<!-- Eclipse -->
-		<!-- This dependency is only required to dynamically load the core Modules -->
+		<!-- This dependency is only required to dynamically load the core Platforms -->
 		<!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
 		<dependency>
 			<groupId>org.eclipse.platform</groupId>

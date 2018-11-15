@@ -2,15 +2,15 @@ package fr.zelus.jarvis.stubs.io;
 
 import com.google.gson.JsonElement;
 import fr.zelus.jarvis.io.JsonWebhookEventProvider;
-import fr.zelus.jarvis.stubs.EmptyJarvisModule;
+import fr.zelus.jarvis.stubs.EmptyRuntimePlatform;
 import org.apache.http.Header;
 
-public class StubJsonWebhookEventProvider extends JsonWebhookEventProvider<EmptyJarvisModule> {
+public class StubJsonWebhookEventProvider extends JsonWebhookEventProvider<EmptyRuntimePlatform> {
 
     private boolean eventReceived;
 
-    public StubJsonWebhookEventProvider(EmptyJarvisModule containingModule) {
-        super(containingModule);
+    public StubJsonWebhookEventProvider(EmptyRuntimePlatform runtimePlatform) {
+        super(runtimePlatform);
         this.eventReceived = false;
     }
 

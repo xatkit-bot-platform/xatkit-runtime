@@ -2,7 +2,7 @@ package fr.zelus.jarvis.server;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.stubs.EmptyJarvisModule;
+import fr.zelus.jarvis.stubs.EmptyRuntimePlatform;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -184,8 +184,8 @@ public class JarvisServerTest extends AbstractJarvisTest {
      */
     private StubJsonWebhookEventProvider getStubWebhookEventProvider() {
         stubJarvisCore = new StubJarvisCore();
-        EmptyJarvisModule emptyJarvisModule = new EmptyJarvisModule(stubJarvisCore);
-        return new StubJsonWebhookEventProvider(emptyJarvisModule);
+        EmptyRuntimePlatform emptyRuntimePlatform = new EmptyRuntimePlatform(stubJarvisCore);
+        return new StubJsonWebhookEventProvider(emptyRuntimePlatform);
     }
 
     private void checkJarvisServer(JarvisServer server) {

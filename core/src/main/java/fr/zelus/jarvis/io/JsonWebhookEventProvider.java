@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.core.RuntimePlatform;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
@@ -23,9 +23,9 @@ import static java.util.Objects.nonNull;
  * This {@link WebhookEventProvider} should be extended by concrete providers that expect Json content in the HTTP
  * requests sent by the {@link fr.zelus.jarvis.server.JarvisServer}.
  *
- * @param <T> the concrete {@link JarvisModule} subclass type containing the provider
+ * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
  */
-public abstract class JsonWebhookEventProvider<T extends JarvisModule> extends WebhookEventProvider<T, JsonElement> {
+public abstract class JsonWebhookEventProvider<T extends RuntimePlatform> extends WebhookEventProvider<T, JsonElement> {
 
     /**
      * The {@link JsonParser} used to parse the raw HTTP request content.
@@ -36,33 +36,33 @@ public abstract class JsonWebhookEventProvider<T extends JarvisModule> extends W
     private JsonParser jsonParser;
 
     /**
-     * Constructs a new {@link JsonWebhookEventProvider} with the provided {@code containingModule}.
+     * Constructs a new {@link JsonWebhookEventProvider} with the provided {@code runtimePlatform}.
      * <p>
      * <b>Note:</b> this constructor should be used by {@link JsonWebhookEventProvider}s that do not require
      * additional parameters to be initialized. In that case see
-     * {@link #JsonWebhookEventProvider(JarvisModule, Configuration)}.
+     * {@link #JsonWebhookEventProvider(RuntimePlatform, Configuration)}.
      *
-     * @param containingModule the {@link JarvisModule} containing this {@link JsonWebhookEventProvider}
-     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link JsonWebhookEventProvider}
+     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public JsonWebhookEventProvider(T containingModule) {
-        this(containingModule, new BaseConfiguration());
+    public JsonWebhookEventProvider(T runtimePlatform) {
+        this(runtimePlatform, new BaseConfiguration());
     }
 
     /**
-     * Constructs a new {@link JsonWebhookEventProvider} with the provided {@code containingModule} and
+     * Constructs a new {@link JsonWebhookEventProvider} with the provided {@code runtimePlatform} and
      * {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param containingModule the {@link JarvisModule} containing this {@link JsonWebhookEventProvider}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link JsonWebhookEventProvider}
      * @param configuration    the {@link Configuration} used to initialize the {@link JsonWebhookEventProvider}
-     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
+     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public JsonWebhookEventProvider(T containingModule, Configuration configuration) {
-        super(containingModule, configuration);
+    public JsonWebhookEventProvider(T runtimePlatform, Configuration configuration) {
+        super(runtimePlatform, configuration);
         this.jsonParser = new JsonParser();
     }
 

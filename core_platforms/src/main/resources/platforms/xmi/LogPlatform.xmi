@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ASCII"?>
+<platform:Platform xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="fr.zelus.jarvis.platform" name="LogPlatform" runtimePath="fr.zelus.jarvis.plugins.log.platform.LogPlatform">
+  <actions name="LogInfo">
+    <parameters key="message"/>
+  </actions>
+  <actions name="LogWarning">
+    <parameters key="message"/>
+  </actions>
+  <actions name="LogError">
+    <parameters key="message"/>
+  </actions>
+</platform:Platform>

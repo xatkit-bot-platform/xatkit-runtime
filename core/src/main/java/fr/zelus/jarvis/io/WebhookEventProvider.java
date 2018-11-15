@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.io;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisModule;
+import fr.zelus.jarvis.core.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 
@@ -14,38 +14,38 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * This class defines primitives to handle raw HTTP request contents, manipulate the parsed content, and provides an
  * utility method that checks if the {@link WebhookEventProvider} accepts a given {@code contentType}.
  *
- * @param <T> the concrete {@link JarvisModule} subclass type containing the provider
+ * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
  * @param <C> the type of the parsed HTTP request content
  */
-public abstract class WebhookEventProvider<T extends JarvisModule, C> extends EventProvider<T> {
+public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends EventProvider<T> {
 
     /**
-     * Constructs a new {@link WebhookEventProvider} with the provided {@code containingModule}.
+     * Constructs a new {@link WebhookEventProvider} with the provided {@code runtimePlatform}.
      * <p>
      * <b>Note</b>: this constructor should be used by {@link WebhookEventProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #WebhookEventProvider(JarvisModule, Configuration)}.
+     * parameters to be initialized. In that case see {@link #WebhookEventProvider(RuntimePlatform, Configuration)}.
      *
-     * @param containingModule the {@link JarvisModule} containing this {@link WebhookEventProvider}
-     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link WebhookEventProvider}
+     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public WebhookEventProvider(T containingModule) {
-        super(containingModule);
+    public WebhookEventProvider(T runtimePlatform) {
+        super(runtimePlatform);
     }
 
     /**
-     * Constructs a new {@link WebhookEventProvider} from the provided {@code containingModule} and
+     * Constructs a new {@link WebhookEventProvider} from the provided {@code runtimePlatform} and
      * {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param containingModule the {@link JarvisModule} containing this {@link WebhookEventProvider}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link WebhookEventProvider}
      * @param configuration    the {@link Configuration} used to initialize the {@link WebhookEventProvider}
-     * @throws NullPointerException if the provided {@code containingModule} is {@code null}
+     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public WebhookEventProvider(T containingModule, Configuration configuration) {
-        super(containingModule, configuration);
+    public WebhookEventProvider(T runtimePlatform, Configuration configuration) {
+        super(runtimePlatform, configuration);
     }
 
     /**
