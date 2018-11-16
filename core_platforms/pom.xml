@@ -14,7 +14,7 @@
 
     <packaging>bundle</packaging>
 
-    <name>Jarvis Core Platform Descriptors</name>
+    <name>Jarvis core platform descriptors</name>
 
     <build>
         <plugins>
