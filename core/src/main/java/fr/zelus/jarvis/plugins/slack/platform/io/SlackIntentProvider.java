@@ -295,7 +295,7 @@ public class SlackIntentProvider extends IntentProvider<SlackPlatform> {
                                         session.getJarvisContext().setContextValue(JarvisSlackUtils
                                                 .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
                                                 .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
-                                        jarvisCore.getOrchestrationService().handleEventInstance
+                                        jarvisCore.getExecutionService().handleEventInstance
                                                 (recognizedIntent, session);
                                     } else {
                                         Log.warn("Received an empty message, skipping it");

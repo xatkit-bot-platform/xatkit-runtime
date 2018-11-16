@@ -109,7 +109,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * <p>
      * The returned {@link RuntimeActionResult#getExecutionTime()} value includes all the attempts to send the message.
      * <p>
-     * This method should not be called manually, and is handled by the {@link OrchestrationService} component that
+     * This method should not be called manually, and is handled by the {@link ExecutionService} component that
      * manages and executes {@link RuntimeAction}s.
      * <p>
      * This method does not throw any {@link Exception} if the underlying {@link RuntimeAction}'s computation does not
@@ -117,7 +117,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * {@link RuntimeActionResult#getThrownException()} method.
      *
      * @return the {@link RuntimeActionResult} containing the raw result of the computation and monitoring information
-     * @see OrchestrationService
+     * @see ExecutionService
      * @see RuntimeActionResult
      */
     @Override

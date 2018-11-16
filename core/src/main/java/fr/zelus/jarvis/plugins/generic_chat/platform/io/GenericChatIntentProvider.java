@@ -18,7 +18,7 @@ import static java.util.Objects.isNull;
 /**
  * A generic {@link IntentProvider} that wraps a concrete chatting {@link IntentProvider}.
  * <p>
- * This class is used to define generic orchestration models that can be bound to specific chatting platforms through
+ * This class is used to define generic execution models that can be bound to specific chatting platforms through
  * the provided {@link Configuration}.
  * <p>
  * The specific {@link IntentProvider} wrapped by this class should be defined in the

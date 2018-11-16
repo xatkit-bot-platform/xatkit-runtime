@@ -3,7 +3,7 @@ package fr.zelus.jarvis.stubs;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.orchestration.ActionInstance;
+import fr.zelus.jarvis.execution.ActionInstance;
 
 /**
  * An empty {@link RuntimePlatform} used to test {@link RuntimePlatform}-related methods.

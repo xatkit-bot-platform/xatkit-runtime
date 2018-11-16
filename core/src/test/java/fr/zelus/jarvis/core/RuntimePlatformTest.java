@@ -2,8 +2,8 @@ package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.io.WebhookEventProvider;
-import fr.zelus.jarvis.orchestration.*;
 import fr.zelus.jarvis.platform.Action;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
 import fr.zelus.jarvis.platform.Parameter;
@@ -194,7 +194,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     @Test(expected = JarvisException.class)
     public void createRuntimeActionNotEnabledAction() {
         Action action = getNoParameterAction();
-        ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(action);
         runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("id"));
     }
@@ -212,9 +212,9 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     public void createRuntimeActionValidActionInstanceWithReturnType() {
         Action action = getNoParameterAction();
         ActionInstance actionInstance = createActionInstanceFor(action);
-        Variable returnVariable = OrchestrationFactory.eINSTANCE.createVariable();
+        Variable returnVariable = ExecutionFactory.eINSTANCE.createVariable();
         returnVariable.setName("return");
-        VariableAccess returnVariableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
+        VariableAccess returnVariableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
         returnVariableAccess.setReferredVariable(returnVariable);
         actionInstance.setReturnVariable(returnVariableAccess);
         RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("session"));
@@ -229,8 +229,8 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         action.getParameters().add(param);
-        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
-        StringLiteral value = OrchestrationFactory.eINSTANCE.createStringLiteral();
+        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
+        StringLiteral value = ExecutionFactory.eINSTANCE.createStringLiteral();
         parameterValue.setExpression(value);
 //        parameterValue.setParameter(param);
         value.setValue("myValue");
@@ -245,8 +245,8 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         // Do not attach the Parameter to the Action
-        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
-        StringLiteral value = OrchestrationFactory.eINSTANCE.createStringLiteral();
+        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
+        StringLiteral value = ExecutionFactory.eINSTANCE.createStringLiteral();
         parameterValue.setExpression(value);
 //        parameterValue.setParameter(param);
         value.setValue("myValue");
@@ -258,11 +258,11 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     public void createJarvisParameterActionConstructor1ValidActionInstanceVariableAccess() {
         Action action = getParameterAction();
         ActionInstance actionInstance = createActionInstanceFor(action);
-        Variable paramVariable = OrchestrationFactory.eINSTANCE.createVariable();
+        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
-        VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
@@ -281,11 +281,11 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     public void createJarvisParameterActionConstructor2ValidActionInstanceVariableAccess() {
         Action action = getParameterAction();
         ActionInstance actionInstance = createActionInstanceFor(action);
-        Variable paramVariable = OrchestrationFactory.eINSTANCE.createVariable();
+        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
-        VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
@@ -307,11 +307,11 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     public void createJarvisParameterActionConstructor1ValidActionInstanceVariableNotRegistered() {
         Action action = getParameterAction();
         ActionInstance actionInstance = createActionInstanceFor(action);
-        Variable paramVariable = OrchestrationFactory.eINSTANCE.createVariable();
+        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
-        VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
         List<String> listParam = new ArrayList<>();
@@ -323,11 +323,11 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     public void createJarvisParameterActionValidActionInstanceInvalidParameterType() {
         Action action = getParameterAction();
         ActionInstance actionInstance = createActionInstanceFor(action);
-        Variable paramVariable = OrchestrationFactory.eINSTANCE.createVariable();
+        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
-        VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
@@ -344,17 +344,17 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         param2.setKey("param2");
         action.getParameters().add(param2);
         ActionInstance actionInstance = createActionInstanceFor(action);
-        Variable paramVariable = OrchestrationFactory.eINSTANCE.createVariable();
+        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
-        VariableAccess variableAccess = OrchestrationFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue1 = OrchestrationFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue1 = ExecutionFactory.eINSTANCE.createParameterValue();
         parameterValue1.setExpression(variableAccess);
-        Variable paramVariable2 = OrchestrationFactory.eINSTANCE.createVariable();
+        Variable paramVariable2 = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable2.setName("param2");
-        VariableAccess variableAccess2 = OrchestrationFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess2 = ExecutionFactory.eINSTANCE.createVariableAccess();
         variableAccess2.setReferredVariable(paramVariable2);
-        ParameterValue parameterValue2 = OrchestrationFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue2 = ExecutionFactory.eINSTANCE.createParameterValue();
         parameterValue2.setExpression(variableAccess2);
         actionInstance.getValues().add(parameterValue1);
         actionInstance.getValues().add(parameterValue2);
@@ -398,7 +398,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     private ActionInstance createActionInstanceFor(Action action) {
-        ActionInstance instance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        ActionInstance instance = ExecutionFactory.eINSTANCE.createActionInstance();
         instance.setAction(action);
         runtimePlatform.enableAction(action);
         return instance;

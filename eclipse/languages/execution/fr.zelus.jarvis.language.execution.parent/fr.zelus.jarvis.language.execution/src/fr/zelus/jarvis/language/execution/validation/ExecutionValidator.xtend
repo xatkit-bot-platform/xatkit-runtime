@@ -3,14 +3,14 @@
  */
 package fr.zelus.jarvis.language.execution.validation
 
-import fr.zelus.jarvis.orchestration.ActionInstance
-import fr.zelus.jarvis.orchestration.OrchestrationModel
-import fr.zelus.jarvis.orchestration.OrchestrationPackage
 import org.eclipse.xtext.validation.Check
 import org.eclipse.emf.ecore.resource.Resource
 import static java.util.Objects.isNull
 import fr.zelus.jarvis.platform.Parameter
 import fr.zelus.jarvis.language.execution.util.PlatformRegistry
+import fr.zelus.jarvis.execution.ExecutionModel
+import fr.zelus.jarvis.execution.ExecutionPackage
+import fr.zelus.jarvis.execution.ActionInstance
 
 /**
  * This class contains custom validation rules. 
@@ -20,12 +20,12 @@ import fr.zelus.jarvis.language.execution.util.PlatformRegistry
 class ExecutionValidator extends AbstractExecutionValidator {
 	
 	@Check
-	def checkOrchestrationModelValidImports(OrchestrationModel model) {
+	def checkOrchestrationModelValidImports(ExecutionModel model) {
 		model.imports.forEach[i | 
 			println("Checking import " + i)
 			var Resource moduleResource = PlatformRegistry.getInstance.loadPlatform(i)
 			if(isNull(moduleResource)) {
-				error('Module ' + i + "does not exist", OrchestrationPackage.Literals.ORCHESTRATION_MODEL__IMPORTS)
+				error('Module ' + i + "does not exist", ExecutionPackage.Literals.EXECUTION_MODEL__IMPORTS)
 			}
 		]
 	}
@@ -37,7 +37,7 @@ class ExecutionValidator extends AbstractExecutionValidator {
 		for(Parameter p : actionParameters) {
 			if(!actionInstanceParameters.contains(p)) {
 				println('The parameter ' + p.key + ' is not set in the action instance')
-				error('The parameter ' + p.key + ' is not set in the action instance', OrchestrationPackage.Literals.ACTION_INSTANCE__VALUES)
+				error('The parameter ' + p.key + ' is not set in the action instance', ExecutionPackage.Literals.ACTION_INSTANCE__VALUES)
 			}
 		}
 	}

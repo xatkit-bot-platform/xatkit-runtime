@@ -4,8 +4,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+import fr.zelus.jarvis.execution.ExecutionPackage;
 import fr.zelus.jarvis.intent.IntentPackage;
-import fr.zelus.jarvis.orchestration.OrchestrationPackage;
 import fr.zelus.jarvis.platform.PlatformPackage;
 
 /**
@@ -31,7 +31,7 @@ public class Activator implements BundleActivator {
 		System.out.println("Registering EPackages (Activator)");
 		EPackage.Registry.INSTANCE.put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
 		EPackage.Registry.INSTANCE.put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
-		EPackage.Registry.INSTANCE.put(OrchestrationPackage.eNS_URI, OrchestrationPackage.eINSTANCE);
+		EPackage.Registry.INSTANCE.put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
 
 	}
 

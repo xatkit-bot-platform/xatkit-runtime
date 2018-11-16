@@ -4,20 +4,20 @@
 package fr.zelus.jarvis.language.execution.formatting2
 
 import com.google.inject.Inject
-import fr.zelus.jarvis.orchestration.OrchestrationLink
-import fr.zelus.jarvis.orchestration.OrchestrationModel
 import org.eclipse.xtext.formatting2.AbstractFormatter2
 import org.eclipse.xtext.formatting2.IFormattableDocument
 import fr.zelus.jarvis.language.execution.services.ExecutionGrammarAccess
+import fr.zelus.jarvis.execution.ExecutionModel
+import fr.zelus.jarvis.execution.ExecutionRule
 
 class ExecutionFormatter extends AbstractFormatter2 {
 	
 	@Inject extension ExecutionGrammarAccess
 
-	def dispatch void format(OrchestrationModel orchestrationModel, extension IFormattableDocument document) {
+	def dispatch void format(ExecutionModel executionModel, extension IFormattableDocument document) {
 		// TODO: format HiddenRegions around keywords, attributes, cross references, etc. 
-		for (OrchestrationLink orchestrationLink : orchestrationModel.getOrchestrationLinks()) {
-			orchestrationLink.format;
+		for (ExecutionRule executionRule : executionModel.executionRules) {
+			executionRule.format;
 		}
 	}
 	

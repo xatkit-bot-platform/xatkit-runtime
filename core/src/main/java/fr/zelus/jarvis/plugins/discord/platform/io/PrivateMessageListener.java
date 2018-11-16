@@ -101,6 +101,6 @@ public class PrivateMessageListener extends ListenerAdapter {
                 .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
         jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
                 .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
-        jarvisCore.getOrchestrationService().handleEventInstance(recognizedIntent, jarvisSession);
+        jarvisCore.getExecutionService().handleEventInstance(recognizedIntent, jarvisSession);
     }
 }

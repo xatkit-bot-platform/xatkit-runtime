@@ -6,11 +6,11 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: fr.zelus.jarvis.language.execution.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: fr.zelus.jarvis.language.execution,
- fr.zelus.jarvis.orchestration,
  org.junit;bundle-version="4.12.0",
  org.eclipse.xtext.testing,
  org.eclipse.xtext.xbase.testing,
- org.eclipse.xtext.xbase.lib
+ org.eclipse.xtext.xbase.lib,
+ fr.zelus.jarvis.execution;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: fr.zelus.jarvis.language.execution.tests;x-internal=true
 Import-Package: org.hamcrest.core,

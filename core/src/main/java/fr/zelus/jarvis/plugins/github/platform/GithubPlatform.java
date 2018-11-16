@@ -24,7 +24,7 @@ import static java.util.Objects.nonNull;
  *     <li>{@link fr.zelus.jarvis.plugins.github.platform.action.OpenIssue}: open an issue on a given repository</li>
  * </ul>
  * <p>
- * This class is part of jarvis' core platforms, and can be used in an orchestration model by importing the
+ * This class is part of jarvis' core platforms, and can be used in an execution model by importing the
  * <i>GithubPlatform</i> package.
  */
 public class GithubPlatform extends RuntimePlatform {

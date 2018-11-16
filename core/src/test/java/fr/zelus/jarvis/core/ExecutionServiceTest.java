@@ -3,11 +3,11 @@ package fr.zelus.jarvis.core;
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.execution.ActionInstance;
+import fr.zelus.jarvis.execution.ExecutionFactory;
+import fr.zelus.jarvis.execution.ExecutionModel;
+import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.orchestration.ActionInstance;
-import fr.zelus.jarvis.orchestration.OrchestrationFactory;
-import fr.zelus.jarvis.orchestration.OrchestrationLink;
-import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.platform.Action;
 import fr.zelus.jarvis.platform.InputProviderDefinition;
 import fr.zelus.jarvis.platform.Platform;
@@ -24,13 +24,13 @@ import java.util.UUID;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OrchestrationServiceTest extends AbstractJarvisTest {
+public class ExecutionServiceTest extends AbstractJarvisTest {
 
     protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
 
     protected static String VALID_LANGUAGE_CODE = "en-US";
 
-    protected static OrchestrationModel VALID_ORCHESTRATION_MODEL;
+    protected static ExecutionModel VALID_EXECUTION_MODEL;
 
     protected static EventInstance VALID_EVENT_INSTANCE;
 
@@ -72,25 +72,25 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         ON_ERROR_EVENT_INSTANCE.setDefinition(onErrorIntentDefinition);
         // No parameters, keep it simple
         stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
-        VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
-        OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
-        link.setEvent(stubIntentDefinition);
-        ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE.createExecutionModel();
+        ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
+        rule.setEvent(stubIntentDefinition);
+        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(stubAction);
-        link.getActions().add(actionInstance);
-        OrchestrationLink notMatchedLink = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
-        notMatchedLink.setEvent(onErrorIntentDefinition);
-        ActionInstance errorActionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        rule.getActions().add(actionInstance);
+        ExecutionRule notMatchedRule = ExecutionFactory.eINSTANCE.createExecutionRule();
+        notMatchedRule.setEvent(onErrorIntentDefinition);
+        ActionInstance errorActionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         errorActionInstance.setAction(errorAction);
         /*
          * The ActionInstance that is executed when the errorActionInstance throws an exception.
          */
-        ActionInstance onErrorActionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        ActionInstance onErrorActionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         onErrorActionInstance.setAction(stubAction);
         errorActionInstance.getOnError().add(onErrorActionInstance);
-        notMatchedLink.getActions().add(errorActionInstance);
-        VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().add(link);
-        VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().add(notMatchedLink);
+        notMatchedRule.getActions().add(errorActionInstance);
+        VALID_EXECUTION_MODEL.getExecutionRules().add(rule);
+        VALID_EXECUTION_MODEL.getExecutionRules().add(notMatchedRule);
         VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
         ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
 
@@ -98,7 +98,7 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VALID_PROJECT_ID);
         configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
+        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
         VALID_JARVIS_CORE = new JarvisCore(configuration);
     }
 
@@ -123,61 +123,61 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
 
     @After
     public void tearDown() {
-        if (nonNull(orchestrationService) && !orchestrationService.isShutdown()) {
-            orchestrationService.shutdown();
+        if (nonNull(executionService) && !executionService.isShutdown()) {
+            executionService.shutdown();
         }
     }
 
-    private OrchestrationService orchestrationService;
+    private ExecutionService executionService;
 
-    private OrchestrationService getValidOrchestrationService() {
-        orchestrationService = new OrchestrationService(VALID_ORCHESTRATION_MODEL, VALID_JARVIS_CORE
+    private ExecutionService getValidExecutionService() {
+        executionService = new ExecutionService(VALID_EXECUTION_MODEL, VALID_JARVIS_CORE
                 .getRuntimePlatformRegistry());
-        return orchestrationService;
+        return executionService;
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructNullOrchestrationModel() {
-        orchestrationService = new OrchestrationService(null, VALID_JARVIS_CORE.getRuntimePlatformRegistry());
+    public void constructNullExecutionModel() {
+        executionService = new ExecutionService(null, VALID_JARVIS_CORE.getRuntimePlatformRegistry());
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullRuntimePlatformRegistry() {
-        orchestrationService = new OrchestrationService(VALID_ORCHESTRATION_MODEL, null);
+        executionService = new ExecutionService(VALID_EXECUTION_MODEL, null);
     }
 
     @Test
     public void constructValid() {
-        orchestrationService = getValidOrchestrationService();
-        assertThat(orchestrationService.getOrchestrationModel()).as("Valid orchestration model").isEqualTo
-                (VALID_ORCHESTRATION_MODEL);
-        assertThat(orchestrationService.getRuntimePlatformRegistry()).as("Valid Jarvis runtimePlatform registry").isEqualTo
+        executionService = getValidExecutionService();
+        assertThat(executionService.getExecutionModel()).as("Valid execution model").isEqualTo
+                (VALID_EXECUTION_MODEL);
+        assertThat(executionService.getRuntimePlatformRegistry()).as("Valid Jarvis runtimePlatform registry").isEqualTo
                 (VALID_JARVIS_CORE.getRuntimePlatformRegistry());
-        assertThat(orchestrationService.getExecutorService()).as("Not null ExecutorService").isNotNull();
-        assertThat(orchestrationService.isShutdown()).as("Orchestration service started").isFalse();
+        assertThat(executionService.getExecutorService()).as("Not null ExecutorService").isNotNull();
+        assertThat(executionService.isShutdown()).as("Execution service started").isFalse();
     }
 
     @Test(expected = NullPointerException.class)
     public void handleEventNullEvent() {
-        orchestrationService = getValidOrchestrationService();
-        orchestrationService.handleEventInstance(null, new JarvisSession("sessionID"));
+        executionService = getValidExecutionService();
+        executionService.handleEventInstance(null, new JarvisSession("sessionID"));
     }
 
     @Test(expected = NullPointerException.class)
     public void handleEventNullSession() {
-        orchestrationService = getValidOrchestrationService();
-        orchestrationService.handleEventInstance(VALID_EVENT_INSTANCE, null);
+        executionService = getValidExecutionService();
+        executionService.handleEventInstance(VALID_EVENT_INSTANCE, null);
     }
 
     @Test
     public void handleEventValidEvent() throws InterruptedException {
-        orchestrationService = getValidOrchestrationService();
+        executionService = getValidExecutionService();
         /*
          * Retrieve the stub RuntimePlatform to check that its action has been processed.
          */
         StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_JARVIS_CORE.getRuntimePlatformRegistry()
                 .getRuntimePlatform("StubRuntimePlatform");
-        orchestrationService.handleEventInstance(VALID_EVENT_INSTANCE, VALID_JARVIS_CORE.getOrCreateJarvisSession
+        executionService.handleEventInstance(VALID_EVENT_INSTANCE, VALID_JARVIS_CORE.getOrCreateJarvisSession
                 ("sessionID"));
         /*
          * Sleep to ensure that the Action has been processed.
@@ -232,12 +232,12 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         contextInstance2.setLifespanCount(outContext2.getLifeSpan());
         contextInstance2.getValues().add(value2);
         instance.getOutContextInstances().add(contextInstance2);
-        orchestrationService = getValidOrchestrationService();
+        executionService = getValidExecutionService();
         JarvisSession session = new JarvisSession(UUID.randomUUID().toString());
         /*
-         * Should not trigger any action, the EventDefinition is not registered in the orchestration model.
+         * Should not trigger any action, the EventDefinition is not registered in the execution model.
          */
-        orchestrationService.handleEventInstance(instance, session);
+        executionService.handleEventInstance(instance, session);
         /*
          * Sleep to ensure that the Action has been processed.
          */
@@ -262,7 +262,7 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
 
     @Test
     public void handleEventNotHandledEvent() throws InterruptedException {
-        orchestrationService = getValidOrchestrationService();
+        executionService = getValidExecutionService();
         /*
          * Retrieve the stub RuntimePlatform to check that its action has been processed.
          */
@@ -272,7 +272,7 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
         notHandledDefinition.setName("NotHandled");
         EventInstance notHandledEventInstance = IntentFactory.eINSTANCE.createEventInstance();
         notHandledEventInstance.setDefinition(notHandledDefinition);
-        orchestrationService.handleEventInstance(notHandledEventInstance, VALID_JARVIS_CORE.getOrCreateJarvisSession
+        executionService.handleEventInstance(notHandledEventInstance, VALID_JARVIS_CORE.getOrCreateJarvisSession
                 ("sessionID"));
         /*
          * Sleep to ensure that the Action has been processed.
@@ -283,10 +283,10 @@ public class OrchestrationServiceTest extends AbstractJarvisTest {
 
     @Test
     public void executedRuntimeActionErroringAction() throws InterruptedException {
-        orchestrationService = getValidOrchestrationService();
+        executionService = getValidExecutionService();
         StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_JARVIS_CORE.getRuntimePlatformRegistry()
                 .getRuntimePlatform("StubRuntimePlatform");
-        orchestrationService.handleEventInstance(ON_ERROR_EVENT_INSTANCE, new JarvisSession(UUID.randomUUID()
+        executionService.handleEventInstance(ON_ERROR_EVENT_INSTANCE, new JarvisSession(UUID.randomUUID()
                 .toString()));
         Thread.sleep(1000);
         assertThat(stubRuntimePlatform.getErroringAction().isActionProcessed()).as("Erroring action processed").isTrue();

@@ -315,10 +315,12 @@ version(s), and exceptions or additional permissions here}.&quot;
       <import plugin="org.eclipse.xtext.util"/>
       <import plugin="org.eclipse.xtend.lib"/>
       <import plugin="fr.zelus.jarvis.intent" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.osgi"/>
       <import plugin="fr.zelus.jarvis.platform" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.apache.log4j"/>
       <import plugin="org.eclipse.xtext.ide"/>
       <import plugin="org.eclipse.xtext.xbase.ide"/>
+      <import plugin="fr.zelus.jarvis.language.platform" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.xtext.ui"/>
       <import plugin="org.eclipse.xtext.ui.shared"/>
       <import plugin="org.eclipse.xtext.ui.codetemplates.ui"/>
@@ -327,11 +329,10 @@ version(s), and exceptions or additional permissions here}.&quot;
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.compare"/>
       <import plugin="org.eclipse.xtext.builder"/>
-      <import plugin="org.eclipse.core.runtime" version="3.13.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.osgi"/>
-      <import plugin="fr.zelus.jarvis.language.platform" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="fr.zelus.jarvis.language.platform.ide" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.runtime" version="3.13.0" match="greaterOrEqual"/>
       <import plugin="fr.zelus.jarvis.core_platforms" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="fr.zelus.jarvis.execution" version="1.0.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
@@ -370,13 +371,6 @@ version(s), and exceptions or additional permissions here}.&quot;
          unpack="false"/>
 
    <plugin
-         id="fr.zelus.jarvis.orchestration"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="fr.zelus.jarvis.core_platforms"
          download-size="0"
          install-size="0"
@@ -399,6 +393,13 @@ version(s), and exceptions or additional permissions here}.&quot;
 
    <plugin
          id="fr.zelus.jarvis.language.execution.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="fr.zelus.jarvis.execution"
          download-size="0"
          install-size="0"
          version="0.0.0"

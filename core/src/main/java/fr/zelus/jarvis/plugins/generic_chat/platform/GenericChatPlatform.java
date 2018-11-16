@@ -1,13 +1,10 @@
 package fr.zelus.jarvis.plugins.generic_chat.platform;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.RuntimeAction;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.*;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.orchestration.*;
 import fr.zelus.jarvis.platform.Action;
 import fr.zelus.jarvis.plugins.generic_chat.platform.action.GenericChatAction;
 import fr.zelus.jarvis.util.Loader;
@@ -22,7 +19,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 /**
  * A generic {@link RuntimePlatform} class that wraps concrete chatting sub-platforms.
  * <p>
- * This class is used to define generic orchestration models that can be bound to specific chatting platforms through
+ * This class is used to define generic {@link ExecutionModel}s that can be bound to specific chatting platforms through
  * the provided {@link Configuration}. {@link ActionInstance}s created by this runtimePlatform wraps concrete
  * {@link ActionInstance}s defined in the concrete sub-platforms.
  * <p>
@@ -192,7 +189,7 @@ public class GenericChatPlatform extends RuntimePlatform {
      * {@link RuntimePlatform#createRuntimeAction(ActionInstance, JarvisSession)} method with the provided {@code
      * actionInstance} and {@code session}. The returned {@link RuntimeAction}s are then wrapped into a
      * {@link GenericChatAction} that takes care of executing them through the regular
-     * {@link fr.zelus.jarvis.core.OrchestrationService#handleEventInstance(EventInstance, JarvisSession)} process.
+     * {@link ExecutionService#handleEventInstance(EventInstance, JarvisSession)} process.
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link RuntimeAction} to create
      * @param session        the {@link JarvisSession} associated to the action
@@ -238,11 +235,11 @@ public class GenericChatPlatform extends RuntimePlatform {
      */
     private ActionInstance reifyActionInstance(ActionInstance genericActionInstance, RuntimePlatform
             concreteRuntimePlatform) {
-        ActionInstance concreteActionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        ActionInstance concreteActionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         concreteActionInstance.setAction(genericActionInstance.getAction());
         concreteActionInstance.setReturnVariable(genericActionInstance.getReturnVariable());
         for (ParameterValue genericPValue : genericActionInstance.getValues()) {
-            ParameterValue concretePValue = OrchestrationFactory.eINSTANCE.createParameterValue();
+            ParameterValue concretePValue = ExecutionFactory.eINSTANCE.createParameterValue();
             concretePValue.setParameter(genericPValue.getParameter());
             concreteActionInstance.getValues().add(concretePValue);
             String parameterPropertyKey = CONCRETE_CHAT_PROPERTY_PREFIX_KEY + "." + genericPValue.getParameter()
@@ -255,7 +252,7 @@ public class GenericChatPlatform extends RuntimePlatform {
                  * ActionInstance.
                  */
                 String concreteValue = configuration.getString(parameterPropertyKey);
-                StringLiteral stringLiteral = OrchestrationFactory.eINSTANCE.createStringLiteral();
+                StringLiteral stringLiteral = ExecutionFactory.eINSTANCE.createStringLiteral();
                 stringLiteral.setValue(concreteValue);
                 concretePValue.setExpression(stringLiteral);
             } else {
@@ -282,7 +279,7 @@ public class GenericChatPlatform extends RuntimePlatform {
      * @throws JarvisException if the provided {@link Expression} type is not supported
      */
     private Expression deepCopy(Expression from) {
-        OrchestrationFactory f = OrchestrationFactory.eINSTANCE;
+        ExecutionFactory f = ExecutionFactory.eINSTANCE;
         if (from instanceof StringLiteral) {
             StringLiteral stringLiteral = f.createStringLiteral();
             stringLiteral.setValue(((StringLiteral) from).getValue());

@@ -5,7 +5,7 @@ import fr.zelus.jarvis.core.RuntimeAction;
 import fr.zelus.jarvis.core.RuntimePlatform;
 
 /**
- * A {@link RuntimePlatform} concrete implementation providing core functionality that can be used in orchestration models.
+ * A {@link RuntimePlatform} concrete implementation providing core functionality that can be used in execution models.
  * <p>
  * This runtimePlatform defines a set of high level {@link RuntimeAction}s:
  * <ul>
@@ -13,7 +13,7 @@ import fr.zelus.jarvis.core.RuntimePlatform;
  * <li>{@link fr.zelus.jarvis.plugins.core.platform.action.GetDate}: return the current date</li>
  * </ul>
  * <p>
- * This class is part of jarvis' core platforms, and can be used in an orchestration model by importing the
+ * This class is part of jarvis' core platforms, and can be used in an execution model by importing the
  * <i>CorePlatform</i> package.
  *
  * @see fr.zelus.jarvis.plugins.core.platform.action.GetTime

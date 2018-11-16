@@ -9,10 +9,10 @@ import org.eclipse.xtext.RuleCall
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.eclipse.xtext.Assignment
-import fr.zelus.jarvis.orchestration.OrchestrationModel
 import static java.util.Objects.isNull
 import fr.zelus.jarvis.platform.Platform
 import fr.zelus.jarvis.language.execution.util.PlatformRegistry
+import fr.zelus.jarvis.execution.ExecutionModel
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -20,25 +20,25 @@ import fr.zelus.jarvis.language.execution.util.PlatformRegistry
  */
 class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 
-	override completeOrchestrationModel_EventProviderDefinitions(EObject model, Assignment assignment,
+	override completeExecutionModel_EventProviderDefinitions(EObject model, Assignment assignment,
 		ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
-		var platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(model as OrchestrationModel)
+		var platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(model as ExecutionModel)
 		platforms.map[m|m.eventProviderDefinitions.map[i|i.name]].flatten.forEach [ iName |
 			acceptor.accept(createCompletionProposal(iName, context))
 		]
-		super.completeOrchestrationModel_EventProviderDefinitions(model, assignment, context, acceptor)
+		super.completeExecutionModel_EventProviderDefinitions(model, assignment, context, acceptor)
 	}
 
-	override completeOrchestrationLink_Event(EObject model, Assignment assignment, ContentAssistContext context,
+	override completeExecutionRule_Event(EObject model, Assignment assignment, ContentAssistContext context,
 		ICompletionProposalAcceptor acceptor) {
-		var platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(model.eContainer as OrchestrationModel)
+		var platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(model.eContainer as ExecutionModel)
 		platforms.map[m|m.intentDefinitions.map[i|i.name]].flatten.forEach [ iName |
 			acceptor.accept(createCompletionProposal(iName, context))
 		]
 		platforms.map[m|m.eventProviderDefinitions.map[e|e.eventDefinitions.map[ed|ed.name]].flatten].flatten.forEach [ edName |
 			acceptor.accept(createCompletionProposal(edName, context))
 		]
-		super.completeOrchestrationLink_Event(model, assignment, context, acceptor)
+		super.completeExecutionRule_Event(model, assignment, context, acceptor)
 	}
 
 	override completeActionInstance_Action(EObject model, Assignment assignment, ContentAssistContext context,
@@ -48,15 +48,15 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 		/*
 		 * Retrieve the OrchestrationModel, it can be different than the direct parent in case of nested on error ActionInstances.
 		 */
-		var OrchestrationModel orchestrationModel = null
+		var ExecutionModel executionModel = null
 		var currentObject = model
-		while(isNull(orchestrationModel)) {
+		while(isNull(executionModel)) {
 			currentObject = currentObject.eContainer
-			if(currentObject instanceof OrchestrationModel) {
-				orchestrationModel = currentObject
+			if(currentObject instanceof ExecutionModel) {
+				executionModel = currentObject
 			}
 		}
-		val platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(orchestrationModel)
+		val platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(executionModel)
 		platforms.map[m|m.actions].flatten.forEach [ a |
 			var String prefix = (a.eContainer as Platform).name + ".";
 			var parameterString = ""

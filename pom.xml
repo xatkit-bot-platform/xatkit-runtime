@@ -54,7 +54,7 @@
 
     <modules>
         <module>core</module>
-        <module>orchestration</module>
+        <module>execution</module>
         <module>platform</module>
         <module>intent</module>
         <module>core_platforms</module>

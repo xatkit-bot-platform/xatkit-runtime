@@ -3,12 +3,12 @@ package fr.zelus.jarvis.core;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
+import fr.zelus.jarvis.execution.ActionInstance;
+import fr.zelus.jarvis.execution.ExecutionModel;
+import fr.zelus.jarvis.execution.ExecutionPackage;
+import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.io.EventProvider;
-import fr.zelus.jarvis.orchestration.ActionInstance;
-import fr.zelus.jarvis.orchestration.OrchestrationLink;
-import fr.zelus.jarvis.orchestration.OrchestrationModel;
-import fr.zelus.jarvis.orchestration.OrchestrationPackage;
 import fr.zelus.jarvis.platform.Action;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
 import fr.zelus.jarvis.platform.Platform;
@@ -44,32 +44,32 @@ import static java.util.Objects.isNull;
 /**
  * The core component of the jarvis framework.
  * <p>
- * This class is constructed from an {@link OrchestrationModel}, that defines the Intent to Action bindings that are
+ * This class is constructed from an {@link ExecutionModel}, that defines the Intent to Action bindings that are
  * executed by the application. Constructing an instance of this class will load the {@link RuntimePlatform}s used by
- * the provided {@link OrchestrationModel}, and enable the corresponding {@link RuntimeAction}s. It also creates an
+ * the provided {@link ExecutionModel}, and enable the corresponding {@link RuntimeAction}s. It also creates an
  * instance of {@link EventDefinitionRegistry} that can be accessed to retrieve and manage {@link EventDefinition} .
  *
  * @see EventDefinitionRegistry
  * @see RuntimePlatformRegistry
- * @see OrchestrationService
+ * @see ExecutionService
  * @see RuntimePlatform
  */
 public class JarvisCore {
 
     /**
-     * The {@link Configuration} key to store the {@link OrchestrationModel} to use.
+     * The {@link Configuration} key to store the {@link ExecutionModel} to use.
      *
      * @see #JarvisCore(Configuration)
      */
-    public static String ORCHESTRATION_MODEL_KEY = "jarvis.orchestration.model";
+    public static String EXECUTION_MODEL_KEY = "jarvis.execution.model";
 
     /**
      * The {@link Configuration} key prefix to store the custom platform paths.
      * <p>
      * This prefix is used to specify the paths of the custom platforms that are needed by the provided
-     * {@link OrchestrationModel}. Note that custom platform path properties are only required if the
-     * {@link OrchestrationModel} defines an {@code alias} for the imported platform models.
-     * {@link OrchestrationModel}s relying on absolute paths are directly loaded from the file system, but are not
+     * {@link ExecutionModel}. Note that custom platform path properties are only required if the
+     * {@link ExecutionModel} defines an {@code alias} for the imported platform models.
+     * {@link ExecutionModel}s relying on absolute paths are directly loaded from the file system, but are not
      * portable.
      * <p>
      * Custom platform properties must be set following this pattern: {@code CUSTOM_PLATFORMS_KEY_PREFIX + <platform
@@ -102,7 +102,7 @@ public class JarvisCore {
 
     /**
      * The {@link EventDefinitionRegistry} used to cache {@link fr.zelus.jarvis.intent.EventDefinition}s and
-     * {@link IntentDefinition}s from the input {@link OrchestrationModel} and provides utility methods to retrieve
+     * {@link IntentDefinition}s from the input {@link ExecutionModel} and provides utility methods to retrieve
      * specific
      * {@link EventDefinition}s and {@link IntentDefinition}s and clear the cache.
      *
@@ -111,24 +111,24 @@ public class JarvisCore {
     private EventDefinitionRegistry eventDefinitionRegistry;
 
     /**
-     * The {@link ResourceSet} used to load the {@link OrchestrationModel} and the referenced models.
+     * The {@link ResourceSet} used to load the {@link ExecutionModel} and the referenced models.
      * <p>
-     * The {@code orchestrationResourceSet} is initialized with the {@link #initializeOrchestrationResourceSet()}
+     * The {@code executionResourceSet} is initialized with the {@link #initializeExecutionResourceSet()}
      * method, that loads the core platforms models from the classpath, and dynamically retrieves the custom platforms
      * models.
      *
      * @see #CUSTOM_PLATFORMS_KEY_PREFIX
      */
-    protected ResourceSet orchestrationResourceSet;
+    protected ResourceSet executionResourceSet;
 
     /**
-     * The {@link OrchestrationService} used to handle {@link EventInstance}s and execute the associated
+     * The {@link ExecutionService} used to handle {@link EventInstance}s and execute the associated
      * {@link RuntimeAction}s.
      *
-     * @see OrchestrationService#handleEventInstance(EventInstance, JarvisSession)
+     * @see ExecutionService#handleEventInstance(EventInstance, JarvisSession)
      * @see RuntimeAction
      */
-    protected OrchestrationService orchestrationService;
+    protected ExecutionService executionService;
 
     /**
      * The {@link Map} used to store and retrieve {@link JarvisSession}s associated to users.
@@ -148,34 +148,34 @@ public class JarvisCore {
      * The provided {@code configuration} must provide values for the following key (note that additional values may
      * be required according to the used {@link EventProvider}s and {@link RuntimePlatform}s):
      * <ul>
-     * <li><b>jarvis.orchestration.model</b>: the {@link OrchestrationModel} defining the Intent to
+     * <li><b>jarvis.execution.model</b>: the {@link ExecutionModel} defining the Intent to
      * Action bindings (or the string representing its location)</li>
      * </ul>
      * <p>
-     * The provided {@link OrchestrationModel} defines the Intent to Action bindings that are executed by the
+     * The provided {@link ExecutionModel} defines the Intent to Action bindings that are executed by the
      * application. This constructor takes care of loading the {@link RuntimePlatform}s associated to the provided
-     * {@code orchestrationModel} and enables the corresponding {@link RuntimeAction}s.
+     * {@link ExecutionModel} and enables the corresponding {@link RuntimeAction}s.
      * <p>
-     * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@code orchestrationModel} have to be
+     * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@link ExecutionModel} have to be
      * in the classpath in order to be dynamically loaded and instantiated.
      *
      * @param configuration the {@link Configuration} to construct the instance from
      * @throws NullPointerException if the provided {@code configuration} or one of the mandatory values is {@code null}
-     * @throws JarvisException      if the framework is not able to retrieve the {@link OrchestrationModel}
-     * @see OrchestrationModel
+     * @throws JarvisException      if the framework is not able to retrieve the {@link ExecutionModel}
+     * @see ExecutionModel
      */
     public JarvisCore(Configuration configuration) {
         checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
         this.configuration = configuration;
-        this.orchestrationResourceSet = initializeOrchestrationResourceSet();
-        OrchestrationModel orchestrationModel = getOrchestrationModel(configuration.getProperty
-                (ORCHESTRATION_MODEL_KEY));
-        checkNotNull(orchestrationModel, "Cannot construct a jarvis instance from a null orchestration model");
+        this.executionResourceSet = initializeExecutionResourceSet();
+        ExecutionModel executionModel = getExecutionModel(configuration.getProperty(EXECUTION_MODEL_KEY));
+        checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass().getSimpleName()
+                , ExecutionModel.class.getSimpleName());
         this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                 configuration);
         this.sessions = new HashMap<>();
         this.runtimePlatformRegistry = new RuntimePlatformRegistry();
-        this.orchestrationService = new OrchestrationService(orchestrationModel, runtimePlatformRegistry);
+        this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry);
         this.eventDefinitionRegistry = new EventDefinitionRegistry();
         /*
          * Start the server before processing the EventProviderDefinitions, we need to have a valid JarvisServer
@@ -183,30 +183,29 @@ public class JarvisCore {
          */
         this.jarvisServer = new JarvisServer(configuration);
         boolean intentRegistered = false;
-        for (EventProviderDefinition eventProviderDefinition : orchestrationModel.getEventProviderDefinitions()) {
+        for (EventProviderDefinition eventProviderDefinition : executionModel.getEventProviderDefinitions()) {
             /*
              * The EventProviderDefinition is still a proxy, meaning that the proxy resolution failed.
              */
             if (eventProviderDefinition.eIsProxy()) {
                 throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} from " +
-                        "the orchestration model", eventProviderDefinition));
+                        "the {1}", eventProviderDefinition, ExecutionModel.class.getSimpleName()));
             }
             Platform eventProviderPlatform = (Platform) eventProviderDefinition.eContainer();
             RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
-                    (eventProviderPlatform
-                            .getName());
+                    (eventProviderPlatform.getName());
             if (isNull(eventProviderRuntimePlatform)) {
                 eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform);
                 this.runtimePlatformRegistry.registerRuntimePlatform(eventProviderRuntimePlatform);
             }
             eventProviderRuntimePlatform.startEventProvider(eventProviderDefinition);
         }
-        for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
+        for (ExecutionRule rule : executionModel.getExecutionRules()) {
             /*
              * We don't need to check whether the EventDefinition is a proxy, EventDefinitions are contained in
              * EventProviderDefinitions, that have been checked before.
              */
-            EventDefinition eventDefinition = link.getEvent();
+            EventDefinition eventDefinition = rule.getEvent();
             this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
             Log.info("Registering event {0}", eventDefinition.getName());
             if (eventDefinition instanceof IntentDefinition) {
@@ -221,14 +220,14 @@ public class JarvisCore {
             /*
              * Load the action platforms
              */
-            for (ActionInstance actionInstance : link.getActions()) {
+            for (ActionInstance actionInstance : rule.getActions()) {
                 Action action = actionInstance.getAction();
                 /*
                  * The Action is still a proxy, meaning that the proxy resolution failed.
                  */
                 if (action.eIsProxy()) {
                     throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
-                            "from the orchestration model", action));
+                            "from the {1}", action, ExecutionModel.class.getSimpleName()));
                 }
                 Platform platform = (Platform) action.eContainer();
                 RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform.getName());
@@ -251,28 +250,29 @@ public class JarvisCore {
     }
 
     /**
-     * Retrieves the {@link OrchestrationModel} from the provided {@code property}.
+     * Retrieves the {@link ExecutionModel} from the provided {@code property}.
      * <p>
-     * This method checks if the provided {@code property} is already an in-memory {@link OrchestrationModel}
+     * This method checks if the provided {@code property} is already an in-memory {@link ExecutionModel}
      * instance, or if it is defined by a {@link String} or an {@link URI} representing the path of the model. In
      * that case, the method attempts to load the model at the provided location and returns it.
      * <p>
      * This method supports loading of model path defined by {@link String}s and {@link URI}s. Support for additional
      * types is planned in the next releases.
      *
-     * @param property the {@link Object} representing the {@link OrchestrationModel} to extract
-     * @return the {@link OrchestrationModel} from the provided {@code property}
+     * @param property the {@link Object} representing the {@link ExecutionModel} to extract
+     * @return the {@link ExecutionModel} from the provided {@code property}
      * @throws JarvisException      if the provided {@code property} type is not handled, if the
      *                              underlying {@link Resource} cannot be loaded or if it does not contain an
-     *                              {@link OrchestrationModel} top-level
-     *                              element, or if the loaded {@link OrchestrationModel} is empty.
+     *                              {@link ExecutionModel} top-level element, or if the loaded
+     *                              {@link ExecutionModel} is empty.
      * @throws NullPointerException if the provided {@code property} is {@code null}
      */
-    protected OrchestrationModel getOrchestrationModel(Object property) {
-        checkNotNull(property, "Cannot retrieve the OrchestrationModel from the property null, please ensure it is " +
-                "set in the %s property of the jarvis configuration", ORCHESTRATION_MODEL_KEY);
-        if (property instanceof OrchestrationModel) {
-            return (OrchestrationModel) property;
+    protected ExecutionModel getExecutionModel(Object property) {
+        checkNotNull(property, "Cannot retrieve the %s from the property %s, please ensure it is " +
+                        "set in the %s property of the jarvis configuration", ExecutionModel.class.getSimpleName(),
+                property, EXECUTION_MODEL_KEY);
+        if (property instanceof ExecutionModel) {
+            return (ExecutionModel) property;
         } else {
             URI uri;
             if (property instanceof String) {
@@ -283,41 +283,39 @@ public class JarvisCore {
                 /*
                  * Unknown property type
                  */
-                throw new JarvisException(MessageFormat.format("Cannot retrieve the orchestration model from the " +
-                        "provided property {0}, the property type ({1}) is not supported", property, property
-                        .getClass().getSimpleName()));
+                throw new JarvisException(MessageFormat.format("Cannot retrieve the {0} from the " +
+                        "provided property {1}, the property type ({2}) is not supported", ExecutionModel.class
+                        .getSimpleName(), property, property.getClass().getSimpleName()));
             }
-            Resource orchestrationModelResource;
+            Resource executionModelResource;
             try {
-                orchestrationModelResource = orchestrationResourceSet.getResource(uri, true);
+                executionModelResource = executionResourceSet.getResource(uri, true);
             } catch (Exception e) {
-                throw new JarvisException(MessageFormat.format("Cannot load the orchestration model at the given " +
-                        "location: {0}", uri.toString()), e);
+                throw new JarvisException(MessageFormat.format("Cannot load the {0} at the given location: {1}",
+                        ExecutionModel.class.getSimpleName(), uri.toString()), e);
             }
-            if (isNull(orchestrationModelResource)) {
-                throw new JarvisException(MessageFormat.format("Cannot load the provided orchestration model (uri: " +
-                        "{0})", uri));
+            if (isNull(executionModelResource)) {
+                throw new JarvisException(MessageFormat.format("Cannot load the provided {0} (uri: {1})",
+                        ExecutionModel.class.getSimpleName(), uri));
             }
-            if (orchestrationModelResource.getContents().isEmpty()) {
-                throw new JarvisException(MessageFormat.format("The provided orchestration model is empty (uri: {0})" +
-                        "", orchestrationModelResource.getURI()));
+            if (executionModelResource.getContents().isEmpty()) {
+                throw new JarvisException(MessageFormat.format("The provided {0} is empty (uri: {1})", ExecutionModel
+                        .class.getSimpleName(), executionModelResource.getURI()));
             }
-            OrchestrationModel orchestrationModel;
+            ExecutionModel executionModel;
             try {
-                orchestrationModel = (OrchestrationModel) orchestrationModelResource.getContents().get(0);
+                executionModel = (ExecutionModel) executionModelResource.getContents().get(0);
             } catch (ClassCastException e) {
-                String errorMessage = MessageFormat.format("The provided orchestration model does not contain a " +
-                        "top-level element with the type OrchestrationModel (uri: {0})", orchestrationModelResource
-                        .getURI());
-                throw new JarvisException(MessageFormat.format("The provided orchestration model does not contain an " +
-                        "OrchestrationModel top-level element (uri: {0})", orchestrationModelResource.getURI()), e);
+                throw new JarvisException(MessageFormat.format("The provided {0} does not contain an " +
+                        "{0} top-level element (uri: {1})", ExecutionModel.class.getSimpleName(),
+                        executionModelResource.getURI()), e);
             }
-            return orchestrationModel;
+            return executionModel;
         }
     }
 
     /**
-     * Creates and initializes the {@link ResourceSet} used to load the provided {@link OrchestrationModel}.
+     * Creates and initializes the {@link ResourceSet} used to load the provided {@link ExecutionModel}.
      * <p>
      * This method registers the Jarvis language's {@link EPackage}s  and loads the <i>core platforms</i>
      * {@link Resource}s and the <i>custom platforms</i> {@link Resource}s in the created {@link ResourceSet}.
@@ -325,7 +323,7 @@ public class JarvisCore {
      * <i>Core platforms</i> loading is done by searching in the classpath the {@code core_platforms/platforms/} folder,
      * and loads each {@code xmi} file it contains as a platform {@link Resource}. Note that this method loads
      * <b>all</b> the <i>core platforms</i> {@link Resource}s, even if they are not used in the application's
-     * {@link OrchestrationModel}.
+     * {@link ExecutionModel}.
      * <p>
      * <b>Note:</b> this method loads the {@code platforms/} folder from the {@code core_platforms} jar file if the
      * application is executed in a standalone mode. In a development environment (i.e. with all the project
@@ -335,7 +333,7 @@ public class JarvisCore {
      * <i>Custom platforms</i> loading is done by searching in the provided {@link Configuration} file the entries
      * starting with {@link #CUSTOM_PLATFORMS_KEY_PREFIX}. These entries are handled as absolute paths to the
      * <i>custom platform</i> {@link Resource}s, and are configures to be the target of the corresponding custom
-     * platform proxies in the provided {@link OrchestrationModel}.
+     * platform proxies in the provided {@link ExecutionModel}.
      * <p>
      * This method ensures that the loaded {@link Resource}s corresponds to the {@code pathmaps} specified in the
      * provided {@code xmi} file. See {@link PlatformLoaderUtils#CORE_PLATFORM_PATHMAP} and
@@ -345,11 +343,11 @@ public class JarvisCore {
      * @see PlatformLoaderUtils#CORE_PLATFORM_PATHMAP
      * @see PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP
      */
-    private ResourceSet initializeOrchestrationResourceSet() {
+    private ResourceSet initializeExecutionResourceSet() {
         ResourceSet resourceSet = new ResourceSetImpl();
         resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
                 ());
-        resourceSet.getPackageRegistry().put(OrchestrationPackage.eNS_URI, OrchestrationPackage.eINSTANCE);
+        resourceSet.getPackageRegistry().put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
         resourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
         resourceSet.getPackageRegistry().put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
 
@@ -460,12 +458,12 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the underlying {@link OrchestrationService}.
+     * Returns the underlying {@link ExecutionService}.
      *
-     * @return the underlying {@link OrchestrationService}
+     * @return the underlying {@link ExecutionService}
      */
-    public OrchestrationService getOrchestrationService() {
-        return this.orchestrationService;
+    public ExecutionService getExecutionService() {
+        return this.executionService;
     }
 
     /**
@@ -486,7 +484,7 @@ public class JarvisCore {
      * Returns the {@link EventDefinitionRegistry} associated to this instance.
      * <p>
      * This registry is used to cache {@link EventDefinition}s and {@link IntentDefinition}s from the input
-     * {@link OrchestrationModel} and provides utility methods to retrieve specific {@link EventDefinition} and
+     * {@link ExecutionModel} and provides utility methods to retrieve specific {@link EventDefinition} and
      * {@link IntentDefinition} and clear the cache.
      *
      * @return the {@link EventDefinitionRegistry} associated to this instance
@@ -521,7 +519,7 @@ public class JarvisCore {
      * <p>
      * This method shuts down the underlying {@link IntentRecognitionProvider}, unloads and shuts down all the
      * {@link RuntimePlatform}s associated to this instance, unregisters the {@link EventDefinition} from the associated
-     * {@link EventDefinitionRegistry}, shuts down the {@link OrchestrationService}, and stops the {@link JarvisServer}.
+     * {@link EventDefinitionRegistry}, shuts down the {@link ExecutionService}, and stops the {@link JarvisServer}.
      * <p>
      * <b>Note:</b> calling this method invalidates the {@link IntentRecognitionProvider} connection, and thus shuts
      * down intent recognition features. New {@link RuntimeAction}s cannot be processed either.
@@ -529,7 +527,7 @@ public class JarvisCore {
      * @see IntentRecognitionProvider#shutdown()
      * @see RuntimePlatform#shutdown()
      * @see EventDefinitionRegistry#unregisterEventDefinition(EventDefinition)
-     * @see OrchestrationService#shutdown()
+     * @see ExecutionService#shutdown()
      * @see JarvisServer#stop()
      */
     public void shutdown() {
@@ -537,10 +535,10 @@ public class JarvisCore {
         if (isShutdown()) {
             throw new JarvisException("Cannot perform shutdown, JarvisCore is already shutdown");
         }
-        /* Shutdown the orchestration service first in case there are running tasks using the IntentRecognitionProvider
+        /* Shutdown the ExecutionService first in case there are running tasks using the IntentRecognitionProvider
          * API.
          */
-        this.orchestrationService.shutdown();
+        this.executionService.shutdown();
         this.jarvisServer.stop();
         this.intentRecognitionProvider.shutdown();
         Collection<RuntimePlatform> runtimePlatforms = this.getRuntimePlatformRegistry().getRuntimePlatforms();
@@ -554,13 +552,13 @@ public class JarvisCore {
     /**
      * Returns whether the {@link JarvisCore} client is shutdown.
      * <p>
-     * This class is considered as shutdown if its underlying {@link OrchestrationService},
+     * This class is considered as shutdown if its underlying {@link ExecutionService},
      * {@link IntentRecognitionProvider}, and {@link JarvisServer} are shutdown.
      *
      * @return {@code true} if the {@link JarvisCore} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
-        return (!jarvisServer.isStarted()) && orchestrationService.isShutdown() && intentRecognitionProvider
+        return (!jarvisServer.isStarted()) && executionService.isShutdown() && intentRecognitionProvider
                 .isShutdown();
     }
 

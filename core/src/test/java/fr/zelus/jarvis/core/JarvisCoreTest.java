@@ -3,12 +3,12 @@ package fr.zelus.jarvis.core;
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
+import fr.zelus.jarvis.execution.ActionInstance;
+import fr.zelus.jarvis.execution.ExecutionFactory;
+import fr.zelus.jarvis.execution.ExecutionModel;
+import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.orchestration.ActionInstance;
-import fr.zelus.jarvis.orchestration.OrchestrationFactory;
-import fr.zelus.jarvis.orchestration.OrchestrationLink;
-import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.platform.*;
 import fr.zelus.jarvis.recognition.DefaultIntentRecognitionProvider;
 import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
@@ -42,7 +42,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     protected static String VALID_LANGUAGE_CODE = "en-US";
 
-    protected static OrchestrationModel VALID_ORCHESTRATION_MODEL;
+    protected static ExecutionModel VALID_EXECUTION_MODEL;
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
@@ -60,15 +60,15 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
         stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
-        VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
-        OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
-        link.setEvent(stubIntentDefinition);
-        ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE.createExecutionModel();
+        ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
+        rule.setEvent(stubIntentDefinition);
+        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(stubAction);
-        link.getActions().add(actionInstance);
-        VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().add(link);
+        rule.getActions().add(actionInstance);
+        VALID_EXECUTION_MODEL.getExecutionRules().add(rule);
         /*
-         * Create the Resource used to store the valid orchestration model.
+         * Create the Resource used to store the valid execution model.
          */
         ResourceSet testResourceSet = new ResourceSetImpl();
         testResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
@@ -80,16 +80,16 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         testIntentResource.getContents().add(stubPlatform);
         testIntentResource.save(Collections.emptyMap());
 
-        Resource testOrchestrationResource = testResourceSet.createResource(URI.createURI
-                ("/tmp/jarvisTestOrchestrationResource.xmi"));
-        testOrchestrationResource.getContents().clear();
-        testOrchestrationResource.getContents().add(VALID_ORCHESTRATION_MODEL);
-        testOrchestrationResource.save(Collections.emptyMap());
+        Resource testExecutionResource = testResourceSet.createResource(URI.createURI
+                ("/tmp/jarvisTestExecutionResource.xmi"));
+        testExecutionResource.getContents().clear();
+        testExecutionResource.getContents().add(VALID_EXECUTION_MODEL);
+        testExecutionResource.save(Collections.emptyMap());
     }
 
     protected JarvisCore jarvisCore;
 
-    public static Configuration buildConfiguration(String projectId, String languageCode, Object orchestrationModel) {
+    public static Configuration buildConfiguration(String projectId, String languageCode, Object executionModel) {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
         configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
@@ -97,7 +97,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
          */
         configuration.addProperty(DialogFlowApi.ENABLE_INTENT_LOADING_KEY, false);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, orchestrationModel);
+        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, executionModel);
         return configuration;
     }
 
@@ -114,14 +114,14 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     /**
      * Returns a valid {@link JarvisCore} instance.
      * <p>
-     * The returned {@link JarvisCore} instance contains an empty {@link OrchestrationModel}, see
-     * {@link OrchestrationServiceTest} for orchestration-related test cases.
+     * The returned {@link JarvisCore} instance contains an empty {@link ExecutionModel}, see
+     * {@link ExecutionServiceTest} for execution-related test cases.
      *
      * @return a valid {@link JarvisCore} instance
      */
     private JarvisCore getValidJarvisCore() {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
-                VALID_ORCHESTRATION_MODEL);
+                VALID_EXECUTION_MODEL);
         jarvisCore = new JarvisCore(configuration);
         return jarvisCore;
     }
@@ -132,7 +132,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructMissingOrchestrationPathInConfiguration() {
+    public void constructMissingExecutionPathInConfiguration() {
         Configuration configuration = new BaseConfiguration();
         jarvisCore = new JarvisCore(configuration);
     }
@@ -140,7 +140,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test(expected = JarvisException.class)
     public void constructInvalidCustomPlatformPathInConfiguration() {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
-                VALID_ORCHESTRATION_MODEL);
+                VALID_EXECUTION_MODEL);
         configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", "test");
         jarvisCore = new JarvisCore(configuration);
     }
@@ -148,21 +148,24 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void constructValidCustomPlatformPathInConfiguration() {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
-                VALID_ORCHESTRATION_MODEL);
-        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform.xmi").getFile
+                VALID_EXECUTION_MODEL);
+        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform.xmi")
+                .getFile
                 ());
         configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
-        List<URI> registeredResourceURIs = jarvisCore.orchestrationResourceSet.getResources().stream().map(r -> r
+        List<URI> registeredResourceURIs = jarvisCore.executionResourceSet.getResources().stream().map(r -> r
                 .getURI()).collect(Collectors.toList());
-        assertThat(registeredResourceURIs).as("Custom runtimePlatform URI contained in the registered resource URIs").contains
+        assertThat(registeredResourceURIs).as("Custom runtimePlatform URI contained in the registered resource URIs")
+                .contains
                 (expectedURI);
         URI expectedPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + "Example");
-        assertThat(jarvisCore.orchestrationResourceSet.getURIConverter().getURIMap().keySet()).as("Custom runtimePlatform " +
+        assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom runtimePlatform" +
+                " " +
                 "pathmap contained in the ResourceSet's URI map").contains(expectedPathmapURI);
-        assertThat(jarvisCore.orchestrationResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
+        assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
                 ("Valid concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
     }
 
@@ -171,7 +174,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VALID_PROJECT_ID);
         configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
+        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
         jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
     }
@@ -179,7 +182,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void constructValidDefaultRuntimePlatformConstructor() {
         /*
-         * Use another OrchestrationModel linking to the StubRuntimePlatformJarvisCoreConstructor stub class, that only
+         * Use another ExecutionModel linking to the StubRuntimePlatformJarvisCoreConstructor stub class, that only
          * defines a default constructor.
          */
         Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
@@ -196,15 +199,15 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
         stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
-        OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
-        OrchestrationLink link = OrchestrationFactory.eINSTANCE.createOrchestrationLink();
-        link.setEvent(stubIntentDefinition);
-        ActionInstance actionInstance = OrchestrationFactory.eINSTANCE.createActionInstance();
+        ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
+        ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
+        rule.setEvent(stubIntentDefinition);
+        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         actionInstance.setAction(stubAction);
-        link.getActions().add(actionInstance);
-        orchestrationModel.getOrchestrationLinks().add(link);
-        jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel));
-        checkJarvisCore(jarvisCore, orchestrationModel);
+        rule.getActions().add(actionInstance);
+        executionModel.getExecutionRules().add(rule);
+        jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel));
+        checkJarvisCore(jarvisCore, executionModel);
     }
 
     @Test
@@ -216,10 +219,10 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 .createEventProviderDefinition();
         stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");
         stubPlatform.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
-        OrchestrationModel orchestrationModel = OrchestrationFactory.eINSTANCE.createOrchestrationModel();
-        orchestrationModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
-        jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, orchestrationModel));
-        checkJarvisCore(jarvisCore, orchestrationModel);
+        ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
+        executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
+        jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel));
+        checkJarvisCore(jarvisCore, executionModel);
         assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server WebhookEventProvider" +
                 " collection is not empty").isNotEmpty();
         assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
@@ -227,74 +230,73 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     }
 
     @Test
-    public void constructDefaultIntentRecognitionProviderEmptyOrchestrationModel() {
+    public void constructDefaultIntentRecognitionProviderEmptyExecutionModel() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, OrchestrationFactory.eINSTANCE
-                .createOrchestrationModel());
+        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, ExecutionFactory.eINSTANCE.createExecutionModel());
         jarvisCore = new JarvisCore(configuration);
         assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses DefaultIntentRecognitionProvider")
                 .isInstanceOf(DefaultIntentRecognitionProvider.class);
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void constructDefaultIntentRecognitionProviderIntentDefinitionInOrchestrationModel() {
+    public void constructDefaultIntentRecognitionProviderIntentDefinitionInExecutionModel() {
         /*
          * This test should fail: the DefaultIntentRecognitionProvider does not allow to register IntentDefinitions.
          */
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.ORCHESTRATION_MODEL_KEY, VALID_ORCHESTRATION_MODEL);
+        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
         jarvisCore = new JarvisCore(configuration);
     }
 
     @Test(expected = JarvisException.class)
-    public void getOrchestrationModelInvalidType() {
+    public void getExecutionModelInvalidType() {
         jarvisCore = getValidJarvisCore();
-        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(new Integer(2));
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(new Integer(2));
     }
 
     @Test(expected = JarvisException.class)
-    public void getOrchestrationModelFromInvalidString() {
+    public void getExecutionModelFromInvalidString() {
         jarvisCore = getValidJarvisCore();
-        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel("/tmp/test.xmi");
+        ExecutionModel executionModel = jarvisCore.getExecutionModel("/tmp/test.xmi");
     }
 
     @Test(expected = JarvisException.class)
-    public void getOrchestrationModelFromInvalidURI() {
+    public void getExecutionModelFromInvalidURI() {
         jarvisCore = getValidJarvisCore();
-        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(URI.createURI("/tmp/test.xmi"));
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(URI.createURI("/tmp/test.xmi"));
     }
 
     @Test
-    public void getOrchestrationModelFromValidInMemory() {
+    public void getExecutionModelFromValidInMemory() {
         jarvisCore = getValidJarvisCore();
-        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL);
-        assertThat(orchestrationModel).as("Valid OrchestrationModel").isEqualTo(VALID_ORCHESTRATION_MODEL);
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(VALID_EXECUTION_MODEL);
+        assertThat(executionModel).as("Valid ExecutionModel").isEqualTo(VALID_EXECUTION_MODEL);
     }
 
     @Test
-    public void getOrchestrationModelFromValidString() {
+    public void getExecutionModelFromValidString() {
         jarvisCore = getValidJarvisCore();
-        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL.eResource
-                ().getURI().toString());
-        assertThat(orchestrationModel).as("Not null OrchestrationModel").isNotNull();
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(VALID_EXECUTION_MODEL.eResource().getURI()
+                .toString());
+        assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
          * Not enough, but comparing the entire content of the model is more complicated than it looks like.
          */
-        assertThat(orchestrationModel.getOrchestrationLinks()).as("Valid OrchestrationLink size").hasSize
-                (VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().size());
+        assertThat(executionModel.getExecutionRules()).as("Valid ExecutionRule size").hasSize
+                (VALID_EXECUTION_MODEL.getExecutionRules().size());
     }
 
     @Test
-    public void getOrchestrationModelFromValidURI() {
+    public void getExecutionModelFromValidURI() {
         jarvisCore = getValidJarvisCore();
-        OrchestrationModel orchestrationModel = jarvisCore.getOrchestrationModel(VALID_ORCHESTRATION_MODEL.eResource
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(VALID_EXECUTION_MODEL.eResource
                 ().getURI());
-        assertThat(orchestrationModel).as("Not null OrchestrationModel").isNotNull();
+        assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
          * Not enough, but comparing the entire content of the model is more complicated than it looks like.
          */
-        assertThat(orchestrationModel.getOrchestrationLinks()).as("Valid OrchestrationLink size").hasSize
-                (VALID_ORCHESTRATION_MODEL.getOrchestrationLinks().size());
+        assertThat(executionModel.getExecutionRules()).as("Valid ExecutionRule size").hasSize
+                (VALID_EXECUTION_MODEL.getExecutionRules().size());
     }
 
     @Test(expected = JarvisException.class)
@@ -328,29 +330,30 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     public void shutdown() {
         jarvisCore = getValidJarvisCore();
         jarvisCore.shutdown();
-        softly.assertThat(jarvisCore.getOrchestrationService().isShutdown()).as("ExecutorService is shutdown");
+        softly.assertThat(jarvisCore.getExecutionService().isShutdown()).as("ExecutorService is shutdown");
         softly.assertThat(jarvisCore.getIntentRecognitionProvider().isShutdown()).as("DialogFlow API is shutdown");
-        softly.assertThat(jarvisCore.getRuntimePlatformRegistry().getRuntimePlatforms()).as("Empty runtimePlatform registry").isEmpty();
+        softly.assertThat(jarvisCore.getRuntimePlatformRegistry().getRuntimePlatforms()).as("Empty runtimePlatform " +
+                "registry").isEmpty();
     }
 
     /**
      * Computes a set of basic assertions on the provided {@code jarvisCore} using the
-     * {@link #VALID_ORCHESTRATION_MODEL}.
+     * {@link #VALID_EXECUTION_MODEL}.
      *
      * @param jarvisCore the {@link JarvisCore} instance to check
      */
     private void checkJarvisCore(JarvisCore jarvisCore) {
-        checkJarvisCore(jarvisCore, VALID_ORCHESTRATION_MODEL);
+        checkJarvisCore(jarvisCore, VALID_EXECUTION_MODEL);
     }
 
     /**
      * Computes a set of basic assertions on the provided {@code jarvisCore} using the provided {@code
-     * orchestrationModel}.
+     * executionModel}.
      *
-     * @param jarvisCore         the {@link JarvisCore} instance to check
-     * @param orchestrationModel the {@link OrchestrationModel} to check
+     * @param jarvisCore     the {@link JarvisCore} instance to check
+     * @param executionModel the {@link ExecutionModel} to check
      */
-    private void checkJarvisCore(JarvisCore jarvisCore, OrchestrationModel orchestrationModel) {
+    private void checkJarvisCore(JarvisCore jarvisCore, ExecutionModel executionModel) {
         /*
          * isNotNull() assertions are not soft, otherwise the runner does not print the assertion error and fails on
          * a NullPointerException in the following assertions.
@@ -363,30 +366,31 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 (VALID_PROJECT_ID);
         softly.assertThat(dialogFlowApi.getLanguageCode()).as("Valid DialogFlowAPI language code").isEqualTo
                 (VALID_LANGUAGE_CODE);
-        assertThat(jarvisCore.getOrchestrationService().getOrchestrationModel()).as("Not null OrchestrationModel")
+        assertThat(jarvisCore.getExecutionService().getExecutionModel()).as("Not null ExecutionModel")
                 .isNotNull();
-        softly.assertThat(jarvisCore.getOrchestrationService().getOrchestrationModel()).as("Valid " +
-                "OrchestrationModel").isEqualTo(orchestrationModel);
+        softly.assertThat(jarvisCore.getExecutionService().getExecutionModel()).as("Valid " +
+                "ExecutionModel").isEqualTo(executionModel);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
         assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
         URI corePlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "CorePlatform.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(corePlatformPathmapURI, false)).as("CorePlatform " +
+        assertThat(jarvisCore.executionResourceSet.getResource(corePlatformPathmapURI, false)).as("CorePlatform " +
                 "pathmap resolved").isNotNull();
-        URI discordPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "DiscordPlatform.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(discordPlatformPathmapURI, false)).as("DiscordPlatform" +
+        URI discordPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "DiscordPlatform" +
+                ".xmi");
+        assertThat(jarvisCore.executionResourceSet.getResource(discordPlatformPathmapURI, false)).as("DiscordPlatform" +
                 " pathmap resolved").isNotNull();
         URI genericChatPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP +
                 "GenericChatPlatform.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(genericChatPlatformPathmapURI, false)).as
+        assertThat(jarvisCore.executionResourceSet.getResource(genericChatPlatformPathmapURI, false)).as
                 ("GenericChatPlatform pathmap resolved").isNotNull();
         URI githubPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "GithubPlatform.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(githubPlatformPathmapURI, false)).as("GithubPlatform " +
+        assertThat(jarvisCore.executionResourceSet.getResource(githubPlatformPathmapURI, false)).as("GithubPlatform " +
                 "pathmap resolved").isNotNull();
         URI logPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "LogPlatform.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(logPlatformPathmapURI, false)).as("LogPlatform " +
+        assertThat(jarvisCore.executionResourceSet.getResource(logPlatformPathmapURI, false)).as("LogPlatform " +
                 "pathmap resolved").isNotNull();
         URI slackPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "SlackPlatform.xmi");
-        assertThat(jarvisCore.orchestrationResourceSet.getResource(slackPlatformPathmapURI, false)).as("SlackPlatform " +
+        assertThat(jarvisCore.executionResourceSet.getResource(slackPlatformPathmapURI, false)).as("SlackPlatform " +
                 "pathmap resolved").isNotNull();
 
     }

@@ -2,12 +2,12 @@ package fr.zelus.jarvis.stubs;
 
 import fr.zelus.jarvis.core.*;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.execution.ExecutionFactory;
+import fr.zelus.jarvis.execution.ExecutionModel;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.orchestration.OrchestrationFactory;
-import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 
 import java.util.ArrayList;
@@ -25,8 +25,8 @@ public class StubJarvisCore extends JarvisCore {
 
     protected static String VALID_LANGUAGE_CODE = "en-US";
 
-    protected static OrchestrationModel VALID_ORCHESTRATION_MODEL = OrchestrationFactory.eINSTANCE
-            .createOrchestrationModel();
+    protected static ExecutionModel VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE
+            .createExecutionModel();
 
     /**
      * The {@link List} of {@link EventDefinition} that have been handled by this instance.
@@ -37,16 +37,16 @@ public class StubJarvisCore extends JarvisCore {
      * Constructs a valid {@link StubJarvisCore} instance.
      */
     public StubJarvisCore() {
-        super(JarvisCoreTest.buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_ORCHESTRATION_MODEL));
+        super(JarvisCoreTest.buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_EXECUTION_MODEL));
         this.handledEvents = new ArrayList<>();
         IntentDefinition welcomeIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         welcomeIntentDefinition.setName("Default Welcome Intent");
         getEventDefinitionRegistry().registerEventDefinition(welcomeIntentDefinition);
         /*
-         * shutdown the default orchestration service to avoid multiple running instances.
+         * shutdown the default execution service to avoid multiple running instances.
          */
-        this.orchestrationService.shutdown();
-        this.orchestrationService = new StubOrchestrationService(VALID_ORCHESTRATION_MODEL, this
+        this.executionService.shutdown();
+        this.executionService = new StubExecutionService(VALID_EXECUTION_MODEL, this
                 .getRuntimePlatformRegistry());
     }
 
@@ -66,10 +66,10 @@ public class StubJarvisCore extends JarvisCore {
         handledEvents.clear();
     }
 
-    private class StubOrchestrationService extends OrchestrationService {
+    private class StubExecutionService extends ExecutionService {
 
-        public StubOrchestrationService(OrchestrationModel orchestrationModel, RuntimePlatformRegistry registry) {
-            super(orchestrationModel, registry);
+        public StubExecutionService(ExecutionModel executionModel, RuntimePlatformRegistry registry) {
+            super(executionModel, registry);
         }
 
         /**

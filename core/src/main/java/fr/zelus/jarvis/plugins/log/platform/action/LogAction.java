@@ -60,7 +60,7 @@ public abstract class LogAction extends RuntimeAction<LogPlatform> {
      * Logs the provided {@code message} with the given {@code logLevel}.
      * <p>
      * <b>Note</b>: this method always returns {@code null}, and it's result should not be stored in
-     * orchestration model variables.
+     * execution model variables.
      *
      * @return {@code null}
      */

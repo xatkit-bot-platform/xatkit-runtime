@@ -1,15 +1,15 @@
-@Ecore(nsURI="fr.zelus.jarvis.orchestration")
-@GenModel(modelDirectory="/orchestration/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
-package fr.zelus.jarvis.orchestration
+@Ecore(nsURI="fr.zelus.jarvis.execution")
+@GenModel(modelDirectory="/execution/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
+package fr.zelus.jarvis.execution
 
 import fr.zelus.jarvis.platform.Action
 import fr.zelus.jarvis.platform.EventProviderDefinition
 import fr.zelus.jarvis.intent.EventDefinition
 import fr.zelus.jarvis.platform.Parameter
 
-class OrchestrationModel {
+class ExecutionModel {
     refers EventProviderDefinition[] eventProviderDefinitions
-	contains OrchestrationLink[] orchestrationLinks
+	contains ExecutionRule[] executionRules
 	contains ImportDeclaration[] imports
 }
 
@@ -18,7 +18,7 @@ class ImportDeclaration {
     String alias
 }
 
-class OrchestrationLink {
+class ExecutionRule {
     refers EventDefinition event
     contains ActionInstance[] actions
     contains Variable[] variables

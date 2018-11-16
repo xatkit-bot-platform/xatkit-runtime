@@ -2,13 +2,13 @@ package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.execution.ActionInstance;
+import fr.zelus.jarvis.execution.ExecutionModel;
+import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.ContextInstance;
 import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.orchestration.ActionInstance;
-import fr.zelus.jarvis.orchestration.OrchestrationLink;
-import fr.zelus.jarvis.orchestration.OrchestrationModel;
 import fr.zelus.jarvis.platform.Platform;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
@@ -23,32 +23,32 @@ import static java.util.Objects.nonNull;
 
 /**
  * A service that handles {@link EventInstance}s and executes the corresponding {@link RuntimeAction}s defined in the
- * provided {@link OrchestrationModel}.
+ * provided {@link ExecutionModel}.
  * <p>
  * This class defines Jarvis' execution logic: {@link fr.zelus.jarvis.io.EventProvider}s typically call the
  * {@link #handleEventInstance(EventInstance, JarvisSession)} method to process a retrieved {@link EventInstance},
- * and trigger the {@link RuntimeAction}s that are associated to it in the {@link OrchestrationModel}.
+ * and trigger the {@link RuntimeAction}s that are associated to it in the {@link ExecutionModel}.
  * <p>
- * The {@link OrchestrationService} is initialized by the {@link JarvisCore} instance, that loads the
- * {@link OrchestrationModel} and initializes the {@link RuntimePlatformRegistry}.
+ * The {@link ExecutionService} is initialized by the {@link JarvisCore} instance, that loads the
+ * {@link ExecutionModel} and initializes the {@link RuntimePlatformRegistry}.
  *
  * @see ActionInstance
  * @see EventInstance
  * @see JarvisCore
  */
-public class OrchestrationService {
+public class ExecutionService {
 
     /**
-     * The {@link OrchestrationModel} used to retrieve the {@link RuntimeAction}s to compute from the handled
+     * The {@link ExecutionModel} used to retrieve the {@link RuntimeAction}s to compute from the handled
      * {@link EventInstance}s.
      */
-    private OrchestrationModel orchestrationModel;
+    private ExecutionModel executionModel;
 
     /**
      * The {@link RuntimePlatformRegistry} used to cache loaded {@link RuntimePlatform}s, and provides utility method
      * to retrieve, unregister, and clear them.
      * <p>
-     * This instance is provided in the {@link OrchestrationService} constructor, and is typically initialized by the
+     * This instance is provided in the {@link ExecutionService} constructor, and is typically initialized by the
      * {@link JarvisCore} component.
      * <p>
      * TODO should we initialize the {@link RuntimePlatformRegistry} in this class instead of {@link JarvisCore}? (see
@@ -67,30 +67,30 @@ public class OrchestrationService {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
-     * Constructs a new {@link OrchestrationService} based on the provided {@code orchestrationModel} and {@code
+     * Constructs a new {@link ExecutionService} based on the provided {@code executionModel} and {@code
      * runtimePlatformRegistry}.
      * <p>
-     * This constructor also takes care of resolving all the proxies in the provided {@link OrchestrationModel},
+     * This constructor also takes care of resolving all the proxies in the provided {@link ExecutionModel},
      * ensuring that concurrent accesses of the model will not produce unexpected behaviors (see
      * <a href="https://www.eclipse.org/forums/index.php/t/1095731/">this post</a>)
      *
-     * @param orchestrationModel   the {@link OrchestrationModel} representing the intent-to-action bindings to use
+     * @param executionModel   the {@link ExecutionModel} representing the intent-to-action bindings to use
      * @param runtimePlatformRegistry the {@link RuntimePlatformRegistry} used to create the {@link RuntimeAction}s to execute
-     * @throws NullPointerException if the provided {@code orchestrationModel} or {@code runtimePlatformRegistry} is
+     * @throws NullPointerException if the provided {@code executionModel} or {@code runtimePlatformRegistry} is
      *                              {@code null}
      */
-    public OrchestrationService(OrchestrationModel orchestrationModel, RuntimePlatformRegistry runtimePlatformRegistry) {
-        checkNotNull(orchestrationModel, "Cannot construct a %s from the provided %s %s", this.getClass()
-                .getSimpleName(), OrchestrationModel.class.getSimpleName(), orchestrationModel);
+    public ExecutionService(ExecutionModel executionModel, RuntimePlatformRegistry runtimePlatformRegistry) {
+        checkNotNull(executionModel, "Cannot construct a %s from the provided %s %s", this.getClass()
+                .getSimpleName(), ExecutionModel.class.getSimpleName(), executionModel);
         checkNotNull(runtimePlatformRegistry, "Cannot construct a %s from the provided %s %s", this.getClass()
                 .getSimpleName(), RuntimePlatformRegistry.class.getSimpleName(), runtimePlatformRegistry);
-        this.orchestrationModel = orchestrationModel;
+        this.executionModel = executionModel;
         this.runtimePlatformRegistry = runtimePlatformRegistry;
         /*
          * Resolve all the proxies in the Resource: this should remove concurrent read issues on the model (see
          * https://www.eclipse.org/forums/index.php/t/1095731/)
          */
-        EcoreUtil.resolveAll(orchestrationModel);
+        EcoreUtil.resolveAll(executionModel);
     }
 
     /**
@@ -107,18 +107,18 @@ public class OrchestrationService {
     }
 
     /**
-     * Returns the {@link OrchestrationModel} associated to this {@link OrchestrationService}.
+     * Returns the {@link ExecutionModel} associated to this {@link ExecutionService}.
      *
-     * @return the {@link OrchestrationModel} associated to this {@link OrchestrationService}
+     * @return the {@link ExecutionModel} associated to this {@link ExecutionService}
      */
-    public OrchestrationModel getOrchestrationModel() {
-        return orchestrationModel;
+    public ExecutionModel getExecutionModel() {
+        return executionModel;
     }
 
     /**
-     * Returns the {@link RuntimePlatformRegistry} associated to this {@link OrchestrationService}.
+     * Returns the {@link RuntimePlatformRegistry} associated to this {@link ExecutionService}.
      *
-     * @return the {@link RuntimePlatformRegistry} associated to this {@link OrchestrationService}
+     * @return the {@link RuntimePlatformRegistry} associated to this {@link ExecutionService}
      */
     public RuntimePlatformRegistry getRuntimePlatformRegistry() {
         return runtimePlatformRegistry;
@@ -126,10 +126,10 @@ public class OrchestrationService {
 
     /**
      * Handles the provided {@code eventInstance} and executed the corresponding {@link RuntimeAction}s defined in the
-     * {@link OrchestrationModel}.
+     * {@link ExecutionModel}.
      * <p>
      * This method creates an asynchronous task that retrieves the {@link RuntimeAction}s to execute from the
-     * {@link OrchestrationModel}, and executes them sequentially. Note that all the {@link RuntimeAction}s are
+     * {@link ExecutionModel}, and executes them sequentially. Note that all the {@link RuntimeAction}s are
      * executed in the same {@link Thread}, in order to ensure that their pre-conditions are respected (i.e. the
      * context variables defined by an action are available for the next ones).
      * <p>
@@ -223,7 +223,7 @@ public class OrchestrationService {
      * Constructs a {@link RuntimeAction} instance corresponding to the provided {@code actionInstance}, initialized
      * in the provided {@code session}.
      * <p>
-     * This method is used as a bridge between the {@link ActionInstance}s (from the orchestration model), and the
+     * This method is used as a bridge between the {@link ActionInstance}s (from the execution model), and the
      * {@link RuntimeAction}s (from the internal Jarvis execution engine).
      * @param actionInstance the {@link ActionInstance} to construct a {@link RuntimeAction} from
      * @param session the {@link JarvisSession} used to define and access context variables
@@ -238,7 +238,7 @@ public class OrchestrationService {
     /**
      * Retrieves the {@link ActionInstance}s associated to the provided {@code eventInstance}.
      * <p>
-     * This class navigates the underlying {@link OrchestrationModel} and retrieves the {@link ActionInstance}s
+     * This class navigates the underlying {@link ExecutionModel} and retrieves the {@link ActionInstance}s
      * associated to the provided {@code eventInstance}. These {@link ActionInstance}s are used by the core
      * component to create the concrete {@link RuntimeAction} to execute.
      *
@@ -249,9 +249,9 @@ public class OrchestrationService {
      */
     private List<ActionInstance> getActionsFromEvent(EventInstance eventInstance) {
         EventDefinition eventDefinition = eventInstance.getDefinition();
-        for (OrchestrationLink link : orchestrationModel.getOrchestrationLinks()) {
-            if (link.getEvent().getName().equals(eventDefinition.getName())) {
-                return link.getActions();
+        for (ExecutionRule rule : executionModel.getExecutionRules()) {
+            if (rule.getEvent().getName().equals(eventDefinition.getName())) {
+                return rule.getActions();
             }
         }
         return Collections.emptyList();
@@ -260,7 +260,7 @@ public class OrchestrationService {
     /**
      * Shuts down the underlying {@link ExecutorService}.
      * <p>
-     * Shutting down the {@link OrchestrationService} invalidates it and does not allow to process new
+     * Shutting down the {@link ExecutionService} invalidates it and does not allow to process new
      * {@link RuntimeAction}s.
      */
     public void shutdown() {
@@ -268,9 +268,9 @@ public class OrchestrationService {
     }
 
     /**
-     * Returns whether the {@link OrchestrationService} is shutdown.
+     * Returns whether the {@link ExecutionService} is shutdown.
      *
-     * @return whether the {@link OrchestrationService} is shutdown
+     * @return whether the {@link ExecutionService} is shutdown
      */
     public boolean isShutdown() {
         return this.executorService.isShutdown();

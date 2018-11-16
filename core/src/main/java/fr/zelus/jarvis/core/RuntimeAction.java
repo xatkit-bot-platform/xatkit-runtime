@@ -11,7 +11,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * The concrete implementation of an {@link fr.zelus.jarvis.platform.Action} definition.
  * <p>
  * A {@link RuntimeAction} represents an atomic action that are automatically executed by the
- * {@link OrchestrationService}
+ * {@link ExecutionService}
  * component. Instances of this class are created by the associated {@link RuntimePlatform} from an input
  * {@link fr.zelus.jarvis.intent.RecognizedIntent}.
  * <p>
@@ -22,7 +22,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the action
  * @see fr.zelus.jarvis.platform.Action
- * @see OrchestrationService
+ * @see ExecutionService
  * @see RuntimePlatform
  */
 public abstract class RuntimeAction<T extends RuntimePlatform> implements Callable<RuntimeActionResult> {
@@ -41,10 +41,10 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
      * The name of the variable to use to store the result of the {@link #call()} method.
      * <p>
      * The value of this attribute is used by
-     * {@link OrchestrationService#handleEventInstance(EventInstance, JarvisSession)} to store
-     * the result of each {@link RuntimeAction} in the variable defined in the provided orchestration model.
+     * {@link ExecutionService#handleEventInstance(EventInstance, JarvisSession)} to store
+     * the result of each {@link RuntimeAction} in the variable defined in the provided execution model.
      *
-     * @see OrchestrationService#handleEventInstance(EventInstance, JarvisSession)
+     * @see ExecutionService#handleEventInstance(EventInstance, JarvisSession)
      * @see #getReturnVariable()
      */
     protected String returnVariable;
@@ -82,11 +82,11 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
     /**
      * Return the name of the variable to use to store the result of the {@link #call()} method.
      * <p>
-     * This method is used by {@link OrchestrationService#handleEventInstance(EventInstance, JarvisSession)}  to
-     * store the result of each {@link RuntimeAction} in the variable defined in the provided orchestration model.
+     * This method is used by {@link ExecutionService#handleEventInstance(EventInstance, JarvisSession)}  to
+     * store the result of each {@link RuntimeAction} in the variable defined in the provided execution model.
      *
      * @return the name of the variable to use to store the result of the {@link #call()} method
-     * @see OrchestrationService#handleEventInstance(EventInstance, JarvisSession)
+     * @see ExecutionService#handleEventInstance(EventInstance, JarvisSession)
      */
     public final String getReturnVariable() {
         return returnVariable;
@@ -104,7 +104,7 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
     /**
      * Runs the {@link RuntimeAction} and returns its result wrapped in a {@link RuntimeActionResult}.
      * <p>
-     * This method should not be called manually, and is handled by the {@link OrchestrationService} component that
+     * This method should not be called manually, and is handled by the {@link ExecutionService} component that
      * manages and executes {@link RuntimeAction}s.
      * <p>
      * This method does not throw any {@link Exception} if the underlying {@link RuntimeAction}'s computation does not
@@ -112,7 +112,7 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
      * {@link RuntimeActionResult#getThrownException()} method.
      *
      * @return the {@link RuntimeActionResult} containing the raw result of the computation and monitoring information
-     * @see OrchestrationService
+     * @see ExecutionService
      * @see RuntimeActionResult
      */
     @Override

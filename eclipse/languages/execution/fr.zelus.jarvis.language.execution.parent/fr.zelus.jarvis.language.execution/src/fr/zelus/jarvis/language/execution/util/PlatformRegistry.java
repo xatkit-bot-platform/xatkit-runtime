@@ -30,10 +30,10 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.osgi.framework.Bundle;
 
 import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
+import fr.zelus.jarvis.execution.ExecutionModel;
+import fr.zelus.jarvis.execution.ExecutionPackage;
+import fr.zelus.jarvis.execution.ImportDeclaration;
 import fr.zelus.jarvis.intent.IntentPackage;
-import fr.zelus.jarvis.orchestration.ImportDeclaration;
-import fr.zelus.jarvis.orchestration.OrchestrationModel;
-import fr.zelus.jarvis.orchestration.OrchestrationPackage;
 import fr.zelus.jarvis.platform.Platform;
 
 public class PlatformRegistry {
@@ -54,7 +54,7 @@ public class PlatformRegistry {
 	private PlatformRegistry() {
 		this.rSet = new ResourceSetImpl();
 		this.rSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
-		this.rSet.getPackageRegistry().put(OrchestrationPackage.eINSTANCE.getNsURI(), OrchestrationPackage.eINSTANCE);
+		this.rSet.getPackageRegistry().put(ExecutionPackage.eINSTANCE.getNsURI(), ExecutionPackage.eINSTANCE);
 		this.rSet.getPackageRegistry().put(IntentPackage.eINSTANCE.getNsURI(), IntentPackage.eINSTANCE);
 		try {
 			loadJarvisCorePlatforms();
@@ -62,12 +62,12 @@ public class PlatformRegistry {
 			System.out.println("An error occurred when loading core platforms");
 			e.printStackTrace();
 		}
-		OrchestrationPackage.eINSTANCE.eClass();
+		ExecutionPackage.eINSTANCE.eClass();
 		IntentPackage.eINSTANCE.eClass();
 		this.platforms = new HashMap<>();
 	}	
 	
-	public Collection<Platform> loadExecutionModelPlatforms(OrchestrationModel model) {
+	public Collection<Platform> loadExecutionModelPlatforms(ExecutionModel model) {
 		/*
 		 * Remove the loaded platforms, we are reloading them all
 		 */

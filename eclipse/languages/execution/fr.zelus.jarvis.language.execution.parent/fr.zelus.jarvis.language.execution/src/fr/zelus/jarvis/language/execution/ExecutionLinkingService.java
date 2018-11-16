@@ -15,14 +15,14 @@ import org.eclipse.xtext.linking.impl.DefaultLinkingService;
 import org.eclipse.xtext.linking.impl.IllegalNodeException;
 import org.eclipse.xtext.nodemodel.INode;
 
+import fr.zelus.jarvis.execution.ActionInstance;
+import fr.zelus.jarvis.execution.ExecutionModel;
+import fr.zelus.jarvis.execution.ExecutionPackage;
+import fr.zelus.jarvis.execution.ExecutionRule;
+import fr.zelus.jarvis.execution.ParameterValue;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.language.execution.util.PlatformRegistry;
-import fr.zelus.jarvis.orchestration.ActionInstance;
-import fr.zelus.jarvis.orchestration.OrchestrationLink;
-import fr.zelus.jarvis.orchestration.OrchestrationModel;
-import fr.zelus.jarvis.orchestration.OrchestrationPackage;
-import fr.zelus.jarvis.orchestration.ParameterValue;
 import fr.zelus.jarvis.platform.Action;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
 import fr.zelus.jarvis.platform.Parameter;
@@ -39,13 +39,13 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 	public List<EObject> getLinkedObjects(EObject context, EReference ref, INode node) throws IllegalNodeException {
 		System.out.println("Linking context: " + context);
 		System.out.println("Linking reference: " + ref);
-		if (context instanceof OrchestrationModel) {
-			if (ref.equals(OrchestrationPackage.eINSTANCE.getOrchestrationModel_EventProviderDefinitions())) {
+		if (context instanceof ExecutionModel) {
+			if (ref.equals(ExecutionPackage.eINSTANCE.getExecutionModel_EventProviderDefinitions())) {
 				/*
 				 * Trying to retrieve an InputProvider from a loaded platform
 				 */
 				Collection<Platform> platforms = PlatformRegistry.getInstance()
-						.loadExecutionModelPlatforms((OrchestrationModel) context);
+						.loadExecutionModelPlatforms((ExecutionModel) context);
 				System.out.println("found " + platforms.size() + " platforms");
 				for (Platform platform : platforms) {
 					for (EventProviderDefinition eventProviderDefinition : platform.getEventProviderDefinitions()) {
@@ -60,13 +60,13 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 			} else {
 				return super.getLinkedObjects(context, ref, node);
 			}
-		} else if (context instanceof OrchestrationLink) {
-			if (ref.equals(OrchestrationPackage.eINSTANCE.getOrchestrationLink_Event())) {
+		} else if (context instanceof ExecutionRule) {
+			if (ref.equals(ExecutionPackage.eINSTANCE.getExecutionRule_Event())) {
 				/*
 				 * Trying to retrieve an Event from a loaded platform
 				 */
 				Collection<Platform> platforms = PlatformRegistry.getInstance()
-						.loadExecutionModelPlatforms((OrchestrationModel) context.eContainer());
+						.loadExecutionModelPlatforms((ExecutionModel) context.eContainer());
 				System.out.println("found " + platforms.size() + "platforms");
 				for (Platform platform : platforms) {
 					for (IntentDefinition intentDefinition : platform.getIntentDefinitions()) {
@@ -91,16 +91,16 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				return super.getLinkedObjects(context, ref, node);
 			}
 		} else if (context instanceof ActionInstance) {
-			if (ref.equals(OrchestrationPackage.eINSTANCE.getActionInstance_Action())) {
+			if (ref.equals(ExecutionPackage.eINSTANCE.getActionInstance_Action())) {
 				/*
 				 * Trying to retrieve an Action from a loaded platform
 				 */
-				OrchestrationModel orchestrationModel = null;
+				ExecutionModel executionModel = null;
 				EObject currentObject = context;
-				while (isNull(orchestrationModel)) {
+				while (isNull(executionModel)) {
 					currentObject = currentObject.eContainer();
-					if (currentObject instanceof OrchestrationModel) {
-						orchestrationModel = (OrchestrationModel) currentObject;
+					if (currentObject instanceof ExecutionModel) {
+						executionModel = (ExecutionModel) currentObject;
 					}
 				}
 				String[] splittedActionName = node.getText().trim().split("\\.");
@@ -113,7 +113,7 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				String platformName = splittedActionName[0];
 				String actionName = splittedActionName[1];
 				Collection<Platform> platforms = PlatformRegistry.getInstance()
-						.loadExecutionModelPlatforms(orchestrationModel);
+						.loadExecutionModelPlatforms(executionModel);
 				for (Platform platform : platforms) {
 					if(platform.getName().equals(platformName)) {
 						for (Action action : platform.getActions()) {
@@ -128,7 +128,7 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				return super.getLinkedObjects(context, ref, node);
 			}
 		} else if (context instanceof ParameterValue) {
-			if (ref.equals(OrchestrationPackage.eINSTANCE.getParameterValue_Parameter())) {
+			if (ref.equals(ExecutionPackage.eINSTANCE.getParameterValue_Parameter())) {
 				/*
 				 * Trying to retrieve the Parameter of the containing Action
 				 */

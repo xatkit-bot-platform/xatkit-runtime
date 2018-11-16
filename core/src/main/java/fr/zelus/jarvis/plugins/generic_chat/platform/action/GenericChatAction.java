@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.plugins.generic_chat.platform.action;
 
+import fr.zelus.jarvis.core.ExecutionService;
 import fr.zelus.jarvis.core.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;
@@ -16,7 +17,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * returned by the {@link GenericChatPlatform}'s sub-runtimePlatform. In particular, this class allows to execute multiple
  * {@link RuntimeAction}s (from the different concrete chatting platforms) through the standard {@link RuntimeAction}
  * interface, and can be processed by the regular
- * {@link fr.zelus.jarvis.core.OrchestrationService#handleEventInstance(EventInstance, JarvisSession)} process.
+ * {@link ExecutionService#handleEventInstance(EventInstance, JarvisSession)} process.
  *
  * @see GenericChatPlatform
  */

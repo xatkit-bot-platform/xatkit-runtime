@@ -4,19 +4,19 @@
 package fr.zelus.jarvis.language.execution.tests
 
 import com.google.inject.Inject
-import fr.zelus.jarvis.orchestration.OrchestrationModel
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
+import fr.zelus.jarvis.execution.ExecutionModel
 
 @RunWith(XtextRunner)
 @InjectWith(ExecutionInjectorProvider)
 class ExecutionParsingTest {
 	@Inject
-	ParseHelper<OrchestrationModel> parseHelper
+	ParseHelper<ExecutionModel> parseHelper
 	
 	@Test
 	def void loadModel() {

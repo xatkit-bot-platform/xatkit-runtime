@@ -21,7 +21,7 @@ import static java.util.Objects.nonNull;
  * <li>{@link fr.zelus.jarvis.plugins.slack.platform.action.PostMessage}: post a message to a given Slack channel</li>
  * </ul>
  * <p>
- * This class is part of jarvis' core platform, and can be used in an orchestration model by importing the
+ * This class is part of jarvis' core platform, and can be used in an execution model by importing the
  * <i>SlackPlatform</i> package.
  */
 public class SlackPlatform extends RuntimePlatform {
