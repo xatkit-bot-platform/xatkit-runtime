@@ -6,14 +6,17 @@
       provider-name="SOM Research Lab">
 
    <description url="https://github.com/gdaniel/jarvis/wiki">
-      Provides a set of Eclipse-based editors to create Platform and Orchestration models.
-- Jarvis Platform Editor is automatically opened for *.platform files.
-- Jarvis Orchestration Editor is automatically opened for *.orchestration files.
-- *.platform and *.orchestration files are compiled into *.xmi files, that can be used in platform imports and to
-       specify
-       the orchestration model to use with Jarvis.
-
-Note that this feature does not include the Jarvis runtime component, that is provided as a standalone jar file.
+      Provides a set of Eclipse-based editors to create Platform and
+Orchestration models.
+- Jarvis Platform Editor is automatically opened for *.platform
+files.
+- Jarvis Execution Editor is automatically opened for *.execution
+files.
+- *.platform and *.execution files are compiled into *.xmi
+files, that can be used in platform imports and to
+specify the execution model to use with Jarvis.
+Note that this feature does not include the Jarvis runtime component,
+that is provided as a standalone jar file.
    </description>
 
    <copyright url="https://som-research.uoc.edu/">
@@ -360,27 +363,6 @@ version(s), and exceptions or additional permissions here}.&quot;
          unpack="false"/>
 
    <plugin
-         id="fr.zelus.jarvis.language.orchestration"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="fr.zelus.jarvis.language.orchestration.ide"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="fr.zelus.jarvis.language.orchestration.ui"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="fr.zelus.jarvis.platform"
          download-size="0"
          install-size="0"
@@ -396,6 +378,27 @@ version(s), and exceptions or additional permissions here}.&quot;
 
    <plugin
          id="fr.zelus.jarvis.core_platforms"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="fr.zelus.jarvis.language.execution"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="fr.zelus.jarvis.language.execution.ide"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="fr.zelus.jarvis.language.execution.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"

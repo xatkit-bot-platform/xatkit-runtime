@@ -28,7 +28,7 @@
 
     <modules>
         <module>platform/fr.zelus.jarvis.language.platform.parent</module>
-        <module>orchestration/fr.zelus.jarvis.language.orchestration.parent</module>
+        <module>execution/fr.zelus.jarvis.language.execution.parent</module>
     </modules>
 
     <repositories>
