@@ -29,6 +29,7 @@
     <modules>
         <module>platform/fr.zelus.jarvis.language.platform.parent</module>
         <module>execution/fr.zelus.jarvis.language.execution.parent</module>
+        <module>intent/fr.zelus.jarvis.language.intent.parent</module>
     </modules>
 
     <repositories>

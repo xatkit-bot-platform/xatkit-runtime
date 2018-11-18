@@ -405,4 +405,25 @@ version(s), and exceptions or additional permissions here}.&quot;
          version="0.0.0"
          unpack="false"/>
 
+   <plugin
+         id="fr.zelus.jarvis.language.intent"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="fr.zelus.jarvis.language.intent.ide"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="fr.zelus.jarvis.language.intent.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>
