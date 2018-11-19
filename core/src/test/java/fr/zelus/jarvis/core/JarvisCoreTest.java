@@ -59,7 +59,6 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
-        stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
         VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE.createExecutionModel();
         ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
         rule.setEvent(stubIntentDefinition);
@@ -77,8 +76,14 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Resource testIntentResource = testResourceSet.createResource(URI.createURI("/tmp/jarvisTestIntentResource" +
                 ".xmi"));
         testIntentResource.getContents().clear();
-        testIntentResource.getContents().add(stubPlatform);
+        testIntentResource.getContents().add(stubIntentDefinition);
         testIntentResource.save(Collections.emptyMap());
+
+        Resource testPlatformResource = testResourceSet.createResource(URI.createURI("/tmp/jarvisTestPlatformResource" +
+                ".xmi"));
+        testPlatformResource.getContents().clear();
+        testPlatformResource.getContents().add(stubPlatform);
+        testPlatformResource.save(Collections.emptyMap());
 
         Resource testExecutionResource = testResourceSet.createResource(URI.createURI
                 ("/tmp/jarvisTestExecutionResource.xmi"));
@@ -151,7 +156,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 VALID_EXECUTION_MODEL);
         File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform.xmi")
                 .getFile
-                ());
+                        ());
         configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
@@ -159,11 +164,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         List<URI> registeredResourceURIs = jarvisCore.executionResourceSet.getResources().stream().map(r -> r
                 .getURI()).collect(Collectors.toList());
         assertThat(registeredResourceURIs).as("Custom runtimePlatform URI contained in the registered resource URIs")
-                .contains
-                (expectedURI);
+                .contains(expectedURI);
         URI expectedPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + "Example");
         assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom runtimePlatform" +
-                " " +
                 "pathmap contained in the ResourceSet's URI map").contains(expectedPathmapURI);
         assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
                 ("Valid concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
@@ -198,7 +201,6 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
-        stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
         ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
         ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
         rule.setEvent(stubIntentDefinition);

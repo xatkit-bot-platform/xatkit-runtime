@@ -86,7 +86,6 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
-        stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
         ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
         ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
         rule.setEvent(stubIntentDefinition);

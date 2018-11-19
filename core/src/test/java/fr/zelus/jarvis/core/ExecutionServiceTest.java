@@ -71,7 +71,6 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         ON_ERROR_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
         ON_ERROR_EVENT_INSTANCE.setDefinition(onErrorIntentDefinition);
         // No parameters, keep it simple
-        stubPlatform.getIntentDefinitions().add(stubIntentDefinition);
         VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE.createExecutionModel();
         ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
         rule.setEvent(stubIntentDefinition);
