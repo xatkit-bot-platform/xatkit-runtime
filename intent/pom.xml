@@ -77,7 +77,6 @@
                             groupId=!${project.groupId}|fr.inria.atlanmod.commons|org.eclipse.emf|org.apache.logging.log4j
                         </Embed-Dependency>
                         <Require-Bundle>
-                            fr.zelus.jarvis.intent;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>
