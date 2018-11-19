@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ASCII"?>
+<intent:Library xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:intent="fr.zelus.jarvis.intent" name="ExampleLibrary">
+  <eventDefinitions xsi:type="intent:IntentDefinition" name="TestIntent">
+    <trainingSentences>test</trainingSentences>
+  </eventDefinitions>
+</intent:Library>

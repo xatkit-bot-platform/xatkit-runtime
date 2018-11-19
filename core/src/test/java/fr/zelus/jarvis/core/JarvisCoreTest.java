@@ -2,6 +2,7 @@ package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.core_platforms.utils.LibraryLoaderUtils;
 import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
 import fr.zelus.jarvis.execution.ActionInstance;
 import fr.zelus.jarvis.execution.ExecutionFactory;
@@ -155,14 +156,13 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
                 VALID_EXECUTION_MODEL);
         File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform.xmi")
-                .getFile
-                        ());
+                .getFile());
         configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
-        List<URI> registeredResourceURIs = jarvisCore.executionResourceSet.getResources().stream().map(r -> r
-                .getURI()).collect(Collectors.toList());
+        List<URI> registeredResourceURIs = jarvisCore.executionResourceSet.getResources().stream().map(r -> r.getURI
+                ()).collect(Collectors.toList());
         assertThat(registeredResourceURIs).as("Custom runtimePlatform URI contained in the registered resource URIs")
                 .contains(expectedURI);
         URI expectedPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + "Example");
@@ -170,6 +170,33 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 "pathmap contained in the ResourceSet's URI map").contains(expectedPathmapURI);
         assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
                 ("Valid concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
+    }
+
+    @Test(expected = JarvisException.class)
+    public void constructInvalidCustomLibraryPathInConfiguration() {
+        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_EXECUTION_MODEL);
+        configuration.addProperty(JarvisCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", "test");
+        jarvisCore = new JarvisCore(configuration);
+    }
+
+    @Test
+    public void constructValidCustomPlatformFromPathInConfiguration() {
+        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_EXECUTION_MODEL);
+        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Libraries/ExampleLibrary.xmi")
+                .getFile());
+        configuration.addProperty(JarvisCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", validFile.getAbsolutePath());
+        jarvisCore = new JarvisCore(configuration);
+        checkJarvisCore(jarvisCore);
+        URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
+        List<URI> registeredResourceURIs = jarvisCore.executionResourceSet.getResources().stream().map(r -> r.getURI
+                ()).collect(Collectors.toList());
+        assertThat(registeredResourceURIs).as("Custom library URI contained in the registered resource URIs")
+                .contains(expectedURI);
+        URI expectedPathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + "Example");
+        assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom library pathmap" +
+                " contained in the ResourceSet's URI map").contains(expectedPathmapURI);
+        assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as("Valid " +
+                "concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
     }
 
     @Test
