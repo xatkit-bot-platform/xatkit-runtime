@@ -25,3 +25,4 @@ Export-Package: fr.zelus.jarvis.language.intent.formatting2,
  fr.zelus.jarvis.language.intent.validation,
  fr.zelus.jarvis.language.intent.parser.antlr.internal
 Import-Package: org.apache.log4j
+Bundle-Activator: fr.zelus.jarvis.language.intent.Activator
