@@ -31,8 +31,8 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.osgi.framework.Bundle;
 
-import fr.zelus.jarvis.core_platforms.utils.LibraryLoaderUtils;
-import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
+import fr.zelus.jarvis.core_resources.utils.LibraryLoaderUtils;
+import fr.zelus.jarvis.core_resources.utils.PlatformLoaderUtils;
 import fr.zelus.jarvis.execution.ExecutionModel;
 import fr.zelus.jarvis.execution.ExecutionPackage;
 import fr.zelus.jarvis.execution.ImportDeclaration;
@@ -264,9 +264,9 @@ public class ImportRegistry {
 	}
 
 	public void loadJarvisCorePlatforms() throws IOException, URISyntaxException {
-		Bundle bundle = org.eclipse.core.runtime.Platform.getBundle("fr.zelus.jarvis.core_platforms");
+		Bundle bundle = org.eclipse.core.runtime.Platform.getBundle("fr.zelus.jarvis.core_resources");
 		if (isNull(bundle)) {
-			throw new RuntimeException("Cannot find the bundle fr.zelus.jarvis.core_platforms");
+			throw new RuntimeException("Cannot find the bundle fr.zelus.jarvis.core_resources");
 		}
 		URL platformFolderURL = bundle.getEntry("platforms/xmi/");
 		if (isNull(platformFolderURL)) {

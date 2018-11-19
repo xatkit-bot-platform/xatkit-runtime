@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.core_platforms.utils;
+package fr.zelus.jarvis.core_resources.utils;
 
 /**
  * An interface providing {@code pathmap} utility methods to dynamically load libraries.

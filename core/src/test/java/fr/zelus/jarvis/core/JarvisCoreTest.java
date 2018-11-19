@@ -2,8 +2,8 @@ package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core_platforms.utils.LibraryLoaderUtils;
-import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
+import fr.zelus.jarvis.core_resources.utils.LibraryLoaderUtils;
+import fr.zelus.jarvis.core_resources.utils.PlatformLoaderUtils;
 import fr.zelus.jarvis.execution.ActionInstance;
 import fr.zelus.jarvis.execution.ExecutionFactory;
 import fr.zelus.jarvis.execution.ExecutionModel;

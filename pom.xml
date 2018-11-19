@@ -57,7 +57,7 @@
         <module>execution</module>
         <module>platform</module>
         <module>intent</module>
-        <module>core_platforms</module>
+        <module>core_resources</module>
     </modules>
 
     <developers>

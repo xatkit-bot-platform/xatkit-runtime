@@ -10,11 +10,11 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>core_platforms</artifactId>
+    <artifactId>core_resources</artifactId>
 
     <packaging>bundle</packaging>
 
-    <name>Jarvis core platform descriptors</name>
+    <name>Jarvis core resource descriptors</name>
 
     <build>
         <plugins>
@@ -24,9 +24,9 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${project.groupId}.core_platforms</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>${project.groupId}.core_resources</Bundle-SymbolicName>
                         <Export-Package>
-                            fr.zelus.jarvis.core_platforms.*
+                            fr.zelus.jarvis.core_resources.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;

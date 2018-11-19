@@ -331,7 +331,7 @@ version(s), and exceptions or additional permissions here}.&quot;
       <import plugin="org.eclipse.xtext.builder"/>
       <import plugin="fr.zelus.jarvis.language.platform.ide" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.runtime" version="3.13.0" match="greaterOrEqual"/>
-      <import plugin="fr.zelus.jarvis.core_platforms" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="fr.zelus.jarvis.core_resources" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="fr.zelus.jarvis.execution" version="1.0.0" match="greaterOrEqual"/>
    </requires>
 
@@ -371,7 +371,7 @@ version(s), and exceptions or additional permissions here}.&quot;
          unpack="false"/>
 
    <plugin
-         id="fr.zelus.jarvis.core_platforms"
+         id="fr.zelus.jarvis.core_resources"
          download-size="0"
          install-size="0"
          version="0.0.0"
