@@ -10,7 +10,8 @@ Require-Bundle: org.eclipse.xtext.ide,
  org.antlr.runtime,
  fr.zelus.jarvis.intent;bundle-version="1.0.0",
  fr.zelus.jarvis.language.platform;bundle-version="1.0.0",
- fr.zelus.jarvis.platform;bundle-version="1.0.0"
+ fr.zelus.jarvis.platform;bundle-version="1.0.0",
+ fr.zelus.jarvis.language.intent;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: fr.zelus.jarvis.language.platform.ide.contentassist.antlr,
  fr.zelus.jarvis.language.platform.ide.contentassist.antlr.internal

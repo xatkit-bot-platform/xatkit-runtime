@@ -18,7 +18,8 @@ Require-Bundle: org.eclipse.xtext.ui,
  fr.zelus.jarvis.intent;bundle-version="1.0.0",
  fr.zelus.jarvis.language.platform;bundle-version="1.0.0",
  fr.zelus.jarvis.language.platform.ide;bundle-version="1.0.0",
- fr.zelus.jarvis.platform;bundle-version="1.0.0"
+ fr.zelus.jarvis.platform;bundle-version="1.0.0",
+ fr.zelus.jarvis.language.intent.ui
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: fr.zelus.jarvis.language.platform.ui.contentassist,

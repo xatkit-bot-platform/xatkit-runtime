@@ -42,9 +42,6 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 		 * Intents stored in platforms
 		 */
 		var platforms = ImportRegistry.getInstance.getLoadedPlatforms(model.eContainer as ExecutionModel)
-		platforms.map[m|m.intentDefinitions.map[i|i.name]].flatten.forEach [ iName |
-			acceptor.accept(createCompletionProposal(iName, context))
-		]
 		platforms.map[m|m.eventProviderDefinitions.map[e|e.eventDefinitions.map[ed|ed.name]].flatten].flatten.forEach [ edName |
 			acceptor.accept(createCompletionProposal(edName, context))
 		]

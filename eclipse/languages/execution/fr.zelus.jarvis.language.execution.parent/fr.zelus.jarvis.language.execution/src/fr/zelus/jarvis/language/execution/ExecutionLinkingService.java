@@ -84,14 +84,6 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 						.getLoadedPlatforms((ExecutionModel) context.eContainer());
 				System.out.println("Found " + platforms.size() + "platforms");
 				for (Platform platform : platforms) {
-					// TODO remove this (see #166)
-					for (IntentDefinition intentDefinition : platform.getIntentDefinitions()) {
-						System.out.println("comparing Intent " + intentDefinition.getName());
-						System.out.println("Node text: " + node.getText());
-						if (intentDefinition.getName().equals(node.getText())) {
-							return Arrays.asList(intentDefinition);
-						}
-					}
 					for (EventProviderDefinition eventProviderDefinition : platform.getEventProviderDefinitions()) {
 						for (EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
 							System.out.println("comparing Event " + eventDefinition.getName());

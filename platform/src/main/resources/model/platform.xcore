@@ -4,13 +4,11 @@
 package fr.zelus.jarvis.platform
 
 import fr.zelus.jarvis.intent.EventDefinition
-import fr.zelus.jarvis.intent.IntentDefinition
 
 class Platform {
     String name
     String runtimePath
     contains EventProviderDefinition[] eventProviderDefinitions
-    contains IntentDefinition[] intentDefinitions
 	contains Action[] actions
 }
 
