@@ -4,7 +4,7 @@ path "fr.zelus.jarvis.plugins.github.platform.GithubPlatform"
 
 providers {
 	event GithubWebhookEventProvider {
-		Issue_Opened
+		event Issue_Opened
 		outContext "issue" {
 			params {
 				sender->url
@@ -157,7 +157,7 @@ providers {
 				repository->mirror_url
 			}
 		}
-		Issue_Edited
+		event Issue_Edited
 		outContext "issue" {
 			params {
 				sender->url
@@ -311,7 +311,7 @@ providers {
 				repository->mirror_url
 			}
 		}
-		Issue_Closed
+		event Issue_Closed
 		outContext "issue" {
 			params {
 				sender->url
@@ -464,7 +464,7 @@ providers {
 				repository->mirror_url
 			}
 		}
-		Issue_Reopened
+		event Issue_Reopened
 		outContext "issue" {
 			params {
 				sender->url
@@ -617,7 +617,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Assigned
+		event Issue_Assigned
 		outContext "issue" {
 			params {
 				sender->url
@@ -805,7 +805,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Unassigned
+		event Issue_Unassigned
 		outContext "issue" {
 			params {
 				sender->url
@@ -976,7 +976,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Labeled
+		event Issue_Labeled
 		outContext "issue" {
 			params {
 				sender->url
@@ -1135,7 +1135,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Unlabeled
+		event Issue_Unlabeled
 		outContext "issue" {
 			params {
 				sender->url
@@ -1294,7 +1294,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Milestoned
+		event Issue_Milestoned
 		outContext "issue" {
 			params {
 				sender->url
@@ -1479,7 +1479,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Demilestoned
+		event Issue_Demilestoned
 		outContext "issue" {
 			params {
 				sender->url
@@ -1632,7 +1632,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Comment_Created
+		event Issue_Comment_Created
 		outContext "issue_comment" {
 			params {
 				sender->url
@@ -1812,7 +1812,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Comment_Edited
+		event Issue_Comment_Edited
 		outContext "issue_comment" {
 			params {
 				sender->url
@@ -1993,7 +1993,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Issue_Comment_Deleted
+		event Issue_Comment_Deleted
 		outContext "issue_comment" {
 			params {
 				sender->url
@@ -2173,7 +2173,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Pull_Request_Comment_Created
+		event Pull_Request_Comment_Created
 		outContext "pull_request_comment" {
 			params {
 				body
@@ -2183,7 +2183,7 @@ providers {
 				pull_request_title
 			}
 		}
-		Pull_Request_Comment_Edited
+		event Pull_Request_Comment_Edited
 		outContext "pull_request_comment" {
 			params {
 				body
@@ -2194,7 +2194,7 @@ providers {
 				old_body
 			}
 		}
-		Pull_Request_Comment_Deleted
+		event Pull_Request_Comment_Deleted
 		outContext "pull_request_comment" {
 			params {
 				body
@@ -2204,7 +2204,7 @@ providers {
 				pull_request_title
 			}
 		}
-		Wiki_Page_Created
+		event Wiki_Page_Created
 		outContext "wiki" {
 			params {
 				user
@@ -2213,7 +2213,7 @@ providers {
 				url
 			}
 		}
-		Wiki_Page_Edited
+		event Wiki_Page_Edited
 		outContext "wiki" {
 			params {
 				user
@@ -2222,7 +2222,7 @@ providers {
 				url
 			}
 		}
-		Pull_Request_Opened
+		event Pull_Request_Opened
 		outContext "pull_request" {
 			params {
 				sender->url
@@ -2623,7 +2623,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Closed
+		event Pull_Request_Closed
 		outContext "pull_request" {
 			params {
 				sender->url
@@ -3024,7 +3024,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Edited
+		event Pull_Request_Edited
 		outContext "pull_request" {
 			params {
 				sender->url
@@ -3426,7 +3426,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Reopened
+		event Pull_Request_Reopened
 		outContext "pull_request" {
 			params {
 				sender->url
@@ -3827,7 +3827,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Assigned
+		event Pull_Request_Assigned
 		outContext "pull_request" {
 			params {
 				sender->url
@@ -4263,7 +4263,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Unassigned
+		event Pull_Request_Unassigned
 		outContext "pull_request" {
 			params {
 				sender->url
@@ -4682,7 +4682,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Review_Requested
+		event Pull_Request_Review_Requested
 		outContext "pull_request" {
 			params {
 				requested_reviewer->gists_url
@@ -5101,7 +5101,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Review_Request_Removed
+		event Pull_Request_Review_Request_Removed
 		outContext "pull_request" {
 			params {
 				requested_reviewer->gists_url
@@ -5520,7 +5520,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Labeled
+		event Pull_Request_Labeled
 		outContext "pull_request" {
 			params {
 				sender->url
@@ -5927,7 +5927,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Pull_Request_Unlabeled
+		event Pull_Request_Unlabeled
 		outContext "pull_request" {
 			params {
 				sender->url
@@ -6334,7 +6334,7 @@ providers {
 			    pull_request->head->repo->svn_url
 			}
 		}
-		Label_Created
+		event Label_Created
 		outContext "label" {
 			params {
 				sender->url
@@ -6453,7 +6453,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Label_Edited
+		event Label_Edited
 		outContext "label" {
 			params {
 				sender->url
@@ -6573,7 +6573,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Label_Deleted
+		event Label_Deleted
 		outContext "label" {
 			params {
 				sender->url
@@ -6692,7 +6692,7 @@ providers {
 			    repository->mirror_url
 			}
 		}
-		Push
+		event Push
 		outContext "push" {
 			params {
 				sender->url
