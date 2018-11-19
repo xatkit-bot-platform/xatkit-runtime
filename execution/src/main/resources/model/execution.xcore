@@ -13,9 +13,17 @@ class ExecutionModel {
 	contains ImportDeclaration[] imports
 }
 
-class ImportDeclaration {
+abstract class ImportDeclaration {
     String path
     String alias
+}
+
+class PlatformImportDeclaration extends ImportDeclaration {
+
+}
+
+class LibraryImportDeclaration extends ImportDeclaration {
+
 }
 
 class ExecutionRule {

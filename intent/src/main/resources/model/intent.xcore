@@ -2,6 +2,11 @@
 @GenModel(modelDirectory="/intent/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
 package fr.zelus.jarvis.intent
 
+class Library {
+	String name
+	contains EventDefinition[] eventDefinitions
+}
+
 class EventDefinition {
     String name
     contains Context[] outContexts

@@ -7,10 +7,10 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.emf.ecore.resource.Resource
 import static java.util.Objects.isNull
 import fr.zelus.jarvis.platform.Parameter
-import fr.zelus.jarvis.language.execution.util.PlatformRegistry
 import fr.zelus.jarvis.execution.ExecutionModel
 import fr.zelus.jarvis.execution.ExecutionPackage
 import fr.zelus.jarvis.execution.ActionInstance
+import fr.zelus.jarvis.language.execution.util.ImportRegistry
 
 /**
  * This class contains custom validation rules. 
@@ -20,10 +20,10 @@ import fr.zelus.jarvis.execution.ActionInstance
 class ExecutionValidator extends AbstractExecutionValidator {
 	
 	@Check
-	def checkOrchestrationModelValidImports(ExecutionModel model) {
+	def checkExecutionModelValidImports(ExecutionModel model) {
 		model.imports.forEach[i | 
 			println("Checking import " + i)
-			var Resource moduleResource = PlatformRegistry.getInstance.loadPlatform(i)
+			var Resource moduleResource = ImportRegistry.getInstance.loadImport(i)
 			if(isNull(moduleResource)) {
 				error('Module ' + i + "does not exist", ExecutionPackage.Literals.EXECUTION_MODEL__IMPORTS)
 			}

@@ -2,6 +2,7 @@ package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.core_platforms.utils.LibraryLoaderUtils;
 import fr.zelus.jarvis.core_platforms.utils.PlatformLoaderUtils;
 import fr.zelus.jarvis.execution.ActionInstance;
 import fr.zelus.jarvis.execution.ExecutionModel;
@@ -68,14 +69,26 @@ public class JarvisCore {
      * <p>
      * This prefix is used to specify the paths of the custom platforms that are needed by the provided
      * {@link ExecutionModel}. Note that custom platform path properties are only required if the
-     * {@link ExecutionModel} defines an {@code alias} for the imported platform models.
-     * {@link ExecutionModel}s relying on absolute paths are directly loaded from the file system, but are not
-     * portable.
+     * {@link ExecutionModel} defines an {@code alias} for the imported platform models. {@link ExecutionModel}s
+     * relying on absolute paths are directly loaded from the file system, but are not portable.
      * <p>
      * Custom platform properties must be set following this pattern: {@code CUSTOM_PLATFORMS_KEY_PREFIX + <platform
      * alias> = <platform path>}.
      */
     public static String CUSTOM_PLATFORMS_KEY_PREFIX = "jarvis.platforms.custom.";
+
+    /**
+     * The {@link Configuration} key prefix to store the custom library paths.
+     * <p>
+     * This prefix is used to specify the paths of the custom libraries that are needed by the provided
+     * {@link ExecutionModel}. Note that custom library path properties are only required if the
+     * {@link ExecutionModel} defines an {@code alias} for the imported library models. {@link ExecutionModel}s
+     * relying on absolute paths are directly loaded from the file system, but are not portable.
+     * <p>
+     * Custom library properties must be set following this pattern: {@code CUSTOM_LIBRARIES_KEY_PREFIX + <library
+     * alias> = <library path>}.
+     */
+    public static String CUSTOM_LIBRARIES_KEY_PREFIX = "jarvis.libraries.custom.";
 
     /**
      * The {@link Configuration} used to initialize this class.
@@ -114,10 +127,11 @@ public class JarvisCore {
      * The {@link ResourceSet} used to load the {@link ExecutionModel} and the referenced models.
      * <p>
      * The {@code executionResourceSet} is initialized with the {@link #initializeExecutionResourceSet()}
-     * method, that loads the core platforms models from the classpath, and dynamically retrieves the custom platforms
-     * models.
+     * method, that loads the core platforms models from the classpath, and dynamically retrieves the custom
+     * platforms and library models.
      *
      * @see #CUSTOM_PLATFORMS_KEY_PREFIX
+     * @see #CUSTOM_LIBRARIES_KEY_PREFIX
      */
     protected ResourceSet executionResourceSet;
 
@@ -307,7 +321,7 @@ public class JarvisCore {
                 executionModel = (ExecutionModel) executionModelResource.getContents().get(0);
             } catch (ClassCastException e) {
                 throw new JarvisException(MessageFormat.format("The provided {0} does not contain an " +
-                        "{0} top-level element (uri: {1})", ExecutionModel.class.getSimpleName(),
+                                "{0} top-level element (uri: {1})", ExecutionModel.class.getSimpleName(),
                         executionModelResource.getURI()), e);
             }
             return executionModel;
@@ -317,8 +331,9 @@ public class JarvisCore {
     /**
      * Creates and initializes the {@link ResourceSet} used to load the provided {@link ExecutionModel}.
      * <p>
-     * This method registers the Jarvis language's {@link EPackage}s  and loads the <i>core platforms</i>
-     * {@link Resource}s and the <i>custom platforms</i> {@link Resource}s in the created {@link ResourceSet}.
+     * This method registers the Jarvis language's {@link EPackage}s and loads the <i>core platforms</i>
+     * {@link Resource}s, <i>custom platforms</i> {@link Resource}s, and <i>custom libraries</i> {@link Resource}s in
+     * the created {@link ResourceSet}.
      * <p>
      * <i>Core platforms</i> loading is done by searching in the classpath the {@code core_platforms/platforms/} folder,
      * and loads each {@code xmi} file it contains as a platform {@link Resource}. Note that this method loads
@@ -332,16 +347,23 @@ public class JarvisCore {
      * <p>
      * <i>Custom platforms</i> loading is done by searching in the provided {@link Configuration} file the entries
      * starting with {@link #CUSTOM_PLATFORMS_KEY_PREFIX}. These entries are handled as absolute paths to the
-     * <i>custom platform</i> {@link Resource}s, and are configures to be the target of the corresponding custom
+     * <i>custom platform</i> {@link Resource}s, and are configured to be the target of the corresponding custom
      * platform proxies in the provided {@link ExecutionModel}.
      * <p>
+     * <i>Custom libraries</i> loading is done by searching in the provided {@link Configuration} file the entries
+     * starting with {@link #CUSTOM_LIBRARIES_KEY_PREFIX}. These entries are handled as absolute paths to the
+     * <i>custom library</i> {@link Resource}s, and are configured to be the target of the corresponding custom
+     * library proxies in the provided {@link ExecutionModel}.
+     * <p>
      * This method ensures that the loaded {@link Resource}s corresponds to the {@code pathmaps} specified in the
-     * provided {@code xmi} file. See {@link PlatformLoaderUtils#CORE_PLATFORM_PATHMAP} and
+     * provided {@code xmi} file. See
+     * {@link LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP}, {@link PlatformLoaderUtils#CORE_PLATFORM_PATHMAP} and
      * {@link PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP} for further information.
      *
      * @throws JarvisException if an error occurred when loading the platform {@link Resource}s
      * @see PlatformLoaderUtils#CORE_PLATFORM_PATHMAP
      * @see PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP
+     * @see LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP
      */
     private ResourceSet initializeExecutionResourceSet() {
         ResourceSet resourceSet = new ResourceSetImpl();
@@ -350,6 +372,34 @@ public class JarvisCore {
         resourceSet.getPackageRegistry().put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
         resourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
         resourceSet.getPackageRegistry().put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
+
+        Log.info("Loading Jarvis custom libraries");
+        configuration.getKeys().forEachRemaining(key -> {
+            if (key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX)) {
+                String libraryPath = configuration.getString(key);
+                String libraryName = key.substring(CUSTOM_LIBRARIES_KEY_PREFIX.length());
+                URI libraryPathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + libraryName);
+                /*
+                 * The provided path is handled as a File path. Loading custom libraries from external jars is left for
+                 * a future release.
+                 */
+                File libraryFile = new File(libraryPath);
+                if (libraryFile.exists() && libraryFile.isFile()) {
+                    URI libraryFileURI = URI.createFileURI(libraryFile.getAbsolutePath());
+                    resourceSet.getURIConverter().getURIMap().put(libraryPathmapURI, libraryFileURI);
+                    Resource libraryResource = resourceSet.getResource(libraryFileURI, true);
+                    Library library = (Library) libraryResource.getContents().get(0);
+                    Log.info("Library {0} loaded", library.getName());
+                } else {
+                    throw new JarvisException(MessageFormat.format("Cannot load the custom library {0}, the provided" +
+                            "path {0} is not a valid file", libraryPath));
+                }
+            }
+            /*
+             * The key is not a custom platform path, skipping it.
+             */
+        });
+
 
         Log.info("Loading Jarvis core platforms");
         URL url = this.getClass().getClassLoader().getResource("platforms/xmi/");
@@ -427,7 +477,7 @@ public class JarvisCore {
                     Log.info("Platform {0} loaded", platform.getName());
                 } else {
                     throw new JarvisException(MessageFormat.format("Cannot load the custom platform {0}, the provided" +
-                            "path {1} is not a valid file", platformPath, platformPath));
+                            "path {0} is not a valid file", platformPath));
                 }
             }
             /*

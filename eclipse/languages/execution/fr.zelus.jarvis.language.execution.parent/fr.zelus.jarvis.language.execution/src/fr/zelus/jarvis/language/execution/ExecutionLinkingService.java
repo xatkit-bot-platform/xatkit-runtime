@@ -22,7 +22,8 @@ import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.execution.ParameterValue;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.language.execution.util.PlatformRegistry;
+import fr.zelus.jarvis.intent.Library;
+import fr.zelus.jarvis.language.execution.util.ImportRegistry;
 import fr.zelus.jarvis.platform.Action;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
 import fr.zelus.jarvis.platform.Parameter;
@@ -44,8 +45,8 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				/*
 				 * Trying to retrieve an InputProvider from a loaded platform
 				 */
-				Collection<Platform> platforms = PlatformRegistry.getInstance()
-						.loadExecutionModelPlatforms((ExecutionModel) context);
+				Collection<Platform> platforms = ImportRegistry.getInstance()
+						.getLoadedPlatforms((ExecutionModel) context);
 				System.out.println("found " + platforms.size() + " platforms");
 				for (Platform platform : platforms) {
 					for (EventProviderDefinition eventProviderDefinition : platform.getEventProviderDefinitions()) {
@@ -63,12 +64,27 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 		} else if (context instanceof ExecutionRule) {
 			if (ref.equals(ExecutionPackage.eINSTANCE.getExecutionRule_Event())) {
 				/*
+				 * Trying to retrieve an Event from a loaded Library
+				 */
+				Collection<Library> libraries = ImportRegistry.getInstance().getLoadedLibraries((ExecutionModel) context.eContainer());
+				System.out.println("Found " + libraries.size() + "libraries");
+				for(Library library : libraries) {
+					for(EventDefinition eventDefinition : library.getEventDefinitions()) {
+						System.out.println("Comparing Event " + eventDefinition.getName());
+						System.out.println("Node text: " + node.getText());
+						if(eventDefinition.getName().equals(node.getText())) {
+							return Arrays.asList(eventDefinition);
+						}
+					}
+				}
+				/*
 				 * Trying to retrieve an Event from a loaded platform
 				 */
-				Collection<Platform> platforms = PlatformRegistry.getInstance()
-						.loadExecutionModelPlatforms((ExecutionModel) context.eContainer());
-				System.out.println("found " + platforms.size() + "platforms");
+				Collection<Platform> platforms = ImportRegistry.getInstance()
+						.getLoadedPlatforms((ExecutionModel) context.eContainer());
+				System.out.println("Found " + platforms.size() + "platforms");
 				for (Platform platform : platforms) {
+					// TODO remove this (see #166)
 					for (IntentDefinition intentDefinition : platform.getIntentDefinitions()) {
 						System.out.println("comparing Intent " + intentDefinition.getName());
 						System.out.println("Node text: " + node.getText());
@@ -112,8 +128,8 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				}
 				String platformName = splittedActionName[0];
 				String actionName = splittedActionName[1];
-				Collection<Platform> platforms = PlatformRegistry.getInstance()
-						.loadExecutionModelPlatforms(executionModel);
+				Collection<Platform> platforms = ImportRegistry.getInstance()
+						.getLoadedPlatforms(executionModel);
 				for (Platform platform : platforms) {
 					if(platform.getName().equals(platformName)) {
 						for (Action action : platform.getActions()) {

@@ -11,8 +11,8 @@ import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.eclipse.xtext.Assignment
 import static java.util.Objects.isNull
 import fr.zelus.jarvis.platform.Platform
-import fr.zelus.jarvis.language.execution.util.PlatformRegistry
 import fr.zelus.jarvis.execution.ExecutionModel
+import fr.zelus.jarvis.language.execution.util.ImportRegistry
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -22,7 +22,7 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 
 	override completeExecutionModel_EventProviderDefinitions(EObject model, Assignment assignment,
 		ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
-		var platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(model as ExecutionModel)
+		var platforms = ImportRegistry.getInstance.getLoadedPlatforms(model as ExecutionModel)
 		platforms.map[m|m.eventProviderDefinitions.map[i|i.name]].flatten.forEach [ iName |
 			acceptor.accept(createCompletionProposal(iName, context))
 		]
@@ -31,7 +31,17 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 
 	override completeExecutionRule_Event(EObject model, Assignment assignment, ContentAssistContext context,
 		ICompletionProposalAcceptor acceptor) {
-		var platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(model.eContainer as ExecutionModel)
+		/*
+		 * Intents from libraries.
+		 */
+		var libraries = ImportRegistry.getInstance.getLoadedLibraries(model.eContainer as ExecutionModel)
+		libraries.map[m|m.eventDefinitions.map[e|e.name]].flatten.forEach[eName |
+			acceptor.accept(createCompletionProposal(eName, context))
+		]
+		/*
+		 * Intents stored in platforms
+		 */
+		var platforms = ImportRegistry.getInstance.getLoadedPlatforms(model.eContainer as ExecutionModel)
 		platforms.map[m|m.intentDefinitions.map[i|i.name]].flatten.forEach [ iName |
 			acceptor.accept(createCompletionProposal(iName, context))
 		]
@@ -46,7 +56,7 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 		println("completion")
 		println(model)
 		/*
-		 * Retrieve the OrchestrationModel, it can be different than the direct parent in case of nested on error ActionInstances.
+		 * Retrieve the ExecutionModel, it can be different than the direct parent in case of nested on error ActionInstances.
 		 */
 		var ExecutionModel executionModel = null
 		var currentObject = model
@@ -56,7 +66,7 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 				executionModel = currentObject
 			}
 		}
-		val platforms = PlatformRegistry.getInstance.loadExecutionModelPlatforms(executionModel)
+		val platforms = ImportRegistry.getInstance.getLoadedPlatforms(executionModel)
 		platforms.map[m|m.actions].flatten.forEach [ a |
 			var String prefix = (a.eContainer as Platform).name + ".";
 			var parameterString = ""
