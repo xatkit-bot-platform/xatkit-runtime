@@ -9,7 +9,7 @@ import fr.zelus.jarvis.intent.ContextInstance;
 import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformDefinition;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import java.util.Collections;
@@ -230,8 +230,8 @@ public class ExecutionService {
      * @return the constructed {@link RuntimeAction}
      */
     private RuntimeAction getRuntimeActionFromActionInstance(ActionInstance actionInstance, JarvisSession session) {
-        RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform((Platform) actionInstance
-                .getAction().eContainer());
+        RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform((PlatformDefinition)
+                actionInstance.getAction().eContainer());
         return runtimePlatform.createRuntimeAction(actionInstance, session);
     }
 

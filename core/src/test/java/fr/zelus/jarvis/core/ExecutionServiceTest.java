@@ -8,9 +8,9 @@ import fr.zelus.jarvis.execution.ExecutionFactory;
 import fr.zelus.jarvis.execution.ExecutionModel;
 import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.InputProviderDefinition;
-import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformDefinition;
 import fr.zelus.jarvis.platform.PlatformFactory;
 import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.stubs.StubRuntimePlatform;
@@ -45,12 +45,12 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
+        PlatformDefinition stubPlatform = PlatformFactory.eINSTANCE.createPlatformDefinition();
         stubPlatform.setName("StubRuntimePlatform");
         stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
-        Action stubAction = PlatformFactory.eINSTANCE.createAction();
+        ActionDefinition stubAction = PlatformFactory.eINSTANCE.createActionDefinition();
         stubAction.setName("StubRuntimeAction");
-        Action errorAction = PlatformFactory.eINSTANCE.createAction();
+        ActionDefinition errorAction = PlatformFactory.eINSTANCE.createActionDefinition();
         errorAction.setName("ErroringStubRuntimeAction");
         // No parameters, keep it simple
         stubPlatform.getActions().add(stubAction);

@@ -21,13 +21,12 @@ import fr.zelus.jarvis.execution.ExecutionPackage;
 import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.execution.ParameterValue;
 import fr.zelus.jarvis.intent.EventDefinition;
-import fr.zelus.jarvis.intent.IntentDefinition;
 import fr.zelus.jarvis.intent.Library;
 import fr.zelus.jarvis.language.execution.util.ImportRegistry;
-import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
 import fr.zelus.jarvis.platform.Parameter;
-import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformDefinition;
 
 public class ExecutionLinkingService extends DefaultLinkingService {
 
@@ -45,11 +44,11 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				/*
 				 * Trying to retrieve an InputProvider from a loaded platform
 				 */
-				Collection<Platform> platforms = ImportRegistry.getInstance()
+				Collection<PlatformDefinition> platformDefinitions = ImportRegistry.getInstance()
 						.getLoadedPlatforms((ExecutionModel) context);
-				System.out.println("found " + platforms.size() + " platforms");
-				for (Platform platform : platforms) {
-					for (EventProviderDefinition eventProviderDefinition : platform.getEventProviderDefinitions()) {
+				System.out.println("found " + platformDefinitions.size() + " platforms");
+				for (PlatformDefinition platformDefinition : platformDefinitions) {
+					for (EventProviderDefinition eventProviderDefinition : platformDefinition.getEventProviderDefinitions()) {
 						System.out.println("comparing EventProvider " + eventProviderDefinition.getName());
 						System.out.println("Node text: " + node.getText());
 						if (eventProviderDefinition.getName().equals(node.getText())) {
@@ -80,11 +79,11 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				/*
 				 * Trying to retrieve an Event from a loaded platform
 				 */
-				Collection<Platform> platforms = ImportRegistry.getInstance()
+				Collection<PlatformDefinition> platformDefinitions = ImportRegistry.getInstance()
 						.getLoadedPlatforms((ExecutionModel) context.eContainer());
-				System.out.println("Found " + platforms.size() + "platforms");
-				for (Platform platform : platforms) {
-					for (EventProviderDefinition eventProviderDefinition : platform.getEventProviderDefinitions()) {
+				System.out.println("Found " + platformDefinitions.size() + "platforms");
+				for (PlatformDefinition platformDefinition : platformDefinitions) {
+					for (EventProviderDefinition eventProviderDefinition : platformDefinition.getEventProviderDefinitions()) {
 						for (EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
 							System.out.println("comparing Event " + eventDefinition.getName());
 							System.out.println("Node text: " + node.getText());
@@ -120,13 +119,13 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				}
 				String platformName = splittedActionName[0];
 				String actionName = splittedActionName[1];
-				Collection<Platform> platforms = ImportRegistry.getInstance()
+				Collection<PlatformDefinition> platformDefinitions = ImportRegistry.getInstance()
 						.getLoadedPlatforms(executionModel);
-				for (Platform platform : platforms) {
-					if(platform.getName().equals(platformName)) {
-						for (Action action : platform.getActions()) {
-							if (action.getName().equals(actionName)) {
-								return Arrays.asList(action);
+				for (PlatformDefinition platformDefinition : platformDefinitions) {
+					if(platformDefinition.getName().equals(platformName)) {
+						for (ActionDefinition actionDefinition : platformDefinition.getActions()) {
+							if (actionDefinition.getName().equals(actionName)) {
+								return Arrays.asList(actionDefinition);
 							}
 						}
 					}
@@ -141,8 +140,8 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				 * Trying to retrieve the Parameter of the containing Action
 				 */
 				ActionInstance actionInstance = (ActionInstance) context.eContainer();
-				Action action = actionInstance.getAction();
-				if (isNull(action)) {
+				ActionDefinition actionDefinition = actionInstance.getAction();
+				if (isNull(actionDefinition)) {
 					/*
 					 * TODO We should reload all the actions if this is not set
 					 */
@@ -153,7 +152,7 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				 * Actions with the same name (i.e. same JarvisAction but different constructors) this iteration can
 				 * fail, because the inferred Action was not right.
 				 */
-				for (Parameter p : action.getParameters()) {
+				for (Parameter p : actionDefinition.getParameters()) {
 					System.out.println("comparing Parameter " + p.getKey());
 					System.out.println("Node text: " + node.getText());
 					if (p.getKey().equals(node.getText())) {
@@ -165,8 +164,8 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				 * name and check their parameters. If such Action is found all the defined ParameterValues of this
 				 * ActionInstance are processed and updated to fit the new parent Action.
 				 */
-				Platform platform = (Platform) action.eContainer();
-				if (isNull(platform)) {
+				PlatformDefinition platformDefinition = (PlatformDefinition) actionDefinition.eContainer();
+				if (isNull(platformDefinition)) {
 					/*
 					 * The platform may be null if there is an issue when loading the import. In that case we can ignore
 					 * the linking, the model is false anyway
@@ -174,12 +173,12 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 					return Collections.emptyList();
 				}
 				Parameter result = null;
-				for (Action platformAction : platform.getActions()) {
-					if (!platformAction.equals(action) && platformAction.getName().equals(action.getName())) {
+				for (ActionDefinition platformAction : platformDefinition.getActions()) {
+					if (!platformAction.equals(actionDefinition) && platformAction.getName().equals(actionDefinition.getName())) {
 						for (Parameter p : platformAction.getParameters()) {
 							if (p.getKey().equals(node.getText())) {
 								System.out.println("Found the parameter " + p.getKey() + " in a variant "
-										+ action.getName() + " returning it and updating the action instance");
+										+ actionDefinition.getName() + " returning it and updating the action instance");
 								actionInstance.setAction(platformAction);
 								result = p;
 							}
@@ -189,7 +188,7 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 							 * The Parameter was found in another Action, trying to reset all the ParameterValues'
 							 * Parameter with the Action Parameters.
 							 */
-							Action foundAction = (Action) result.eContainer();
+							ActionDefinition foundActionDefinition = (ActionDefinition) result.eContainer();
 							boolean validAction = true;
 							for (ParameterValue actionInstanceValue : actionInstance.getValues()) {
 								Parameter actionInstanceParameter = actionInstanceValue.getParameter();
@@ -200,7 +199,7 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 								 * updated the found Action variant is returned. Otherwise the loop searches for another
 								 * Action variant.
 								 */
-								for (Parameter foundActionParameter : foundAction.getParameters()) {
+								for (Parameter foundActionParameter : foundActionDefinition.getParameters()) {
 									if (foundActionParameter.getKey().equals(actionInstanceParameter.getKey())) {
 										actionInstanceValue.setParameter(foundActionParameter);
 										found = true;

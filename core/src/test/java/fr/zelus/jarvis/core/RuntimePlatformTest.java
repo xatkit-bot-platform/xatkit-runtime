@@ -4,7 +4,7 @@ import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.io.WebhookEventProvider;
-import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
 import fr.zelus.jarvis.platform.Parameter;
 import fr.zelus.jarvis.platform.PlatformFactory;
@@ -149,39 +149,39 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Test(expected = JarvisException.class)
     public void enableActionNotPlatformAction() {
-        Action action = getNotRegisteredAction();
+        ActionDefinition action = getNotRegisteredActionDefinition();
         runtimePlatform.enableAction(action);
     }
 
     @Test
     public void enableActionPlatformAction() {
-        Action infoAction = getNoParameterAction();
-        runtimePlatform.enableAction(infoAction);
-        assertThat(runtimePlatform.getActions()).as("Action map contains the enabled action").contains
+        ActionDefinition infoActionDefinition = getNoParameterActionDefinition();
+        runtimePlatform.enableAction(infoActionDefinition);
+        assertThat(runtimePlatform.getActions()).as("Action map contains the enabled ActionDefinition").contains
                 (StubRuntimeActionNoParameter.class);
     }
 
     @Test
     public void disableActionNotPlatformAction() {
-        Action action = getNotRegisteredAction();
-        runtimePlatform.disableAction(action);
+        ActionDefinition actionDefinition = getNotRegisteredActionDefinition();
+        runtimePlatform.disableAction(actionDefinition);
     }
 
     @Test
     public void disableActionPlatformAction() {
-        Action action = getNoParameterAction();
-        runtimePlatform.enableAction(action);
-        runtimePlatform.disableAction(action);
-        assertThat(runtimePlatform.getActions()).as("The action map does not contain the unregistered action").doesNotContain
-                (StubRuntimeActionNoParameter.class);
+        ActionDefinition actionDefinition = getNoParameterActionDefinition();
+        runtimePlatform.enableAction(actionDefinition);
+        runtimePlatform.disableAction(actionDefinition);
+        assertThat(runtimePlatform.getActions()).as("The actionDefinition map does not contain the unregistered " +
+                "ActionDefinition").doesNotContain(StubRuntimeActionNoParameter.class);
     }
 
     @Test
     public void disableAllActions() {
-        Action action1 = getNoParameterAction();
-        Action action2 = getParameterAction();
-        runtimePlatform.enableAction(action1);
-        runtimePlatform.enableAction(action2);
+        ActionDefinition actionDefinition1 = getNoParameterActionDefinition();
+        ActionDefinition actionDefinition2 = getParameterActionDefinition();
+        runtimePlatform.enableAction(actionDefinition1);
+        runtimePlatform.enableAction(actionDefinition2);
         runtimePlatform.disableAllActions();
         assertThat(runtimePlatform.getActions()).as("The action map is empty").isEmpty();
     }
@@ -193,16 +193,16 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Test(expected = JarvisException.class)
     public void createRuntimeActionNotEnabledAction() {
-        Action action = getNoParameterAction();
+        ActionDefinition actionDefinition = getNoParameterActionDefinition();
         ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        actionInstance.setAction(action);
+        actionInstance.setAction(actionDefinition);
         runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("id"));
     }
 
     @Test
     public void createRuntimeActionValidActionInstanceNoParameters() {
-        Action action = getNoParameterAction();
-        ActionInstance actionInstance = createActionInstanceFor(action);
+        ActionDefinition actionDefinition = getNoParameterActionDefinition();
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"));
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf(StubRuntimeActionNoParameter
                 .class);
@@ -210,8 +210,8 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Test
     public void createRuntimeActionValidActionInstanceWithReturnType() {
-        Action action = getNoParameterAction();
-        ActionInstance actionInstance = createActionInstanceFor(action);
+        ActionDefinition actionDefinition = getNoParameterActionDefinition();
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         Variable returnVariable = ExecutionFactory.eINSTANCE.createVariable();
         returnVariable.setName("return");
         VariableAccess returnVariableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
@@ -224,11 +224,11 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Test(expected = JarvisException.class)
     public void createRuntimeActionTooManyParametersInAction() {
-        Action action = getNoParameterAction();
-        ActionInstance actionInstance = createActionInstanceFor(action);
+        ActionDefinition actionDefinition = getNoParameterActionDefinition();
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
-        action.getParameters().add(param);
+        actionDefinition.getParameters().add(param);
         ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
         StringLiteral value = ExecutionFactory.eINSTANCE.createStringLiteral();
         parameterValue.setExpression(value);
@@ -240,8 +240,8 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Test(expected = JarvisException.class)
     public void createRuntimeActionTooManyParametersInActionInstance() {
-        Action action = getNoParameterAction();
-        ActionInstance actionInstance = createActionInstanceFor(action);
+        ActionDefinition actionDefinition = getNoParameterActionDefinition();
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         // Do not attach the Parameter to the Action
@@ -255,9 +255,9 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     @Test
-    public void createJarvisParameterActionConstructor1ValidActionInstanceVariableAccess() {
-        Action action = getParameterAction();
-        ActionInstance actionInstance = createActionInstanceFor(action);
+    public void createRuntimeParameterActionConstructor1ValidActionInstanceVariableAccess() {
+        ActionDefinition actionDefinition = getParameterActionDefinition();
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
         VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
@@ -278,9 +278,9 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     @Test
-    public void createJarvisParameterActionConstructor2ValidActionInstanceVariableAccess() {
-        Action action = getParameterAction();
-        ActionInstance actionInstance = createActionInstanceFor(action);
+    public void createRuntimeParameterActionConstructor2ValidActionInstanceVariableAccess() {
+        ActionDefinition actionDefinition = getParameterActionDefinition();
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
         VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
@@ -304,9 +304,9 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     @Test(expected = JarvisException.class)
-    public void createJarvisParameterActionConstructor1ValidActionInstanceVariableNotRegistered() {
-        Action action = getParameterAction();
-        ActionInstance actionInstance = createActionInstanceFor(action);
+    public void createRuntimeParameterActionConstructor1ValidActionInstanceVariableNotRegistered() {
+        ActionDefinition actionDefinition = getParameterActionDefinition();
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
         VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
@@ -320,9 +320,9 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     @Test(expected = JarvisException.class)
-    public void createJarvisParameterActionValidActionInstanceInvalidParameterType() {
-        Action action = getParameterAction();
-        ActionInstance actionInstance = createActionInstanceFor(action);
+    public void createRuntimeParameterActionValidActionInstanceInvalidParameterType() {
+        ActionDefinition actionDefinition = getParameterActionDefinition();
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
         VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
@@ -338,12 +338,12 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     @Test(expected = JarvisException.class)
-    public void createJarvisParameterActionTooManyParametersInActionInstance() {
-        Action action = getParameterAction();
+    public void createRuntimeParameterActionTooManyParametersInActionInstance() {
+        ActionDefinition actionDefinition = getParameterActionDefinition();
         Parameter param2 = PlatformFactory.eINSTANCE.createParameter();
         param2.setKey("param2");
-        action.getParameters().add(param2);
-        ActionInstance actionInstance = createActionInstanceFor(action);
+        actionDefinition.getParameters().add(param2);
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
         paramVariable.setName("param");
         VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
@@ -370,43 +370,43 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     @Test
-    public void shutdownRegisteredEventProviderAndAction() {
+    public void shutdownRegisteredEventProviderAndActionDefinition() {
         EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProvider");
         runtimePlatform.startEventProvider(eventProviderDefinition);
-        Action action = getNoParameterAction();
-        // Enables the action in the RuntimePlatform
-        ActionInstance actionInstance = createActionInstanceFor(action);
+        ActionDefinition actionDefinition = getNoParameterActionDefinition();
+        // Enables the actionDefinition in the RuntimePlatform
+        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         runtimePlatform.shutdown();
         assertThat(runtimePlatform.getActions()).as("Empty Action map").isEmpty();
         assertThat(runtimePlatform.getEventProviderMap()).as("Empty EventProvider map").isEmpty();
     }
 
-    private Action getNoParameterAction() {
-        Action action = PlatformFactory.eINSTANCE.createAction();
-        action.setName("StubRuntimeActionNoParameter");
-        return action;
+    private ActionDefinition getNoParameterActionDefinition() {
+        ActionDefinition actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
+        actionDefinition.setName("StubRuntimeActionNoParameter");
+        return actionDefinition;
     }
 
-    private Action getParameterAction() {
-        Action action = PlatformFactory.eINSTANCE.createAction();
-        action.setName("StubRuntimeActionTwoConstructors");
+    private ActionDefinition getParameterActionDefinition() {
+        ActionDefinition actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
+        actionDefinition.setName("StubRuntimeActionTwoConstructors");
         Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("param");
-        action.getParameters().add(param);
-        return action;
+        actionDefinition.getParameters().add(param);
+        return actionDefinition;
     }
 
-    private ActionInstance createActionInstanceFor(Action action) {
+    private ActionInstance createActionInstanceFor(ActionDefinition actionDefinition) {
         ActionInstance instance = ExecutionFactory.eINSTANCE.createActionInstance();
-        instance.setAction(action);
-        runtimePlatform.enableAction(action);
+        instance.setAction(actionDefinition);
+        runtimePlatform.enableAction(actionDefinition);
         return instance;
     }
 
-    private Action getNotRegisteredAction() {
-        Action action = PlatformFactory.eINSTANCE.createAction();
-        action.setName("NotRegisteredAction");
-        return action;
+    private ActionDefinition getNotRegisteredActionDefinition() {
+        ActionDefinition actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
+        actionDefinition.setName("NotRegisteredAction");
+        return actionDefinition;
     }
 }

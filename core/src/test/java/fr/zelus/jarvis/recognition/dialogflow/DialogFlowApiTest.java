@@ -11,9 +11,9 @@ import fr.zelus.jarvis.execution.ExecutionFactory;
 import fr.zelus.jarvis.execution.ExecutionModel;
 import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.InputProviderDefinition;
-import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformDefinition;
 import fr.zelus.jarvis.platform.PlatformFactory;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -73,16 +73,16 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("StubRuntimePlatform");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
-        Action stubAction = PlatformFactory.eINSTANCE.createAction();
-        stubAction.setName("StubRuntimeAction");
+        PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
+        stubPlatformDefinition.setName("StubRuntimePlatform");
+        stubPlatformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
+        ActionDefinition stubActionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
+        stubActionDefinition.setName("StubRuntimeAction");
         // No parameters, keep it simple
-        stubPlatform.getActions().add(stubAction);
+        stubPlatformDefinition.getActions().add(stubActionDefinition);
         InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
-        stubPlatform.getEventProviderDefinitions().add(stubInputProvider);
+        stubPlatformDefinition.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
@@ -90,7 +90,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
         rule.setEvent(stubIntentDefinition);
         ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        actionInstance.setAction(stubAction);
+        actionInstance.setAction(stubActionDefinition);
         rule.getActions().add(actionInstance);
         executionModel.getExecutionRules().add(rule);
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);

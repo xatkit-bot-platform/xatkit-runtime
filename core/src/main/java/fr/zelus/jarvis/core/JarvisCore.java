@@ -10,9 +10,9 @@ import fr.zelus.jarvis.execution.ExecutionPackage;
 import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.io.EventProvider;
-import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
-import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformDefinition;
 import fr.zelus.jarvis.platform.PlatformPackage;
 import fr.zelus.jarvis.recognition.IntentRecognitionProvider;
 import fr.zelus.jarvis.recognition.IntentRecognitionProviderException;
@@ -94,9 +94,9 @@ public class JarvisCore {
      * The {@link Configuration} used to initialize this class.
      * <p>
      * This {@link Configuration} is used to load and initialize platforms, see
-     * {@link #loadRuntimePlatformFromPlatformModel(Platform)} for more information on platform loading.
+     * {@link #loadRuntimePlatformFromPlatformModel(PlatformDefinition)} for more information on platform loading.
      *
-     * @see #loadRuntimePlatformFromPlatformModel(Platform)
+     * @see #loadRuntimePlatformFromPlatformModel(PlatformDefinition)
      */
     private Configuration configuration;
 
@@ -205,7 +205,7 @@ public class JarvisCore {
                 throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} from " +
                         "the {1}", eventProviderDefinition, ExecutionModel.class.getSimpleName()));
             }
-            Platform eventProviderPlatform = (Platform) eventProviderDefinition.eContainer();
+            PlatformDefinition eventProviderPlatform = (PlatformDefinition) eventProviderDefinition.eContainer();
             RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
                     (eventProviderPlatform.getName());
             if (isNull(eventProviderRuntimePlatform)) {
@@ -235,21 +235,21 @@ public class JarvisCore {
              * Load the action platforms
              */
             for (ActionInstance actionInstance : rule.getActions()) {
-                Action action = actionInstance.getAction();
+                ActionDefinition actionDefinition = actionInstance.getAction();
                 /*
                  * The Action is still a proxy, meaning that the proxy resolution failed.
                  */
-                if (action.eIsProxy()) {
+                if (actionDefinition.eIsProxy()) {
                     throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
-                            "from the {1}", action, ExecutionModel.class.getSimpleName()));
+                            "from the {1}", actionDefinition, ExecutionModel.class.getSimpleName()));
                 }
-                Platform platform = (Platform) action.eContainer();
+                PlatformDefinition platform = (PlatformDefinition) actionDefinition.eContainer();
                 RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform.getName());
                 if (isNull(runtimePlatform)) {
                     runtimePlatform = loadRuntimePlatformFromPlatformModel(platform);
                     this.runtimePlatformRegistry.registerRuntimePlatform(runtimePlatform);
                 }
-                runtimePlatform.enableAction(action);
+                runtimePlatform.enableAction(actionDefinition);
             }
         }
         if (intentRegistered) {
@@ -438,7 +438,7 @@ public class JarvisCore {
                             .getFileName().toString()));
                     Resource platformResource = resourceSet.createResource(platformPathmapURI);
                     platformResource.load(is, Collections.emptyMap());
-                    Platform platform = (Platform) platformResource.getContents().get(0);
+                    PlatformDefinition platform = (PlatformDefinition) platformResource.getContents().get(0);
                     is.close();
                     Log.info("Platform {0} loaded", platform.getName());
                 } catch (IOException e) {
@@ -465,7 +465,7 @@ public class JarvisCore {
                     URI platformFileURI = URI.createFileURI(platformFile.getAbsolutePath());
                     resourceSet.getURIConverter().getURIMap().put(platformPathmapURI, platformFileURI);
                     Resource platformResource = resourceSet.getResource(platformFileURI, true);
-                    Platform platform = (Platform) platformResource.getContents().get(0);
+                    PlatformDefinition platform = (PlatformDefinition) platformResource.getContents().get(0);
                     Log.info("Platform {0} loaded", platform.getName());
                 } else {
                     throw new JarvisException(MessageFormat.format("Cannot load the custom platform {0}, the provided" +
@@ -528,21 +528,22 @@ public class JarvisCore {
     }
 
     /**
-     * Loads the {@link RuntimePlatform} defined by the provided {@link Platform} definition.
+     * Loads the {@link RuntimePlatform} defined by the provided {@link PlatformDefinition}.
      * <p>
-     * This method searches in the classpath a {@link Class} matching the input {@link Platform#getRuntimePath()}
-     * value and calls its default constructor.
+     * This method searches in the classpath a {@link Class} matching the input
+     * {@link PlatformDefinition#getRuntimePath()} value and calls its default constructor.
      *
-     * @param platformModel the jarvis {@link Platform} definition to load
+     * @param platformDefinition the jarvis {@link PlatformDefinition} to load
      * @return an instance of the loaded {@link RuntimePlatform}
-     * @throws JarvisException if their is no {@link Class} matching the provided {@code platformModel} or if the
+     * @throws JarvisException if their is no {@link Class} matching the provided {@code platformDefinition} or if the
      *                         {@link RuntimePlatform} can not be constructed
-     * @see Platform
+     * @see PlatformDefinition
      * @see RuntimePlatform
      */
-    private RuntimePlatform loadRuntimePlatformFromPlatformModel(Platform platformModel) throws JarvisException {
-        Log.info("Loading RuntimePlatform {0}", platformModel.getName());
-        Class<? extends RuntimePlatform> runtimePlatformClass = Loader.loadClass(platformModel.getRuntimePath(),
+    private RuntimePlatform loadRuntimePlatformFromPlatformModel(PlatformDefinition platformDefinition) throws
+            JarvisException {
+        Log.info("Loading RuntimePlatform {0}", platformDefinition.getName());
+        Class<? extends RuntimePlatform> runtimePlatformClass = Loader.loadClass(platformDefinition.getRuntimePath(),
                 RuntimePlatform.class);
         return Loader.constructRuntimePlatform(runtimePlatformClass, this, configuration);
     }

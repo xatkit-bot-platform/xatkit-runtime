@@ -10,9 +10,9 @@ import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.eclipse.xtext.Assignment
 import static java.util.Objects.isNull
-import fr.zelus.jarvis.platform.Platform
 import fr.zelus.jarvis.execution.ExecutionModel
 import fr.zelus.jarvis.language.execution.util.ImportRegistry
+import fr.zelus.jarvis.platform.PlatformDefinition
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -66,7 +66,7 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 		}
 		val platforms = ImportRegistry.getInstance.getLoadedPlatforms(executionModel)
 		platforms.map[m|m.actions].flatten.forEach [ a |
-			var String prefix = (a.eContainer as Platform).name + ".";
+			var String prefix = (a.eContainer as PlatformDefinition).name + ".";
 			var parameterString = ""
 			if(!a.parameters.empty) {
 				parameterString += '('

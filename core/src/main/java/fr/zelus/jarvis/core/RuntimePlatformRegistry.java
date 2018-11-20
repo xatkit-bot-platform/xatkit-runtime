@@ -1,6 +1,6 @@
 package fr.zelus.jarvis.core;
 
-import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformDefinition;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -71,13 +71,14 @@ public class RuntimePlatformRegistry {
     /**
      * Returns the {@link RuntimePlatform} associated to the provided {@code platformDefinition}.
      * <p>
-     * The provided {@link Platform} should follow jarvis' naming conventions, and provide a {@link Platform#getName()}
+     * The provided {@link PlatformDefinition} should follow jarvis' naming conventions, and provide a
+     * {@link PlatformDefinition#getName()}
      * method that returns the name of the concrete {@link RuntimePlatform} class to retrieve.
      *
-     * @param platformDefinition the {@link Platform} representing the {@link RuntimePlatform} to retrieve
+     * @param platformDefinition the {@link PlatformDefinition} representing the {@link RuntimePlatform} to retrieve
      * @return the {@link RuntimePlatform} associated to the provided {@code platformDefinition}
      */
-    public RuntimePlatform getRuntimePlatform(Platform platformDefinition) {
+    public RuntimePlatform getRuntimePlatform(PlatformDefinition platformDefinition) {
         return this.platformMap.get(platformDefinition.getName());
     }
 

@@ -5,7 +5,7 @@ import fr.zelus.jarvis.core.*;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.plugins.generic_chat.platform.action.GenericChatAction;
 import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.Configuration;
@@ -149,13 +149,14 @@ public class GenericChatPlatform extends RuntimePlatform {
     }
 
     /**
-     * Retrieves an loads the {@link RuntimeAction} defined by the provided {@link Action} in all the sub-platforms.
+     * Retrieves an loads the {@link RuntimeAction} defined by the provided {@link ActionDefinition} in all the
+     * sub-platforms.
      *
-     * @param action the {@link Action} definition representing the {@link RuntimeAction} to enable in all the
+     * @param action the {@link ActionDefinition} definition representing the {@link RuntimeAction} to enable in all the
      *               sub-platforms
      */
     @Override
-    public void enableAction(Action action) {
+    public void enableAction(ActionDefinition action) {
         for (RuntimePlatform subPlatform : subPlatforms) {
             /*
              * This works because the actions have the same name
@@ -165,18 +166,18 @@ public class GenericChatPlatform extends RuntimePlatform {
     }
 
     /**
-     * Disables the {@link RuntimeAction} defined by the provided {@link Action} in all the sub-platforms.
+     * Disables the {@link RuntimeAction} defined by the provided {@link ActionDefinition} in all the sub-platforms.
      *
-     * @param action the {@link Action} definition representing the {@link RuntimeAction} to disable in all the
-     *               sub-platforms
+     * @param actionDefinition the {@link ActionDefinition} definition representing the {@link RuntimeAction} to
+     *                         disable in all the sub-platforms
      */
     @Override
-    public void disableAction(Action action) {
+    public void disableAction(ActionDefinition actionDefinition) {
         for (RuntimePlatform subPlatform : subPlatforms) {
             /*
              * This works because the actions have the same name
              */
-            subPlatform.disableAction(action);
+            subPlatform.disableAction(actionDefinition);
         }
     }
 

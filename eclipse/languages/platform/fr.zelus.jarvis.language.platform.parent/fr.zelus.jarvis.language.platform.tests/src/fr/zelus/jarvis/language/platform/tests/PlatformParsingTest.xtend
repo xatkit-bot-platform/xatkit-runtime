@@ -4,7 +4,7 @@
 package fr.zelus.jarvis.language.platform.tests
 
 import com.google.inject.Inject
-import fr.zelus.jarvis.platform.Platform
+import fr.zelus.jarvis.platform.PlatformDefinition
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 @InjectWith(PlatformInjectorProvider)
 class PlatformParsingTest {
 	@Inject
-	ParseHelper<Platform> parseHelper
+	ParseHelper<PlatformDefinition> parseHelper
 	
 	@Test
 	def void loadModel() {

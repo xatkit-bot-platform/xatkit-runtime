@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -41,7 +40,7 @@ import fr.zelus.jarvis.execution.LibraryImportDeclaration;
 import fr.zelus.jarvis.execution.PlatformImportDeclaration;
 import fr.zelus.jarvis.intent.IntentPackage;
 import fr.zelus.jarvis.intent.Library;
-import fr.zelus.jarvis.platform.Platform;
+import fr.zelus.jarvis.platform.PlatformDefinition;
 import fr.zelus.jarvis.platform.PlatformPackage;
 
 public class ImportRegistry {
@@ -57,7 +56,7 @@ public class ImportRegistry {
 
 	private ResourceSet rSet;
 
-	private Map<String, Platform> platforms;
+	private Map<String, PlatformDefinition> platforms;
 
 	private Map<String, Library> libraries;
 
@@ -99,7 +98,7 @@ public class ImportRegistry {
 		return resources;
 	}
 
-	public Collection<Platform> getLoadedPlatforms(ExecutionModel model) {
+	public Collection<PlatformDefinition> getLoadedPlatforms(ExecutionModel model) {
 		/*
 		 * Reload all the platforms in case the imports have changed.
 		 */
@@ -231,15 +230,15 @@ public class ImportRegistry {
 			return null;
 		}
 		for (EObject e : resource.getContents()) {
-			if (e instanceof Platform) {
-				Platform platform = (Platform) e;
+			if (e instanceof PlatformDefinition) {
+				PlatformDefinition platformDefinition = (PlatformDefinition) e;
 				if (importDeclaration instanceof PlatformImportDeclaration) {
-					if (this.platforms.containsKey((platform.getName()))) {
+					if (this.platforms.containsKey((platformDefinition.getName()))) {
 						System.out.println(MessageFormat.format("The platform {0} is already loaded, erasing it",
-								platform.getName()));
+								platformDefinition.getName()));
 					}
-					System.out.println(MessageFormat.format("Registering platform {0}", platform.getName()));
-					this.platforms.put(platform.getName(), platform);
+					System.out.println(MessageFormat.format("Registering platform {0}", platformDefinition.getName()));
+					this.platforms.put(platformDefinition.getName(), platformDefinition);
 				} else {
 					System.out
 							.println(MessageFormat.format("Trying to load a {0} using a {1}, please use a {2} instead",

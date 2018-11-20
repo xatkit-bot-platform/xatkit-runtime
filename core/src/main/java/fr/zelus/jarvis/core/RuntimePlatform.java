@@ -7,7 +7,7 @@ import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.io.EventProvider;
 import fr.zelus.jarvis.io.WebhookEventProvider;
-import fr.zelus.jarvis.platform.Action;
+import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
 import fr.zelus.jarvis.platform.Parameter;
 import fr.zelus.jarvis.server.JarvisServer;
@@ -27,7 +27,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * The concrete implementation of a {@link fr.zelus.jarvis.platform.Platform} definition.
+ * The concrete implementation of a {@link fr.zelus.jarvis.platform.PlatformDefinition}.
  * <p>
  * A {@link RuntimePlatform} manages a set of {@link RuntimeAction}s that represent the concrete actions that can
  * be executed by the platform. This class provides primitives to enable/disable specific actions, and construct
@@ -61,8 +61,8 @@ public abstract class RuntimePlatform {
      * <p>
      * This {@link Map} is used as a cache to retrieve {@link RuntimeAction} that have been previously loaded.
      *
-     * @see #enableAction(Action)
-     * @see #disableAction(Action)
+     * @see #enableAction(ActionDefinition)
+     * @see #disableAction(ActionDefinition)
      * @see #createRuntimeAction(ActionInstance, JarvisSession)
      */
     protected Map<String, Class<? extends RuntimeAction>> actionMap;
@@ -188,28 +188,28 @@ public abstract class RuntimePlatform {
     }
 
     /**
-     * Retrieves and loads the {@link RuntimeAction} defined by the provided {@link Action}.
+     * Retrieves and loads the {@link RuntimeAction} defined by the provided {@link ActionDefinition}.
      * <p>
      * This method loads the corresponding {@link RuntimeAction} based on jarvis' naming convention. The
-     * {@link RuntimeAction} must be located under the {@code action} sub-package of the {@link RuntimePlatform}
+     * {@link RuntimeAction} must be located under the {@code actionDefinition} sub-package of the {@link RuntimePlatform}
      * concrete subclass package.
      *
-     * @param action the {@link Action} definition representing the {@link RuntimeAction} to enable
+     * @param actionDefinition the {@link ActionDefinition} representing the {@link RuntimeAction} to enable
      * @see Loader#loadClass(String, Class)
      */
-    public void enableAction(Action action) {
-        String actionQualifiedName = this.getClass().getPackage().getName() + ".action." + action.getName();
+    public void enableAction(ActionDefinition actionDefinition) {
+        String actionQualifiedName = this.getClass().getPackage().getName() + ".action." + actionDefinition.getName();
         Class<? extends RuntimeAction> runtimeAction = Loader.loadClass(actionQualifiedName, RuntimeAction.class);
-        actionMap.put(action.getName(), runtimeAction);
+        actionMap.put(actionDefinition.getName(), runtimeAction);
     }
 
     /**
-     * Disables the {@link RuntimeAction} defined by the provided {@link Action}.
+     * Disables the {@link RuntimeAction} defined by the provided {@link ActionDefinition}.
      *
-     * @param action the {@link Action} definition representing the {@link RuntimeAction} to disable
+     * @param actionDefinition the {@link ActionDefinition} representing the {@link RuntimeAction} to disable
      */
-    public void disableAction(Action action) {
-        actionMap.remove(action.getName());
+    public void disableAction(ActionDefinition actionDefinition) {
+        actionMap.remove(actionDefinition.getName());
     }
 
     /**
@@ -237,7 +237,7 @@ public abstract class RuntimePlatform {
      * Creates a new {@link RuntimeAction} instance from the provided {@link ActionInstance}.
      * <p>
      * This methods attempts to construct a {@link RuntimeAction} defined by the provided {@code actionInstance} by
-     * matching the {@code eventInstance} variables to the {@link Action}'s parameters, and reusing the provided
+     * matching the {@code eventInstance} variables to the {@link ActionDefinition}'s parameters, and reusing the provided
      * {@link ActionInstance#getValues()}.
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link RuntimeAction} to create
@@ -254,11 +254,11 @@ public abstract class RuntimePlatform {
                 .getSimpleName(), ActionInstance.class.getSimpleName(), actionInstance);
         checkNotNull(session, "Cannot construct a %s from the provided %s %s", RuntimeAction.class.getSimpleName(),
                 JarvisSession.class.getSimpleName(), session);
-        Action action = actionInstance.getAction();
-        Class<? extends RuntimeAction> runtimeActionClass = actionMap.get(action.getName());
+        ActionDefinition actionDefinition = actionInstance.getAction();
+        Class<? extends RuntimeAction> runtimeActionClass = actionMap.get(actionDefinition.getName());
         if (isNull(runtimeActionClass)) {
             throw new JarvisException(MessageFormat.format("Cannot create the {0} {1}, the action is not " +
-                    "loaded in the platform", RuntimeAction.class.getSimpleName(), action.getName()));
+                    "loaded in the platform", RuntimeAction.class.getSimpleName(), actionDefinition.getName()));
         }
         Object[] parameterValues = getParameterValues(actionInstance, session.getJarvisContext());
         /*
@@ -321,7 +321,7 @@ public abstract class RuntimePlatform {
      * Retrieves the {@code actionInstance}'s parameter values from the provided {@code context}.
      * <p>
      * This method iterates through the {@link ActionInstance}'s {@link ParameterValue}s and matches them
-     * against the describing {@link Action}'s {@link Parameter}s. The concrete value associated to the
+     * against the describing {@link ActionDefinition}'s {@link Parameter}s. The concrete value associated to the
      * {@link ActionInstance}'s {@link ParameterValue}s are retrieved from the provided {@code context}.
      * <p>
      * The retrieved values are used by the {@link RuntimePlatform} to instantiate concrete {@link RuntimeAction}s (see
@@ -331,12 +331,12 @@ public abstract class RuntimePlatform {
      * @return an array containing the concrete {@link ActionInstance}'s parameters
      * @throws JarvisException if one of the concrete value is not stored in the provided {@code context}, or if the
      *                         {@link ActionInstance}'s {@link ParameterValue}s do not match the describing
-     *                         {@link Action}'s {@link Parameter}s.
+     *                         {@link ActionDefinition}'s {@link Parameter}s.
      * @see #createRuntimeAction(ActionInstance, JarvisSession)
      */
     private Object[] getParameterValues(ActionInstance actionInstance, JarvisContext context) {
-        Action action = actionInstance.getAction();
-        List<Parameter> actionParameters = action.getParameters();
+        ActionDefinition actionDefinition = actionInstance.getAction();
+        List<Parameter> actionParameters = actionDefinition.getParameters();
         List<ParameterValue> actionInstanceParameterValues = actionInstance.getValues();
         if ((actionParameters.size() == actionInstanceParameterValues.size())) {
             /*

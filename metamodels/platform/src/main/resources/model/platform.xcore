@@ -4,11 +4,11 @@ package fr.zelus.jarvis.platform
 
 import fr.zelus.jarvis.intent.EventDefinition
 
-class Platform {
+class PlatformDefinition {
     String name
     String runtimePath
     contains EventProviderDefinition[] eventProviderDefinitions
-	contains Action[] actions
+	contains ActionDefinition[] actions
 }
 
 class EventProviderDefinition {
@@ -20,7 +20,7 @@ class InputProviderDefinition extends EventProviderDefinition {
 
 }
 
-class Action {
+class ActionDefinition {
 	String name
 	contains Parameter[] parameters
 }

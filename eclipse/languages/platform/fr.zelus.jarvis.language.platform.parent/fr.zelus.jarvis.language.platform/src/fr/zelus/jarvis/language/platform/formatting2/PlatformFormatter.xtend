@@ -5,10 +5,10 @@ package fr.zelus.jarvis.language.platform.formatting2
 
 import com.google.inject.Inject
 import fr.zelus.jarvis.language.platform.services.PlatformGrammarAccess
-import fr.zelus.jarvis.platform.Action
+import fr.zelus.jarvis.platform.ActionDefinition
 import fr.zelus.jarvis.platform.EventProviderDefinition
 import fr.zelus.jarvis.platform.Parameter
-import fr.zelus.jarvis.platform.Platform
+import fr.zelus.jarvis.platform.PlatformDefinition
 import org.eclipse.xtext.formatting2.AbstractFormatter2
 import org.eclipse.xtext.formatting2.IFormattableDocument
 
@@ -16,19 +16,19 @@ class PlatformFormatter extends AbstractFormatter2 {
 	
 	@Inject extension PlatformGrammarAccess
 
-	def dispatch void format(Platform module, extension IFormattableDocument document) {
+	def dispatch void format(PlatformDefinition platformDefinition, extension IFormattableDocument document) {
 		// TODO: format HiddenRegions around keywords, attributes, cross references, etc. 
-		for (Action action : module.getActions()) {
-			action.format;
+		for (ActionDefinition actionDefinition : platformDefinition.getActions()) {
+			actionDefinition.format;
 		}
-		for (EventProviderDefinition eventProviderDefinition : module.getEventProviderDefinitions()) {
+		for (EventProviderDefinition eventProviderDefinition : platformDefinition.getEventProviderDefinitions()) {
 			eventProviderDefinition.format;
 		}
 	}
 
-	def dispatch void format(Action action, extension IFormattableDocument document) {
+	def dispatch void format(ActionDefinition actionDefinition, extension IFormattableDocument document) {
 		// TODO: format HiddenRegions around keywords, attributes, cross references, etc. 
-		for (Parameter parameter : action.getParameters()) {
+		for (Parameter parameter : actionDefinition.getParameters()) {
 			parameter.format;
 		}
 	}

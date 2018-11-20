@@ -47,16 +47,16 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
-        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("StubRuntimePlatform");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
-        Action stubAction = PlatformFactory.eINSTANCE.createAction();
-        stubAction.setName("StubRuntimeAction");
+        PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
+        stubPlatformDefinition.setName("StubRuntimePlatform");
+        stubPlatformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
+        ActionDefinition stubActionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
+        stubActionDefinition.setName("StubRuntimeAction");
         // No parameters, keep it simple
-        stubPlatform.getActions().add(stubAction);
+        stubPlatformDefinition.getActions().add(stubActionDefinition);
         InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
-        stubPlatform.getEventProviderDefinitions().add(stubInputProvider);
+        stubPlatformDefinition.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
@@ -64,7 +64,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
         rule.setEvent(stubIntentDefinition);
         ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        actionInstance.setAction(stubAction);
+        actionInstance.setAction(stubActionDefinition);
         rule.getActions().add(actionInstance);
         VALID_EXECUTION_MODEL.getExecutionRules().add(rule);
         /*
@@ -83,7 +83,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Resource testPlatformResource = testResourceSet.createResource(URI.createURI("/tmp/jarvisTestPlatformResource" +
                 ".xmi"));
         testPlatformResource.getContents().clear();
-        testPlatformResource.getContents().add(stubPlatform);
+        testPlatformResource.getContents().add(stubPlatformDefinition);
         testPlatformResource.save(Collections.emptyMap());
 
         Resource testExecutionResource = testResourceSet.createResource(URI.createURI
@@ -215,16 +215,16 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * Use another ExecutionModel linking to the StubRuntimePlatformJarvisCoreConstructor stub class, that only
          * defines a default constructor.
          */
-        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("StubRuntimePlatformJarvisCoreConstructor");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatformJarvisCoreConstructor");
-        Action stubAction = PlatformFactory.eINSTANCE.createAction();
-        stubAction.setName("StubRuntimeAction");
+        PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
+        stubPlatformDefinition.setName("StubRuntimePlatformJarvisCoreConstructor");
+        stubPlatformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatformJarvisCoreConstructor");
+        ActionDefinition stubActionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
+        stubActionDefinition.setName("StubRuntimeAction");
         // No parameters, keep it simple
-        stubPlatform.getActions().add(stubAction);
+        stubPlatformDefinition.getActions().add(stubActionDefinition);
         InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
         stubInputProvider.setName("StubInputProvider");
-        stubPlatform.getEventProviderDefinitions().add(stubInputProvider);
+        stubPlatformDefinition.getEventProviderDefinitions().add(stubInputProvider);
         IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         stubIntentDefinition.setName("Default Welcome Intent");
         // No parameters, keep it simple
@@ -232,7 +232,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
         rule.setEvent(stubIntentDefinition);
         ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        actionInstance.setAction(stubAction);
+        actionInstance.setAction(stubActionDefinition);
         rule.getActions().add(actionInstance);
         executionModel.getExecutionRules().add(rule);
         jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel));
@@ -241,13 +241,13 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @Test
     public void constructValidWebhookEventProvider() {
-        Platform stubPlatform = PlatformFactory.eINSTANCE.createPlatform();
-        stubPlatform.setName("EmptyRuntimePlatform");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.EmptyRuntimePlatform");
+        PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
+        stubPlatformDefinition.setName("EmptyRuntimePlatform");
+        stubPlatformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.EmptyRuntimePlatform");
         EventProviderDefinition stubWebhookEventProviderDefinition = PlatformFactory.eINSTANCE
                 .createEventProviderDefinition();
         stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");
-        stubPlatform.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
+        stubPlatformDefinition.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
         executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel));

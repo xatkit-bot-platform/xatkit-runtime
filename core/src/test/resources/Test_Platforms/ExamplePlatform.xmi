@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="ASCII"?>
-<platform:Platform xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="fr.zelus.jarvis.platform" name="ExamplePlatform" runtimePath="fr.zelus.jarvis.example.ExamplePlatform">
+<platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="fr.zelus.jarvis.platform" name="ExamplePlatform" runtimePath="fr.zelus.jarvis.example.ExamplePlatform">
   <actions name="ExampleAction"/>
-</platform:Platform>
+</platform:PlatformDefinition>
