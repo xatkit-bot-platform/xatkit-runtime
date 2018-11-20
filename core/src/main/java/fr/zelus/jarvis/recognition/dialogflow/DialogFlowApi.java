@@ -117,7 +117,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * Initializes the {@link #DEFAULT_FALLBACK_INTENT}'s name.
      */
     static {
-        DEFAULT_FALLBACK_INTENT.setName("Default Fallback Intent");
+        DEFAULT_FALLBACK_INTENT.setName("Default_Fallback_Intent");
     }
 
     /**

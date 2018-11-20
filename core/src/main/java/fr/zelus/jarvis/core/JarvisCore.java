@@ -373,6 +373,31 @@ public class JarvisCore {
         resourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
         resourceSet.getPackageRegistry().put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
 
+        Log.info("Loading Jarvis core libraries");
+        Path librariesPath = getPath("libraries/xmi/");
+        try {
+            Files.walk(librariesPath, 1).filter(l -> !Files.isDirectory(l)).forEach(libraryPath -> {
+                try {
+                    InputStream is = Files.newInputStream(libraryPath);
+                    URI libraryPathmapURI = URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + libraryPath
+                            .getFileName());
+
+                    resourceSet.getURIConverter().getURIMap().put(libraryPathmapURI, URI.createURI(libraryPath
+                            .getFileName().toString()));
+                    Resource libraryResource = resourceSet.createResource(libraryPathmapURI);
+                    libraryResource.load(is, Collections.emptyMap());
+                    Library library = (Library) libraryResource.getContents().get(0);
+                    is.close();
+                    Log.info("Library {0} loaded", library.getName());
+                } catch (IOException e) {
+                    throw new JarvisException(MessageFormat.format("An error occurred when loading the library {0}, " +
+                            "see attached exception", libraryPath), e);
+                }
+            });
+        } catch (IOException e) {
+            throw new JarvisException("An error occurred when crawling the core libraries, see attached exception", e);
+        }
+
         Log.info("Loading Jarvis custom libraries");
         configuration.getKeys().forEachRemaining(key -> {
             if (key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX)) {
@@ -400,42 +425,8 @@ public class JarvisCore {
              */
         });
 
-
         Log.info("Loading Jarvis core platforms");
-        URL url = this.getClass().getClassLoader().getResource("platforms/xmi/");
-        java.net.URI uri;
-        try {
-            uri = url.toURI();
-        } catch (URISyntaxException e) {
-            throw new JarvisException("An error occurred when loading the core platforms, see attached exception", e);
-        }
-        /*
-         * Jarvis is imported as a jar, we need to setup a FileSystem that handles jar file loading.
-         */
-        if (uri.getScheme().equals("jar")) {
-            try {
-                /*
-                 * Try to get the FileSystem if it exists, this may be the case when running the test cases, and if a
-                 * JarvisCore instance wasn't shut down correctly.
-                 */
-                FileSystems.getFileSystem(uri);
-            } catch (FileSystemNotFoundException e) {
-                Map<String, String> env = new HashMap<>();
-                env.put("create", "true");
-                try {
-                    /*
-                     * Getting the FileSystem threw an exception, try to create a new one with the provided URI. This
-                     * is typically the case when running Jarvis in a standalone mode, and when only a single
-                     * JarvisCore instance is constructed.
-                     */
-                    FileSystems.newFileSystem(uri, env);
-                } catch (IOException e1) {
-                    throw new JarvisException("An error occurred when loading the core platforms, see attached " +
-                            "exception", e1);
-                }
-            }
-        }
-        Path platformsPath = Paths.get(uri);
+        Path platformsPath = getPath("platforms/xmi/");
         try {
             Files.walk(platformsPath, 1).filter(p -> !Files.isDirectory(p)).forEach(platformPath -> {
                 try {
@@ -458,6 +449,7 @@ public class JarvisCore {
         } catch (IOException e) {
             throw new JarvisException("An error occurred when crawling the core platforms, see attached exception", e);
         }
+
         Log.info("Loading Jarvis custom platforms");
         configuration.getKeys().forEachRemaining(key -> {
             if (key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)) {
@@ -485,6 +477,54 @@ public class JarvisCore {
              */
         });
         return resourceSet;
+    }
+
+    /**
+     * Computes the {@link Path} associated to the provided {@code resourceLocation}.
+     * <p>
+     * This method supports file system locations as well as locations within {@code jar} files from the classpath.
+     * Computing the {@link Path} for a resource located in a {@code jar} file will initialize a dedicated
+     * {@link FileSystem} enabling to navigate the {@code jar} contents.
+     *
+     * @param resourceLocation the location of the resource to retrieve the {@link Path} of
+     * @return the computed {@link Path}
+     * @throws JarvisException if an error occurred when computing the {@link Path}
+     */
+    private Path getPath(String resourceLocation) {
+        URL url = this.getClass().getClassLoader().getResource(resourceLocation);
+        java.net.URI uri;
+        try {
+            uri = url.toURI();
+        } catch (URISyntaxException e) {
+            throw new JarvisException(MessageFormat.format("An error occurred when loading the resource {0}, see " +
+                    "attached exception", resourceLocation), e);
+        }
+        /*
+         * Jarvis is imported as a jar, we need to setup a FileSystem that handles jar file loading.
+         */
+        if (uri.getScheme().equals("jar")) {
+            try {
+                /*
+                 * Try to get the FileSystem if it exists, this may be the case if this method has been called to
+                 * get the path of a resource stored in a jar file.
+                 */
+                FileSystems.getFileSystem(uri);
+            } catch (FileSystemNotFoundException e) {
+                Map<String, String> env = new HashMap<>();
+                env.put("create", "true");
+                try {
+                    /*
+                     * The FileSystem does not exist, try to create a new one with the provided URI. This is
+                     * typically the case when loading a resource from a jar file for the first time.
+                     */
+                    FileSystems.newFileSystem(uri, env);
+                } catch (IOException e1) {
+                    throw new JarvisException(MessageFormat.format("An error occurred when loading the resource {0}, " +
+                            "see attached exception", resourceLocation), e1);
+                }
+            }
+        }
+        return Paths.get(uri);
     }
 
     /**

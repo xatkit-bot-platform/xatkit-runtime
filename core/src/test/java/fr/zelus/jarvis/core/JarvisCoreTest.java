@@ -421,6 +421,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         URI slackPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "SlackPlatform.xmi");
         assertThat(jarvisCore.executionResourceSet.getResource(slackPlatformPathmapURI, false)).as("SlackPlatform " +
                 "pathmap resolved").isNotNull();
+        URI coreLibraryPathmapURI = URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + "CoreLibrary.xmi");
+        assertThat(jarvisCore.executionResourceSet.getResource(coreLibraryPathmapURI, false)).as("CoreLibrary pathmap" +
+                " resolved").isNotNull();
 
     }
 

@@ -1,0 +1,7 @@
+Library CoreLibrary
+
+intent Default_Fallback_Intent {
+	inputs {
+		""
+	}
+}

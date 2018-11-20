@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,6 +73,12 @@ public class ImportRegistry {
 			System.out.println("An error occurred when loading core platforms");
 			e.printStackTrace();
 		}
+		try {
+			loadJarvisCoreLibraries();
+		} catch(IOException | URISyntaxException e) {
+			System.out.println("An error occurred when loading core libraries");
+			e.printStackTrace();
+		}
 		ExecutionPackage.eINSTANCE.eClass();
 		PlatformPackage.eINSTANCE.eClass();
 		IntentPackage.eINSTANCE.eClass();
@@ -122,20 +129,25 @@ public class ImportRegistry {
 		String alias = importDeclaration.getAlias();
 		System.out.println(MessageFormat.format("Loading import from path {0}", path));
 		/*
-		 * Try to load it as a core platform
+		 * Try to load it as a core platform/library
 		 */
 		Resource resource = null;
 		try {
-			resource = rSet.getResource(URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + path + ".xmi"),
-					false);
+			String uriPrefix;
+			if (importDeclaration instanceof PlatformImportDeclaration) {
+				uriPrefix = PlatformLoaderUtils.CORE_PLATFORM_PATHMAP;
+			} else {
+				uriPrefix = LibraryLoaderUtils.CORE_LIBRARY_PATHMAP;
+			}
+			resource = rSet.getResource(URI.createURI(uriPrefix + path + ".xmi"), false);
 			if (isNull(resource)) {
 				/*
 				 * In case .xmi has been specified within the import
 				 */
-				resource = rSet.getResource(URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + path), false);
+				resource = rSet.getResource(URI.createURI(uriPrefix + path), false);
 			}
 		} catch (Exception e) {
-			System.out.println("Cannot load the import as a core platform");
+			System.out.println("Cannot load the import as a core platform/library");
 		}
 		/*
 		 * The import is not a core platform, try to load it from its path, and register the resource using its alias.
@@ -263,12 +275,12 @@ public class ImportRegistry {
 		return resource;
 	}
 
-	public void loadJarvisCorePlatforms() throws IOException, URISyntaxException {
-		Bundle bundle = org.eclipse.core.runtime.Platform.getBundle("fr.zelus.jarvis.core_resources");
+	private Path getPath(String bundleName, String resourceLocation) throws IOException, URISyntaxException {
+		Bundle bundle = org.eclipse.core.runtime.Platform.getBundle(bundleName);
 		if (isNull(bundle)) {
-			throw new RuntimeException("Cannot find the bundle fr.zelus.jarvis.core_resources");
+			throw new RuntimeException(MessageFormat.format("Cannot find the bundle {0}", bundleName));
 		}
-		URL platformFolderURL = bundle.getEntry("platforms/xmi/");
+		URL platformFolderURL = bundle.getEntry(resourceLocation);
 		if (isNull(platformFolderURL)) {
 			System.out.println(MessageFormat.format(
 					"Cannot load the platforms/xmi/ folder from the bundle {0}, trying to load it in development mode",
@@ -277,12 +289,13 @@ public class ImportRegistry {
 			 * If the plugin is not installed (i.e. if we are running an eclipse application from a workspace that
 			 * contains the plugin sources) the folder is located in src/main/resources.
 			 */
-			platformFolderURL = bundle.getEntry("src/main/resources/platforms/xmi/");
+			platformFolderURL = bundle.getEntry("src/main/resources/" + resourceLocation);
 			if (isNull(platformFolderURL)) {
 				throw new RuntimeException(MessageFormat.format(
 						"Cannot load the platforms/xmi/ folder from the bundle {0} (development mode failed)", bundle));
 			} else {
-				System.out.println("platforms/xmi/ folder loaded from the bundle in development mode");
+				System.out.println(MessageFormat.format("{0} folder loaded from the bundle in development mode",
+						resourceLocation));
 			}
 		}
 
@@ -290,10 +303,27 @@ public class ImportRegistry {
 		System.out.println(MessageFormat.format("Resolved platforms/xmi/ folder URI: {0}", resolvedPlatformFolderURI));
 
 		if (resolvedPlatformFolderURI.getScheme().equals("jar")) {
-			FileSystem fs = FileSystems.newFileSystem(resolvedPlatformFolderURI, Collections.emptyMap());
-
+			try {
+				/*
+                 * Try to get the FileSystem if it exists, this may be the case if this method has been called to
+                 * get the path of a resource stored in a jar file.
+                 */
+				FileSystems.getFileSystem(resolvedPlatformFolderURI);
+			}catch(FileSystemNotFoundException e) {
+				/*
+                 * The FileSystem does not exist, try to create a new one with the provided URI. This is
+                 * typically the case when loading a resource from a jar file for the first time.
+                 */
+				Map<String, String> env = new HashMap<>();
+                env.put("create", "true");
+                FileSystems.newFileSystem(resolvedPlatformFolderURI, Collections.emptyMap());
+			}
 		}
-		Path platformPath = Paths.get(resolvedPlatformFolderURI);
+		return Paths.get(resolvedPlatformFolderURI);
+	}
+
+	public void loadJarvisCorePlatforms() throws IOException, URISyntaxException {
+		Path platformPath = getPath("fr.zelus.jarvis.core_resources", "platforms/xmi/");
 		System.out.println(MessageFormat.format("Crawling platforms in {0}", platformPath));
 		Files.walk(platformPath, 1).filter(filePath -> !Files.isDirectory(filePath)).forEach(modelPath -> {
 			try {
@@ -309,6 +339,28 @@ public class ImportRegistry {
 				is.close();
 			} catch (IOException e) {
 				System.out.println(MessageFormat.format("An error occurred when loading the platform resource {0}",
+						modelPath.getFileName()));
+			}
+		});
+	}
+
+	public void loadJarvisCoreLibraries() throws IOException, URISyntaxException {
+		Path libraryPath = getPath("fr.zelus.jarvis.core_resources", "libraries/xmi/");
+		System.out.println(MessageFormat.format("Crawling libraries in {0}", libraryPath));
+		Files.walk(libraryPath, 1).filter(filePath -> !Files.isDirectory(filePath)).forEach(modelPath -> {
+			try {
+				InputStream is = Files.newInputStream(modelPath);
+				rSet.getURIConverter().getURIMap().put(
+						URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + modelPath.getFileName()),
+						URI.createURI(modelPath.getFileName().toString()));
+				Resource modelResource = this.rSet.createResource(
+						URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + modelPath.getFileName().toString()));
+				modelResource.load(is, Collections.emptyMap());
+				System.out.println(MessageFormat.format("Library resource {0} loaded (uri={1})",
+						modelPath.getFileName(), modelResource.getURI()));
+				is.close();
+			} catch (IOException e) {
+				System.out.println(MessageFormat.format("An error occurred when loading the library resource {0}",
 						modelPath.getFileName()));
 			}
 		});

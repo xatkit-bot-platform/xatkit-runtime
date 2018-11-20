@@ -371,7 +371,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         RecognizedIntent intent = api.getIntent("azerty", session);
         assertThat(intent.getDefinition()).as("IntentDefinition is not null").isNotNull();
         assertThat(intent.getDefinition().getName()).as("IntentDefinition is the Default Fallback Intent").isEqualTo
-                ("Default Fallback Intent");
+                ("Default_Fallback_Intent");
     }
 
     @Test
