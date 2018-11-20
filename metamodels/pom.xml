@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+    	<groupId>fr.zelus.jarvis</groupId>
+    	<artifactId>jarvis</artifactId>
+    	<version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>metamodels</artifactId>
+
+    <packaging>pom</packaging>
+
+    <name>Jarvis Metamodels</name>
+
+    <properties>
+        <!-- Dependency versions -->
+        <eclipse.text.version>3.5.101</eclipse.text.version>
+        <emf.codegen.ecore.xtext.version>1.2.0</emf.codegen.ecore.xtext.version>
+        <!-- Plugin versions -->
+        <xtext-maven-plugin.version>2.9.2</xtext-maven-plugin.version>
+    </properties>
+
+    <modules>
+        <module>execution</module>
+        <module>platform</module>
+        <module>intent</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- This dependency is required to support operation specification in xcore -->
+
+            <dependency>
+                <groupId>org.eclipse.xtext</groupId>
+                <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
+                <version>${xtext.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+
+                <plugin>
+                    <groupId>org.eclipse.xtext</groupId>
+                    <artifactId>xtext-maven-plugin</artifactId>
+                    <version>${xtext-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <encoding>${project.build.sourceEncoding}</encoding> <!-- Default value -->
+                        <compilerSourceLevel>${maven.compiler.source}</compilerSourceLevel> <!-- Default value -->
+                        <compilerTargetLevel>${maven.compiler.target}</compilerTargetLevel> <!-- Default value -->
+                        <languages>
+                            <!-- Xcore projects require to specify all the used languages -->
+                            <language>
+                                <setup>org.eclipse.xtext.ecore.EcoreSupport</setup>
+                            </language>
+                            <language>
+                                <setup>org.eclipse.emf.codegen.ecore.xtext.GenModelSupport</setup>
+                            </language>
+                            <language>
+                                <setup>org.eclipse.emf.ecore.xcore.XcoreStandaloneSetup</setup>
+                                <!-- To be specified in the xcore projects -->
+                                <!--<outputConfigurations>
+                                    <outputConfiguration>
+                                        <outputDirectory>${xcore.generated-sources.location}</outputDirectory>
+                                    </outputConfiguration>
+                                </outputConfigurations>-->
+                            </language>
+                        </languages>
+                        <!-- To be specified in the xcore projects -->
+                        <!--<sourceRoots>
+                            <root>${xcore.models.location}</root>
+                        </sourceRoots>-->
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.eclipse.platform</groupId>
+                            <artifactId>org.eclipse.equinox.common</artifactId>
+                            <version>${equinox.common.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.eclipse.text</groupId>
+                            <artifactId>org.eclipse.text</artifactId>
+                            <version>${eclipse.text.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.eclipse.emf</groupId>
+                            <artifactId>org.eclipse.emf.codegen.ecore.xtext</artifactId>
+                            <version>${emf.codegen.ecore.xtext.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.eclipse.emf</groupId>
+                            <artifactId>org.eclipse.emf.ecore.xcore</artifactId>
+                            <version>${xcore.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.eclipse.emf</groupId>
+                            <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
+                            <version>${xcore-lib.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>

@@ -1,6 +1,5 @@
 @Ecore(nsURI="fr.zelus.jarvis.platform")
-@GenModel(modelDirectory="/platform/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8
-.0")
+@GenModel(modelDirectory="/platform/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
 package fr.zelus.jarvis.platform
 
 import fr.zelus.jarvis.intent.EventDefinition

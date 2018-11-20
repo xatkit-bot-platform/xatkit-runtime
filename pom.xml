@@ -24,17 +24,14 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Dependency versions -->
         <emf.version>2.12.0</emf.version>
-        <emf.codegen.ecore.xtext.version>1.2.0</emf.codegen.ecore.xtext.version>
-        <equinox.common.version>3.10.0</equinox.common.version>
-        <eclipse.text.version>3.5.101</eclipse.text.version>
-        <xcore.version>1.3.1</xcore.version>
-        <xcore-lib.version>1.1.100</xcore-lib.version>
         <xtext.version>2.12.0</xtext.version>
         <atlanmod-commons.version>1.0.1</atlanmod-commons.version>
         <log4j.version>2.9.1</log4j.version>
         <junit.version>4.12</junit.version>
+        <equinox.common.version>3.10.0</equinox.common.version>
+        <xcore.version>1.3.1</xcore.version>
+        <xcore-lib.version>1.1.100</xcore-lib.version>
         <assertj.version>3.10.0</assertj.version>
-
         <!-- Plugin versions -->
         <maven-bundle-plugin.version>3.3.0</maven-bundle-plugin.version>
         <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
@@ -44,19 +41,16 @@
         <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
-        <xtext-maven-plugin.version>2.9.2</xtext-maven-plugin.version>
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <maven-compiler-plugin.version>3.6.0</maven-compiler-plugin.version>
-
         <!-- Used in the Javadoc profile -->
         <commons-configuration.version>2.2</commons-configuration.version>
     </properties>
 
+
     <modules>
         <module>core</module>
-        <module>execution</module>
-        <module>platform</module>
-        <module>intent</module>
+        <module>metamodels</module>
         <module>core_resources</module>
     </modules>
 
@@ -108,20 +102,6 @@
                 <groupId>org.eclipse.emf</groupId>
                 <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
                 <version>${xcore-lib.version}</version>
-            </dependency>
-
-            <!-- This dependency is required to support operation specification in xcore -->
-
-            <dependency>
-                <groupId>org.eclipse.xtext</groupId>
-                <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
-                <version>${xtext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <!-- Utils -->
@@ -300,74 +280,6 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.eclipse.xtext</groupId>
-                    <artifactId>xtext-maven-plugin</artifactId>
-                    <version>${xtext-maven-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>generate</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <encoding>${project.build.sourceEncoding}</encoding> <!-- Default value -->
-                        <compilerSourceLevel>${maven.compiler.source}</compilerSourceLevel> <!-- Default value -->
-                        <compilerTargetLevel>${maven.compiler.target}</compilerTargetLevel> <!-- Default value -->
-                        <languages>
-                            <!-- Xcore projects require to specify all the used languages -->
-                            <language>
-                                <setup>org.eclipse.xtext.ecore.EcoreSupport</setup>
-                            </language>
-                            <language>
-                                <setup>org.eclipse.emf.codegen.ecore.xtext.GenModelSupport</setup>
-                            </language>
-                            <language>
-                                <setup>org.eclipse.emf.ecore.xcore.XcoreStandaloneSetup</setup>
-                                <!-- To be specified in the xcore projects -->
-                                <!--<outputConfigurations>
-                                    <outputConfiguration>
-                                        <outputDirectory>${xcore.generated-sources.location}</outputDirectory>
-                                    </outputConfiguration>
-                                </outputConfigurations>-->
-                            </language>
-                        </languages>
-                        <!-- To be specified in the xcore projects -->
-                        <!--<sourceRoots>
-                            <root>${xcore.models.location}</root>
-                        </sourceRoots>-->
-                    </configuration>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.eclipse.platform</groupId>
-                            <artifactId>org.eclipse.equinox.common</artifactId>
-                            <version>${equinox.common.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.eclipse.text</groupId>
-                            <artifactId>org.eclipse.text</artifactId>
-                            <version>${eclipse.text.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.eclipse.emf</groupId>
-                            <artifactId>org.eclipse.emf.codegen.ecore.xtext</artifactId>
-                            <version>${emf.codegen.ecore.xtext.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.eclipse.emf</groupId>
-                            <artifactId>org.eclipse.emf.ecore.xcore</artifactId>
-                            <version>${xcore.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.eclipse.emf</groupId>
-                            <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
-                            <version>${xcore-lib.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-
-                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${build-helper-maven-plugin.version}</version>
@@ -442,7 +354,6 @@
                                 </dependencySourceIncludes>
                                 <excludePackageNames>
                                     fr.inria.atlanmod.commons*;
-                                    fr.inria.atlanmod.neoemf.tests*;
                                     org.eclipse.emf*;
                                     javax.annotation*;
                                     org.apache.commons.configuration2*;

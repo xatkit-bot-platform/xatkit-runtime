@@ -6,15 +6,15 @@
 
     <parent>
         <groupId>fr.zelus.jarvis</groupId>
-        <artifactId>jarvis</artifactId>
+        <artifactId>metamodels</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>intent</artifactId>
+    <artifactId>platform</artifactId>
 
     <packaging>bundle</packaging>
 
-    <name>jarvis intent model</name>
+    <name>jarvis platform model</name>
 
     <properties>
         <generated-sources.location>${project.basedir}/src/main/java-gen/</generated-sources.location>
@@ -41,12 +41,12 @@
             <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
         </dependency>
 
-        <!-- xcore -->
-        <!-- This dependency is required to support operation specification in xcore -->
+        <!-- jarvis Internal -->
 
         <dependency>
-            <groupId>org.eclipse.xtext</groupId>
-            <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>intent</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Tests -->
@@ -66,9 +66,9 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${project.groupId}.intent</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>${project.groupId}.platform</Bundle-SymbolicName>
                         <Export-Package>
-                            fr.zelus.jarvis.intent.*
+                            fr.zelus.jarvis.platform.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;
@@ -77,6 +77,7 @@
                             groupId=!${project.groupId}|fr.inria.atlanmod.commons|org.eclipse.emf|org.apache.logging.log4j
                         </Embed-Dependency>
                         <Require-Bundle>
+                            fr.zelus.jarvis.intent;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>

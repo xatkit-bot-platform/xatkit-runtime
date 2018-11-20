@@ -6,15 +6,15 @@
 
     <parent>
         <groupId>fr.zelus.jarvis</groupId>
-        <artifactId>jarvis</artifactId>
+        <artifactId>metamodels</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>platform</artifactId>
+    <artifactId>execution</artifactId>
 
     <packaging>bundle</packaging>
 
-    <name>jarvis platform model</name>
+    <name>jarvis execution model</name>
 
     <properties>
         <generated-sources.location>${project.basedir}/src/main/java-gen/</generated-sources.location>
@@ -23,6 +23,20 @@
     </properties>
 
     <dependencies>
+
+        <!-- jarvis Internal -->
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>intent</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fr.zelus.jarvis</groupId>
+            <artifactId>platform</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- EMF -->
 
@@ -39,14 +53,6 @@
         <dependency>
             <groupId>org.eclipse.emf</groupId>
             <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
-        </dependency>
-
-        <!-- jarvis Internal -->
-
-        <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>intent</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- Tests -->
@@ -66,9 +72,9 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${project.groupId}.platform</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>${project.groupId}.execution</Bundle-SymbolicName>
                         <Export-Package>
-                            fr.zelus.jarvis.platform.*
+                            fr.zelus.jarvis.execution.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;
@@ -78,6 +84,7 @@
                         </Embed-Dependency>
                         <Require-Bundle>
                             fr.zelus.jarvis.intent;visibility:=reexport,
+                            fr.zelus.jarvis.platform;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>

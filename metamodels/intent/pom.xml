@@ -6,15 +6,15 @@
 
     <parent>
         <groupId>fr.zelus.jarvis</groupId>
-        <artifactId>jarvis</artifactId>
+        <artifactId>metamodels</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>execution</artifactId>
+    <artifactId>intent</artifactId>
 
     <packaging>bundle</packaging>
 
-    <name>jarvis execution model</name>
+    <name>jarvis intent model</name>
 
     <properties>
         <generated-sources.location>${project.basedir}/src/main/java-gen/</generated-sources.location>
@@ -23,20 +23,6 @@
     </properties>
 
     <dependencies>
-
-        <!-- jarvis Internal -->
-
-        <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>intent</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
-            <artifactId>platform</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!-- EMF -->
 
@@ -53,6 +39,14 @@
         <dependency>
             <groupId>org.eclipse.emf</groupId>
             <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
+        </dependency>
+
+        <!-- xcore -->
+        <!-- This dependency is required to support operation specification in xcore -->
+
+        <dependency>
+            <groupId>org.eclipse.xtext</groupId>
+            <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
         </dependency>
 
         <!-- Tests -->
@@ -72,9 +66,9 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${project.groupId}.execution</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>${project.groupId}.intent</Bundle-SymbolicName>
                         <Export-Package>
-                            fr.zelus.jarvis.execution.*
+                            fr.zelus.jarvis.intent.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;
@@ -83,8 +77,6 @@
                             groupId=!${project.groupId}|fr.inria.atlanmod.commons|org.eclipse.emf|org.apache.logging.log4j
                         </Embed-Dependency>
                         <Require-Bundle>
-                            fr.zelus.jarvis.intent;visibility:=reexport,
-                            fr.zelus.jarvis.platform;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>
