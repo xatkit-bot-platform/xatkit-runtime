@@ -39,12 +39,13 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 			acceptor.accept(createCompletionProposal(eName, context))
 		]
 		/*
-		 * Intents stored in platforms
+		 * Intents stored in used EventProviders
 		 */
-		var platforms = ImportRegistry.getInstance.getLoadedPlatforms(model.eContainer as ExecutionModel)
-		platforms.map[m|m.eventProviderDefinitions.map[e|e.eventDefinitions.map[ed|ed.name]].flatten].flatten.forEach [ edName |
-			acceptor.accept(createCompletionProposal(edName, context))
-		]
+		var executionModel = model.eContainer as ExecutionModel
+		executionModel.eventProviderDefinitions.map[e | e.eventDefinitions.map[ed | ed.name]].flatten.forEach[
+			edName |
+				acceptor.accept(createCompletionProposal(edName, context))
+		];
 		super.completeExecutionRule_Event(model, assignment, context, acceptor)
 	}
 
