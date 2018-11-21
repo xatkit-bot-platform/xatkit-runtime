@@ -180,6 +180,17 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 "concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
     }
 
+    @Test(expected = JarvisException.class)
+    public void constructInvalidPlatformFromExecutionModel() {
+        TestExecutionModel testExecutionModel = new TestExecutionModel();
+        ExecutionModel executionModel = testExecutionModel.getExecutionModel();
+        PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
+        platformDefinition.setName("InvalidPlatform");
+        platformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.InvalidPlatform");
+        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel);
+        jarvisCore = new JarvisCore(configuration);
+    }
+
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
