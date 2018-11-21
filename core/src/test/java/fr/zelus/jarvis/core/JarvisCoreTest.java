@@ -14,6 +14,7 @@ import fr.zelus.jarvis.platform.*;
 import fr.zelus.jarvis.recognition.DefaultIntentRecognitionProvider;
 import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
+import fr.zelus.jarvis.test.util.models.TestExecutionModel;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -47,26 +48,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
-        PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
-        stubPlatformDefinition.setName("StubRuntimePlatform");
-        stubPlatformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
-        ActionDefinition stubActionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
-        stubActionDefinition.setName("StubRuntimeAction");
-        // No parameters, keep it simple
-        stubPlatformDefinition.getActions().add(stubActionDefinition);
-        InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
-        stubInputProvider.setName("StubInputProvider");
-        stubPlatformDefinition.getEventProviderDefinitions().add(stubInputProvider);
-        IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        stubIntentDefinition.setName("Default Welcome Intent");
-        // No parameters, keep it simple
-        VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE.createExecutionModel();
-        ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
-        rule.setEvent(stubIntentDefinition);
-        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        actionInstance.setAction(stubActionDefinition);
-        rule.getActions().add(actionInstance);
-        VALID_EXECUTION_MODEL.getExecutionRules().add(rule);
+        TestExecutionModel testExecutionModel = new TestExecutionModel();
+        VALID_EXECUTION_MODEL = testExecutionModel.getExecutionModel();
         /*
          * Create the Resource used to store the valid execution model.
          */
@@ -77,13 +60,13 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Resource testIntentResource = testResourceSet.createResource(URI.createURI("/tmp/jarvisTestIntentResource" +
                 ".xmi"));
         testIntentResource.getContents().clear();
-        testIntentResource.getContents().add(stubIntentDefinition);
+        testIntentResource.getContents().add(testExecutionModel.getTestIntentModel().getIntentLibrary());
         testIntentResource.save(Collections.emptyMap());
 
         Resource testPlatformResource = testResourceSet.createResource(URI.createURI("/tmp/jarvisTestPlatformResource" +
                 ".xmi"));
         testPlatformResource.getContents().clear();
-        testPlatformResource.getContents().add(stubPlatformDefinition);
+        testPlatformResource.getContents().add(testExecutionModel.getTestPlatformModel().getPlatformDefinition());
         testPlatformResource.save(Collections.emptyMap());
 
         Resource testExecutionResource = testResourceSet.createResource(URI.createURI

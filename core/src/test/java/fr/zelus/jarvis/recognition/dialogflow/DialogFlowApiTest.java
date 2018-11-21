@@ -6,15 +6,8 @@ import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.execution.ActionInstance;
-import fr.zelus.jarvis.execution.ExecutionFactory;
-import fr.zelus.jarvis.execution.ExecutionModel;
-import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.platform.ActionDefinition;
-import fr.zelus.jarvis.platform.InputProviderDefinition;
-import fr.zelus.jarvis.platform.PlatformDefinition;
-import fr.zelus.jarvis.platform.PlatformFactory;
+import fr.zelus.jarvis.test.util.models.TestExecutionModel;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -73,28 +66,9 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
-        stubPlatformDefinition.setName("StubRuntimePlatform");
-        stubPlatformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
-        ActionDefinition stubActionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
-        stubActionDefinition.setName("StubRuntimeAction");
-        // No parameters, keep it simple
-        stubPlatformDefinition.getActions().add(stubActionDefinition);
-        InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
-        stubInputProvider.setName("StubInputProvider");
-        stubPlatformDefinition.getEventProviderDefinitions().add(stubInputProvider);
-        IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        stubIntentDefinition.setName("Default Welcome Intent");
-        // No parameters, keep it simple
-        ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
-        ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
-        rule.setEvent(stubIntentDefinition);
-        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        actionInstance.setAction(stubActionDefinition);
-        rule.getActions().add(actionInstance);
-        executionModel.getExecutionRules().add(rule);
+        TestExecutionModel testExecutionModel = new TestExecutionModel();
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, executionModel);
+        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, testExecutionModel.getExecutionModel());
         jarvisCore = new JarvisCore(configuration);
         VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
         ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);

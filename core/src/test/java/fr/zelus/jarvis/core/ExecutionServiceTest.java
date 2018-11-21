@@ -9,11 +9,13 @@ import fr.zelus.jarvis.execution.ExecutionModel;
 import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.platform.ActionDefinition;
-import fr.zelus.jarvis.platform.InputProviderDefinition;
 import fr.zelus.jarvis.platform.PlatformDefinition;
 import fr.zelus.jarvis.platform.PlatformFactory;
 import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.stubs.StubRuntimePlatform;
+import fr.zelus.jarvis.test.util.models.TestExecutionModel;
+import fr.zelus.jarvis.test.util.models.TestIntentModel;
+import fr.zelus.jarvis.test.util.models.TestPlatformModel;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -45,38 +47,24 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        PlatformDefinition stubPlatform = PlatformFactory.eINSTANCE.createPlatformDefinition();
-        stubPlatform.setName("StubRuntimePlatform");
-        stubPlatform.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
-        ActionDefinition stubAction = PlatformFactory.eINSTANCE.createActionDefinition();
-        stubAction.setName("StubRuntimeAction");
+        /*
+         * Customize the TestExecutionModel to take into account error handling.
+         */
+        TestExecutionModel testExecutionModel = new TestExecutionModel();
+        TestIntentModel testIntentModel = testExecutionModel.getTestIntentModel();
+        TestPlatformModel testPlatformModel = testExecutionModel.getTestPlatformModel();
+
+        VALID_EXECUTION_MODEL = testExecutionModel.getExecutionModel();
+        Library intentLibrary = testIntentModel.getIntentLibrary();
+        PlatformDefinition platformDefinition = testPlatformModel.getPlatformDefinition();
+
         ActionDefinition errorAction = PlatformFactory.eINSTANCE.createActionDefinition();
         errorAction.setName("ErroringStubRuntimeAction");
-        // No parameters, keep it simple
-        stubPlatform.getActions().add(stubAction);
-        stubPlatform.getActions().add(errorAction);
-        InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
-        stubInputProvider.setName("StubInputProvider");
-        stubPlatform.getEventProviderDefinitions().add(stubInputProvider);
-        IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        stubIntentDefinition.setName("Default Welcome Intent");
+        platformDefinition.getActions().add(errorAction);
         IntentDefinition onErrorIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         onErrorIntentDefinition.setName("On error");
+        intentLibrary.getEventDefinitions().add(onErrorIntentDefinition);
 
-        /*
-         * Create the valid EventInstance used in handleEvent tests
-         */
-        VALID_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
-        VALID_EVENT_INSTANCE.setDefinition(stubIntentDefinition);
-        ON_ERROR_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
-        ON_ERROR_EVENT_INSTANCE.setDefinition(onErrorIntentDefinition);
-        // No parameters, keep it simple
-        VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE.createExecutionModel();
-        ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
-        rule.setEvent(stubIntentDefinition);
-        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        actionInstance.setAction(stubAction);
-        rule.getActions().add(actionInstance);
         ExecutionRule notMatchedRule = ExecutionFactory.eINSTANCE.createExecutionRule();
         notMatchedRule.setEvent(onErrorIntentDefinition);
         ActionInstance errorActionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
@@ -85,14 +73,21 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
          * The ActionInstance that is executed when the errorActionInstance throws an exception.
          */
         ActionInstance onErrorActionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        onErrorActionInstance.setAction(stubAction);
+        onErrorActionInstance.setAction(testPlatformModel.getActionDefinition());
         errorActionInstance.getOnError().add(onErrorActionInstance);
         notMatchedRule.getActions().add(errorActionInstance);
-        VALID_EXECUTION_MODEL.getExecutionRules().add(rule);
+
         VALID_EXECUTION_MODEL.getExecutionRules().add(notMatchedRule);
+
+        /*
+         * Create the valid EventInstance used in handleEvent tests
+         */
+        VALID_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
+        VALID_EVENT_INSTANCE.setDefinition(testIntentModel.getIntentDefinition());
+        ON_ERROR_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
+        ON_ERROR_EVENT_INSTANCE.setDefinition(onErrorIntentDefinition);
         VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
         ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
-
 
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VALID_PROJECT_ID);
