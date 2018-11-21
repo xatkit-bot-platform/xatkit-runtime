@@ -352,6 +352,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     public void createInContextNamesIntentDefinitionEmptyInContext() {
         api = getValidDialogFlowApi();
         List<String> inContextNames = api.createInContextNames(IntentFactory.eINSTANCE.createIntentDefinition());
+        assertThat(inContextNames).as("Not null context name list").isNotNull();
         assertThat(inContextNames).as("Empty in context names list").isEmpty();
     }
 
@@ -366,8 +367,11 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         intentDefinition.getInContexts().add(inContext2);
         api = getValidDialogFlowApi();
         List<String> inContextNames = api.createInContextNames(intentDefinition);
+        assertThat(inContextNames).as("Not null in context names list").isNotNull();
         assertThat(inContextNames).as("In context names list contains 2 elements").hasSize(2);
+        assertThat(inContextNames.get(0)).as("Not null context name 1").isNotNull();
         assertThat(inContextNames.get(0)).as("Valid in context name 1").endsWith("InContext1");
+        assertThat(inContextNames.get(1)).as("Not null context name 2").isNotNull();
         assertThat(inContextNames.get(1)).as("Valid in context name 2").endsWith("InContext2");
     }
 
@@ -382,8 +386,11 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         intentDefinition.setFollows(parentIntentDefinition);
         api = getValidDialogFlowApi();
         List<String> inContextNames = api.createInContextNames(intentDefinition);
+        assertThat(inContextNames).as("Not null in context names list").isNotNull();
         assertThat(inContextNames).as("In context names list contains 2 elements").hasSize(2);
+        assertThat(inContextNames.get(0)).as("Not null context name 1").isNotNull();
         assertThat(inContextNames.get(0)).as("Valid in context name 1").endsWith("InContext1");
+        assertThat(inContextNames.get(1)).as("Not null context name 2").isNotNull();
         assertThat(inContextNames.get(1)).as("Valid in context name 2").endsWith("parent_followUp");
     }
 
