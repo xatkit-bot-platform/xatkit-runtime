@@ -4,18 +4,16 @@ import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.core_resources.utils.LibraryLoaderUtils;
 import fr.zelus.jarvis.core_resources.utils.PlatformLoaderUtils;
-import fr.zelus.jarvis.execution.ActionInstance;
 import fr.zelus.jarvis.execution.ExecutionFactory;
 import fr.zelus.jarvis.execution.ExecutionModel;
-import fr.zelus.jarvis.execution.ExecutionRule;
-import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.platform.*;
+import fr.zelus.jarvis.platform.EventProviderDefinition;
+import fr.zelus.jarvis.platform.PlatformDefinition;
+import fr.zelus.jarvis.platform.PlatformFactory;
 import fr.zelus.jarvis.recognition.DefaultIntentRecognitionProvider;
 import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
-import fr.zelus.jarvis.test.util.models.TestExecutionModel;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
+import fr.zelus.jarvis.test.util.models.TestExecutionModel;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
@@ -198,26 +196,13 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * Use another ExecutionModel linking to the StubRuntimePlatformJarvisCoreConstructor stub class, that only
          * defines a default constructor.
          */
-        PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
-        stubPlatformDefinition.setName("StubRuntimePlatformJarvisCoreConstructor");
-        stubPlatformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatformJarvisCoreConstructor");
-        ActionDefinition stubActionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
-        stubActionDefinition.setName("StubRuntimeAction");
-        // No parameters, keep it simple
-        stubPlatformDefinition.getActions().add(stubActionDefinition);
-        InputProviderDefinition stubInputProvider = PlatformFactory.eINSTANCE.createInputProviderDefinition();
-        stubInputProvider.setName("StubInputProvider");
-        stubPlatformDefinition.getEventProviderDefinitions().add(stubInputProvider);
-        IntentDefinition stubIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        stubIntentDefinition.setName("Default Welcome Intent");
-        // No parameters, keep it simple
-        ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
-        ExecutionRule rule = ExecutionFactory.eINSTANCE.createExecutionRule();
-        rule.setEvent(stubIntentDefinition);
-        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        actionInstance.setAction(stubActionDefinition);
-        rule.getActions().add(actionInstance);
-        executionModel.getExecutionRules().add(rule);
+        TestExecutionModel testExecutionModel = new TestExecutionModel();
+        PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
+        platformDefinition.setName("StubRuntimePlatformJarvisCoreConstructor");
+        platformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatformJarvisCoreConstructor");
+
+        ExecutionModel executionModel = testExecutionModel.getExecutionModel();
+
         jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel));
         checkJarvisCore(jarvisCore, executionModel);
     }
