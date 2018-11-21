@@ -604,7 +604,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      * @see IntentDefinition#getInContexts()
      */
-    private List<String> createInContextNames(IntentDefinition intentDefinition) {
+    protected List<String> createInContextNames(IntentDefinition intentDefinition) {
+        checkNotNull(intentDefinition, "Cannot create the in contexts from the provided %s %s", IntentDefinition
+                .class.getSimpleName(), intentDefinition);
         List<fr.zelus.jarvis.intent.Context> contexts = intentDefinition.getInContexts();
         List<String> results = new ArrayList<>();
         for (fr.zelus.jarvis.intent.Context context : contexts) {
@@ -673,11 +675,15 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      *
      * @param parentIntentDefinition the {@link IntentDefinition} to build the context from
      * @return the built DialogFlow context
-     * @throws NullPointerException if the provided {@code parentIntentDefinition} is {@code null}
+     * @throws NullPointerException     if the provided {@code parentIntentDefinition} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code parentIntentDefinition}'s name is {@code null}
      */
     private Context getFollowUpContext(IntentDefinition parentIntentDefinition) {
         checkNotNull(parentIntentDefinition, "Cannot get the follow-up context name of the provided %s %s",
                 IntentDefinition.class.getSimpleName(), parentIntentDefinition);
+        checkArgument(nonNull(parentIntentDefinition.getName()) && !parentIntentDefinition.getName().isEmpty(),
+                "Cannot get the follow(up context name for the provided %s %s, the name %s is invalid",
+                IntentDefinition.class.getSimpleName(), parentIntentDefinition, parentIntentDefinition.getName());
         ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
                 parentIntentDefinition.getName() + "_followUp");
         return Context.newBuilder().setName(contextName.toString()).setLifespanCount(2).build();

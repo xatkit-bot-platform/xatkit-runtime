@@ -343,6 +343,60 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     }
 
     @Test(expected = NullPointerException.class)
+    public void createInContextNamesNullIntentDefinition() {
+        api = getValidDialogFlowApi();
+        api.createInContextNames(null);
+    }
+
+    @Test
+    public void createInContextNamesIntentDefinitionEmptyInContext() {
+        api = getValidDialogFlowApi();
+        List<String> inContextNames = api.createInContextNames(IntentFactory.eINSTANCE.createIntentDefinition());
+        assertThat(inContextNames).as("Empty in context names list").isEmpty();
+    }
+
+    @Test
+    public void createInContextNamesIntentDefinitionMultipleInContexts() {
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        Context inContext1 = IntentFactory.eINSTANCE.createContext();
+        inContext1.setName("InContext1");
+        Context inContext2 = IntentFactory.eINSTANCE.createContext();
+        inContext2.setName("InContext2");
+        intentDefinition.getInContexts().add(inContext1);
+        intentDefinition.getInContexts().add(inContext2);
+        api = getValidDialogFlowApi();
+        List<String> inContextNames = api.createInContextNames(intentDefinition);
+        assertThat(inContextNames).as("In context names list contains 2 elements").hasSize(2);
+        assertThat(inContextNames.get(0)).as("Valid in context name 1").endsWith("InContext1");
+        assertThat(inContextNames.get(1)).as("Valid in context name 2").endsWith("InContext2");
+    }
+
+    @Test
+    public void createInContextNamesIntentDefinitionWithFollowsSet() {
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        Context inContext1 = IntentFactory.eINSTANCE.createContext();
+        inContext1.setName("InContext1");
+        intentDefinition.getInContexts().add(inContext1);
+        IntentDefinition parentIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        parentIntentDefinition.setName("parent");
+        intentDefinition.setFollows(parentIntentDefinition);
+        api = getValidDialogFlowApi();
+        List<String> inContextNames = api.createInContextNames(intentDefinition);
+        assertThat(inContextNames).as("In context names list contains 2 elements").hasSize(2);
+        assertThat(inContextNames.get(0)).as("Valid in context name 1").endsWith("InContext1");
+        assertThat(inContextNames.get(1)).as("Valid in context name 2").endsWith("parent_followUp");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void createInContextNamesIntentDefinitionWithFollowsSetNullParentName() {
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        IntentDefinition parentIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        intentDefinition.setFollows(parentIntentDefinition);
+        api = getValidDialogFlowApi();
+        api.createInContextNames(intentDefinition);
+    }
+
+    @Test(expected = NullPointerException.class)
     public void deleteIntentDefinitionNullIntentDefinition() {
         api = getValidDialogFlowApi();
         api.deleteIntentDefinition(null);
