@@ -4,7 +4,6 @@ import com.google.cloud.dialogflow.v2.Intent;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
@@ -327,7 +326,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         assertThat(part1.getAlias()).as("Valid part 1 alias").isEqualTo("param");
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = NullPointerException.class)
     public void createTrainingPhraseNullNameContextParameterInSentence() {
         Context context = IntentFactory.eINSTANCE.createContext();
         context.setName("ValidContext2");
@@ -472,6 +471,68 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         intentDefinition.getFollowedBy().add(childIntentDefinition);
         api = getValidDialogFlowApi();
         api.createOutContexts(intentDefinition);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createParametersNullContextList() {
+        api = getValidDialogFlowApi();
+        api.createParameters(null);
+    }
+
+    @Test
+    public void createParameterEmptyContextList() {
+        api = getValidDialogFlowApi();
+        List<Intent.Parameter> parameters = api.createParameters(Collections.emptyList());
+        assertThat(parameters).as("Parameter list is empty").isEmpty();
+    }
+
+    @Test
+    public void createParameterValidContext() {
+        Context context = IntentFactory.eINSTANCE.createContext();
+        context.setName("Context");
+        context.setLifeSpan(3);
+        ContextParameter param1 = IntentFactory.eINSTANCE.createContextParameter();
+        param1.setName("param1");
+        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        entityDefinition.setEntityType(EntityType.ANY);
+        param1.setEntity(entityDefinition);
+        context.getParameters().add(param1);
+        api = getValidDialogFlowApi();
+        List<Intent.Parameter> parameters = api.createParameters(Arrays.asList(context));
+        assertThat(parameters).as("Parameter list is not null").isNotNull();
+        assertThat(parameters).as("Parameter list contains 1 element").hasSize(1);
+        assertThat(parameters.get(0).getDisplayName()).as("Valid parameter display name").isEqualTo(param1.getName());
+        // The translation is done by the EntityMapper
+        assertThat(parameters.get(0).getEntityTypeDisplayName()).as("Valid parameter entity type").isEqualTo("@sys" +
+                ".any");
+        assertThat(parameters.get(0).getValue()).as("Valid parameter value").isEqualTo("$" + param1.getName());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createParameterContextParameterNullEntity() {
+        Context context = IntentFactory.eINSTANCE.createContext();
+        context.setName("Context");
+        context.setLifeSpan(3);
+        ContextParameter param1 = IntentFactory.eINSTANCE.createContextParameter();
+        param1.setName("param1");
+        context.getParameters().add(param1);
+        api = getValidDialogFlowApi();
+        // The EntityMapper should throw a NullPointerException
+        api.createParameters(Arrays.asList(context));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createParameterContextParameterNullParameterName() {
+        Context context = IntentFactory.eINSTANCE.createContext();
+        context.setName("Context");
+        context.setLifeSpan(3);
+        ContextParameter param1 = IntentFactory.eINSTANCE.createContextParameter();
+        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        entityDefinition.setEntityType(EntityType.ANY);
+        param1.setEntity(entityDefinition);
+        context.getParameters().add(param1);
+        api = getValidDialogFlowApi();
+        api.createParameters(Arrays.asList(context));
     }
 
     @Test(expected = NullPointerException.class)
