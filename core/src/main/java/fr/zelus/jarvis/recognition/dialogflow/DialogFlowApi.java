@@ -957,11 +957,11 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              * contexts defined with the same name.
              */
             fr.zelus.jarvis.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
-            if(isNull(contextDefinition)) {
+            if (isNull(contextDefinition)) {
                 contextDefinition = this.jarvisCore.getEventDefinitionRegistry().getEventDefinitionOutContext
                         (contextName);
             }
-            if(nonNull(contextDefinition)) {
+            if (nonNull(contextDefinition)) {
                 int lifespanCount = context.getLifespanCount();
                 ContextInstance contextInstance = intentFactory.createContextInstance();
                 contextInstance.setDefinition(contextDefinition);
@@ -1052,7 +1052,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             Log.warn("DialogFlow Intent client was not closed properly, calling automatic shutdown");
             this.intentsClient.shutdownNow();
         }
-        if(!contextsClient.isShutdown()) {
+        if (!contextsClient.isShutdown()) {
             this.contextsClient.shutdownNow();
         }
         if (!agentsClient.isShutdown()) {
