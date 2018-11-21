@@ -4,16 +4,19 @@ import com.google.cloud.dialogflow.v2.Intent;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.test.util.models.TestExecutionModel;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
+import fr.zelus.jarvis.test.util.models.TestExecutionModel;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.*;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +38,12 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
      * EntityDefinition is contained in the context parameter, we need to create a second testing instance.
      */
     protected static EntityDefinition VALID_ENTITY_DEFINITION_2;
+
+    protected static Context VALID_OUT_CONTEXT;
+
+    protected static String VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER = "I love the monkey head";
+
+    protected static String VALID_TRAINING_SENTENCE_WITH_CONTEXT_PARAMETER = "I love the test monkey head";
 
     protected DialogFlowApi api;
 
@@ -74,6 +83,15 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
         VALID_ENTITY_DEFINITION_2 = IntentFactory.eINSTANCE.createBaseEntityDefinition();
         ((BaseEntityDefinition) VALID_ENTITY_DEFINITION_2).setEntityType(EntityType.ANY);
+        VALID_OUT_CONTEXT = IntentFactory.eINSTANCE.createContext();
+        VALID_OUT_CONTEXT.setName("ValidContext");
+        ContextParameter contextParameter = IntentFactory.eINSTANCE.createContextParameter();
+        contextParameter.setName("param");
+        contextParameter.setTextFragment("test");
+        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        entityDefinition.setEntityType(EntityType.ANY);
+        contextParameter.setEntity(entityDefinition);
+        VALID_OUT_CONTEXT.getParameters().add(contextParameter);
     }
 
     @After
@@ -217,6 +235,111 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         registeredIntentDefinition.getTrainingSentences().add("test jarvis");
         api.registerIntentDefinition(registeredIntentDefinition);
         api.registerIntentDefinition(registeredIntentDefinition);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createTrainingPhraseNullSentence() {
+        api = getValidDialogFlowApi();
+        api.createTrainingPhrase(null, Arrays.asList(VALID_OUT_CONTEXT));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createTrainingPhraseNullContext() {
+        api = getValidDialogFlowApi();
+        api.createTrainingPhrase(VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER, null);
+    }
+
+    @Test
+    public void createTrainingPhraseEmptyContextList() {
+        api = getValidDialogFlowApi();
+        Intent.TrainingPhrase trainingPhrase = api.createTrainingPhrase
+                (VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER, Collections.emptyList());
+        assertThat(trainingPhrase).as("Not null training phrase").isNotNull();
+        List<Intent.TrainingPhrase.Part> parts = trainingPhrase.getPartsList();
+        assertThat(parts).as("Not null part list").isNotNull();
+        assertThat(parts).as("Part list contains 1 element").hasSize(1);
+        assertThat(parts.get(0)).as("Not null part").isNotNull();
+        assertThat(parts.get(0).getText()).as("Valid part text").isEqualTo
+                (VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER);
+    }
+
+    @Test
+    public void createTrainingPhraseValidContextListNoParameterInSentence() {
+        api = getValidDialogFlowApi();
+        Intent.TrainingPhrase trainingPhrase = api.createTrainingPhrase
+                (VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER, Arrays.asList(VALID_OUT_CONTEXT));
+        assertThat(trainingPhrase).as("Not null training phrase").isNotNull();
+        List<Intent.TrainingPhrase.Part> parts = trainingPhrase.getPartsList();
+        assertThat(parts).as("Not null part list").isNotNull();
+        assertThat(parts).as("Part list contains 1 element").hasSize(1);
+        assertThat(parts.get(0)).as("Not null part").isNotNull();
+        assertThat(parts.get(0).getText()).as("Valid part text").isEqualTo
+                (VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER);
+    }
+
+    @Test
+    public void createTrainingPhraseValidContextListParameterInSentence() {
+        api = getValidDialogFlowApi();
+        Intent.TrainingPhrase trainingPhrase = api.createTrainingPhrase
+                (VALID_TRAINING_SENTENCE_WITH_CONTEXT_PARAMETER, Arrays.asList(VALID_OUT_CONTEXT));
+        assertThat(trainingPhrase).as("Not null training phrase").isNotNull();
+        List<Intent.TrainingPhrase.Part> parts = trainingPhrase.getPartsList();
+        assertThat(parts).as("Not null part list").isNotNull();
+        assertThat(parts).as("Part list contains 3 elements").hasSize(3);
+        assertThat(parts.get(0)).as("Not null part 0").isNotNull();
+        assertThat(parts.get(0).getText()).as("Valid part 0 content").isEqualTo("I love the ");
+        Intent.TrainingPhrase.Part part1 = parts.get(1);
+        assertThat(part1).as("Not null part 1").isNotNull();
+        assertThat(part1.getText()).as("Valid part 1 content").isEqualTo("test");
+        // The translation is done by the EntityMapper
+        assertThat(part1.getEntityType()).as("Valid part 1 entity type").isEqualTo("@sys.any");
+        assertThat(part1.getAlias()).as("Valid part 1 alias").isEqualTo(VALID_OUT_CONTEXT.getParameters().get(0)
+                .getName());
+        assertThat(parts.get(2)).as("Not null part 2").isNotNull();
+        assertThat(parts.get(2).getText()).as("Valid part 2 content").isEqualTo(" monkey head");
+    }
+
+    @Test
+    public void createTrainingPhraseValidContextListParameterLastInSentence() {
+        Context context = IntentFactory.eINSTANCE.createContext();
+        context.setName("ValidContext2");
+        ContextParameter param = IntentFactory.eINSTANCE.createContextParameter();
+        param.setName("param");
+        param.setTextFragment("head");
+        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        entityDefinition.setEntityType(EntityType.ANY);
+        param.setEntity(entityDefinition);
+        context.getParameters().add(param);
+        api = getValidDialogFlowApi();
+        Intent.TrainingPhrase trainingPhrase = api.createTrainingPhrase
+                (VALID_TRAINING_SENTENCE_WITH_CONTEXT_PARAMETER, Arrays.asList(context));
+        assertThat(trainingPhrase).as("Not null training phrase").isNotNull();
+        List<Intent.TrainingPhrase.Part> parts = trainingPhrase.getPartsList();
+        assertThat(parts).as("Not null part list").isNotNull();
+        assertThat(parts).as("Part list contains 2 elements").hasSize(2);
+        assertThat(parts.get(0)).as("Not null part 0").isNotNull();
+        assertThat(parts.get(0).getText()).as("Valid part 0 content").isEqualTo("I love the test monkey ");
+        Intent.TrainingPhrase.Part part1 = parts.get(1);
+        assertThat(part1).as("Not null part 1").isNotNull();
+        assertThat(part1.getText()).as("Valid part 1 content").isEqualTo("head");
+        // The translation is done by the EntityMapper
+        assertThat(part1.getEntityType()).as("Valid part 1 entity type").isEqualTo("@sys.any");
+        assertThat(part1.getAlias()).as("Valid part 1 alias").isEqualTo("param");
+    }
+
+    @Test(expected = JarvisException.class)
+    public void createTrainingPhraseNullNameContextParameterInSentence() {
+        Context context = IntentFactory.eINSTANCE.createContext();
+        context.setName("ValidContext2");
+        ContextParameter param = IntentFactory.eINSTANCE.createContextParameter();
+        param.setTextFragment("head");
+        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        entityDefinition.setEntityType(EntityType.ANY);
+        param.setEntity(entityDefinition);
+        context.getParameters().add(param);
+        api = getValidDialogFlowApi();
+        Intent.TrainingPhrase trainingPhrase = api.createTrainingPhrase
+                (VALID_TRAINING_SENTENCE_WITH_CONTEXT_PARAMETER, Arrays.asList(context));
     }
 
     @Test(expected = NullPointerException.class)
@@ -392,7 +515,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         assertThat(recognizedIntent.getOutContextInstance("Context1")).as("RecognizedIntent contains Context1")
                 .isNotNull();
         softly.assertThat(recognizedIntent.getOutContextInstance("Context1").getValues()).as("ContextInstance 1 does " +
-                "not contain any value").isEmpty();;
+                "not contain any value").isEmpty();
+        ;
         assertThat(recognizedIntent.getOutContextInstance("Context2")).as("RecognizedIntent contains Context2")
                 .isNotNull();
         softly.assertThat(recognizedIntent.getOutContextInstance("Context2").getValues()).as("ContextInstance 2 does " +
@@ -527,7 +651,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         JarvisSession session = api.createSession(UUID.randomUUID().toString());
         /*
          * Set the input context in the JarvisSession's local context. If the intent is matched the local session has
-          * been successfully merged in the Dialogflow one.
+         * been successfully merged in the Dialogflow one.
          */
         session.getJarvisContext().setContextValue(inContextName, 5, "testKey", "testValue");
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);

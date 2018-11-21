@@ -534,7 +534,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @throws NullPointerException if the provided {@code trainingSentence} or {@code outContexts} {@link List} is
      *                              {@code null}
      */
-    private Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<fr.zelus.jarvis.intent
+    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<fr.zelus.jarvis.intent
             .Context> outContexts) {
         checkNotNull(trainingSentence, "Cannot create a %s from the provided training sentence %s", Intent
                 .TrainingPhrase.class.getSimpleName(), trainingSentence);
@@ -573,6 +573,11 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 for (fr.zelus.jarvis.intent.Context context : outContexts) {
                     for (ContextParameter parameter : context.getParameters()) {
                         if (sentencePart.equals(parameter.getTextFragment())) {
+                            if(isNull(parameter.getName())) {
+                                throw new JarvisException(MessageFormat.format("Cannot build the training sentence " +
+                                        "\"{0}\", the parameter for the fragment \"{1}\" does not define a name",
+                                        trainingSentence, parameter.getTextFragment()));
+                            }
                             String dialogFlowEntity = entityMapper.getMappingFor(parameter.getEntity());
                             partBuilder.setEntityType(dialogFlowEntity).setAlias(parameter.getName());
                         }
