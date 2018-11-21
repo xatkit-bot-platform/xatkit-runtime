@@ -641,7 +641,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      * @see IntentDefinition#getOutContexts()
      */
-    private List<Context> createOutContexts(IntentDefinition intentDefinition) {
+    protected List<Context> createOutContexts(IntentDefinition intentDefinition) {
         checkNotNull(intentDefinition, "Cannot create the out contexts from the provided %s %s", IntentDefinition
                 .class.getSimpleName(), intentDefinition);
         List<fr.zelus.jarvis.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();

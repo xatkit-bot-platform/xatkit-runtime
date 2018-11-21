@@ -404,6 +404,77 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     }
 
     @Test(expected = NullPointerException.class)
+    public void createOutContextsNullIntentDefinition() {
+        api = getValidDialogFlowApi();
+        api.createOutContexts(null);
+    }
+
+    @Test
+    public void createOutContextsIntentDefinitionEmptyContext() {
+        api = getValidDialogFlowApi();
+        List<com.google.cloud.dialogflow.v2.Context> contexts = api.createOutContexts(IntentFactory.eINSTANCE
+                .createIntentDefinition());
+        assertThat(contexts).as("Not null context list").isNotNull();
+        assertThat(contexts).as("Empty context list").isEmpty();
+    }
+
+    @Test
+    public void createOutContextsIntentDefinitionMultipleInContexts() {
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        Context outContext1 = IntentFactory.eINSTANCE.createContext();
+        outContext1.setName("OutContext1");
+        outContext1.setLifeSpan(2);
+        Context outContext2 = IntentFactory.eINSTANCE.createContext();
+        outContext2.setName("OutContext2");
+        outContext2.setLifeSpan(3);
+        intentDefinition.getOutContexts().add(outContext1);
+        intentDefinition.getOutContexts().add(outContext2);
+        api = getValidDialogFlowApi();
+        List<com.google.cloud.dialogflow.v2.Context> contexts = api.createOutContexts(intentDefinition);
+        assertThat(contexts).as("Not null context list").isNotNull();
+        assertThat(contexts).as("Context list contains 2 elements").hasSize(2);
+        assertThat(contexts.get(0)).as("Not null context 1").isNotNull();
+        assertThat(contexts.get(0).getName()).as("Valid context name 1").endsWith("OutContext1");
+        assertThat(contexts.get(0).getLifespanCount()).as("Valid context lifespan 1").isEqualTo(2);
+        assertThat(contexts.get(1)).as("Not null context 2").isNotNull();
+        assertThat(contexts.get(1).getName()).as("Valid context name 2").endsWith("OutContext2");
+        assertThat(contexts.get(1).getLifespanCount()).as("Valid context lifespan 2").isEqualTo(3);
+    }
+
+    @Test
+    public void createOutContextsIntentDefinitionWithFollowedBySet() {
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        intentDefinition.setName("parent");
+        Context inContext1 = IntentFactory.eINSTANCE.createContext();
+        inContext1.setName("OutContext1");
+        inContext1.setLifeSpan(3);
+        intentDefinition.getOutContexts().add(inContext1);
+        IntentDefinition childIntentDeclaration = IntentFactory.eINSTANCE.createIntentDefinition();
+        childIntentDeclaration.setName("child");
+        intentDefinition.getFollowedBy().add(childIntentDeclaration);
+        api = getValidDialogFlowApi();
+        List<com.google.cloud.dialogflow.v2.Context> contexts = api.createOutContexts(intentDefinition);
+        assertThat(contexts).as("Not null context list").isNotNull();
+        assertThat(contexts).as("Context list contains 2 elements").hasSize(2);
+        assertThat(contexts.get(0)).as("Not null context 1").isNotNull();
+        assertThat(contexts.get(0).getName()).as("Valid context name 1").endsWith("OutContext1");
+        assertThat(contexts.get(0).getLifespanCount()).as("Valid context lifespan 1").isEqualTo(3);
+        assertThat(contexts.get(1)).as("Not null context 2").isNotNull();
+        assertThat(contexts.get(1).getName()).as("Valid context name 2").endsWith("parent_followUp");
+        // Check that the default lifespan count has been set
+        assertThat(contexts.get(1).getLifespanCount()).as("Valid context lifespan 2").isEqualTo(2);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void createOutContextsIntentDefinitionWithFollowedBySetNullParentName() {
+        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        IntentDefinition childIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        intentDefinition.getFollowedBy().add(childIntentDefinition);
+        api = getValidDialogFlowApi();
+        api.createOutContexts(intentDefinition);
+    }
+
+    @Test(expected = NullPointerException.class)
     public void deleteIntentDefinitionNullIntentDefinition() {
         api = getValidDialogFlowApi();
         api.deleteIntentDefinition(null);
