@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>fr.zelus.jarvis</groupId>
+        <groupId>edu.uoc.som.jarvis</groupId>
         <artifactId>metamodels</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -27,13 +27,13 @@
         <!-- jarvis Internal -->
 
         <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
+            <groupId>edu.uoc.som.jarvis</groupId>
             <artifactId>intent</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>fr.zelus.jarvis</groupId>
+            <groupId>edu.uoc.som.jarvis</groupId>
             <artifactId>platform</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -74,7 +74,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.execution</Bundle-SymbolicName>
                         <Export-Package>
-                            fr.zelus.jarvis.execution.*
+                            edu.uoc.som.jarvis.execution.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;
@@ -83,8 +83,8 @@
                             groupId=!${project.groupId}|fr.inria.atlanmod.commons|org.eclipse.emf|org.apache.logging.log4j
                         </Embed-Dependency>
                         <Require-Bundle>
-                            fr.zelus.jarvis.intent;visibility:=reexport,
-                            fr.zelus.jarvis.platform;visibility:=reexport,
+                            edu.uoc.som.jarvis.intent;visibility:=reexport,
+                            edu.uoc.som.jarvis.platform;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>fr.zelus.jarvis</groupId>
+        <groupId>edu.uoc.som.jarvis</groupId>
         <artifactId>metamodels</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -68,7 +68,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.intent</Bundle-SymbolicName>
                         <Export-Package>
-                            fr.zelus.jarvis.intent.*
+                            edu.uoc.som.jarvis.intent.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;
