@@ -162,8 +162,7 @@ public class JarvisServer {
     public void stop() {
         Log.info("Stopping JarvisServer");
         if (!isStarted) {
-            throw new JarvisException(MessageFormat.format("Cannot stop the %s, the server is not started", this
-                    .getClass().getSimpleName()));
+            Log.warn("Cannot stop the {0}, the server is not started", this.getClass().getSimpleName());
         }
         server.shutdown(5, TimeUnit.SECONDS);
         isStarted = false;

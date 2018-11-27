@@ -43,6 +43,7 @@ import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * The core component of the jarvis framework.
@@ -182,87 +183,102 @@ public class JarvisCore {
      */
     public JarvisCore(Configuration configuration) {
         checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
-        this.configuration = configuration;
-        this.executionResourceSet = initializeExecutionResourceSet();
-        ExecutionModel executionModel = getExecutionModel(configuration.getProperty(EXECUTION_MODEL_KEY));
-        checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass().getSimpleName()
-                , ExecutionModel.class.getSimpleName());
-        this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
-                configuration);
-        this.sessions = new HashMap<>();
-        this.runtimePlatformRegistry = new RuntimePlatformRegistry();
-        this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry);
-        this.eventDefinitionRegistry = new EventDefinitionRegistry();
-        /*
-         * Start the server before processing the EventProviderDefinitions, we need to have a valid JarvisServer
-         * instance to call JarvisServer#registerWebhookEventProvider
-         */
-        this.jarvisServer = new JarvisServer(configuration);
-        boolean intentRegistered = false;
-        for (EventProviderDefinition eventProviderDefinition : executionModel.getEventProviderDefinitions()) {
+        try {
+            this.configuration = configuration;
+            this.executionResourceSet = initializeExecutionResourceSet();
+            ExecutionModel executionModel = getExecutionModel(configuration.getProperty(EXECUTION_MODEL_KEY));
+            checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass().getSimpleName()
+
+                    , ExecutionModel.class.getSimpleName());
+            this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
+                    configuration);
+            this.sessions = new HashMap<>();
+            this.runtimePlatformRegistry = new RuntimePlatformRegistry();
+            this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry);
+            this.eventDefinitionRegistry = new EventDefinitionRegistry();
             /*
-             * The EventProviderDefinition is still a proxy, meaning that the proxy resolution failed.
+             * Start the server before processing the EventProviderDefinitions, we need to have a valid JarvisServer
+             * instance to call JarvisServer#registerWebhookEventProvider
              */
-            if (eventProviderDefinition.eIsProxy()) {
-                throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} from " +
-                        "the {1}", eventProviderDefinition, ExecutionModel.class.getSimpleName()));
-            }
-            PlatformDefinition eventProviderPlatform = (PlatformDefinition) eventProviderDefinition.eContainer();
-            RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
-                    (eventProviderPlatform.getName());
-            if (isNull(eventProviderRuntimePlatform)) {
-                eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform);
-                this.runtimePlatformRegistry.registerRuntimePlatform(eventProviderRuntimePlatform);
-            }
-            eventProviderRuntimePlatform.startEventProvider(eventProviderDefinition);
-        }
-        for (ExecutionRule rule : executionModel.getExecutionRules()) {
-            /*
-             * We don't need to check whether the EventDefinition is a proxy, EventDefinitions are contained in
-             * EventProviderDefinitions, that have been checked before.
-             */
-            EventDefinition eventDefinition = rule.getEvent();
-            this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
-            Log.info("Registering event {0}", eventDefinition.getName());
-            if (eventDefinition instanceof IntentDefinition) {
-                IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
-                try {
-                    this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
-                    intentRegistered = true;
-                } catch (IntentRecognitionProviderException e) {
-                    Log.warn(e.getMessage());
-                }
-            }
-            /*
-             * Load the action platforms
-             */
-            for (ActionInstance actionInstance : rule.getActions()) {
-                ActionDefinition actionDefinition = actionInstance.getAction();
+            this.jarvisServer = new JarvisServer(configuration);
+            boolean intentRegistered = false;
+            for (EventProviderDefinition eventProviderDefinition : executionModel.getEventProviderDefinitions()) {
                 /*
-                 * The Action is still a proxy, meaning that the proxy resolution failed.
+                 * The EventProviderDefinition is still a proxy, meaning that the proxy resolution failed.
                  */
-                if (actionDefinition.eIsProxy()) {
+                if (eventProviderDefinition.eIsProxy()) {
                     throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
-                            "from the {1}", actionDefinition, ExecutionModel.class.getSimpleName()));
+                            "from " +
+                            "the {1}", eventProviderDefinition, ExecutionModel.class.getSimpleName()));
                 }
-                PlatformDefinition platform = (PlatformDefinition) actionDefinition.eContainer();
-                RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform.getName());
-                if (isNull(runtimePlatform)) {
-                    runtimePlatform = loadRuntimePlatformFromPlatformModel(platform);
-                    this.runtimePlatformRegistry.registerRuntimePlatform(runtimePlatform);
+                PlatformDefinition eventProviderPlatform = (PlatformDefinition) eventProviderDefinition.eContainer();
+                RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
+                        (eventProviderPlatform.getName());
+                if (isNull(eventProviderRuntimePlatform)) {
+                    eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform);
+                    this.runtimePlatformRegistry.registerRuntimePlatform(eventProviderRuntimePlatform);
                 }
-                runtimePlatform.enableAction(actionDefinition);
+                eventProviderRuntimePlatform.startEventProvider(eventProviderDefinition);
             }
+            for (ExecutionRule rule : executionModel.getExecutionRules()) {
+                /*
+                 * We don't need to check whether the EventDefinition is a proxy, EventDefinitions are contained in
+                 * EventProviderDefinitions, that have been checked before.
+                 */
+                EventDefinition eventDefinition = rule.getEvent();
+                this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
+                Log.info("Registering event {0}", eventDefinition.getName());
+                if (eventDefinition instanceof IntentDefinition) {
+                    IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
+                    try {
+                        this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
+                        intentRegistered = true;
+                    } catch (IntentRecognitionProviderException e) {
+                        Log.warn(e.getMessage());
+                    }
+                }
+                /*
+                 * Load the action platforms
+                 */
+                for (ActionInstance actionInstance : rule.getActions()) {
+                    ActionDefinition actionDefinition = actionInstance.getAction();
+                    /*
+                     * The Action is still a proxy, meaning that the proxy resolution failed.
+                     */
+                    if (actionDefinition.eIsProxy()) {
+                        throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
+                                "from the {1}", actionDefinition, ExecutionModel.class.getSimpleName()));
+                    }
+                    PlatformDefinition platform = (PlatformDefinition) actionDefinition.eContainer();
+                    RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform.getName());
+                    if (isNull(runtimePlatform)) {
+                        runtimePlatform = loadRuntimePlatformFromPlatformModel(platform);
+                        this.runtimePlatformRegistry.registerRuntimePlatform(runtimePlatform);
+                    }
+                    runtimePlatform.enableAction(actionDefinition);
+                }
+            }
+            if (intentRegistered) {
+                /*
+                 * New intents have been registered in the IntentRecognitionProvider, we should explicitly ask the
+                 * ML Engine to train in order to take them into account.
+                 */
+                intentRecognitionProvider.trainMLEngine();
+            }
+            jarvisServer.start();
+            Log.info("Jarvis bot started");
+        } catch(Throwable t) {
+            if(nonNull(this.executionService)) {
+                this.executionService.shutdown();
+            }
+            if(nonNull(this.jarvisServer)) {
+                this.jarvisServer.stop();
+            }
+            if(nonNull(this.intentRecognitionProvider)) {
+                intentRecognitionProvider.shutdown();
+            }
+            throw t;
         }
-        if (intentRegistered) {
-            /*
-             * New intents have been registered in the IntentRecognitionProvider, we should explicitly ask the
-             * ML Engine to train in order to take them into account.
-             */
-            intentRecognitionProvider.trainMLEngine();
-        }
-        jarvisServer.start();
-        Log.info("Jarvis bot started");
     }
 
     /**

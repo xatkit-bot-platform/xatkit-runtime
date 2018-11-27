@@ -91,8 +91,9 @@ public class JarvisServerTest extends AbstractJarvisTest {
         this.server2.start();
     }
 
-    @Test(expected = JarvisException.class)
+    @Test
     public void stopNotStartedServer() {
+        // Should only log a message, not throw an exception
         this.server = getValidJarvisServer();
         this.server.stop();
     }
