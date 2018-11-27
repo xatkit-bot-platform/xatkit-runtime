@@ -218,16 +218,62 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
                 .isNotNull();
         softly.assertThat(foundIntent.getTrainingPhrasesList()).as("Intent's training phrase list is not empty")
                 .isNotEmpty();
-        boolean foundTrainingPhrase = false;
-        for (Intent.TrainingPhrase intentTrainingPhrase : foundIntent.getTrainingPhrasesList()) {
-            for (Intent.TrainingPhrase.Part part : intentTrainingPhrase.getPartsList()) {
-                if (part.getText().equals(trainingPhrase)) {
-                    foundTrainingPhrase = true;
-                }
-            }
-        }
+        boolean foundTrainingPhrase = hasTrainingPhrase(foundIntent, trainingPhrase);
         softly.assertThat(foundTrainingPhrase).as("The IntentDefinition's training phrase is in the retrieved " +
                 "Intent").isTrue();
+    }
+
+    @Test
+    public void registerIntentDefinitionFollowUpIntentDefinition() {
+        api = getValidDialogFlowApi();
+        /*
+         * Put the parent as the registered one, so all the follow-up intents will be deleted after the test case.
+         */
+        registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        String parentIntentName = "TestRegisterParent";
+        String parentTrainingSentence = "test parent";
+        registeredIntentDefinition.setName(parentIntentName);
+        registeredIntentDefinition.getTrainingSentences().add(parentTrainingSentence);
+        IntentDefinition followUpIntent = IntentFactory.eINSTANCE.createIntentDefinition();
+        String followUpIntentName = "TestRegisterFollowUp";
+        String followUpTrainingSentence = "test followUp";
+        followUpIntent.setName(followUpIntentName);
+        followUpIntent.getTrainingSentences().add(followUpTrainingSentence);
+        followUpIntent.setFollows(registeredIntentDefinition);
+        api.registerIntentDefinition(followUpIntent);
+        List<Intent> registeredIntents = api.getRegisteredIntentsFullView();
+        assertThat(registeredIntents).as("Registered Intent list is not null").isNotNull();
+        softly.assertThat(registeredIntents).as("Registered Intent list is not empty").isNotEmpty();
+        Intent foundParentIntent = null;
+        Intent foundFollowUpIntent = null;
+        for(Intent intent : registeredIntents) {
+            if(intent.getDisplayName().equals(parentIntentName)) {
+                foundParentIntent = intent;
+            } else if(intent.getDisplayName().equals(followUpIntentName)) {
+                foundFollowUpIntent = intent;
+            }
+        }
+        assertThat(foundParentIntent).as("Registered Intent list contains the parent IntentDefinition").isNotNull();
+        assertThat(foundParentIntent.getTrainingPhrasesList()).as("Parent Intent training phrase list is not empty")
+                .isNotEmpty();
+        boolean foundParentTrainingPhrase = hasTrainingPhrase(foundParentIntent, parentTrainingSentence);
+        assertThat(foundParentTrainingPhrase).as("The parent IntentDefinition training phrase has been registered")
+                .isTrue();
+        assertThat(foundFollowUpIntent).as("Registered Intent list contains the follow-up IntentDefinition")
+                .isNotNull();
+        assertThat(foundFollowUpIntent.getTrainingPhrasesList()).as("Follow-up Intent training phrase list is not " +
+                "empty").isNotEmpty();
+        boolean foundFollowUpTrainingPhrase = hasTrainingPhrase(foundFollowUpIntent, followUpTrainingSentence);
+        assertThat(foundFollowUpTrainingPhrase).as("The follow-up IntentDefinition training phrase has been " +
+                "registered").isTrue();
+        assertThat(foundParentIntent.getFollowupIntentInfoCount()).as("Parent Intent has 1 follow-up Intent")
+                .isEqualTo(1);
+        Intent.FollowupIntentInfo followUpIntentInfo = foundParentIntent.getFollowupIntentInfo(0);
+        assertThat(followUpIntentInfo).as("Not null follow-up info").isNotNull();
+        assertThat(followUpIntentInfo.getFollowupIntentName()).as("Valid follow-up Intent name").isEqualTo
+                (foundFollowUpIntent.getName());
+        assertThat(foundFollowUpIntent.getParentFollowupIntentName()).as("Valid parent Intent for follow-up Intent")
+                .isEqualTo(foundParentIntent.getName());
     }
 
     @Test(expected = DialogFlowException.class)
@@ -915,6 +961,17 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
+    }
+
+    private boolean hasTrainingPhrase(Intent intent, String trainingPhrase) {
+        for (Intent.TrainingPhrase intentTrainingPhrase : intent.getTrainingPhrasesList()) {
+            for (Intent.TrainingPhrase.Part part : intentTrainingPhrase.getPartsList()) {
+                if (part.getText().equals(trainingPhrase)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void checkDialogFlowSession(JarvisSession session, String expectedProjectId, String expectedSessionId) {
