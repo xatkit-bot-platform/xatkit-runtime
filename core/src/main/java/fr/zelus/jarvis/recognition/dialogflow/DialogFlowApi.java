@@ -830,6 +830,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     public void mergeLocalSessionInDialogFlow(DialogFlowSession dialogFlowSession) {
         Log.info("Merging local context in the DialogFlow session {0}", dialogFlowSession.getSessionId());
+        checkNotNull(dialogFlowSession, "Cannot merge the provided %s %s", DialogFlowSession.class.getSimpleName(),
+                dialogFlowSession);
         dialogFlowSession.getJarvisContext().getContextMap().entrySet().stream().forEach(contextEntry ->
                 {
                     String contextName = contextEntry.getKey();

@@ -38,6 +38,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
      */
     protected static EntityDefinition VALID_ENTITY_DEFINITION_2;
 
+    protected static IntentDefinition VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT;
+
     protected static Context VALID_OUT_CONTEXT;
 
     protected static String VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER = "I love the monkey head";
@@ -91,6 +93,10 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         entityDefinition.setEntityType(EntityType.ANY);
         contextParameter.setEntity(entityDefinition);
         VALID_OUT_CONTEXT.getParameters().add(contextParameter);
+        VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT = IntentFactory.eINSTANCE.createIntentDefinition();
+        VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.setName("TestIntentDefinition");
+        VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.getTrainingSentences().add("test intent definition");
+        VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.getOutContexts().add(VALID_OUT_CONTEXT);
     }
 
     @After
@@ -594,6 +600,63 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
         softly.assertThat(session.getJarvisContext().getVariableTimeout()).as("Valid JarvisContext variable timeout")
                 .isEqualTo(10);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void mergeLocalSessionInDialogFlowNullSession() {
+        api = getValidDialogFlowApi();
+        api.mergeLocalSessionInDialogFlow(null);
+    }
+
+    @Test
+    public void mergeLocalSessionInDialogFlowEmptySession() {
+        api = getValidDialogFlowApi();
+        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        RecognizedIntent recognizedIntent = api.getIntent("Hello", session);
+        assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context list").isEmpty();
+    }
+
+    @Test
+    public void mergeLocalSessionInDialogFlowNotEmptySessionNotExistingOutContext() {
+        api = getValidDialogFlowApi();
+        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        session.getJarvisContext().setContextValue("context", 5, "key", "value");
+        RecognizedIntent recognizedIntent = api.getIntent("Hello", session);
+        assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context list").isEmpty();
+    }
+
+    @Test
+    public void mergeLocalSessionInDialogFlowNotEmptySessionExistingOutContext() {
+        api = getValidDialogFlowApi();
+        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        registeredIntentDefinition = VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT;
+        /*
+         * Do not register it in DialogFlow, we are just testing that the value has been set, no need to waste time
+         * accessing the remote API.
+         */
+        jarvisCore.getEventDefinitionRegistry().registerEventDefinition(registeredIntentDefinition);
+        String validContextName = VALID_OUT_CONTEXT.getName();
+        String validParameterName = VALID_OUT_CONTEXT.getParameters().get(0).getName();
+        session.getJarvisContext().setContextValue(validContextName, 5, validParameterName, "test");
+        RecognizedIntent recognizedIntent = api.getIntent("Hello", session);
+        assertThat(recognizedIntent.getOutContextInstances()).as("Out context list contains 1 element").hasSize(1);
+        ContextInstance contextInstance = recognizedIntent.getOutContextInstances().get(0);
+        assertThat(contextInstance).as("Not null ContextInstance").isNotNull();
+        /*
+         * Check the lifespan is equal to 4, the input string count as an interaction and decreases the lifespan count.
+         */
+        assertThat(contextInstance.getLifespanCount()).as("Valid ContextInstance lifespan count").isEqualTo(4);
+        Context context = contextInstance.getDefinition();
+        assertThat(context).as("Not null Context definition").isNotNull();
+        assertThat(context.getName()).as("Valid Context definition name").isEqualTo(VALID_OUT_CONTEXT.getName());
+        List<ContextParameterValue> contextParameterValues = contextInstance.getValues();
+        assertThat(contextParameterValues).as("ContextInstance contains 1 parameter value").hasSize(1);
+        ContextParameterValue contextParameterValue = contextParameterValues.get(0);
+        assertThat(contextParameterValue.getValue()).as("Valid parameter value").isEqualTo("test");
+        ContextParameter contextParameter = contextParameterValue.getContextParameter();
+        assertThat(contextParameter).as("Not null Context parameter definition").isNotNull();
+        assertThat(contextParameter.getName()).as("Valid Context parameter definition name").isEqualTo
+                (validParameterName);
     }
 
     @Test(expected = DialogFlowException.class)
