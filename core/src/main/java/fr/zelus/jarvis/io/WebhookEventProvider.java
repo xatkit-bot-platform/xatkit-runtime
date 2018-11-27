@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.io;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 

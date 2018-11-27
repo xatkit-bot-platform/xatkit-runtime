@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.plugins.log.platform;
 
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 
 /**

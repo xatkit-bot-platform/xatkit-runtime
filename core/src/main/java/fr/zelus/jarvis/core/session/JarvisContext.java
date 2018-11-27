@@ -2,7 +2,7 @@ package fr.zelus.jarvis.core.session;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.RuntimeAction;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.intent.Context;
 import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.io.EventProvider;

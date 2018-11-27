@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 

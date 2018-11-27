@@ -5,7 +5,7 @@ import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest;
 import com.github.seratch.jslack.api.methods.response.files.FilesUploadResponse;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.RuntimeAction;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
 

@@ -1,8 +1,8 @@
 package fr.zelus.jarvis.plugins.core.platform;
 
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.RuntimeAction;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 
 /**
  * A {@link RuntimePlatform} concrete implementation providing core functionality that can be used in execution models.

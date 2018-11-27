@@ -1,6 +1,6 @@
 package fr.zelus.jarvis.plugins.slack.platform.action;
 
-import fr.zelus.jarvis.core.RuntimeAction;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;

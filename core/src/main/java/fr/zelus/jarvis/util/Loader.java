@@ -3,7 +3,7 @@ package fr.zelus.jarvis.util;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.io.EventProvider;
 import org.apache.commons.configuration2.Configuration;
 

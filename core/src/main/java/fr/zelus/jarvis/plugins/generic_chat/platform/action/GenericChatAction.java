@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.plugins.generic_chat.platform.action;
 
 import fr.zelus.jarvis.core.ExecutionService;
-import fr.zelus.jarvis.core.RuntimeAction;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;
 import fr.zelus.jarvis.plugins.generic_chat.platform.GenericChatPlatform;

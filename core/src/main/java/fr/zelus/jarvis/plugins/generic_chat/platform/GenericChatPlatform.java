@@ -2,6 +2,8 @@ package fr.zelus.jarvis.plugins.generic_chat.platform;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.*;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.intent.EventInstance;

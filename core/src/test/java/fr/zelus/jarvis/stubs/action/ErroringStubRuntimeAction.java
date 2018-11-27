@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.stubs.action;
 
-import fr.zelus.jarvis.core.RuntimeAction;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisSession;
 
 public class ErroringStubRuntimeAction extends RuntimeAction {

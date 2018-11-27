@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.stubs;
 
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.ActionInstance;
 

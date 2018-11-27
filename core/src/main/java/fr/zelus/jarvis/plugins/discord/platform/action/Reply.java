@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.plugins.discord.platform.action;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.RuntimeAction;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;

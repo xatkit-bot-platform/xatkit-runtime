@@ -5,8 +5,8 @@ import com.jcabi.github.RtGithub;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.RuntimeAction;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 
 import java.io.IOException;

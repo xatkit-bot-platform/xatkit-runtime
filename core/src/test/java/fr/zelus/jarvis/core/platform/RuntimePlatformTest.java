@@ -1,6 +1,9 @@
-package fr.zelus.jarvis.core;
+package fr.zelus.jarvis.core.platform;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
+import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.io.WebhookEventProvider;

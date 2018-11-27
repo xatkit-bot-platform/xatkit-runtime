@@ -1,8 +1,8 @@
 package fr.zelus.jarvis.stubs.action;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.RuntimeMessageAction;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.action.RuntimeMessageAction;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisSession;
 
 import java.util.UUID;

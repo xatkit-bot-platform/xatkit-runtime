@@ -2,7 +2,7 @@ package fr.zelus.jarvis.plugins.log.platform.action;
 
 import fr.inria.atlanmod.commons.log.Level;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.RuntimeAction;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.log.platform.LogPlatform;
 

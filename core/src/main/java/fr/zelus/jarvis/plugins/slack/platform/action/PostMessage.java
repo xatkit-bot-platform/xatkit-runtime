@@ -4,9 +4,9 @@ import com.github.seratch.jslack.api.methods.SlackApiException;
 import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
 import com.github.seratch.jslack.api.methods.response.chat.ChatPostMessageResponse;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.RuntimeAction;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.RuntimeMessageAction;
+import fr.zelus.jarvis.core.platform.action.RuntimeMessageAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
 

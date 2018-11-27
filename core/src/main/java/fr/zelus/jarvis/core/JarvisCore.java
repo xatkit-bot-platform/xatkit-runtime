@@ -1,6 +1,8 @@
 package fr.zelus.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.core_resources.utils.LibraryLoaderUtils;
 import fr.zelus.jarvis.core_resources.utils.PlatformLoaderUtils;
@@ -601,7 +603,7 @@ public class JarvisCore {
      *
      * @return the {@link JarvisServer} used to capture incoming webhooks
      */
-    protected JarvisServer getJarvisServer() {
+    public JarvisServer getJarvisServer() {
         return jarvisServer;
     }
 

@@ -1,8 +1,8 @@
 package fr.zelus.jarvis.plugins.discord.platform;
 
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.RuntimeAction;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import net.dv8tion.jda.core.JDA;

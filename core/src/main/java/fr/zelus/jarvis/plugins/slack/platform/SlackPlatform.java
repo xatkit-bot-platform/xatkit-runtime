@@ -2,8 +2,8 @@ package fr.zelus.jarvis.plugins.slack.platform;
 
 import com.github.seratch.jslack.Slack;
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.RuntimeAction;
-import fr.zelus.jarvis.core.RuntimePlatform;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import org.apache.commons.configuration2.Configuration;
 

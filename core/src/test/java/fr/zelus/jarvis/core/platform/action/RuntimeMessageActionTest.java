@@ -1,5 +1,6 @@
 package fr.zelus.jarvis.core;
 
+import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
