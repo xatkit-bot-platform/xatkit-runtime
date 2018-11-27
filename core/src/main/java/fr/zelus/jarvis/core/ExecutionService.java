@@ -12,7 +12,7 @@ import fr.zelus.jarvis.intent.ContextInstance;
 import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.io.RuntimeEventProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
 import fr.zelus.jarvis.platform.PlatformDefinition;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 

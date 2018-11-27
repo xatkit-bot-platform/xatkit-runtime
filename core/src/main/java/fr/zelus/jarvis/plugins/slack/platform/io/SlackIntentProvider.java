@@ -17,8 +17,8 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.RecognizedIntent;
-import fr.zelus.jarvis.io.RuntimeEventProvider;
-import fr.zelus.jarvis.io.RuntimeIntentProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeIntentProvider;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
 import org.apache.commons.configuration2.Configuration;
@@ -112,8 +112,6 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code configuration} is {@code
      *                                  null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
-     * @see JarvisRTMMessageHandler
-     * @see JarvisRTMCloseHandler
      */
     public SlackIntentProvider(SlackPlatform runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);

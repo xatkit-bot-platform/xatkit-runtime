@@ -6,7 +6,7 @@ import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.io.RuntimeEventProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
 
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ import static java.util.Objects.nonNull;
  * An abstract {@link RuntimeAction} processing a message.
  * <p>
  * This class takes a {@link String} message as its constructor parameter, and relies on
- * {@link RuntimeContexts#(String)} to pre-process it and replace context variable
+ * {@link RuntimeContexts#fillContextValues(String)} to pre-process it and replace context variable
  * accesses by their concrete value.
  * <p>
  * This class is only responsible of the pre-processing of the provided message, and does not provide any method to

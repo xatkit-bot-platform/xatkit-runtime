@@ -61,7 +61,7 @@ public class RuntimeActionResult {
      * <p>
      * This constructor sets the {@code thrownException} attribute, meaning that calling {@link #isError()} on this
      * object will return {@code true}. The {@code partialResult} can be used to represent partial information that
-     * has been computed before the provided {@link Exception was thrown.
+     * has been computed before the provided {@link Exception} was thrown.
      * <p>
      * This constructor sets the {@code executionTime} attribute, that can be accessed through the
      * {@link #getExecutionTime()} method.

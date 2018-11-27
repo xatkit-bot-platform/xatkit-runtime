@@ -12,7 +12,7 @@ import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.PlatformDefinition;
 import fr.zelus.jarvis.platform.PlatformFactory;
-import fr.zelus.jarvis.recognition.dialogflow.DialogFlowApi;
+import fr.zelus.jarvis.core.recognition.dialogflow.DialogFlowApi;
 import fr.zelus.jarvis.stubs.StubRuntimePlatform;
 import fr.zelus.jarvis.test.util.models.TestExecutionModel;
 import fr.zelus.jarvis.test.util.models.TestIntentModel;

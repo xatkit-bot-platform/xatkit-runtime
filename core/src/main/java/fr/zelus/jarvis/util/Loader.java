@@ -4,7 +4,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.io.RuntimeEventProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
 import org.apache.commons.configuration2.Configuration;
 
 import java.lang.reflect.Constructor;
@@ -65,7 +65,7 @@ public class Loader {
      * @param parameters the concrete parameters of the constructor to call
      * @param <T>        the type of the {@link Class} to construct an instance of
      * @return the constructed instance
-     * @throws NoSuchMethodException if the provided {@clazz} does not define a constructor matching the provided
+     * @throws NoSuchMethodException if the provided {@code clazz} does not define a constructor matching the provided
      *                               {@code parameters}
      * @see #construct(Class, List, List)
      */

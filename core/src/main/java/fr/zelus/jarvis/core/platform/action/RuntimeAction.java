@@ -10,7 +10,7 @@ import java.util.concurrent.Callable;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
- * The concrete implementation of an {@link fr.zelus.jarvis.platform.Action} definition.
+ * The concrete implementation of an {@link fr.zelus.jarvis.platform.ActionDefinition} definition.
  * <p>
  * A {@link RuntimeAction} represents an atomic action that are automatically executed by the
  * {@link ExecutionService}
@@ -23,7 +23,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * <i>myPlatformPackage.action</i>
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the action
- * @see fr.zelus.jarvis.platform.Action
+ * @see fr.zelus.jarvis.platform.ActionDefinition
  * @see ExecutionService
  * @see RuntimePlatform
  */

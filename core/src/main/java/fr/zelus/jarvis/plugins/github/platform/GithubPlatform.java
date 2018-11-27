@@ -7,7 +7,7 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.io.RuntimeEventProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
 import org.apache.commons.configuration2.Configuration;
 
 import java.io.IOException;

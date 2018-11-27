@@ -1,6 +1,6 @@
 package fr.zelus.jarvis.stubs.io;
 
-import fr.zelus.jarvis.io.RuntimeEventProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
 import fr.zelus.jarvis.stubs.EmptyRuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 

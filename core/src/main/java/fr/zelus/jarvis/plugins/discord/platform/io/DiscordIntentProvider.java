@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.plugins.discord.platform.io;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.io.RuntimeIntentProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeIntentProvider;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform;
 import net.dv8tion.jda.core.JDA;

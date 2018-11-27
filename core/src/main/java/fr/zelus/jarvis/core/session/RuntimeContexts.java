@@ -5,7 +5,7 @@ import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.intent.Context;
 import fr.zelus.jarvis.intent.ContextParameterValue;
-import fr.zelus.jarvis.io.RuntimeEventProvider;
+import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -268,7 +268,7 @@ public class RuntimeContexts {
      * <p>
      * Context lifespan counts are set by {@link #setContextValue(String, int, String, Object)}, and decrementing after
      * each user input by {@link #decrementLifespanCounts()}, and are synchronized with the
-     * {@link fr.zelus.jarvis.recognition.IntentRecognitionProvider}'s remote context lifespan counts.
+     * {@link fr.zelus.jarvis.core.recognition.IntentRecognitionProvider}'s remote context lifespan counts.
      *
      * @param context the context to retrieve the lifespan count of
      * @return the lifespan count of the provided {@code context}
