@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.core;
+package fr.zelus.jarvis.core.platform.action;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import org.junit.Test;

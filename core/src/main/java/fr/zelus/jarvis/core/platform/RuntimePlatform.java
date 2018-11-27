@@ -1,6 +1,9 @@
-package fr.zelus.jarvis.core;
+package fr.zelus.jarvis.core.platform;
 
 import fr.inria.atlanmod.commons.log.Log;
+import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.*;

@@ -1,5 +1,6 @@
-package fr.zelus.jarvis.core;
+package fr.zelus.jarvis.core.platform.action;
 
+import fr.zelus.jarvis.core.ExecutionService;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.EventInstance;

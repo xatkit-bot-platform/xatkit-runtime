@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.core;
+package fr.zelus.jarvis.core.platform.action;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;
