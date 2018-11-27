@@ -75,7 +75,6 @@ public class DiscordIntentProviderTest extends AbstractJarvisTest {
         List<Object> listeners = discordIntentProvider.getJdaClient().getRegisteredListeners();
         softly.assertThat(listeners).as("JDA contains one listener").hasSize(1);
         softly.assertThat(listeners.get(0)).as("Listener is a PrivateMessageListener").isInstanceOf
-                (PrivateMessageListener
-                        .class);
+                (PrivateMessageListener.class);
     }
 }
