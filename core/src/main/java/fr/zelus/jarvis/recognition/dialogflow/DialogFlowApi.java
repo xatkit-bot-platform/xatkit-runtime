@@ -825,7 +825,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * calls to the remote DialogFlow API.
      *
      * @param dialogFlowSession the local {@link DialogFlowSession} to merge in the remote one
-     * @throws JarvisException if at least one of the local context values' type is not supported.
+     * @throws JarvisException      if at least one of the local context values' type is not supported
+     * @throws NullPointerException if the provided {@code dialogFlowSession} is {@code null}
      * @see #getIntent(String, JarvisSession)
      */
     public void mergeLocalSessionInDialogFlow(DialogFlowSession dialogFlowSession) {
