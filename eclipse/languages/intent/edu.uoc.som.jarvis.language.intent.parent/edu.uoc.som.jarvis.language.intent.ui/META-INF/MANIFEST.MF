@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: edu.uoc.som.jarvis.language.intent.ui
+Bundle-Vendor: SOM Research Lab
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: edu.uoc.som.jarvis.language.intent.ui; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: edu.uoc.som.jarvis.language.intent,
+ edu.uoc.som.jarvis.language.intent.ide,
+ edu.uoc.som.jarvis.intent,
+ org.eclipse.xtext.ui,
+ org.eclipse.xtext.ui.shared,
+ org.eclipse.xtext.ui.codetemplates.ui,
+ org.eclipse.ui.editors;bundle-version="3.5.0",
+ org.eclipse.ui.ide;bundle-version="3.5.0",
+ org.eclipse.ui,
+ org.eclipse.compare,
+ org.eclipse.xtext.builder,
+ org.eclipse.xtend.lib;resolution:=optional,
+ org.eclipse.xtext.xbase.lib
+Import-Package: org.apache.log4j
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: edu.uoc.som.jarvis.language.intent.ui.quickfix,
+ edu.uoc.som.jarvis.language.intent.ui.internal,
+ edu.uoc.som.jarvis.language.intent.ui.contentassist
+Bundle-Activator: edu.uoc.som.jarvis.language.intent.ui.internal.IntentActivator

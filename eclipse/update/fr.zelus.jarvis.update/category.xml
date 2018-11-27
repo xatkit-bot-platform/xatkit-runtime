@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<site>
-   <feature url="features/fr.zelus.jarvis.feature_1.0.0.qualifier.jar" id="fr.zelus.jarvis.feature" version="1.0.0.qualifier">
-      <category name="Jarvis"/>
-   </feature>
-   <category-def name="Jarvis" label="Jarvis"/>
-</site>

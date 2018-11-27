@@ -1,0 +1,56 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>edu.uoc.som.jarvis.language.execution</groupId>
+		<artifactId>edu.uoc.som.jarvis.language.execution.parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>edu.uoc.som.jarvis.language.execution.tests</artifactId>
+	<packaging>eclipse-test-plugin</packaging>
+
+	<dependencies>
+	
+		<!-- Eclipse -->
+		<!-- This dependency is only required to dynamically load the core Platforms -->
+		<!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
+		<dependency>
+		    <groupId>org.eclipse.platform</groupId>
+		    <artifactId>org.eclipse.core.runtime</artifactId>
+		</dependency>
+
+        <!-- jarvis Internal -->
+
+		<dependency>
+			<groupId>edu.uoc.som.jarvis</groupId>
+			<artifactId>execution</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>edu.uoc.som.jarvis</groupId>
+			<artifactId>core_resources</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>org.eclipse.xtend</groupId>
+				<artifactId>xtend-maven-plugin</artifactId>
+			</plugin>
+
+            <plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-surefire-plugin</artifactId>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>

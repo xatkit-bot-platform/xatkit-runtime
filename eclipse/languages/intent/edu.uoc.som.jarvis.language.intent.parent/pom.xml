@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>edu.uoc.som.jarvis</groupId>
+		<artifactId>languages</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../..</relativePath>
+	</parent>
+
+	<groupId>edu.uoc.som.jarvis.language.intent</groupId>
+	<artifactId>edu.uoc.som.jarvis.language.intent.parent</artifactId>
+
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>edu.uoc.som.jarvis.language.intent</module>
+		<module>edu.uoc.som.jarvis.language.intent.ide</module>
+		<module>edu.uoc.som.jarvis.language.intent.ui</module>
+		<module>edu.uoc.som.jarvis.language.intent.target</module>
+		<module>edu.uoc.som.jarvis.language.intent.tests</module>
+		<module>edu.uoc.som.jarvis.language.intent.ui.tests</module>
+	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>target-platform-configuration</artifactId>
+					<configuration>
+						<target>
+							<artifact>
+								<groupId>edu.uoc.som.jarvis.language.intent</groupId>
+								<artifactId>edu.uoc.som.jarvis.language.intent.target</artifactId>
+								<version>${project.version}</version>
+							</artifact>
+						</target>
+					</configuration>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+	</build>
+	
+</project>

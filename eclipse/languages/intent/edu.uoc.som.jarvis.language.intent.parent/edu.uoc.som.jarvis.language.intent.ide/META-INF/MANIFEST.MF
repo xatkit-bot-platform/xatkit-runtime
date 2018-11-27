@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: edu.uoc.som.jarvis.language.intent.ide
+Bundle-Vendor: SOM Research Lab
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: edu.uoc.som.jarvis.language.intent.ide; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: edu.uoc.som.jarvis.language.intent,
+ org.eclipse.xtext.ide,
+ org.eclipse.xtext.xbase.ide,
+ org.antlr.runtime,
+ edu.uoc.som.jarvis.intent;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: edu.uoc.som.jarvis.language.intent.ide.contentassist.antlr,
+ edu.uoc.som.jarvis.language.intent.ide.contentassist.antlr.internal
+
