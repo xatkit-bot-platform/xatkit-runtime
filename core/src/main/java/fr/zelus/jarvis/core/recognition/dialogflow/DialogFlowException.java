@@ -1,6 +1,6 @@
-package fr.zelus.jarvis.recognition.dialogflow;
+package fr.zelus.jarvis.core.recognition.dialogflow;
 
-import fr.zelus.jarvis.recognition.IntentRecognitionProviderException;
+import fr.zelus.jarvis.core.recognition.IntentRecognitionProviderException;
 
 /**
  * Wraps all the exceptions returned by the DialogFlow API.

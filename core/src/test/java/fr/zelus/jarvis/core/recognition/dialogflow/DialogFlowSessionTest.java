@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.recognition.dialogflow;
+package fr.zelus.jarvis.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
 import fr.zelus.jarvis.AbstractJarvisTest;

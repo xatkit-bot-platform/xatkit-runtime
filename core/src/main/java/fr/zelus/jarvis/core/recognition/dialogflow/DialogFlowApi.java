@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.recognition.dialogflow;
+package fr.zelus.jarvis.core.recognition.dialogflow;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.core.CredentialsProvider;
@@ -18,8 +18,8 @@ import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.intent.EntityType;
-import fr.zelus.jarvis.recognition.EntityMapper;
-import fr.zelus.jarvis.recognition.IntentRecognitionProvider;
+import fr.zelus.jarvis.core.recognition.EntityMapper;
+import fr.zelus.jarvis.core.recognition.IntentRecognitionProvider;
 import org.apache.commons.configuration2.Configuration;
 
 import java.io.FileInputStream;
