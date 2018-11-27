@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.plugins.discord.platform.io;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.io.IntentProvider;
+import fr.zelus.jarvis.io.RuntimeIntentProvider;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform;
 import net.dv8tion.jda.core.JDA;
@@ -13,7 +13,7 @@ import static fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils.DISCORD_TOKEN_K
 import static java.util.Objects.nonNull;
 
 /**
- * A Discord user {@link IntentProvider}.
+ * A Discord user {@link RuntimeIntentProvider}.
  * <p>
  * This class relies on the <a href="https://github.com/DV8FromTheWorld/JDA">JDA library</a> to receive direct
  * messages and react to them. Note that this input provider only captures direct messages (sent in private channels)
@@ -24,9 +24,9 @@ import static java.util.Objects.nonNull;
  * receive messages through the JDA client.
  *
  * @see JarvisDiscordUtils
- * @see IntentProvider
+ * @see RuntimeIntentProvider
  */
-public class DiscordIntentProvider extends IntentProvider<DiscordPlatform> {
+public class DiscordIntentProvider extends RuntimeIntentProvider<DiscordPlatform> {
 
     /**
      * The {@link String} representing the Discord bot API token.

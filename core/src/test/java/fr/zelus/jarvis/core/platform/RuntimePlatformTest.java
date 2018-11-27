@@ -102,14 +102,14 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProvider");
         runtimePlatform.startEventProvider(eventProviderDefinition);
-        assertThat(runtimePlatform.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
-        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
+        assertThat(runtimePlatform.getEventProviderMap()).as("Not empty RuntimeEventProvider map").isNotEmpty();
+        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid RuntimeEventProvider map " +
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
-        softly.assertThat(eventProviderThread.getEventProvider()).as("EventProvider in thread is valid").isInstanceOf
+        softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubInputProvider.class);
-        softly.assertThat(eventProviderThread.isAlive()).as("EventProvider thread is alive").isTrue();
+        softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
         assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
                 "providers in JarvisServer").isEmpty();
     }
@@ -119,14 +119,14 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubInputProviderNoConfigurationConstructor");
         runtimePlatform.startEventProvider(eventProviderDefinition);
-        assertThat(runtimePlatform.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
-        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
+        assertThat(runtimePlatform.getEventProviderMap()).as("Not empty RuntimeEventProvider map").isNotEmpty();
+        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid RuntimeEventProvider map " +
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
-        softly.assertThat(eventProviderThread.getEventProvider()).as("EventProvider in thread is valid").isInstanceOf
+        softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubInputProviderNoConfigurationConstructor.class);
-        softly.assertThat(eventProviderThread.isAlive()).as("EventProvider thread is alive").isTrue();
+        softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
         assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
                 "providers in JarvisServer").isEmpty();
     }
@@ -136,14 +136,14 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubJsonWebhookEventProvider");
         runtimePlatform.startEventProvider(eventProviderDefinition);
-        assertThat(runtimePlatform.getEventProviderMap()).as("Not empty EventProvider map").isNotEmpty();
-        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid EventProvider map " +
+        assertThat(runtimePlatform.getEventProviderMap()).as("Not empty RuntimeEventProvider map").isNotEmpty();
+        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid RuntimeEventProvider map " +
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
-        softly.assertThat(eventProviderThread.getEventProvider()).as("EventProvider in thread is valid").isInstanceOf
+        softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubJsonWebhookEventProvider.class);
-        softly.assertThat(eventProviderThread.isAlive()).as("EventProvider thread is alive").isTrue();
+        softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
         assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Webhook provider " +
                 "registered" + "in JarvisServer").hasSize(1);
         softly.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as
@@ -382,7 +382,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         runtimePlatform.shutdown();
         assertThat(runtimePlatform.getActions()).as("Empty Action map").isEmpty();
-        assertThat(runtimePlatform.getEventProviderMap()).as("Empty EventProvider map").isEmpty();
+        assertThat(runtimePlatform.getEventProviderMap()).as("Empty RuntimeEventProvider map").isEmpty();
     }
 
     private ActionDefinition getNoParameterActionDefinition() {

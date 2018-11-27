@@ -9,7 +9,7 @@ import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
 /**
- * A specialised {@link EventProvider} that extracts {@link RecognizedIntent} from textual user inputs.
+ * A specialised {@link RuntimeEventProvider} that extracts {@link RecognizedIntent} from textual user inputs.
  * <p>
  * This class wraps a {@link IntentRecognitionProvider} instance that is used to extract {@link RecognizedIntent}s
  * from textual user inputs. Note that the {@link IntentRecognitionProvider} instance is not directly accessible by
@@ -19,35 +19,35 @@ import org.apache.commons.configuration2.Configuration;
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
  */
-public abstract class IntentProvider<T extends RuntimePlatform> extends EventProvider<T> {
+public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends RuntimeEventProvider<T> {
 
     /**
      * The {@link IntentRecognitionProvider} used to parse user input and retrieve {@link RecognizedIntent}s.
      * <p>
      * <b>Note:</b> this attribute is {@code private} to avoid uncontrolled accesses to the
-     * {@link IntentRecognitionProvider} from {@link IntentProvider}s (such as intent creation, removal, and context
+     * {@link IntentRecognitionProvider} from {@link RuntimeIntentProvider}s (such as intent creation, removal, and context
      * manipulation).
      */
     private IntentRecognitionProvider intentRecognitionProvider;
 
     /**
-     * Constructs a new {@link IntentProvider} from the provided {@code jarvisCore}.
+     * Constructs a new {@link RuntimeIntentProvider} from the provided {@code jarvisCore}.
      * <p>
      * This constructor sets the internal {@link IntentRecognitionProvider} instance that is used to parse user input
      * and retrieve {@link RecognizedIntent}s.
      * <p>
-     * <b>Note</b>: this constructor should be used by {@link IntentProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #IntentProvider(RuntimePlatform, Configuration)}.
+     * <b>Note</b>: this constructor should be used by {@link RuntimeIntentProvider}s that do not require additional
+     * parameters to be initialized. In that case see {@link #RuntimeIntentProvider(RuntimePlatform, Configuration)}.
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link IntentProvider}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeIntentProvider}
      * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public IntentProvider(T runtimePlatform) {
+    public RuntimeIntentProvider(T runtimePlatform) {
         this(runtimePlatform, new BaseConfiguration());
     }
 
     /**
-     * Constructs a new {@link IntentProvider} with the provided {@code runtimePlatform} and {@code configuration}.
+     * Constructs a new {@link RuntimeIntentProvider} with the provided {@code runtimePlatform} and {@code configuration}.
      * <p>
      * This constructor sets the internal {@link IntentRecognitionProvider} instance that is used to parse user input
      * and retrieve {@link RecognizedIntent}s.
@@ -56,11 +56,11 @@ public abstract class IntentProvider<T extends RuntimePlatform> extends EventPro
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link IntentProvider}
-     * @param configuration    the {@link Configuration} used to initialize the {@link IntentProvider}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeIntentProvider}
+     * @param configuration    the {@link Configuration} used to initialize the {@link RuntimeIntentProvider}
      * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public IntentProvider(T runtimePlatform, Configuration configuration) {
+    public RuntimeIntentProvider(T runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
         this.intentRecognitionProvider = jarvisCore.getIntentRecognitionProvider();
     }
@@ -69,7 +69,7 @@ public abstract class IntentProvider<T extends RuntimePlatform> extends EventPro
      * Returns the {@link RecognizedIntent} from the provided user {@code input} and {@code session}.
      * <p>
      * This method wraps the access to the underlying {@link IntentRecognitionProvider}, and avoid uncontrolled
-     * accesses to the {@link IntentRecognitionProvider} from {@link IntentProvider}s (such as intent creation,
+     * accesses to the {@link IntentRecognitionProvider} from {@link RuntimeIntentProvider}s (such as intent creation,
      * removal, and context manipulation).
      * <p>
      * <b>Note:</b> this method decrements the lifespan counts of the variables in the current context (context

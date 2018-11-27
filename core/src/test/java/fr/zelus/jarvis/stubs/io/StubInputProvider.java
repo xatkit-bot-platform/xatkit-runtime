@@ -1,10 +1,10 @@
 package fr.zelus.jarvis.stubs.io;
 
-import fr.zelus.jarvis.io.EventProvider;
+import fr.zelus.jarvis.io.RuntimeEventProvider;
 import fr.zelus.jarvis.stubs.EmptyRuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 
-public class StubInputProvider extends EventProvider<EmptyRuntimePlatform> {
+public class StubInputProvider extends RuntimeEventProvider<EmptyRuntimePlatform> {
 
     public StubInputProvider(EmptyRuntimePlatform runtimePlatform) {
         super(runtimePlatform);

@@ -8,7 +8,7 @@ import org.apache.http.Header;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
- * A specialised {@link EventProvider} that handles HTTP requests sent by the
+ * A specialised {@link RuntimeEventProvider} that handles HTTP requests sent by the
  * {@link fr.zelus.jarvis.server.JarvisServer}.
  * <p>
  * This class defines primitives to handle raw HTTP request contents, manipulate the parsed content, and provides an
@@ -17,7 +17,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
  * @param <C> the type of the parsed HTTP request content
  */
-public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends EventProvider<T> {
+public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends RuntimeEventProvider<T> {
 
     /**
      * Constructs a new {@link WebhookEventProvider} with the provided {@code runtimePlatform}.

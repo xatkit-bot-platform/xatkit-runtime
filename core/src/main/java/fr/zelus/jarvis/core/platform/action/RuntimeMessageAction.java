@@ -6,6 +6,7 @@ import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
 import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.io.RuntimeEventProvider;
 
 import java.io.IOException;
 
@@ -82,7 +83,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * <p>
      * This method relies on {@link #getClientSession()} to retrieve the {@link JarvisSession} associated to the
      * client of the message, and merges the current {@code session} with the client one if they are different.
-     * This allows to pass client-independent context variables (e.g. from {@link fr.zelus.jarvis.io.EventProvider}s)
+     * This allows to pass client-independent context variables (e.g. from {@link RuntimeEventProvider}s)
      * to new client sessions.
      *
      * @throws JarvisException if the provided {@code session} is different from the {@link #getClientSession()} and
@@ -205,7 +206,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * Returns the {@link JarvisSession} associated to the client of the message to send.
      * <p>
      * This method is used by the {@link RuntimeMessageAction} constructor to pass client-independent context
-     * variables (e.g. from {@link fr.zelus.jarvis.io.EventProvider}s) to the client session.
+     * variables (e.g. from {@link RuntimeEventProvider}s) to the client session.
      *
      * @return the {@link JarvisSession} associated to the client of the message to send
      */

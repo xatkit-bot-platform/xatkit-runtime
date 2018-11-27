@@ -8,7 +8,7 @@ import fr.zelus.jarvis.core.session.JarvisContext;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.io.EventProvider;
+import fr.zelus.jarvis.io.RuntimeEventProvider;
 import fr.zelus.jarvis.io.WebhookEventProvider;
 import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
@@ -51,7 +51,7 @@ public abstract class RuntimePlatform {
     /**
      * The {@link Configuration} used to initialize this class.
      * <p>
-     * This {@link Configuration} is used by the {@link RuntimePlatform} to initialize the {@link EventProvider}s and
+     * This {@link Configuration} is used by the {@link RuntimePlatform} to initialize the {@link RuntimeEventProvider}s and
      * {@link RuntimeAction}s.
      *
      * @see #startEventProvider(EventProviderDefinition)
@@ -73,7 +73,7 @@ public abstract class RuntimePlatform {
     /**
      * The {@link Map} containing the {@link EventProviderThread}s associated to this platform.
      * <p>
-     * This {@link Map} filled when new {@link EventProvider}s are started (see
+     * This {@link Map} filled when new {@link RuntimeEventProvider}s are started (see
      * {@link #startEventProvider(EventProviderDefinition)}), and is used to cache
      * {@link EventProviderThread}s and stop them when the platform is {@link #shutdown()}.
      *
@@ -141,19 +141,19 @@ public abstract class RuntimePlatform {
     }
 
     /**
-     * Starts the {@link EventProvider} corresponding to the provided {@code eventProviderDefinition}.
+     * Starts the {@link RuntimeEventProvider} corresponding to the provided {@code eventProviderDefinition}.
      * <p>
-     * This method dynamically loads the {@link EventProvider} corresponding to the provided {@code
+     * This method dynamically loads the {@link RuntimeEventProvider} corresponding to the provided {@code
      * eventProviderDefinition}, and starts it in a dedicated {@link Thread}.
      * <p>
      * This method also registers {@link WebhookEventProvider}s to the underlying {@link JarvisServer} (see
      * {@link JarvisServer#registerWebhookEventProvider(WebhookEventProvider)}).
      *
-     * @param eventProviderDefinition the {@link EventProviderDefinition} representing the {@link EventProvider} to
+     * @param eventProviderDefinition the {@link EventProviderDefinition} representing the {@link RuntimeEventProvider} to
      *                                start
      * @throws NullPointerException if the provided {@code eventProviderDefinition} or {@code jarvisCore} is {@code
      *                              null}
-     * @see EventProvider#run()
+     * @see RuntimeEventProvider#run()
      * @see JarvisServer#registerWebhookEventProvider(WebhookEventProvider)
      */
     public final void startEventProvider(EventProviderDefinition eventProviderDefinition) {
@@ -164,18 +164,18 @@ public abstract class RuntimePlatform {
         Log.info("Starting {0}", eventProviderDefinition.getName());
         String eventProviderQualifiedName = this.getClass().getPackage().getName() + ".io." + eventProviderDefinition
                 .getName();
-        Class<? extends EventProvider> eventProviderClass = Loader.loadClass(eventProviderQualifiedName,
-                EventProvider.class);
-        EventProvider eventProvider = Loader.constructEventProvider(eventProviderClass, this, configuration);
-        if (eventProvider instanceof WebhookEventProvider) {
+        Class<? extends RuntimeEventProvider> eventProviderClass = Loader.loadClass(eventProviderQualifiedName,
+                RuntimeEventProvider.class);
+        RuntimeEventProvider runtimeEventProvider = Loader.constructRuntimeEventProvider(eventProviderClass, this, configuration);
+        if (runtimeEventProvider instanceof WebhookEventProvider) {
             /*
              * Register the WebhookEventProvider in the JarvisServer
              */
-            Log.info("Registering {0} in the {1}", eventProvider, JarvisServer.class.getSimpleName());
-            jarvisCore.getJarvisServer().registerWebhookEventProvider((WebhookEventProvider) eventProvider);
+            Log.info("Registering {0} in the {1}", runtimeEventProvider, JarvisServer.class.getSimpleName());
+            jarvisCore.getJarvisServer().registerWebhookEventProvider((WebhookEventProvider) runtimeEventProvider);
         }
-        Log.info("Starting EventProvider {0}", eventProviderClass.getSimpleName());
-        EventProviderThread eventProviderThread = new EventProviderThread(eventProvider);
+        Log.info("Starting RuntimeEventProvider {0}", eventProviderClass.getSimpleName());
+        EventProviderThread eventProviderThread = new EventProviderThread(runtimeEventProvider);
         eventProviderMap.put(eventProviderDefinition.getName(), eventProviderThread);
         eventProviderThread.start();
     }
@@ -294,22 +294,22 @@ public abstract class RuntimePlatform {
     /**
      * Shuts down the {@link RuntimePlatform}.
      * <p>
-     * This method attempts to terminate all the running {@link EventProvider} threads, close the corresponding
-     * {@link EventProvider}s, and disables all the platform's actions.
+     * This method attempts to terminate all the running {@link RuntimeEventProvider} threads, close the corresponding
+     * {@link RuntimeEventProvider}s, and disables all the platform's actions.
      *
-     * @see EventProvider#close()
+     * @see RuntimeEventProvider#close()
      * @see #disableAllActions()
      */
     public void shutdown() {
         Collection<EventProviderThread> threads = this.eventProviderMap.values();
         for (EventProviderThread thread : threads) {
-            thread.getEventProvider().close();
+            thread.getRuntimeEventProvider().close();
             thread.interrupt();
             try {
                 thread.join(1000);
             } catch (InterruptedException e) {
                 Log.warn("Caught an {0} while waiting for {1} thread to finish", e.getClass().getSimpleName(), thread
-                        .getEventProvider().getClass().getSimpleName());
+                        .getRuntimeEventProvider().getClass().getSimpleName());
             }
         }
         this.eventProviderMap.clear();
@@ -414,34 +414,34 @@ public abstract class RuntimePlatform {
     }
 
     /**
-     * The {@link Thread} class used to start {@link EventProvider}s.
+     * The {@link Thread} class used to start {@link RuntimeEventProvider}s.
      * <p>
      * <b>Note:</b> this class is protected for testing purposes, and should not be called by client code.
      */
     protected static class EventProviderThread extends Thread {
 
         /**
-         * The {@link EventProvider} run by this {@link Thread}.
+         * The {@link RuntimeEventProvider} run by this {@link Thread}.
          */
-        private EventProvider eventProvider;
+        private RuntimeEventProvider runtimeEventProvider;
 
         /**
-         * Constructs a new {@link EventProviderThread} to run the provided {@code eventProvider}
+         * Constructs a new {@link EventProviderThread} to run the provided {@code runtimeEventProvider}
          *
-         * @param eventProvider the {@link EventProvider} to run
+         * @param runtimeEventProvider the {@link RuntimeEventProvider} to run
          */
-        public EventProviderThread(EventProvider eventProvider) {
-            super(eventProvider);
-            this.eventProvider = eventProvider;
+        public EventProviderThread(RuntimeEventProvider runtimeEventProvider) {
+            super(runtimeEventProvider);
+            this.runtimeEventProvider = runtimeEventProvider;
         }
 
         /**
-         * Returns the {@link EventProvider} run by this {@link Thread}.
+         * Returns the {@link RuntimeEventProvider} run by this {@link Thread}.
          *
-         * @return the {@link EventProvider} run by this {@link Thread}
+         * @return the {@link RuntimeEventProvider} run by this {@link Thread}
          */
-        public EventProvider getEventProvider() {
-            return eventProvider;
+        public RuntimeEventProvider getRuntimeEventProvider() {
+            return runtimeEventProvider;
         }
 
     }

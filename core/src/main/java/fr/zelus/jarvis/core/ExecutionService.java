@@ -12,6 +12,7 @@ import fr.zelus.jarvis.intent.ContextInstance;
 import fr.zelus.jarvis.intent.ContextParameterValue;
 import fr.zelus.jarvis.intent.EventDefinition;
 import fr.zelus.jarvis.intent.EventInstance;
+import fr.zelus.jarvis.io.RuntimeEventProvider;
 import fr.zelus.jarvis.platform.PlatformDefinition;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
@@ -28,7 +29,7 @@ import static java.util.Objects.nonNull;
  * A service that handles {@link EventInstance}s and executes the corresponding {@link RuntimeAction}s defined in the
  * provided {@link ExecutionModel}.
  * <p>
- * This class defines Jarvis' execution logic: {@link fr.zelus.jarvis.io.EventProvider}s typically call the
+ * This class defines Jarvis' execution logic: {@link RuntimeEventProvider}s typically call the
  * {@link #handleEventInstance(EventInstance, JarvisSession)} method to process a retrieved {@link EventInstance},
  * and trigger the {@link RuntimeAction}s that are associated to it in the {@link ExecutionModel}.
  * <p>
@@ -137,7 +138,7 @@ public class ExecutionService {
      * context variables defined by an action are available for the next ones).
      * <p>
      * Exceptions thrown from the computed {@link RuntimeAction}s are logged and ignored, so the calling
-     * {@link fr.zelus.jarvis.io.EventProvider} does not have to handle the exception, and can process the next event.
+     * {@link RuntimeEventProvider} does not have to handle the exception, and can process the next event.
      * <p>
      * The created task also registers the output context values to the provided {@code session}, making them
      * available for the computed actions.

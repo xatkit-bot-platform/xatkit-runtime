@@ -11,7 +11,7 @@ import fr.zelus.jarvis.execution.ExecutionModel;
 import fr.zelus.jarvis.execution.ExecutionPackage;
 import fr.zelus.jarvis.execution.ExecutionRule;
 import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.io.EventProvider;
+import fr.zelus.jarvis.io.RuntimeEventProvider;
 import fr.zelus.jarvis.platform.ActionDefinition;
 import fr.zelus.jarvis.platform.EventProviderDefinition;
 import fr.zelus.jarvis.platform.PlatformDefinition;
@@ -162,7 +162,7 @@ public class JarvisCore {
      * Constructs a new {@link JarvisCore} instance from the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following key (note that additional values may
-     * be required according to the used {@link EventProvider}s and {@link RuntimePlatform}s):
+     * be required according to the used {@link RuntimeEventProvider}s and {@link RuntimePlatform}s):
      * <ul>
      * <li><b>jarvis.execution.model</b>: the {@link ExecutionModel} defining the Intent to
      * Action bindings (or the string representing its location)</li>

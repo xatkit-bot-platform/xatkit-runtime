@@ -7,6 +7,7 @@ import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
+import fr.zelus.jarvis.io.RuntimeEventProvider;
 import org.apache.commons.configuration2.Configuration;
 
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class GithubPlatform extends RuntimePlatform {
      * This client is initialized from the provided {@link Configuration}, and can be {@code null} if the
      * authentication failed or if the {@link Configuration} does not define any credentials information. Note that
      * {@link GithubPlatform} initialized with no credentials can still be used to construct Github-related
-     * {@link fr.zelus.jarvis.io.EventProvider}s.
+     * {@link RuntimeEventProvider}s.
      */
     private Github githubClient;
 
@@ -81,7 +82,7 @@ public class GithubPlatform extends RuntimePlatform {
      * Github API.
      * <p>
      * {@link GithubPlatform} initialized with no credentials can still be used to construct Github-related
-     * {@link fr.zelus.jarvis.io.EventProvider}s, that will work as expected. Note that if the provided
+     * {@link RuntimeEventProvider}s, that will work as expected. Note that if the provided
      * {@link Configuration} defines credentials the constructed {@link GithubPlatform} will check that these
      * credentials are valid.
      *

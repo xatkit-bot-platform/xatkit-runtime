@@ -11,7 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An abstract class representing user input providers.
  * <p>
  * Concrete implementations of this class are dynamically instantiated by the {@link JarvisCore} component, and use
- * it to notify the engine about new messages to handle. Note that {@link EventProvider} instances are
+ * it to notify the engine about new messages to handle. Note that {@link RuntimeEventProvider} instances are
  * started in a dedicated {@link Thread}.
  * <p>
  * Instances of this class can be configured using the {@link Configuration}-based constructor, that enable to pass
@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
  */
-public abstract class EventProvider<T extends RuntimePlatform> implements Runnable {
+public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements Runnable {
 
     /**
      * The {@link JarvisCore} instance used to handle events.
@@ -34,30 +34,30 @@ public abstract class EventProvider<T extends RuntimePlatform> implements Runnab
     protected T runtimePlatform;
 
     /**
-     * Constructs a new {@link EventProvider} with the provided {@code runtimePlatform}.
+     * Constructs a new {@link RuntimeEventProvider} with the provided {@code runtimePlatform}.
      * <p>
-     * <b>Note</b>: this constructor should be used by {@link EventProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #EventProvider(RuntimePlatform, Configuration)}.
+     * <b>Note</b>: this constructor should be used by {@link RuntimeEventProvider}s that do not require additional
+     * parameters to be initialized. In that case see {@link #RuntimeEventProvider(RuntimePlatform, Configuration)}.
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link EventProvider}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}
      * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public EventProvider(T runtimePlatform) {
+    public RuntimeEventProvider(T runtimePlatform) {
         this(runtimePlatform, new BaseConfiguration());
     }
 
     /**
-     * Constructs a new {@link EventProvider} with the provided {@code runtimePlatform} and {@code configuration}.
+     * Constructs a new {@link RuntimeEventProvider} with the provided {@code runtimePlatform} and {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
      * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link EventProvider}
-     * @param configuration    the {@link Configuration} used to initialize the {@link EventProvider}
+     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}
+     * @param configuration    the {@link Configuration} used to initialize the {@link RuntimeEventProvider}
      * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
-    public EventProvider(T runtimePlatform, Configuration configuration) {
+    public RuntimeEventProvider(T runtimePlatform, Configuration configuration) {
         /*
          * Do nothing with the configuration, it can be used by subclasses that require additional initialization
          * information.
@@ -69,16 +69,16 @@ public abstract class EventProvider<T extends RuntimePlatform> implements Runnab
     }
 
     /**
-     * Returns the {@link RuntimePlatform} containing this {@link EventProvider}.
+     * Returns the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}.
      *
-     * @return the {@link RuntimePlatform} containing this {@link EventProvider}
+     * @return the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}
      */
     public T getRuntimePlatform() {
         return runtimePlatform;
     }
 
     /**
-     * Closes the {@link EventProvider} and releases internal resources.
+     * Closes the {@link RuntimeEventProvider} and releases internal resources.
      * <p>
      * This method should be overridden by concrete subclasses that manipulate internal resources that require to be
      * explicitly closed.

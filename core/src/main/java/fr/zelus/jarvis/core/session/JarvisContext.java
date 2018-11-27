@@ -5,7 +5,7 @@ import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.action.RuntimeAction;
 import fr.zelus.jarvis.intent.Context;
 import fr.zelus.jarvis.intent.ContextParameterValue;
-import fr.zelus.jarvis.io.EventProvider;
+import fr.zelus.jarvis.io.RuntimeEventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -28,7 +28,7 @@ import static java.util.Objects.nonNull;
  * This class stores the different variables that can be set during user input processing and accessed by executed
  * {@link RuntimeAction}. {@link JarvisContext} is used to store:
  * <ul>
- * <li><b>{@link EventProvider} values</b> such as the user name, the channel where the
+ * <li><b>{@link RuntimeEventProvider} values</b> such as the user name, the channel where the
  * message was received, etc</li>
  * <li><b>Intent recognition values</b>, that are computed by the Intent recognition engine and used to pass
  * information between messages</li>
@@ -175,7 +175,7 @@ public class JarvisContext {
                 /*
                  * The provided lifespanCount is greater than the stored one, this means that we are dealing with a
                  * new context (i.e. a new Intent recognized from the IntentRecognitionProvider or a new Event
-                 * received by an EventProvider). Override the current value to keep the variable alive.
+                 * received by an RuntimeEventProvider). Override the current value to keep the variable alive.
                  */
                 Log.info("Overriding context {0} lifespanCount (previous: {1}, new: {2})", context, currentLifespan,
                         lifespanCount);
@@ -200,7 +200,7 @@ public class JarvisContext {
      * <p>
      * This method extracts the context name and parameter key from the provided {@link ContextParameterValue}, by
      * navigating its {@link fr.zelus.jarvis.intent.ContextParameter} and {@link Context} references. This method is
-     * used as syntactic sugar to register {@link ContextParameterValue}s received from {@link EventProvider}s, see
+     * used as syntactic sugar to register {@link ContextParameterValue}s received from {@link RuntimeEventProvider}s, see
      * {@link #setContextValue(String, int, String, Object)} to register a context value from {@link String} values.
      *
      * @param contextParameterValue the {@link ContextParameterValue} to store in the context.

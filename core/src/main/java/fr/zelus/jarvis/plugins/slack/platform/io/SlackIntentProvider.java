@@ -17,8 +17,8 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.RecognizedIntent;
-import fr.zelus.jarvis.io.EventProvider;
-import fr.zelus.jarvis.io.IntentProvider;
+import fr.zelus.jarvis.io.RuntimeEventProvider;
+import fr.zelus.jarvis.io.RuntimeIntentProvider;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
 import org.apache.commons.configuration2.Configuration;
@@ -44,9 +44,9 @@ import static java.util.Objects.nonNull;
  * messages through the RTM API.
  *
  * @see JarvisSlackUtils
- * @see EventProvider
+ * @see RuntimeEventProvider
  */
-public class SlackIntentProvider extends IntentProvider<SlackPlatform> {
+public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
 
     /**
      * The default username returned by {@link #getUsernameFromUserId(String)}.
