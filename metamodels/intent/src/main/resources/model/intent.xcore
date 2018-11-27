@@ -1,6 +1,6 @@
-@Ecore(nsURI="fr.zelus.jarvis.intent")
+@Ecore(nsURI="edu.uoc.som.jarvis.intent")
 @GenModel(modelDirectory="/intent/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
-package fr.zelus.jarvis.intent
+package edu.uoc.som.jarvis.intent
 
 class Library {
 	String name

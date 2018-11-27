@@ -1,8 +1,8 @@
-@Ecore(nsURI="fr.zelus.jarvis.platform")
+@Ecore(nsURI="edu.uoc.som.jarvis.platform")
 @GenModel(modelDirectory="/platform/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
-package fr.zelus.jarvis.platform
+package edu.uoc.som.jarvis.platform
 
-import fr.zelus.jarvis.intent.EventDefinition
+import edu.uoc.som.jarvis.intent.EventDefinition
 
 class PlatformDefinition {
     String name

@@ -1,6 +1,6 @@
 Platform SlackPlatform
 
-path "fr.zelus.jarvis.plugins.slack.platform.SlackPlatform"
+path "edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform"
 
 providers {
 	input SlackIntentProvider

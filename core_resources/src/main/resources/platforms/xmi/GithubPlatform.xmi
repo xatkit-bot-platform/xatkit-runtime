@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="fr.zelus.jarvis.platform" name="GithubPlatform" runtimePath="fr.zelus.jarvis.plugins.github.platform.GithubPlatform">
+<platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="edu.uoc.som.jarvis.platform" name="GithubPlatform" runtimePath="edu.uoc.som.jarvis.plugins.github.platform.GithubPlatform">
   <eventProviderDefinitions name="GithubWebhookEventProvider">
     <eventDefinitions name="Issue_Opened">
       <outContexts name="issue">

@@ -1,6 +1,6 @@
 Platform CorePlatform
 
-path "fr.zelus.jarvis.plugins.core.platform.CorePlatform"
+path "edu.uoc.som.jarvis.plugins.core.platform.CorePlatform"
 
 actions {
 	GetTime

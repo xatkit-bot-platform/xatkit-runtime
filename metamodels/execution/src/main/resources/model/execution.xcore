@@ -1,11 +1,11 @@
-@Ecore(nsURI="fr.zelus.jarvis.execution")
+@Ecore(nsURI="edu.uoc.som.jarvis.execution")
 @GenModel(modelDirectory="/execution/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
-package fr.zelus.jarvis.execution
+package edu.uoc.som.jarvis.execution
 
-import fr.zelus.jarvis.platform.ActionDefinition
-import fr.zelus.jarvis.platform.EventProviderDefinition
-import fr.zelus.jarvis.intent.EventDefinition
-import fr.zelus.jarvis.platform.Parameter
+import edu.uoc.som.jarvis.platform.ActionDefinition
+import edu.uoc.som.jarvis.platform.EventProviderDefinition
+import edu.uoc.som.jarvis.intent.EventDefinition
+import edu.uoc.som.jarvis.platform.Parameter
 
 class ExecutionModel {
     refers EventProviderDefinition[] eventProviderDefinitions

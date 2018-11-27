@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:platform="fr.zelus.jarvis.platform" name="DiscordPlatform" runtimePath="fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform">
+<platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:platform="edu.uoc.som.jarvis.platform" name="DiscordPlatform" runtimePath="edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform">
   <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="DiscordIntentProvider"/>
   <actions name="PostMessage">
     <parameters key="message"/>

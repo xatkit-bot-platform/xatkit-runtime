@@ -192,16 +192,15 @@
                         <groups>
                             <group>
                                 <title>Core</title>
-                                <packages>fr.zelus.jarvis.core:fr.zelus.jarvis.core.*</packages>
+                                <packages>edu.uoc.som.jarvis.core:edu.uoc.som.jarvis.core.*</packages>
                             </group>
                             <group>
                                 <title>Plugins</title>
-                                <packages>fr.zelus.jarvis.plugins*</packages>
+                                <packages>edu.uoc.som.jarvis.plugins*</packages>
                             </group>
                             <group>
                                 <title>Models</title>
-                                <packages>fr.zelus.jarvis.intent*:fr.zelus.jarvis.platform*:fr.zelus.jarvis
-                                    .execution*</packages>
+                                <packages>edu.uoc.som.jarvis.intent*:edu.uoc.som.jarvis.platform*:edu.uoc.som.jarvis.execution*</packages>
                             </group>
                         </groups>
                         <tags>

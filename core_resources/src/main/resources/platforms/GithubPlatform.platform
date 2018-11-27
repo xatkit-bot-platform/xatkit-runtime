@@ -1,5 +1,5 @@
 Platform GithubPlatform
-path "fr.zelus.jarvis.plugins.github.platform.GithubPlatform"
+path "edu.uoc.som.jarvis.plugins.github.platform.GithubPlatform"
 
 
 providers {

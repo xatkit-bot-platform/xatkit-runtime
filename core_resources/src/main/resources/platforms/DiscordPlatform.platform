@@ -1,6 +1,6 @@
 Platform DiscordPlatform
 
-path "fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform"
+path "edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform"
 
 providers {
 	input DiscordIntentProvider
