@@ -2,7 +2,7 @@ package fr.zelus.jarvis.plugins.discord.platform.action;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
 import fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform;
@@ -29,19 +29,19 @@ public class Reply extends PostMessage {
     /**
      * Returns the channel associated to the user input.
      * <p>
-     * This method searches in the provided {@link JarvisContext} for the values stored with the key
+     * This method searches in the provided {@link RuntimeContexts} for the values stored with the key
      * {@link JarvisDiscordUtils#DISCORD_CONTEXT_KEY}.{@link JarvisDiscordUtils#DISCORD_CHANNEL_CONTEXT_KEY}. Note
-     * that if the provided {@link JarvisContext} does not contain the requested value a {@link NullPointerException}
+     * that if the provided {@link RuntimeContexts} does not contain the requested value a {@link NullPointerException}
      * is thrown.
      *
-     * @param context the {@link JarvisContext} to retrieve the Discord channel from
+     * @param context the {@link RuntimeContexts} to retrieve the Discord channel from
      * @return the Discord channel associated to the user input
      * @throws NullPointerException     if the provided {@code context} is {@code null}, or if it does not contain the
      *                                  channel information
      * @throws IllegalArgumentException if the retrieved channel is not a {@link String}
      * @see JarvisDiscordUtils
      */
-    private static String getChannel(JarvisContext context) {
+    private static String getChannel(RuntimeContexts context) {
         Object channelValue = context.getContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
                 .DISCORD_CHANNEL_CONTEXT_KEY);
         checkNotNull(channelValue, "Cannot retrieve the Discord channel from the context");
@@ -62,6 +62,6 @@ public class Reply extends PostMessage {
      * @see PostMessage#PostMessage(DiscordPlatform, JarvisSession, String, String)
      */
     public Reply(DiscordPlatform runtimePlatform, JarvisSession session, String message) {
-        super(runtimePlatform, session, message, getChannel(session.getJarvisContext()));
+        super(runtimePlatform, session, message, getChannel(session.getRuntimeContexts()));
     }
 }

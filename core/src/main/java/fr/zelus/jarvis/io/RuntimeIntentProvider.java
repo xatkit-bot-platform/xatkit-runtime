@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.io;
 
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.RecognizedIntent;
 import fr.zelus.jarvis.recognition.IntentRecognitionProvider;
@@ -76,7 +76,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
      * lifespan are used to represent the number of user interaction to handled before deleting the variable).
      * <b>Client classes must call this method before setting any context variable</b> otherwise there lifespan
      * counts may be inconsistent from their expected values (e.g. context variables with a lifespan count of {@code
-     * 1} will be immediately removed by the {@link JarvisContext#decrementLifespanCounts()} call).
+     * 1} will be immediately removed by the {@link RuntimeContexts#decrementLifespanCounts()} call).
      *
      * @param input   the textual user input to extract the {@link RecognizedIntent} from
      * @param session the {@link JarvisSession} wrapping the underlying {@link IntentRecognitionProvider}'s session
@@ -95,7 +95,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
          * We are trying to recognize an intent from a new input, decrement the current context variables lifespan
          * counts.
          */
-        session.getJarvisContext().decrementLifespanCounts();
+        session.getRuntimeContexts().decrementLifespanCounts();
         return intentRecognitionProvider.getIntent(input, session);
     }
 }

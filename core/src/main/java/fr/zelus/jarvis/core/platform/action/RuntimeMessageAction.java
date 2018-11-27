@@ -4,7 +4,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.ExecutionService;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.io.RuntimeEventProvider;
 
@@ -17,7 +17,7 @@ import static java.util.Objects.nonNull;
  * An abstract {@link RuntimeAction} processing a message.
  * <p>
  * This class takes a {@link String} message as its constructor parameter, and relies on
- * {@link JarvisContext#(String)} to pre-process it and replace context variable
+ * {@link RuntimeContexts#(String)} to pre-process it and replace context variable
  * accesses by their concrete value.
  * <p>
  * This class is only responsible of the pre-processing of the provided message, and does not provide any method to
@@ -25,7 +25,7 @@ import static java.util.Objects.nonNull;
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the action
  * @see RuntimePlatform
- * @see JarvisContext
+ * @see RuntimeContexts
  */
 public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends RuntimeAction<T> {
 
@@ -46,11 +46,11 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
     /**
      * The processed message.
      * <p>
-     * This attribute is the result of calling {@link JarvisContext#fillContextValues(String)} on the
+     * This attribute is the result of calling {@link RuntimeContexts#fillContextValues(String)} on the
      * {@code rawMessage} constructor parameter. Concrete subclasses can use this attribute to print the processed
      * message to the end user.
      *
-     * @see JarvisContext#fillContextValues(String)
+     * @see RuntimeContexts#fillContextValues(String)
      * @see #getMessage()
      */
     protected String message;
@@ -59,7 +59,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * Constructs a new {@link RuntimeMessageAction} with the provided {@code runtimePlatform}, {@code session}, and
      * {@code rawMessage}.
      * <p>
-     * This constructor stores the result of calling {@link JarvisContext#fillContextValues(String)} on
+     * This constructor stores the result of calling {@link RuntimeContexts#fillContextValues(String)} on
      * the {@code rawMessage} parameter. Concreted subclasses can use this attribute to print the processed message to
      * the end user.
      *
@@ -69,13 +69,13 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code rawMessage} is {@code null} or empty
      * @see JarvisSession
-     * @see JarvisContext
+     * @see RuntimeContexts
      */
     public RuntimeMessageAction(T runtimePlatform, JarvisSession session, String rawMessage) {
         super(runtimePlatform, session);
         checkArgument(nonNull(rawMessage) && !rawMessage.isEmpty(), "Cannot construct a %s action with the provided " +
                 "message %s, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
-        this.message = session.getJarvisContext().fillContextValues(rawMessage);
+        this.message = session.getRuntimeContexts().fillContextValues(rawMessage);
     }
 
     /**
@@ -95,7 +95,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
         if (!clientSession.equals(session)) {
             Log.info("Merging {0} session to the client one", this.getClass().getSimpleName());
             try {
-                clientSession.getJarvisContext().merge(session.getJarvisContext());
+                clientSession.getRuntimeContexts().merge(session.getRuntimeContexts());
             } catch (JarvisException e) {
                 throw new JarvisException("Cannot construct the action {0}, the action session cannot be merged in " +
                         "the client one", e);

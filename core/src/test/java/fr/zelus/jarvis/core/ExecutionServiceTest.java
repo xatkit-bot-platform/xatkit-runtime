@@ -2,7 +2,7 @@ package fr.zelus.jarvis.core;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.ActionInstance;
 import fr.zelus.jarvis.execution.ExecutionFactory;
@@ -237,7 +237,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
          * Sleep to ensure that the Action has been processed.
          */
         Thread.sleep(1000);
-        JarvisContext context = session.getJarvisContext();
+        RuntimeContexts context = session.getRuntimeContexts();
         assertThat(context.getContextVariables("Context1")).as("Not null Context1 variable map").isNotNull();
         assertThat(context.getContextVariables("Context1").keySet()).as("Context1 variable map contains a single " +
                 "variable").hasSize(1);

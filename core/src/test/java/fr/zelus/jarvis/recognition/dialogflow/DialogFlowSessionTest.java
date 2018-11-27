@@ -2,7 +2,7 @@ package fr.zelus.jarvis.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
 import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -48,10 +48,10 @@ public class DialogFlowSessionTest extends AbstractJarvisTest {
     public void constructConfigurationWithContextProperty() {
         SessionName sessionName = getValidSessionName();
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 10);
+        configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         session = new DialogFlowSession(sessionName, configuration);
         checkDialogFlowSession(session, sessionName);
-        softly.assertThat(session.getJarvisContext().getVariableTimeout()).as("Valid JarvisContext variable timeout")
+        softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable timeout")
                 .isEqualTo(10);
     }
 
@@ -62,6 +62,6 @@ public class DialogFlowSessionTest extends AbstractJarvisTest {
     private void checkDialogFlowSession(DialogFlowSession session, SessionName expectedSessionName) {
         softly.assertThat(session.getSessionId()).as("Valid session ID").isEqualTo(expectedSessionName.toString());
         softly.assertThat(session.getSessionName()).as("Valid SessionName").isEqualTo(expectedSessionName);
-        softly.assertThat(session.getJarvisContext()).as("Not null context").isNotNull();
+        softly.assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
     }
 }

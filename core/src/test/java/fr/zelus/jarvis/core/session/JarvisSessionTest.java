@@ -39,16 +39,16 @@ public class JarvisSessionTest extends AbstractJarvisTest {
     @Test
     public void constructConfigurationWithContextProperty() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 10);
+        configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         session = new JarvisSession("session", configuration);
         checkJarvisSession(session);
-        softly.assertThat(session.getJarvisContext().getVariableTimeout()).as("Valid JarvisContext variable timeout")
+        softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable timeout")
                 .isEqualTo(10);
     }
 
     private void checkJarvisSession(JarvisSession session) {
         softly.assertThat(session.getSessionId()).as("Valid session ID").isEqualTo("session");
-        softly.assertThat(session.getJarvisContext()).as("Not null context").isNotNull();
-        softly.assertThat(session.getJarvisContext().getContextMap()).as("Empty context").isEmpty();
+        softly.assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
+        softly.assertThat(session.getRuntimeContexts().getContextMap()).as("Empty context").isEmpty();
     }
 }

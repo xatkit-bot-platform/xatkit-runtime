@@ -4,7 +4,7 @@ import com.google.cloud.dialogflow.v2.Intent;
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.AbstractJarvisTest;
 import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.test.util.VariableLoaderHelper;
@@ -640,11 +640,11 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void createSessionWithContextProperty() {
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 10);
+        configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         api = new DialogFlowApi(jarvisCore, configuration);
         JarvisSession session = api.createSession("sessionID");
         checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
-        softly.assertThat(session.getJarvisContext().getVariableTimeout()).as("Valid JarvisContext variable timeout")
+        softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable timeout")
                 .isEqualTo(10);
     }
 
@@ -666,7 +666,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     public void mergeLocalSessionInDialogFlowNotEmptySessionNotExistingOutContext() {
         api = getValidDialogFlowApi();
         JarvisSession session = api.createSession(UUID.randomUUID().toString());
-        session.getJarvisContext().setContextValue("context", 5, "key", "value");
+        session.getRuntimeContexts().setContextValue("context", 5, "key", "value");
         RecognizedIntent recognizedIntent = api.getIntent("Hello", session);
         assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context list").isEmpty();
     }
@@ -683,7 +683,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         jarvisCore.getEventDefinitionRegistry().registerEventDefinition(registeredIntentDefinition);
         String validContextName = VALID_OUT_CONTEXT.getName();
         String validParameterName = VALID_OUT_CONTEXT.getParameters().get(0).getName();
-        session.getJarvisContext().setContextValue(validContextName, 5, validParameterName, "test");
+        session.getRuntimeContexts().setContextValue(validContextName, 5, validParameterName, "test");
         RecognizedIntent recognizedIntent = api.getIntent("Hello", session);
         assertThat(recognizedIntent.getOutContextInstances()).as("Out context list contains 1 element").hasSize(1);
         ContextInstance contextInstance = recognizedIntent.getOutContextInstances().get(0);
@@ -922,7 +922,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     }
 
     @Test
-    public void getIntentInContextSetFromJarvisContext() {
+    public void getIntentInContextSetFromRuntimeContext() {
         /*
          * Change the training sentence to avoid deleted intent definition matching (deleted intents can take some
          * time to be completely removed from the DialogFlow Agent, see https://discuss.api
@@ -955,7 +955,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * Set the input context in the JarvisSession's local context. If the intent is matched the local session has
          * been successfully merged in the Dialogflow one.
          */
-        session.getJarvisContext().setContextValue(inContextName, 5, "testKey", "testValue");
+        session.getRuntimeContexts().setContextValue(inContextName, 5, "testKey", "testValue");
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();

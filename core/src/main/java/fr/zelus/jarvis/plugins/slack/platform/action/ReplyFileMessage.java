@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.plugins.slack.platform.action;
 
 import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
 
@@ -36,10 +36,10 @@ public class ReplyFileMessage extends PostFileMessage {
      *                                  {@code null}
      * @throws IllegalArgumentException if the provided {@code message} is {@code null} or empty, or if the provided
      *                                  {@code file} is {@code null} or does not exist
-     * @see Reply#getChannel(JarvisContext)
+     * @see Reply#getChannel(RuntimeContexts)
      * @see PostFileMessage#PostFileMessage(SlackPlatform, JarvisSession, String, File, String)
      */
     public ReplyFileMessage(SlackPlatform runtimePlatform, JarvisSession session, String message, File file) {
-        super(runtimePlatform, session, message, file, Reply.getChannel(session.getJarvisContext()));
+        super(runtimePlatform, session, message, file, Reply.getChannel(session.getRuntimeContexts()));
     }
 }

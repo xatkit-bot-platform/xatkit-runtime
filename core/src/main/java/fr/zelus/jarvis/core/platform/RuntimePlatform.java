@@ -4,7 +4,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.execution.*;
 import fr.zelus.jarvis.intent.EventInstance;
@@ -249,7 +249,7 @@ public abstract class RuntimePlatform {
      * @throws NullPointerException if the provided {@code actionInstance} or {@code session} is {@code null}
      * @throws JarvisException      if the provided {@link ActionInstance} does not match any {@link RuntimeAction},
      *                              or if an error occurred when building the {@link RuntimeAction}
-     * @see #getParameterValues(ActionInstance, JarvisContext)
+     * @see #getParameterValues(ActionInstance, RuntimeContexts)
      */
     public RuntimeAction createRuntimeAction(ActionInstance actionInstance, JarvisSession
             session) {
@@ -263,7 +263,7 @@ public abstract class RuntimePlatform {
             throw new JarvisException(MessageFormat.format("Cannot create the {0} {1}, the action is not " +
                     "loaded in the platform", RuntimeAction.class.getSimpleName(), actionDefinition.getName()));
         }
-        Object[] parameterValues = getParameterValues(actionInstance, session.getJarvisContext());
+        Object[] parameterValues = getParameterValues(actionInstance, session.getRuntimeContexts());
         /*
          * Append the mandatory parameters to the parameter values.
          */
@@ -337,7 +337,7 @@ public abstract class RuntimePlatform {
      *                         {@link ActionDefinition}'s {@link Parameter}s.
      * @see #createRuntimeAction(ActionInstance, JarvisSession)
      */
-    private Object[] getParameterValues(ActionInstance actionInstance, JarvisContext context) {
+    private Object[] getParameterValues(ActionInstance actionInstance, RuntimeContexts context) {
         ActionDefinition actionDefinition = actionInstance.getAction();
         List<Parameter> actionParameters = actionDefinition.getParameters();
         List<ParameterValue> actionInstanceParameterValues = actionInstance.getValues();

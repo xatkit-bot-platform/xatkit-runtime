@@ -111,7 +111,7 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
                 (VALID_EVENT_DEFINITION.getName());
         JarvisSession session = stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_ID);
         assertThat(session).as("Not null session").isNotNull();
-        Map<String, Object> discordContext = session.getJarvisContext().getContextVariables(JarvisDiscordUtils
+        Map<String, Object> discordContext = session.getRuntimeContexts().getContextVariables(JarvisDiscordUtils
                 .DISCORD_CONTEXT_KEY);
         assertThat(discordContext).as("Not null discord context").isNotNull();
         softly.assertThat(discordContext).as("Not empty discord context").isNotEmpty();

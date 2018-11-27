@@ -2,6 +2,7 @@ package fr.zelus.jarvis.plugins.discord;
 
 import fr.inria.atlanmod.commons.log.Log;
 import fr.zelus.jarvis.core.JarvisException;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform;
 import fr.zelus.jarvis.plugins.discord.platform.io.DiscordIntentProvider;
 import net.dv8tion.jda.core.AccountType;
@@ -29,17 +30,17 @@ public class JarvisDiscordUtils {
     public static String DISCORD_TOKEN_KEY = "jarvis.discord.token";
 
     /**
-     * The {@link fr.zelus.jarvis.core.session.JarvisContext} key used to store discord-related information.
+     * The {@link RuntimeContexts} key used to store discord-related information.
      */
     public static String DISCORD_CONTEXT_KEY = "discord";
 
     /**
-     * The {@link fr.zelus.jarvis.core.session.JarvisContext} variable key used to store discord channel information.
+     * The {@link RuntimeContexts} variable key used to store discord channel information.
      */
     public static String DISCORD_CHANNEL_CONTEXT_KEY = "channel";
 
     /**
-     * The {@link fr.zelus.jarvis.core.session.JarvisContext} variable key used to store discord username information.
+     * The {@link RuntimeContexts} variable key used to store discord username information.
      */
     public static String DISCORD_USERNAME_CONTEXT_KEY = "username";
 

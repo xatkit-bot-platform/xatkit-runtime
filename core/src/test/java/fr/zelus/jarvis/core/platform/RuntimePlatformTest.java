@@ -270,7 +270,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
-        session.getJarvisContext().setContextValue("variables", 5, "param", CompletableFuture.completedFuture("test"));
+        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture("test"));
         RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, session);
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf
                 (StubRuntimeActionTwoConstructors.class);
@@ -295,7 +295,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         JarvisSession session = new JarvisSession("sessionID");
         List<String> listParam = new ArrayList<>();
         listParam.add("test");
-        session.getJarvisContext().setContextValue("variables", 5, "param", CompletableFuture.completedFuture
+        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture
                 (listParam));
         RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, session);
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf
@@ -336,7 +336,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
         // Register an integer in the context, there is no constructor to handle it
-        session.getJarvisContext().setContextValue("variables", 5, "param", CompletableFuture.completedFuture(1));
+        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture(1));
         runtimePlatform.createRuntimeAction(actionInstance, session);
     }
 
@@ -365,9 +365,9 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         JarvisSession session = new JarvisSession("sessionID");
         List<String> listParam = new ArrayList<>();
         listParam.add("test");
-        session.getJarvisContext().setContextValue("variables", 5, "param", CompletableFuture.completedFuture
+        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture
                 (listParam));
-        session.getJarvisContext().setContextValue("variables", 5, "param2", CompletableFuture.completedFuture
+        session.getRuntimeContexts().setContextValue("variables", 5, "param2", CompletableFuture.completedFuture
                 (listParam));
         runtimePlatform.createRuntimeAction(actionInstance, session);
     }

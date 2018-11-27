@@ -16,64 +16,64 @@ import java.util.concurrent.Future;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class JarvisContextTest extends AbstractJarvisTest {
+public class RuntimeContextsTest extends AbstractJarvisTest {
 
-    private JarvisContext context;
+    private RuntimeContexts context;
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        context = new JarvisContext(null);
+        context = new RuntimeContexts(null);
     }
 
     @Test
     public void constructEmptyConfiguration() {
-        context = new JarvisContext(new BaseConfiguration());
-        checkJarvisContext(context);
+        context = new RuntimeContexts(new BaseConfiguration());
+        checkRuntimeContext(context);
         assertThat(context.getVariableTimeout()).as("Default variable timeout value").isEqualTo(2);
     }
 
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 10);
-        context = new JarvisContext(configuration);
-        checkJarvisContext(context);
+        configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
+        context = new RuntimeContexts(configuration);
+        checkRuntimeContext(context);
         assertThat(context.getVariableTimeout()).as("Valid variable timeout value").isEqualTo(10);
     }
 
     @Test
     public void constructValidContext() {
-        context = new JarvisContext();
-        checkJarvisContext(context);
+        context = new RuntimeContexts();
+        checkRuntimeContext(context);
     }
 
     @Test(expected = NullPointerException.class)
     public void setContextValueNullContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue(null, 5, "key", "value");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void setContextValueZeroLifespanCount() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 0, "key", "value");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void setContextValueNegativeLifespanCount() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", -1, "key", "value");
     }
 
     @Test(expected = NullPointerException.class)
     public void setContextValueNullKey() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, null, "value");
     }
 
     @Test
     public void setContextValueNullValue() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", null);
         checkContextMap(context, "context", "key", null);
         checkLifespanMap(context, "context",5);
@@ -81,7 +81,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void setContextValueValidValue() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         checkContextMap(context, "context", "key", "value");
         checkLifespanMap(context, "context", 5);
@@ -89,7 +89,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void setContextValueUpdateValueGreaterLifespanCount() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         context.setContextValue("context", 6, "key", "newValue");
         checkContextMap(context, "context", "key", "newValue");
@@ -98,7 +98,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void setContextValueUpdateValueLesserLifespanCount() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         context.setContextValue("context", 4, "key", "newValue");
         checkContextMap(context, "context", "key", "newValue");
@@ -107,20 +107,20 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void getContextVariablesNullContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.getContextVariables(null);
     }
 
     @Test
     public void getContextVariablesNotSetContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         Map<String, Object> contextVariables = context.getContextVariables("context");
         assertThat(contextVariables).as("Empty context variables").isEmpty();
     }
 
     @Test
     public void getContextVariablesSetContextSetKey() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         Map<String, Object> contextVariables = context.getContextVariables("context");
         assertThat(contextVariables).as("Not empty context variables").isNotEmpty();
@@ -130,26 +130,26 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void getContextValueNullContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.getContextValue(null, "key");
     }
 
     @Test(expected = NullPointerException.class)
     public void getContextValueNullKey() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.getContextValue("context", null);
     }
 
     @Test
     public void getContextValueNotSetContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         Object value = context.getContextValue("context", "key");
         assertThat(value).as("Null context value").isNull();
     }
 
     @Test
     public void getContextValueSetContextNotSetKey() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         Object value = context.getContextValue("context", "test");
         assertThat(value).as("Null context value").isNull();
@@ -157,7 +157,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void getContextValueSetContextSetKey() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         Object value = context.getContextValue("context", "key");
         assertThat(value).as("Not null context value").isNotNull();
@@ -166,19 +166,19 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void getContextLifespanCountNullContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.getContextLifespanCount(null);
     }
 
     @Test(expected = JarvisException.class)
     public void getContextLifespanCountNotSetContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.getContextLifespanCount("context");
     }
 
     @Test
     public void getContextLifespanCountSetContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         int lifespanCount = context.getContextLifespanCount("context");
         assertThat(lifespanCount).as("Valid lifespan count").isEqualTo(5);
@@ -186,7 +186,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void getContextLifespanCountUpdatedContextGreater() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 2, "key", "value");
         context.setContextValue("context", 5, "key", "value");
         int lifespanCount = context.getContextLifespanCount("context");
@@ -195,7 +195,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void getContextLifespanCountUpdatedContextLesser() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         context.setContextValue("context", 2, "key", "value");
         int lifespanCount = context.getContextLifespanCount("context");
@@ -204,7 +204,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void getContextLifespanCountDecrementedContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         context.decrementLifespanCounts();
         int lifespanCount = context.getContextLifespanCount("context");
@@ -213,7 +213,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test(expected = JarvisException.class)
     public void getContextLifespanCountFullyDecrementedContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 1, "key", "value");
         context.decrementLifespanCounts();
         context.getContextLifespanCount("context");
@@ -225,7 +225,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
          * This test ensures that the method does not have side effects on the context maps when there is no context
          * to decrement.
          */
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.decrementLifespanCounts();
         assertThat(context.getContextMap()).as("Empty context map").isEmpty();
         assertThat(context.getLifespanCountsMap()).as("Empty lifespan count map").isEmpty();
@@ -233,7 +233,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void decrementLifespanCountSingleContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         context.decrementLifespanCounts();
         assertThat(context.getLifespanCountsMap()).as("Lifespan count map contains 1 element").hasSize(1);
@@ -245,7 +245,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void decrementLifespanCountMultipleContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context1", 5, "key1", "value1");
         context.setContextValue("context2", 5, "key2", "value2");
         context.decrementLifespanCounts();
@@ -259,7 +259,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void decrementLifespanCountMultipleContextFullyDecrementOne() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context1", 1, "key1", "value1");
         context.setContextValue("context2", 5, "key2", "value2");
         context.decrementLifespanCounts();
@@ -272,7 +272,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void decrementLifespanCountFullyDecrementMultipleContexts() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context1", 2, "key1", "value1");
         context.setContextValue("context2", 2, "key2", "value2");
         context.decrementLifespanCounts();
@@ -282,25 +282,25 @@ public class JarvisContextTest extends AbstractJarvisTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void mergeNullJarvisContext() {
-        context = new JarvisContext();
+    public void mergeNullRuntimeContext() {
+        context = new RuntimeContexts();
         context.merge(null);
     }
 
     @Test(expected = JarvisException.class)
     public void mergeDuplicatedContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
-        JarvisContext context2 = new JarvisContext();
+        RuntimeContexts context2 = new RuntimeContexts();
         context2.setContextValue("context", 5, "key2", "value2");
         context.merge(context2);
     }
 
     @Test
     public void mergeEmptyTargetContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
-        context.merge(new JarvisContext());
+        context.merge(new RuntimeContexts());
         assertThat(context.getContextValue("context", "key")).as("Not null context value").isNotNull();
         assertThat(context.getContextValue("context", "key")).as("Valid context value").isEqualTo("value");
         assertThat(context.getContextLifespanCount("context")).as("Valid context lifespan count").isEqualTo(5);
@@ -308,8 +308,8 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void mergeEmptySourceContext() {
-        context = new JarvisContext();
-        JarvisContext context2 = new JarvisContext();
+        context = new RuntimeContexts();
+        RuntimeContexts context2 = new RuntimeContexts();
         context2.setContextValue("context", 5, "key", "value");
         context.merge(context2);
         assertThat(context.getContextValue("context", "key")).as("Not null merged context value").isNotNull();
@@ -319,9 +319,9 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void mergeNotEmptyContextsNoDuplicates() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 4, "key", "value");
-        JarvisContext context2 = new JarvisContext();
+        RuntimeContexts context2 = new RuntimeContexts();
         context2.setContextValue("context2", 5, "key2", "value2");
         context.merge(context2);
         assertThat(context.getContextValue("context", "key")).as("Not null context value").isNotNull();
@@ -334,8 +334,8 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void updateTargetContextAfterMerge() {
-        context = new JarvisContext();
-        JarvisContext context2 = new JarvisContext();
+        context = new RuntimeContexts();
+        RuntimeContexts context2 = new RuntimeContexts();
         context2.setContextValue("context2", 5, "key2", "value2");
         context.merge(context2);
         // Add a context
@@ -352,27 +352,27 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void fillContextValuesNullMessage() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.fillContextValues(null);
     }
 
     @Test
     public void fillContextValuesEmptyMessage() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         String result = context.fillContextValues("");
         assertThat(result).as("Empty result").isEmpty();
     }
 
     @Test
     public void fillContextValuesNotSetContext() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         String result = context.fillContextValues("{$context.test}");
         assertThat(result).as("Not replaced variable").isEqualTo("{$context.test}");
     }
 
     @Test
     public void fillContextValuesSetContextNotSetKey() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         String result = context.fillContextValues("{$context.test}");
         assertThat(result).as("Not replaced variable").isEqualTo("{$context.test}");
@@ -380,7 +380,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValuesSetContextSetKey() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         String result = context.fillContextValues("{$context.key}");
         assertThat(result).as("Replaced variable").isEqualTo("value");
@@ -388,7 +388,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValuesSetContextSetKeyLongMessage() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         String result = context.fillContextValues("This is a {$context.key} test");
         assertThat(result).as("Replaced variable").isEqualTo("This is a value test");
@@ -396,7 +396,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValuesSetContextSetKeyFuture() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         Future<String> f = CompletableFuture.completedFuture("value");
         context.setContextValue("context", 5, "key", f);
         String result = context.fillContextValues("This is a {$context.key} test");
@@ -405,7 +405,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValuesSetContextSetKeyFutureNotString() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         Future<Integer> f = CompletableFuture.completedFuture(1);
         context.setContextValue("context", 5, "key", f);
         String result = context.fillContextValues("This is a {$context.key} test");
@@ -414,7 +414,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValuesTwoValuesSetUnset() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         String result = context.fillContextValues("This is a {$context.key} test from {$context.test}");
         assertThat(result).as("First variable replaced / second variable ignored").isEqualTo("This is a value test " +
@@ -423,7 +423,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValuesTwoValuesSet() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         context.setContextValue("context", 5, "test", "testValue");
         String result = context.fillContextValues("This is a {$context.key} test from {$context.test}");
@@ -432,7 +432,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValuesNoSpace() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         context.setContextValue("context", 5, "key1", "value1");
         context.setContextValue("context", 5, "key2", "value2");
         String result = context.fillContextValues("{$context.key1}{$context.key2}");
@@ -441,7 +441,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValuesTwoFutureValuesSet() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         Future<String> valueFuture = CompletableFuture.completedFuture("value");
         Future<String> testValueFuture = CompletableFuture.completedFuture("testValue");
         context.setContextValue("context", 5, "key", valueFuture);
@@ -452,7 +452,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
 
     @Test
     public void fillContextValueSlowFuture() {
-        context = new JarvisContext();
+        context = new RuntimeContexts();
         Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
             synchronized (this) {
                 try {
@@ -474,8 +474,8 @@ public class JarvisContextTest extends AbstractJarvisTest {
     @Test
     public void fillContextValueSlowFutureCustomVariableTimeout() throws InterruptedException, ExecutionException {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 5);
-        context = new JarvisContext(configuration);
+        configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 5);
+        context = new RuntimeContexts(configuration);
         Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
             synchronized (this) {
                 try {
@@ -497,12 +497,12 @@ public class JarvisContextTest extends AbstractJarvisTest {
                 "{0}", futureValue));
     }
 
-    private void checkJarvisContext(JarvisContext context) {
+    private void checkRuntimeContext(RuntimeContexts context) {
         assertThat(context.getContextMap()).as("Not null context map").isNotNull();
         assertThat(context.getContextMap()).as("Empty context map").isEmpty();
     }
 
-    private void checkContextMap(JarvisContext context, String expectedContext, String expectedKey, Object
+    private void checkContextMap(RuntimeContexts context, String expectedContext, String expectedKey, Object
             expectedValue) {
         Map<String, Map<String, Object>> rawContext = context.getContextMap();
         assertThat(rawContext).as("Context map contains the set context").containsKey(expectedContext);
@@ -511,7 +511,7 @@ public class JarvisContextTest extends AbstractJarvisTest {
         assertThat(contextVariables.get(expectedKey)).as("Context map contains the value").isEqualTo(expectedValue);
     }
 
-    private void checkLifespanMap(JarvisContext context, String expectedContext, int expectedLifespanCount) {
+    private void checkLifespanMap(RuntimeContexts context, String expectedContext, int expectedLifespanCount) {
         Map<String, Integer> rawLifespanCounts = context.getLifespanCountsMap();
         assertThat(rawLifespanCounts).as("Context lifespan count map contains the set context").containsKey
                 (expectedContext);

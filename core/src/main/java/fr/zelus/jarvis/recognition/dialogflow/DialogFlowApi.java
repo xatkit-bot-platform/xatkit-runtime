@@ -15,6 +15,7 @@ import fr.zelus.jarvis.core.EventDefinitionRegistry;
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.JarvisException;
 import fr.zelus.jarvis.core.session.JarvisSession;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.intent.*;
 import fr.zelus.jarvis.intent.EntityType;
 import fr.zelus.jarvis.recognition.EntityMapper;
@@ -129,7 +130,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * The {@link Configuration} used to initialize this class.
      * <p>
      * This {@link Configuration} is used to retrieve the underlying DialogFlow project identifier, language, and
-     * customize {@link JarvisSession} and {@link fr.zelus.jarvis.core.session.JarvisContext}s.
+     * customize {@link JarvisSession} and {@link RuntimeContexts}s.
      */
     private Configuration configuration;
 
@@ -226,7 +227,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * to match {@link IntentDefinition} with input contexts set from local computation (such as received events,
      * custom variables, etc).
      * <p>
-     * <b>Note:</b> the local {@link fr.zelus.jarvis.core.session.JarvisContext} is merged in DialogFlow before each
+     * <b>Note:</b> the local {@link RuntimeContexts} is merged in DialogFlow before each
      * intent recognition query (see {@link #getIntent(String, JarvisSession)}. This behavior can be disabled by
      * setting the {@link #ENABLE_LOCAL_CONTEXT_MERGE_KEY} to {@code false} in the provided {@link Configuration}.
      *
@@ -833,10 +834,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         Log.info("Merging local context in the DialogFlow session {0}", dialogFlowSession.getSessionId());
         checkNotNull(dialogFlowSession, "Cannot merge the provided %s %s", DialogFlowSession.class.getSimpleName(),
                 dialogFlowSession);
-        dialogFlowSession.getJarvisContext().getContextMap().entrySet().stream().forEach(contextEntry ->
+        dialogFlowSession.getRuntimeContexts().getContextMap().entrySet().stream().forEach(contextEntry ->
                 {
                     String contextName = contextEntry.getKey();
-                    int contextLifespanCount = dialogFlowSession.getJarvisContext().getContextLifespanCount
+                    int contextLifespanCount = dialogFlowSession.getRuntimeContexts().getContextLifespanCount
                             (contextName);
                     Context.Builder builder = Context.newBuilder().setName(ContextName.of(projectId,
                             dialogFlowSession.getSessionName().getSession(), contextName).toString());

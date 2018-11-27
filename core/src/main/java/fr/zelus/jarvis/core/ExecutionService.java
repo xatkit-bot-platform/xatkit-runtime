@@ -157,7 +157,7 @@ public class ExecutionService {
              */
             for (ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
                 for (ContextParameterValue value : contextInstance.getValues()) {
-                    session.getJarvisContext().setContextValue(value);
+                    session.getRuntimeContexts().setContextValue(value);
                 }
             }
             List<ActionInstance> actionInstances = this.getActionsFromEvent(eventInstance);
@@ -216,7 +216,7 @@ public class ExecutionService {
         } else {
             if (nonNull(action.getReturnVariable())) {
                 Log.info("Registering context variable {0} with value {1}", action.getReturnVariable(), result);
-                session.getJarvisContext().setContextValue("variables", 1, action.getReturnVariable(),
+                session.getRuntimeContexts().setContextValue("variables", 1, action.getReturnVariable(),
                         result.getResult());
             }
         }

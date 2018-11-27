@@ -289,10 +289,10 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
                                          * received, and may cause consistency issues when using multiple
                                          * IntentProviders.
                                          */
-                                        session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                        session.getRuntimeContexts().setContextValue(JarvisSlackUtils
                                                 .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
                                                 .SLACK_CHANNEL_CONTEXT_KEY, channel);
-                                        session.getJarvisContext().setContextValue(JarvisSlackUtils
+                                        session.getRuntimeContexts().setContextValue(JarvisSlackUtils
                                                 .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
                                                 .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
                                         jarvisCore.getExecutionService().handleEventInstance

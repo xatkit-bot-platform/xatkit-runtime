@@ -1,6 +1,7 @@
 package fr.zelus.jarvis.plugins.slack;
 
 import fr.zelus.jarvis.core.JarvisCore;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
 import fr.zelus.jarvis.plugins.slack.platform.io.SlackIntentProvider;
 import org.apache.commons.configuration2.Configuration;
@@ -32,17 +33,17 @@ public interface JarvisSlackUtils {
     String HELLO_TYPE = "hello";
 
     /**
-     * The {@link fr.zelus.jarvis.core.session.JarvisContext} key used to store slack-related information.
+     * The {@link RuntimeContexts} key used to store slack-related information.
      */
     String SLACK_CONTEXT_KEY = "slack";
 
     /**
-     * The {@link fr.zelus.jarvis.core.session.JarvisContext} variable key used to store slack channel information.
+     * The {@link RuntimeContexts} variable key used to store slack channel information.
      */
     String SLACK_CHANNEL_CONTEXT_KEY = "channel";
 
     /**
-     * The {@link fr.zelus.jarvis.core.session.JarvisContext} variable key used to store slack username information.
+     * The {@link RuntimeContexts} variable key used to store slack username information.
      */
     String SLACK_USERNAME_CONTEXT_KEY = "username";
 }

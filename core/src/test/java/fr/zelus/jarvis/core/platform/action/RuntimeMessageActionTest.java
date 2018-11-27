@@ -2,7 +2,7 @@ package fr.zelus.jarvis.core.platform.action;
 
 import fr.zelus.jarvis.core.JarvisCore;
 import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.stubs.StubJarvisCore;
 import fr.zelus.jarvis.stubs.StubRuntimePlatform;
@@ -74,7 +74,7 @@ public class RuntimeMessageActionTest {
 
     @Test
     public void constructValidRuntimeMessageActionMessageWithVariable() {
-        session.getJarvisContext().setContextValue("Test", 5, "key", "value");
+        session.getRuntimeContexts().setContextValue("Test", 5, "key", "value");
         RuntimeMessageAction action = new StubRuntimeMessageAction(RUNTIME_PLATFORM, session, MESSAGE_WITH_VARIABLE);
         assertThat(action.getMessage()).as("Action message variable has been replaced").isEqualTo("test value");
     }
@@ -84,12 +84,12 @@ public class RuntimeMessageActionTest {
         /*
          * Test that the session are merged.
          */
-        session.getJarvisContext().setContextValue("Test", 5, "key", "value");
+        session.getRuntimeContexts().setContextValue("Test", 5, "key", "value");
         RuntimeMessageAction runtimeMessageAction = new StubRuntimeMessageAction(RUNTIME_PLATFORM, session, MESSAGE);
         runtimeMessageAction.init();
         JarvisSession clientSession = runtimeMessageAction.getClientSession();
         assertThat(clientSession).as("Not null client session").isNotNull();
-        JarvisContext context = clientSession.getJarvisContext();
+        RuntimeContexts context = clientSession.getRuntimeContexts();
         assertThat(context.getContextValue("Test", "key")).as("Session context has been merged in the client one")
                 .isEqualTo("value");
     }

@@ -330,8 +330,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * returned JarvisSession.
          */
         assertThat(session.getSessionId()).as("Valid session ID").contains("sessionID");
-        assertThat(session.getJarvisContext()).as("Not null session context").isNotNull();
-        assertThat(session.getJarvisContext().getContextMap()).as("Empty session context").isEmpty();
+        assertThat(session.getRuntimeContexts()).as("Not null session context").isNotNull();
+        assertThat(session.getRuntimeContexts().getContextMap()).as("Empty session context").isEmpty();
     }
 
     @Test

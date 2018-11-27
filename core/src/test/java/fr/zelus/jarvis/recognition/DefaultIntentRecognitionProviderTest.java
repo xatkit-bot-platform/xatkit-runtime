@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.recognition;
 
 import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.intent.IntentFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -51,21 +51,21 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
         JarvisSession session = provider.createSession("SessionID");
         assertThat(session).as("Not null session").isNotNull();
         assertThat(session.getSessionId()).as("Valid session id").isEqualTo("SessionID");
-        assertThat(session.getJarvisContext()).as("Not null context").isNotNull();
-        assertThat(session.getJarvisContext().getVariableTimeout()).as("Default variable timeout").isEqualTo
-                (JarvisContext.DEFAULT_VARIABLE_TIMEOUT_VALUE);
+        assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
+        assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Default variable timeout").isEqualTo
+                (RuntimeContexts.DEFAULT_VARIABLE_TIMEOUT_VALUE);
     }
 
     @Test
     public void createSessionCustomTimeoutValue() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisContext.VARIABLE_TIMEOUT_KEY, 10);
+        configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         provider = new DefaultIntentRecognitionProvider(configuration);
         JarvisSession session = provider.createSession("SessionID");
         assertThat(session).as("Not null session").isNotNull();
         assertThat(session.getSessionId()).as("Valid sessio id").isEqualTo("SessionID");
-        assertThat(session.getJarvisContext()).as("Not null context").isNotNull();
-        assertThat(session.getJarvisContext().getVariableTimeout()).as("Custom variable timeout").isEqualTo(10);
+        assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
+        assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Custom variable timeout").isEqualTo(10);
     }
 
     @Test

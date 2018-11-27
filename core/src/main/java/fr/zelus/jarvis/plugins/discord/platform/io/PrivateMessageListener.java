@@ -97,9 +97,9 @@ public class PrivateMessageListener extends ListenerAdapter {
          * The discord-related values are stored in the local context with a lifespan count of 1: they are reset
          * every time a message is received, and may cause consistency issues when using multiple IntentProviders.
          */
-        jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
+        jarvisSession.getRuntimeContexts().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
                 .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
-        jarvisSession.getJarvisContext().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
+        jarvisSession.getRuntimeContexts().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
                 .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
         jarvisCore.getExecutionService().handleEventInstance(recognizedIntent, jarvisSession);
     }

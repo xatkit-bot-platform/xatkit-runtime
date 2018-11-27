@@ -96,7 +96,7 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
                 (VALID_EVENT_DEFINITION.getName());
         JarvisSession session = stubJarvisCore.getJarvisSession(SLACK_CHANNEL);
         assertThat(session).as("Not null session").isNotNull();
-        Map<String, Object> slackContext = session.getJarvisContext().getContextVariables(JarvisSlackUtils.SLACK_CONTEXT_KEY);
+        Map<String, Object> slackContext = session.getRuntimeContexts().getContextVariables(JarvisSlackUtils.SLACK_CONTEXT_KEY);
         assertThat(slackContext).as("Not null slack context").isNotNull();
         softly.assertThat(slackContext).as("Not empty slack context").isNotEmpty();
         Object contextChannel = slackContext.get(JarvisSlackUtils.SLACK_CHANNEL_CONTEXT_KEY);

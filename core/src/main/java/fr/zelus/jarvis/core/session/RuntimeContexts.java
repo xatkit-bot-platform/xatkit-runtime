@@ -26,7 +26,7 @@ import static java.util.Objects.nonNull;
  * A variable container bound to a {@link JarvisSession}.
  * <p>
  * This class stores the different variables that can be set during user input processing and accessed by executed
- * {@link RuntimeAction}. {@link JarvisContext} is used to store:
+ * {@link RuntimeAction}. {@link RuntimeContexts} is used to store:
  * <ul>
  * <li><b>{@link RuntimeEventProvider} values</b> such as the user name, the channel where the
  * message was received, etc</li>
@@ -38,7 +38,7 @@ import static java.util.Objects.nonNull;
  * This class is heavily used by jarvis core component to pass {@link RuntimeAction} parameters,
  * and replace output message variables by their concrete values.
  */
-public class JarvisContext {
+public class RuntimeContexts {
 
     /**
      * The {@link Configuration} key to store maximum time to spend waiting for a context variable (in seconds).
@@ -62,7 +62,7 @@ public class JarvisContext {
      * The internal {@link Map} storing context lifespan counts.
      * <p>
      * This map is used to keep track of the number of user interactions that can be handled before removing each
-     * context value stored in the current {@link JarvisContext}. Lifespan counters are decremented by calling
+     * context value stored in the current {@link RuntimeContexts}. Lifespan counters are decremented by calling
      * {@link #decrementLifespanCounts()}, that takes care of removing context when there lifespan counter reaches
      * {@code 0}.
      *
@@ -76,36 +76,36 @@ public class JarvisContext {
      * This attribute is equals to {@link #DEFAULT_VARIABLE_TIMEOUT_VALUE} unless a specific value is provided in this
      * class' {@link Configuration} constructor parameter
      *
-     * @see #JarvisContext(Configuration)
+     * @see #RuntimeContexts(Configuration)
      */
     private int variableTimeout;
 
     /**
-     * Constructs a new empty {@link JarvisContext}.
+     * Constructs a new empty {@link RuntimeContexts}.
      * <p>
-     * See {@link #JarvisContext(Configuration)} to construct a {@link JarvisContext} with a given
+     * See {@link #RuntimeContexts(Configuration)} to construct a {@link RuntimeContexts} with a given
      * {@link Configuration}.
      *
-     * @see #JarvisContext(Configuration)
+     * @see #RuntimeContexts(Configuration)
      */
-    public JarvisContext() {
+    public RuntimeContexts() {
         this(new BaseConfiguration());
     }
 
     /**
-     * Constructs a new empty {@link JarvisContext} with the given {@code configuration}.
+     * Constructs a new empty {@link RuntimeContexts} with the given {@code configuration}.
      * <p>
-     * The provided {@link Configuration} contains information to customize the {@link JarvisContext} behavior, such
+     * The provided {@link Configuration} contains information to customize the {@link RuntimeContexts} behavior, such
      * as the {@code timeout} to retrieve {@link Future} variables.
      *
-     * @param configuration the {@link Configuration} parameterizing the {@link JarvisContext}
+     * @param configuration the {@link Configuration} parameterizing the {@link RuntimeContexts}
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
      */
-    public JarvisContext(Configuration configuration) {
-        checkNotNull(configuration, "Cannot construct a %s from the provided %s: %s", JarvisContext.class
+    public RuntimeContexts(Configuration configuration) {
+        checkNotNull(configuration, "Cannot construct a %s from the provided %s: %s", RuntimeContexts.class
                 .getSimpleName(), Configuration.class.getSimpleName(), configuration);
         /*
-         * Use ConcurrentHashMaps: the JarvisContext may be accessed and modified by multiple threads, in case of
+         * Use ConcurrentHashMaps: the RuntimeContexts may be accessed and modified by multiple threads, in case of
          * multiple input messages or parallel RuntimeAction execution.
          */
         this.contexts = new ConcurrentHashMap<>();
@@ -120,11 +120,11 @@ public class JarvisContext {
     }
 
     /**
-     * Returns the amount of time the {@link JarvisContext} can spend waiting for a context variable (in seconds).
+     * Returns the amount of time the {@link RuntimeContexts} can spend waiting for a context variable (in seconds).
      * <p>
      * This value can be set in this class' {@link Configuration} constructor parameter.
      *
-     * @return the amount of time the {@link JarvisContext} can spend waiting for a context variable (in seconds)
+     * @return the amount of time the {@link RuntimeContexts} can spend waiting for a context variable (in seconds)
      */
     public int getVariableTimeout() {
         return variableTimeout;
@@ -186,7 +186,7 @@ public class JarvisContext {
                  * globally handled by the decrementLifespanCounts() method.
                  */
                 Log.warn("Ignoring the provided lifespan for context {0} ({1}): the lifespan is lower than the stored" +
-                        " one ({2}). Context lifespan counts can only be decremented through JarvisContext" +
+                        " one ({2}). Context lifespan counts can only be decremented through RuntimeContexts" +
                         ".decrementLifespanCounts()", context, lifespanCount, currentLifespan);
             }
         } else {
@@ -221,7 +221,7 @@ public class JarvisContext {
      * Returns all the variables stored in the given {@code context}.
      * <p>
      * This method returns an unmodifiable {@link Map} holding the sub-context variables. To retrieve a specific
-     * variable from {@link JarvisContext} see {@link #getContextValue(String, String)}.
+     * variable from {@link RuntimeContexts} see {@link #getContextValue(String, String)}.
      *
      * @param context the sub-context to retrieve the variables from
      * @return an unmodifiable {@link Map} holding the sub-context variables
@@ -295,7 +295,7 @@ public class JarvisContext {
      * decrement the lifespan counters from the live contexts.
      */
     public void decrementLifespanCounts() {
-        Log.info("Decrementing JarvisContext lifespanCounts");
+        Log.info("Decrementing RuntimeContexts lifespanCounts");
         Iterator<Map.Entry<String, Integer>> it = lifespanCounts.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, Integer> entry = it.next();
@@ -309,30 +309,30 @@ public class JarvisContext {
     }
 
     /**
-     * Merges the provided {@code other} {@link JarvisContext} into this one.
+     * Merges the provided {@code other} {@link RuntimeContexts} into this one.
      * <p>
      * This method adds all the {@code contexts} and {@code values} of the provided {@code other}
-     * {@link JarvisContext} to this one, performing a deep copy of the underlying {@link Map} structure, ensuring
-     * that future updates on the {@code other} {@link JarvisContext} will not be applied on this one (such as value
+     * {@link RuntimeContexts} to this one, performing a deep copy of the underlying {@link Map} structure, ensuring
+     * that future updates on the {@code other} {@link RuntimeContexts} will not be applied on this one (such as value
      * and context additions/deletions).
      * <p>
-     * Lifespan counts are also copied from the {@code other} {@link JarvisContext} to this one, ensuring that their
-     * lifespan remains consistent in all the {@link JarvisContext}s containing them.
+     * Lifespan counts are also copied from the {@code other} {@link RuntimeContexts} to this one, ensuring that their
+     * lifespan remains consistent in all the {@link RuntimeContexts}s containing them.
      * <p>
      * However, note that the values stored in the context {@link Map}s are not cloned, meaning that
      * {@link RuntimeAction}s updating existing values will update them for all the merged
      * context (see #129).
      *
-     * @param other the {@link JarvisContext} to merge into this one
-     * @throws JarvisException if the provided {@link JarvisContext} defines at least one {@code context} with the
-     *                         same name as one of the {@code contexts} stored in this {@link JarvisContext}
+     * @param other the {@link RuntimeContexts} to merge into this one
+     * @throws JarvisException if the provided {@link RuntimeContexts} defines at least one {@code context} with the
+     *                         same name as one of the {@code contexts} stored in this {@link RuntimeContexts}
      */
-    public void merge(JarvisContext other) {
-        checkNotNull(other, "Cannot merge the provided %s %s", JarvisContext.class.getSimpleName(), other);
+    public void merge(RuntimeContexts other) {
+        checkNotNull(other, "Cannot merge the provided %s %s", RuntimeContexts.class.getSimpleName(), other);
         other.getContextMap().forEach((k, v) -> {
             if (this.contexts.containsKey(k)) {
                 throw new JarvisException(MessageFormat.format("Cannot merge the provided {0}, duplicated value for " +
-                        "context {1}", JarvisContext.class.getSimpleName(), k));
+                        "context {1}", RuntimeContexts.class.getSimpleName(), k));
             } else {
                 Map<String, Object> variableMap = new HashMap<>();
                 v.forEach((k1, v1) -> {

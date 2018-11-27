@@ -1,7 +1,7 @@
 package fr.zelus.jarvis.plugins.slack.platform.action;
 
 import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisContext;
+import fr.zelus.jarvis.core.session.RuntimeContexts;
 import fr.zelus.jarvis.core.session.JarvisSession;
 import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
 import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
@@ -28,19 +28,19 @@ public class Reply extends PostMessage {
     /**
      * Returns the Slack channel associated to the user input.
      * <p>
-     * This method searches in the provided {@link JarvisContext} for the value stored with the key
+     * This method searches in the provided {@link RuntimeContexts} for the value stored with the key
      * {@link JarvisSlackUtils#SLACK_CONTEXT_KEY}.{@link JarvisSlackUtils#SLACK_CHANNEL_CONTEXT_KEY}. Note that if
-     * the provided {@link JarvisContext} does not contain the requested value a {@link NullPointerException} is thrown.
+     * the provided {@link RuntimeContexts} does not contain the requested value a {@link NullPointerException} is thrown.
      *
-     * @param context the {@link JarvisContext} to retrieve the Slack channel from
+     * @param context the {@link RuntimeContexts} to retrieve the Slack channel from
      * @return the Slack channel associated to the user input
      * @throws NullPointerException     if the provided {@code context} is {@code null}, or if it does not contain the
      *                                  channel information
      * @throws IllegalArgumentException if the retrieved channel is not a {@link String}
      * @see JarvisSlackUtils
      */
-    public static String getChannel(JarvisContext context) {
-        checkNotNull(context, "Cannot retrieve the channel from the provided %s %s", JarvisContext.class
+    public static String getChannel(RuntimeContexts context) {
+        checkNotNull(context, "Cannot retrieve the channel from the provided %s %s", RuntimeContexts.class
                 .getSimpleName(), context);
         Object channelValue = context.getContextValue(JarvisSlackUtils.SLACK_CONTEXT_KEY, JarvisSlackUtils
                 .SLACK_CHANNEL_CONTEXT_KEY);
@@ -58,10 +58,10 @@ public class Reply extends PostMessage {
      * @param message          the message to post
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} is {@code null} or empty
-     * @see #getChannel(JarvisContext)
+     * @see #getChannel(RuntimeContexts)
      * @see PostMessage#PostMessage(SlackPlatform, JarvisSession, String, String)
      */
     public Reply(SlackPlatform runtimePlatform, JarvisSession session, String message) {
-        super(runtimePlatform, session, message, getChannel(session.getJarvisContext()));
+        super(runtimePlatform, session, message, getChannel(session.getRuntimeContexts()));
     }
 }

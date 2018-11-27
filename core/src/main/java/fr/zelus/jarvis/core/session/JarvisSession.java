@@ -9,10 +9,10 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * A session holding user-related information.
  * <p>
  * A {@link JarvisSession} is bound to a user, and holds all the volatile information related to the current
- * conversation. A {@link JarvisSession} contains a {@link JarvisContext}, that represents the contextual variables
+ * conversation. A {@link JarvisSession} contains a {@link RuntimeContexts}, that represents the contextual variables
  * of the current conversation.
  *
- * @see JarvisContext
+ * @see RuntimeContexts
  * @see fr.zelus.jarvis.core.JarvisCore#getOrCreateJarvisSession(String)
  */
 public class JarvisSession {
@@ -23,9 +23,9 @@ public class JarvisSession {
     private String sessionId;
 
     /**
-     * The {@link JarvisContext} used to store context-related variables.
+     * The {@link RuntimeContexts} used to store context-related variables.
      */
-    private JarvisContext jarvisContext;
+    private RuntimeContexts runtimeContexts;
 
     /**
      * Constructs a new, empty {@link JarvisSession} with the provided {@code sessionId}.
@@ -41,8 +41,8 @@ public class JarvisSession {
     /**
      * Constructs a new, empty {@link JarvisSession} with the provided {@code sessionId} and {@code configuration}.
      * <p>
-     * This constructor forwards the provided {@link Configuration} to the underlying {@link JarvisContext} and can
-     * be used to customize {@link JarvisContext} properties.
+     * This constructor forwards the provided {@link Configuration} to the underlying {@link RuntimeContexts} and can
+     * be used to customize {@link RuntimeContexts} properties.
      *
      * @param sessionId     the unique identifier of the {@link JarvisSession}
      * @param configuration the {@link Configuration} parameterizing the {@link JarvisSession}
@@ -54,7 +54,7 @@ public class JarvisSession {
         checkNotNull(configuration, "Cannot construct a %s with the provided %s: %s", JarvisSession.class
                 .getSimpleName(), Configuration.class.getSimpleName(), configuration);
         this.sessionId = sessionId;
-        this.jarvisContext = new JarvisContext(configuration);
+        this.runtimeContexts = new RuntimeContexts(configuration);
     }
 
     /**
@@ -67,11 +67,11 @@ public class JarvisSession {
     }
 
     /**
-     * Returns the session's {@link JarvisContext} holding context-related variables.
+     * Returns the session's {@link RuntimeContexts} holding context-related variables.
      *
-     * @return the session's {@link JarvisContext} holding context-related variables
+     * @return the session's {@link RuntimeContexts} holding context-related variables
      */
-    public JarvisContext getJarvisContext() {
-        return jarvisContext;
+    public RuntimeContexts getRuntimeContexts() {
+        return runtimeContexts;
     }
 }
