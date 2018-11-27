@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.core.recognition.dialogflow;
+package edu.uoc.som.jarvis.core.recognition.dialogflow;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.core.CredentialsProvider;
@@ -10,16 +10,24 @@ import com.google.cloud.dialogflow.v2.Context;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
+import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
+import edu.uoc.som.jarvis.core.JarvisCore;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.recognition.EntityMapper;
+import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.intent.*;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.EventDefinitionRegistry;
-import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.intent.EntityType;
-import fr.zelus.jarvis.core.recognition.EntityMapper;
-import fr.zelus.jarvis.core.recognition.IntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
+import edu.uoc.som.jarvis.core.JarvisCore;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.intent.*;
+import edu.uoc.som.jarvis.intent.EntityType;
+import edu.uoc.som.jarvis.core.recognition.EntityMapper;
+import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
 import org.apache.commons.configuration2.Configuration;
 
 import java.io.FileInputStream;
@@ -354,8 +362,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              * DialogFlow-compatible entities.
              */
             this.entityMapper = new EntityMapper();
-            this.entityMapper.addEntityMapping(EntityType.CITY.getLiteral(), "@sys.geo-city");
-            this.entityMapper.addEntityMapping(EntityType.ANY.getLiteral(), "@sys.any");
+            this.entityMapper.addEntityMapping(edu.uoc.som.jarvis.intent.EntityType.CITY.getLiteral(), "@sys.geo-city");
+            this.entityMapper.addEntityMapping(edu.uoc.som.jarvis.intent.EntityType.ANY.getLiteral(), "@sys.any");
             this.entityMapper.setFallbackEntityMapping("@sys.any");
             /*
              * Initialize the registeredIntents map with the intents already stored in the DialogFlow project.
@@ -529,19 +537,18 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      *
      * @param trainingSentence the {@link IntentDefinition}'s training sentence to create a
      *                         {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase} from
-     * @param outContexts      the {@link IntentDefinition}'s output {@link fr.zelus.jarvis.intent.Context}s
+     * @param outContexts      the {@link IntentDefinition}'s output {@link edu.uoc.som.jarvis.intent.Context}s
      *                         associated to the provided training sentence
      * @return the created DialogFlow's {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase}
      * @throws NullPointerException if the provided {@code trainingSentence} or {@code outContexts} {@link List} is
      *                              {@code null}, or if one of the {@link ContextParameter}'s name from the provided
      *                              {@code outContexts} is {@code null}
      */
-    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<fr.zelus.jarvis.intent
-            .Context> outContexts) {
+    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<edu.uoc.som.jarvis.intent.Context> outContexts) {
         checkNotNull(trainingSentence, "Cannot create a %s from the provided training sentence %s", Intent
                 .TrainingPhrase.class.getSimpleName(), trainingSentence);
         checkNotNull(outContexts, "Cannot create a %s from the provided output %s list %s", Intent.TrainingPhrase
-                .class.getSimpleName(), fr.zelus.jarvis.intent.Context.class.getSimpleName(), outContexts);
+                .class.getSimpleName(), edu.uoc.som.jarvis.intent.Context.class.getSimpleName(), outContexts);
         if (outContexts.isEmpty()) {
             return Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part.newBuilder().setText
                     (trainingSentence).build()).build();
@@ -554,7 +561,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              * issue we can reshape this method to avoid this pre-processing phase.
              */
             String preparedTrainingSentence = trainingSentence;
-            for (fr.zelus.jarvis.intent.Context context : outContexts) {
+            for (edu.uoc.som.jarvis.intent.Context context : outContexts) {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
                         preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(), "#"
@@ -572,7 +579,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 String sentencePart = splitTrainingSentence[i];
                 Intent.TrainingPhrase.Part.Builder partBuilder = Intent.TrainingPhrase.Part.newBuilder().setText
                         (sentencePart);
-                for (fr.zelus.jarvis.intent.Context context : outContexts) {
+                for (edu.uoc.som.jarvis.intent.Context context : outContexts) {
                     for (ContextParameter parameter : context.getParameters()) {
                         if (sentencePart.equals(parameter.getTextFragment())) {
                             checkNotNull("Cannot build the training sentence \"%s\", the parameter for the fragment " +
@@ -591,7 +598,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Creates the DialogFlow input {@link Context} names from the provided {@code intentDefinition}.
      * <p>
-     * This method iterates the provided {@code intentDefinition}'s in {@link fr.zelus.jarvis.intent.Context}s, and
+     * This method iterates the provided {@code intentDefinition}'s in {@link edu.uoc.som.jarvis.intent.Context}s, and
      * maps them to their concrete DialogFlow {@link String} identifier. The returned {@link String} can be used to
      * refer to existing DialogFlow's {@link Context}s.
      *
@@ -603,9 +610,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     protected List<String> createInContextNames(IntentDefinition intentDefinition) {
         checkNotNull(intentDefinition, "Cannot create the in contexts from the provided %s %s", IntentDefinition
                 .class.getSimpleName(), intentDefinition);
-        List<fr.zelus.jarvis.intent.Context> contexts = intentDefinition.getInContexts();
+        List<edu.uoc.som.jarvis.intent.Context> contexts = intentDefinition.getInContexts();
         List<String> results = new ArrayList<>();
-        for (fr.zelus.jarvis.intent.Context context : contexts) {
+        for (edu.uoc.som.jarvis.intent.Context context : contexts) {
             /*
              * Use a dummy session to create the context.
              */
@@ -629,7 +636,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Creates the DialogFlow output {@link Context}s from the provided {@code intentDefinition}.
      * <p>
-     * This method iterates the provided {@code intentDefinition}'s out {@link fr.zelus.jarvis.intent.Context}s, and
+     * This method iterates the provided {@code intentDefinition}'s out {@link edu.uoc.som.jarvis.intent.Context}s, and
      * maps them to their concrete DialogFlow implementations.
      *
      * @param intentDefinition the {@link IntentDefinition} to create the DialogFlow output {@link Context}s from
@@ -640,9 +647,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     protected List<Context> createOutContexts(IntentDefinition intentDefinition) {
         checkNotNull(intentDefinition, "Cannot create the out contexts from the provided %s %s", IntentDefinition
                 .class.getSimpleName(), intentDefinition);
-        List<fr.zelus.jarvis.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
+        List<edu.uoc.som.jarvis.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
         List<Context> results = new ArrayList<>();
-        for (fr.zelus.jarvis.intent.Context context : intentDefinitionContexts) {
+        for (edu.uoc.som.jarvis.intent.Context context : intentDefinitionContexts) {
             /*
              * Use a dummy session to create the context.
              */
@@ -688,19 +695,18 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Creates the DialogFlow context parameters from the provided Jarvis {@code contexts}.
      * <p>
-     * This method iterates the provided {@link fr.zelus.jarvis.intent.Context}s, and maps their contained
+     * This method iterates the provided {@link edu.uoc.som.jarvis.intent.Context}s, and maps their contained
      * parameter's entities to their concrete DialogFlow implementation.
      *
-     * @param contexts the {@link List} of Jarvis {@link fr.zelus.jarvis.intent.Context}s to create the parameters from
+     * @param contexts the {@link List} of Jarvis {@link edu.uoc.som.jarvis.intent.Context}s to create the parameters from
      * @return the {@link List} of DialogFlow context parameters
      * @throws NullPointerException if the provided {@code contexts} {@link List} is {@code null}, or if one of the
      *                              provided {@link ContextParameter}'s name is {@code null}
      */
-    protected List<Intent.Parameter> createParameters(List<fr.zelus.jarvis.intent.Context> contexts) {
-        checkNotNull(contexts, "Cannot create the DialogFlow parameters from the provided %s List %s", fr.zelus
-                .jarvis.intent.Context.class.getSimpleName(), contexts);
+    protected List<Intent.Parameter> createParameters(List<edu.uoc.som.jarvis.intent.Context> contexts) {
+        checkNotNull(contexts, "Cannot create the DialogFlow parameters from the provided %s List %s", edu.uoc.som.jarvis.intent.Context.class.getSimpleName(), contexts);
         List<Intent.Parameter> results = new ArrayList<>();
-        for (fr.zelus.jarvis.intent.Context context : contexts) {
+        for (edu.uoc.som.jarvis.intent.Context context : contexts) {
             for (ContextParameter contextParameter : context.getParameters()) {
                 checkNotNull(contextParameter.getName(), "Cannot create the %s from the provided %s %s, the" +
                         " name %s is invalid", Intent.Parameter.class.getSimpleName(), ContextParameter.class
@@ -722,7 +728,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * Adapts the provided {@code intentDefinitionName} by replacing its {@code _} by spaces.
      * <p>
      * This method is used to deserialize names that have been serialized by
-     * {@link fr.zelus.jarvis.core.EventDefinitionRegistry#adaptEventName(String)}.
+     * {@link EventDefinitionRegistry#adaptEventName(String)}.
      *
      * @param intentDefinitionName the {@link IntentDefinition} name to adapt
      * @return the adapted {@code intentDefinitionName}
@@ -959,7 +965,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              * find the Context from the global registry, that may return inconsistent result if there are multiple
              * contexts defined with the same name.
              */
-            fr.zelus.jarvis.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
+            edu.uoc.som.jarvis.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
             if (isNull(contextDefinition)) {
                 contextDefinition = this.jarvisCore.getEventDefinitionRegistry().getEventDefinitionOutContext
                         (contextName);

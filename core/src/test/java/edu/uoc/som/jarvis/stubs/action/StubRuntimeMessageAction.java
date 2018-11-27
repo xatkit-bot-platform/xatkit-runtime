@@ -1,11 +1,9 @@
 package edu.uoc.som.jarvis.stubs.action;
 
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeMessageAction;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.platform.action.RuntimeMessageAction;
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.JarvisSession;
 
 import java.util.UUID;
 

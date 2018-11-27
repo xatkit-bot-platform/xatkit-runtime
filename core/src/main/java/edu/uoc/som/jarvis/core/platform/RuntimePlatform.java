@@ -1,20 +1,21 @@
-package fr.zelus.jarvis.core.platform;
+package edu.uoc.som.jarvis.core.platform;
 
+import edu.uoc.som.jarvis.core.JarvisCore;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
+import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
+import edu.uoc.som.jarvis.core.server.JarvisServer;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.execution.*;
+import edu.uoc.som.jarvis.intent.EventInstance;
+import edu.uoc.som.jarvis.platform.ActionDefinition;
+import edu.uoc.som.jarvis.platform.EventProviderDefinition;
+import edu.uoc.som.jarvis.platform.Parameter;
+import edu.uoc.som.jarvis.platform.PlatformDefinition;
+import edu.uoc.som.jarvis.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.execution.*;
-import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
-import fr.zelus.jarvis.core.platform.io.WebhookEventProvider;
-import fr.zelus.jarvis.platform.ActionDefinition;
-import fr.zelus.jarvis.platform.EventProviderDefinition;
-import fr.zelus.jarvis.platform.Parameter;
-import fr.zelus.jarvis.core.server.JarvisServer;
-import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -30,7 +31,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * The concrete implementation of a {@link fr.zelus.jarvis.platform.PlatformDefinition}.
+ * The concrete implementation of a {@link PlatformDefinition}.
  * <p>
  * A {@link RuntimePlatform} manages a set of {@link RuntimeAction}s that represent the concrete actions that can
  * be executed by the platform. This class provides primitives to enable/disable specific actions, and construct

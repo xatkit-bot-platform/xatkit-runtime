@@ -1,12 +1,12 @@
-package fr.zelus.jarvis.core.platform.action;
+package edu.uoc.som.jarvis.core.platform.action;
 
+import edu.uoc.som.jarvis.core.ExecutionService;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.ExecutionService;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
 
 import java.io.IOException;
 

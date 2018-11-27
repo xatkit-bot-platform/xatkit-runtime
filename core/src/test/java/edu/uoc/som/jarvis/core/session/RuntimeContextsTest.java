@@ -1,7 +1,9 @@
-package fr.zelus.jarvis.core.session;
+package edu.uoc.som.jarvis.core.session;
 
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.JarvisException;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;

@@ -1,8 +1,9 @@
-package fr.zelus.jarvis.plugins.log.platform.action;
+package edu.uoc.som.jarvis.plugins.log.platform.action;
 
+import edu.uoc.som.jarvis.core.session.JarvisSession;
 import fr.inria.atlanmod.commons.log.Level;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.plugins.log.platform.LogPlatform;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.plugins.log.platform.LogPlatform;
 
 /**
  * A {@link LogAction} that logs the provided message as an info.

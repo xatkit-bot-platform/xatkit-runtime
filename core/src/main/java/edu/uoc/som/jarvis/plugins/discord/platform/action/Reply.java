@@ -6,11 +6,11 @@ import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
 import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.plugins.discord.JarvisDiscordUtils;
-import fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
+import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;

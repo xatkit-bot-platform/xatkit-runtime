@@ -1,10 +1,12 @@
-package fr.zelus.jarvis.core.platform.io;
+package edu.uoc.som.jarvis.core.platform.io;
 
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.RecognizedIntent;
-import fr.zelus.jarvis.core.recognition.IntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.intent.RecognizedIntent;
+import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -53,7 +55,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
      * and retrieve {@link RecognizedIntent}s.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
-     * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
+     * {@link edu.uoc.som.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeIntentProvider}
@@ -84,7 +86,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
      * @throws NullPointerException                                           if the provided {@code text} or {@code
      *                                                                        session} is {@code null}
      * @throws IllegalArgumentException                                       if the provided {@code text} is empty
-     * @throws fr.zelus.jarvis.core.recognition.IntentRecognitionProviderException if the
+     * @throws edu.uoc.som.jarvis.core.recognition.IntentRecognitionProviderException if the
      *                                                                        {@link IntentRecognitionProvider} is
      *                                                                        shutdown or if an exception is thrown
      *                                                                        by the underlying intent recognition

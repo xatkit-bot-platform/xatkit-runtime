@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.test.util.models;
+package edu.uoc.som.jarvis.test.util.models;
 
-import fr.zelus.jarvis.execution.ActionInstance;
-import fr.zelus.jarvis.execution.ExecutionFactory;
-import fr.zelus.jarvis.execution.ExecutionModel;
-import fr.zelus.jarvis.execution.ExecutionRule;
+import edu.uoc.som.jarvis.execution.ActionInstance;
+import edu.uoc.som.jarvis.execution.ExecutionFactory;
+import edu.uoc.som.jarvis.execution.ExecutionModel;
+import edu.uoc.som.jarvis.execution.ExecutionRule;
 
 public class TestExecutionModel {
 

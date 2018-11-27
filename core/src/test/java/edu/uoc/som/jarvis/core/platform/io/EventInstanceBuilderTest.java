@@ -1,9 +1,10 @@
-package fr.zelus.jarvis.core.platform.io;
+package edu.uoc.som.jarvis.core.platform.io;
 
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.EventDefinitionRegistry;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.intent.*;
+import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.intent.*;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
 import org.junit.Before;

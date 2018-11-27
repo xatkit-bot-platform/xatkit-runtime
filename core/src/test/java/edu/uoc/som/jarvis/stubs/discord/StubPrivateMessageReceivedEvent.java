@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.stubs.discord;
+package edu.uoc.som.jarvis.stubs.discord;
 
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;

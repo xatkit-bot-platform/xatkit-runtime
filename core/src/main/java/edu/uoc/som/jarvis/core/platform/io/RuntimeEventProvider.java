@@ -1,7 +1,7 @@
 package edu.uoc.som.jarvis.core.platform.io;
 
-import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.core.JarvisCore;
+import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -50,7 +50,7 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * Constructs a new {@link RuntimeEventProvider} with the provided {@code runtimePlatform} and {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
-     * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
+     * {@link edu.uoc.som.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}

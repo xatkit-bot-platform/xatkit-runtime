@@ -1,10 +1,10 @@
-package fr.zelus.jarvis.plugins.slack.platform.action;
+package edu.uoc.som.jarvis.plugins.slack.platform.action;
 
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
-import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.plugins.slack.JarvisSlackUtils;
+import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;

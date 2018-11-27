@@ -1,21 +1,34 @@
-package fr.zelus.jarvis.core;
+package edu.uoc.som.jarvis.core;
 
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core_resources.utils.LibraryLoaderUtils;
-import fr.zelus.jarvis.core_resources.utils.PlatformLoaderUtils;
-import fr.zelus.jarvis.execution.ExecutionFactory;
-import fr.zelus.jarvis.execution.ExecutionModel;
-import fr.zelus.jarvis.platform.EventProviderDefinition;
-import fr.zelus.jarvis.platform.PlatformDefinition;
-import fr.zelus.jarvis.platform.PlatformFactory;
-import fr.zelus.jarvis.core.recognition.DefaultIntentRecognitionProvider;
-import fr.zelus.jarvis.core.recognition.dialogflow.DialogFlowApi;
-import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
-import fr.zelus.jarvis.test.util.VariableLoaderHelper;
-import fr.zelus.jarvis.test.util.models.TestExecutionModel;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.recognition.DefaultIntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
+import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
+import edu.uoc.som.jarvis.platform.EventProviderDefinition;
+import edu.uoc.som.jarvis.platform.PlatformDefinition;
+import edu.uoc.som.jarvis.platform.PlatformFactory;
+import edu.uoc.som.jarvis.stubs.io.StubJsonWebhookEventProvider;
+import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
+import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
+import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
+import edu.uoc.som.jarvis.execution.ExecutionFactory;
+import edu.uoc.som.jarvis.execution.ExecutionModel;
+import edu.uoc.som.jarvis.platform.EventProviderDefinition;
+import edu.uoc.som.jarvis.platform.PlatformDefinition;
+import edu.uoc.som.jarvis.platform.PlatformFactory;
+import edu.uoc.som.jarvis.core.recognition.DefaultIntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
+import edu.uoc.som.jarvis.stubs.io.StubJsonWebhookEventProvider;
+import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
+import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -186,7 +199,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         ExecutionModel executionModel = testExecutionModel.getExecutionModel();
         PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
         platformDefinition.setName("InvalidPlatform");
-        platformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.InvalidPlatform");
+        platformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.InvalidPlatform");
         Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel);
         jarvisCore = new JarvisCore(configuration);
     }
@@ -210,7 +223,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         TestExecutionModel testExecutionModel = new TestExecutionModel();
         PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
         platformDefinition.setName("StubRuntimePlatformJarvisCoreConstructor");
-        platformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatformJarvisCoreConstructor");
+        platformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.StubRuntimePlatformJarvisCoreConstructor");
 
         ExecutionModel executionModel = testExecutionModel.getExecutionModel();
 
@@ -222,7 +235,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     public void constructValidWebhookEventProvider() {
         PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
         stubPlatformDefinition.setName("EmptyRuntimePlatform");
-        stubPlatformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.EmptyRuntimePlatform");
+        stubPlatformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.EmptyRuntimePlatform");
         EventProviderDefinition stubWebhookEventProviderDefinition = PlatformFactory.eINSTANCE
                 .createEventProviderDefinition();
         stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");
@@ -231,9 +244,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel));
         checkJarvisCore(jarvisCore, executionModel);
-        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server WebhookEventProvider" +
+        Assertions.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server WebhookEventProvider" +
                 " collection is not empty").isNotEmpty();
-        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
+        Assertions.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
                 "registered WebhookEventProvider").isInstanceOf(StubJsonWebhookEventProvider.class);
     }
 
@@ -242,7 +255,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, ExecutionFactory.eINSTANCE.createExecutionModel());
         jarvisCore = new JarvisCore(configuration);
-        assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses DefaultIntentRecognitionProvider")
+        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses DefaultIntentRecognitionProvider")
                 .isInstanceOf(DefaultIntentRecognitionProvider.class);
     }
 
@@ -366,8 +379,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * isNotNull() assertions are not soft, otherwise the runner does not print the assertion error and fails on
          * a NullPointerException in the following assertions.
          */
-        assertThat(jarvisCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
-        assertThat(jarvisCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a DialogFlowApi " +
+        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
+        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a DialogFlowApi " +
                 "instance").isInstanceOf(DialogFlowApi.class);
         DialogFlowApi dialogFlowApi = (DialogFlowApi) jarvisCore.getIntentRecognitionProvider();
         softly.assertThat(dialogFlowApi.getProjectId()).as("Valid DialogFlowAPI project ID").isEqualTo
@@ -379,7 +392,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         softly.assertThat(jarvisCore.getExecutionService().getExecutionModel()).as("Valid " +
                 "ExecutionModel").isEqualTo(executionModel);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
-        assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
+        Assertions.assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
         URI corePlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "CorePlatform.xmi");
         assertThat(jarvisCore.executionResourceSet.getResource(corePlatformPathmapURI, false)).as("CorePlatform " +
                 "pathmap resolved").isNotNull();

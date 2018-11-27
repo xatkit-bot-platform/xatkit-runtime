@@ -1,13 +1,13 @@
-package fr.zelus.jarvis.plugins.github.platform.action;
+package edu.uoc.som.jarvis.plugins.github.platform.action;
 
 import com.jcabi.github.Coordinates;
 import com.jcabi.github.Issue;
 import com.jcabi.github.Repo;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.plugins.github.platform.GithubPlatform;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.plugins.github.platform.GithubPlatform;
 
 import java.io.IOException;
 

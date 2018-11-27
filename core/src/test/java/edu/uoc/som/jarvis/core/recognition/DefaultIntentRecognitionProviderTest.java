@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.core.recognition;
+package edu.uoc.som.jarvis.core.recognition;
 
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.IntentFactory;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.intent.IntentFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Before;

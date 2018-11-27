@@ -1,9 +1,7 @@
 package edu.uoc.som.jarvis.stubs.io;
 
         import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
-        import edu.uoc.som.jarvis.stubs.EmptyRuntimePlatform;
-        import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
-        import fr.zelus.jarvis.stubs.EmptyRuntimePlatform;
+import edu.uoc.som.jarvis.stubs.EmptyRuntimePlatform;
 
 public class StubInputProviderNoConfigurationConstructor extends RuntimeEventProvider<EmptyRuntimePlatform> {
 

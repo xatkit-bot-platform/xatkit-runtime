@@ -1,7 +1,7 @@
-package fr.zelus.jarvis.core;
+package edu.uoc.som.jarvis.core;
 
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.platform.PlatformDefinition;
+import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.platform.PlatformDefinition;
 
 import java.util.Collection;
 import java.util.Collections;

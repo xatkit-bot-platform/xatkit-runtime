@@ -1,14 +1,14 @@
-package fr.zelus.jarvis.plugins.slack.platform.action;
+package edu.uoc.som.jarvis.plugins.slack.platform.action;
 
 import com.github.seratch.jslack.api.methods.SlackApiException;
 import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
 import com.github.seratch.jslack.api.methods.response.chat.ChatPostMessageResponse;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeMessageAction;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.platform.action.RuntimeMessageAction;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
 
 import java.io.IOException;
 import java.text.MessageFormat;

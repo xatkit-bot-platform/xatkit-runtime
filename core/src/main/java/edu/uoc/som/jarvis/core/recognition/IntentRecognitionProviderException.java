@@ -1,7 +1,7 @@
-package fr.zelus.jarvis.core.recognition;
+package edu.uoc.som.jarvis.core.recognition;
 
 
-import fr.zelus.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.JarvisException;
 
 /**
  * Wraps all the exceptions thrown by the {@link IntentRecognitionProvider}s.

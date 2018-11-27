@@ -1,14 +1,14 @@
-package fr.zelus.jarvis.core.platform.action;
+package edu.uoc.som.jarvis.core.platform.action;
 
-import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.stubs.StubJarvisCore;
-import fr.zelus.jarvis.stubs.StubRuntimePlatform;
-import fr.zelus.jarvis.stubs.action.StubRuntimeMessageAction;
-import fr.zelus.jarvis.stubs.action.StubRuntimeMessageActionIOException;
-import fr.zelus.jarvis.stubs.action.StubRuntimeMessageActionIOExceptionThenOk;
+import edu.uoc.som.jarvis.core.JarvisCore;
+import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.stubs.StubJarvisCore;
+import edu.uoc.som.jarvis.stubs.StubRuntimePlatform;
+import edu.uoc.som.jarvis.stubs.action.StubRuntimeMessageAction;
+import edu.uoc.som.jarvis.stubs.action.StubRuntimeMessageActionIOException;
+import edu.uoc.som.jarvis.stubs.action.StubRuntimeMessageActionIOExceptionThenOk;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.*;
 

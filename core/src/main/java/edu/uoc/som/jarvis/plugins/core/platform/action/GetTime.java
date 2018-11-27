@@ -1,8 +1,8 @@
-package fr.zelus.jarvis.plugins.core.platform.action;
+package edu.uoc.som.jarvis.plugins.core.platform.action;
 
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.plugins.core.platform.CorePlatform;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.plugins.core.platform.CorePlatform;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

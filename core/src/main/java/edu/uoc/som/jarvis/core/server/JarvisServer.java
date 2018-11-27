@@ -1,8 +1,8 @@
-package fr.zelus.jarvis.core.server;
+package edu.uoc.som.jarvis.core.server;
 
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.platform.io.WebhookEventProvider;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 import org.apache.http.config.SocketConfig;
@@ -25,7 +25,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * <p>
  * The {@link JarvisServer} provides a simple REST API that accepts POST methods on port {@code 5000}. Incoming
  * requests are parsed and sent to the registered {@link WebhookEventProvider}s, that transform the
- * original request into {@link fr.zelus.jarvis.intent.EventInstance}s that can be used to trigger actions.
+ * original request into {@link edu.uoc.som.jarvis.intent.EventInstance}s that can be used to trigger actions.
  *
  * @see #registerWebhookEventProvider(WebhookEventProvider)
  */
@@ -68,7 +68,7 @@ public class JarvisServer {
      * The {@link WebhookEventProvider}s to notify when a request is received.
      * <p>
      * These {@link WebhookEventProvider}s are used to parse the input requests and create the corresponding
-     * {@link fr.zelus.jarvis.intent.EventInstance}s that can be used to trigger actions.
+     * {@link edu.uoc.som.jarvis.intent.EventInstance}s that can be used to trigger actions.
      */
     private Set<WebhookEventProvider> webhookEventProviders;
 
@@ -174,7 +174,7 @@ public class JarvisServer {
      * <p>
      * The registered {@code webhookEventProvider} will be notified when a new request is received. If the provider
      * supports the request content type (see {@link WebhookEventProvider#acceptContentType(String)}, it will receive
-     * the request content that will be used to create the associated {@link fr.zelus.jarvis.intent.EventInstance}.
+     * the request content that will be used to create the associated {@link edu.uoc.som.jarvis.intent.EventInstance}.
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to register
      * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
@@ -192,7 +192,7 @@ public class JarvisServer {
      * Unregistered a {@link WebhookEventProvider}.
      * <p>
      * The provided {@code webhookEventProvider} will not be notified when new request are received, and cannot be
-     * used to create {@link fr.zelus.jarvis.intent.EventInstance}s.
+     * used to create {@link edu.uoc.som.jarvis.intent.EventInstance}s.
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to unregister
      * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
@@ -217,7 +217,7 @@ public class JarvisServer {
      * <p>
      * This method asks each registered {@link WebhookEventProvider} if it accepts the given {@code contentType}. If
      * so, the provided {@code content} is sent to the {@link WebhookEventProvider} that will create the associated
-     * {@link fr.zelus.jarvis.intent.EventInstance}.
+     * {@link edu.uoc.som.jarvis.intent.EventInstance}.
      *
      * @param contentType the content type of the received request
      * @param content     the content of the received request

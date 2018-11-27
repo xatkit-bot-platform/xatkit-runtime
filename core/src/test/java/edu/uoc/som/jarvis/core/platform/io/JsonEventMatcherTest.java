@@ -1,15 +1,16 @@
-package fr.zelus.jarvis.core.platform.io;
+package edu.uoc.som.jarvis.core.platform.io;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.EventDefinitionRegistry;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.intent.*;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.intent.*;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -270,7 +271,7 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         assertThat(outContextInstance.getDefinition()).as("Not null out context instance definition").isNotNull();
         assertThat(outContextInstance.getDefinition().getName()).as("Valid out context instance definition")
                 .isEqualTo(validContextName);
-        assertThat(outContextInstance.getValues()).as("Out context instance contains two out values").hasSize
+        Assertions.assertThat(outContextInstance.getValues()).as("Out context instance contains two out values").hasSize
                 (2);
         ContextParameterValue value1 = outContextInstance.getValues().get(0);
         assertThat(value1.getContextParameter()).as("Value1 context parameter not null").isNotNull();

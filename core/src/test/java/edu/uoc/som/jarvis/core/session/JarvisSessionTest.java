@@ -1,6 +1,6 @@
-package fr.zelus.jarvis.core.session;
+package edu.uoc.som.jarvis.core.session;
 
-import fr.zelus.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;

@@ -1,11 +1,11 @@
-package fr.zelus.jarvis.core.session;
+package edu.uoc.som.jarvis.core.session;
 
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
+import edu.uoc.som.jarvis.intent.Context;
+import edu.uoc.som.jarvis.intent.ContextParameterValue;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.intent.Context;
-import fr.zelus.jarvis.intent.ContextParameterValue;
-import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -199,7 +199,7 @@ public class RuntimeContexts {
      * Stores the provided {@code contextParameterValue} in the context.
      * <p>
      * This method extracts the context name and parameter key from the provided {@link ContextParameterValue}, by
-     * navigating its {@link fr.zelus.jarvis.intent.ContextParameter} and {@link Context} references. This method is
+     * navigating its {@link edu.uoc.som.jarvis.intent.ContextParameter} and {@link Context} references. This method is
      * used as syntactic sugar to register {@link ContextParameterValue}s received from {@link RuntimeEventProvider}s, see
      * {@link #setContextValue(String, int, String, Object)} to register a context value from {@link String} values.
      *
@@ -268,7 +268,7 @@ public class RuntimeContexts {
      * <p>
      * Context lifespan counts are set by {@link #setContextValue(String, int, String, Object)}, and decrementing after
      * each user input by {@link #decrementLifespanCounts()}, and are synchronized with the
-     * {@link fr.zelus.jarvis.core.recognition.IntentRecognitionProvider}'s remote context lifespan counts.
+     * {@link edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider}'s remote context lifespan counts.
      *
      * @param context the context to retrieve the lifespan count of
      * @return the lifespan count of the provided {@code context}

@@ -43,3 +43,4 @@ public class StubMessage extends AbstractMessage {
     protected void unsupported() {
         throw new UnsupportedOperationException("The operation is not supported");
     }
+}

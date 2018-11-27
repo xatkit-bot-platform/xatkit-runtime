@@ -1,15 +1,11 @@
 package edu.uoc.som.jarvis.core.recognition;
 
 import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.intent.BaseEntityDefinition;
+import edu.uoc.som.jarvis.intent.EntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityType;
 import edu.uoc.som.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.intent.BaseEntityDefinition;
-import fr.zelus.jarvis.intent.EntityDefinition;
-import fr.zelus.jarvis.intent.EntityType;
-import fr.zelus.jarvis.intent.IntentFactory;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.util.EList;
@@ -272,4 +268,10 @@ public class EntityMapperTest extends AbstractJarvisTest {
     @Test
     public void getEntityMappingForNotRegisteredAbstractEntityFallback() {
         mapper.setFallbackEntityMapping(FALLBACK_VALUE);
-        String concrete = mapper.getMa
+        String concrete = mapper.getMappingFor(VALID_ENTITY);
+        assertThat(concrete).as("Mapped value is not null").isNotNull();
+        assertThat(concrete).as("Mapped value is fallback").isEqualTo(FALLBACK_VALUE);
+    }
+
+
+}

@@ -1,11 +1,10 @@
 package edu.uoc.som.jarvis.plugins.log.platform.action;
 
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.plugins.log.platform.LogPlatform;
 import fr.inria.atlanmod.commons.log.Level;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.plugins.log.platform.LogPlatform;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 

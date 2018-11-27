@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.plugins.slack.platform.io;
+package edu.uoc.som.jarvis.plugins.slack.platform.io;
 
 import com.github.seratch.jslack.Slack;
 import com.github.seratch.jslack.api.methods.SlackApiException;
@@ -13,14 +13,14 @@ import com.github.seratch.jslack.api.rtm.RTMMessageHandler;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
+import edu.uoc.som.jarvis.core.platform.io.RuntimeIntentProvider;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.intent.RecognizedIntent;
+import edu.uoc.som.jarvis.plugins.slack.JarvisSlackUtils;
+import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.RecognizedIntent;
-import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
-import fr.zelus.jarvis.core.platform.io.RuntimeIntentProvider;
-import fr.zelus.jarvis.plugins.slack.JarvisSlackUtils;
-import fr.zelus.jarvis.plugins.slack.platform.SlackPlatform;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.websocket.CloseReason;
@@ -30,7 +30,6 @@ import java.text.MessageFormat;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static fr.zelus.jarvis.plugins.slack.JarvisSlackUtils.*;
 import static java.util.Objects.nonNull;
 
 /**
@@ -116,17 +115,17 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
     public SlackIntentProvider(SlackPlatform runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
         checkNotNull(configuration, "Cannot construct a SlackIntentProvider from a null configuration");
-        this.slackToken = configuration.getString(SLACK_TOKEN_KEY);
+        this.slackToken = configuration.getString(JarvisSlackUtils.SLACK_TOKEN_KEY);
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackIntentProvider from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
-                "associated to the key %s", slackToken, SLACK_TOKEN_KEY);
+                "associated to the key %s", slackToken, JarvisSlackUtils.SLACK_TOKEN_KEY);
         this.slack = new Slack();
         this.botId = getSelfId();
         try {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
             String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the " +
-                    "bot API token is valid and stored in jarvis configuration with the key {0}", SLACK_TOKEN_KEY);
+                    "bot API token is valid and stored in jarvis configuration with the key {0}", JarvisSlackUtils.SLACK_TOKEN_KEY);
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
         }
@@ -248,10 +247,10 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
                  * The message has a type, this should always be true
                  */
                 Log.info("received {0}", json);
-                if (json.get("type").getAsString().equals(HELLO_TYPE)) {
+                if (json.get("type").getAsString().equals(JarvisSlackUtils.HELLO_TYPE)) {
                     Log.info("Slack listener connected");
                 }
-                if (json.get("type").getAsString().equals(MESSAGE_TYPE)) {
+                if (json.get("type").getAsString().equals(JarvisSlackUtils.MESSAGE_TYPE)) {
                     /*
                      * The message hasn't been sent by a bot
                      */
@@ -312,7 +311,7 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
                         Log.warn("Skipping {0}, the message does not contain a \"channel\" field", json);
                     }
                 } else {
-                    Log.trace("Skipping {0}, the message type is not \"{1}\"", json, MESSAGE_TYPE);
+                    Log.trace("Skipping {0}, the message type is not \"{1}\"", json, JarvisSlackUtils.MESSAGE_TYPE);
                 }
             } else {
                 Log.error("The message does not define a \"type\" field, skipping it");

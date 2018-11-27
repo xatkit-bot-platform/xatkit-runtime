@@ -1,10 +1,10 @@
-package fr.zelus.jarvis.plugins.generic_chat.platform.action;
+package edu.uoc.som.jarvis.plugins.generic_chat.platform.action;
 
-import fr.zelus.jarvis.core.ExecutionService;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.EventInstance;
-import fr.zelus.jarvis.plugins.generic_chat.platform.GenericChatPlatform;
+import edu.uoc.som.jarvis.core.ExecutionService;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.intent.EventInstance;
+import edu.uoc.som.jarvis.plugins.generic_chat.platform.GenericChatPlatform;
 
 import java.util.List;
 

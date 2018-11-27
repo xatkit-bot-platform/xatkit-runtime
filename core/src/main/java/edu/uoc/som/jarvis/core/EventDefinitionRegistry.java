@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.core;
+package edu.uoc.som.jarvis.core;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.intent.Context;
-import fr.zelus.jarvis.intent.EventDefinition;
-import fr.zelus.jarvis.intent.IntentDefinition;
+import edu.uoc.som.jarvis.intent.Context;
+import edu.uoc.som.jarvis.intent.EventDefinition;
+import edu.uoc.som.jarvis.intent.IntentDefinition;
 
 import java.util.*;
 import java.util.stream.Collectors;

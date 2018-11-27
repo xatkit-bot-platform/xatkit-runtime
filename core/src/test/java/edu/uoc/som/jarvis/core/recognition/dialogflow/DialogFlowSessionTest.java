@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.core.recognition.dialogflow;
+package edu.uoc.som.jarvis.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.session.RuntimeContexts;
-import fr.zelus.jarvis.test.util.VariableLoaderHelper;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;

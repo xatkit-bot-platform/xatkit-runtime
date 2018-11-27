@@ -1,8 +1,9 @@
-package fr.zelus.jarvis.core.server;
+package edu.uoc.som.jarvis.core.server;
 
 import com.google.gson.*;
+import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.JarvisException;
 import org.apache.http.*;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
@@ -23,14 +24,14 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
 /**
- * Handles the input requests and notifies the {@link fr.zelus.jarvis.core.platform.io.WebhookEventProvider}s.
+ * Handles the input requests and notifies the {@link WebhookEventProvider}s.
  */
 class HttpHandler implements HttpRequestHandler {
 
     /**
      * The {@link JarvisServer} managing this handler.
      * <p>
-     * The {@link JarvisServer} is used to notify the {@link fr.zelus.jarvis.core.platform.io.WebhookEventProvider}s when a new
+     * The {@link JarvisServer} is used to notify the {@link WebhookEventProvider}s when a new
      * request is received.
      *
      * @see JarvisServer#notifyWebhookEventProviders(String, Object, Header[])
@@ -66,7 +67,7 @@ class HttpHandler implements HttpRequestHandler {
      * Handles the received {@code request} and fill the provided {@code response}.
      * <p>
      * This method parses the received {@code request} headers and content and notifies the {@link JarvisServer}'s
-     * registered {@link fr.zelus.jarvis.core.platform.io.WebhookEventProvider}s.
+     * registered {@link WebhookEventProvider}s.
      *
      * @param request  the received {@link HttpRequest}
      * @param response the {@link HttpResponse} to send to the caller

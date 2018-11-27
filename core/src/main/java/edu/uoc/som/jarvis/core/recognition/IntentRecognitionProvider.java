@@ -1,9 +1,8 @@
 package edu.uoc.som.jarvis.core.recognition;
 
 import edu.uoc.som.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.intent.RecognizedIntent;
+import edu.uoc.som.jarvis.intent.IntentDefinition;
+import edu.uoc.som.jarvis.intent.RecognizedIntent;
 
 /**
  * A unified wrapper for concrete intent recognition providers.

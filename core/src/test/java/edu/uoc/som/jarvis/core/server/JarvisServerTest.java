@@ -1,10 +1,10 @@
-package fr.zelus.jarvis.core.server;
+package edu.uoc.som.jarvis.core.server;
 
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.stubs.EmptyRuntimePlatform;
-import fr.zelus.jarvis.stubs.StubJarvisCore;
-import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.stubs.EmptyRuntimePlatform;
+import edu.uoc.som.jarvis.stubs.StubJarvisCore;
+import edu.uoc.som.jarvis.stubs.io.StubJsonWebhookEventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;

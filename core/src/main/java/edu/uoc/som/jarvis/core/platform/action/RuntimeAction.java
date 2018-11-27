@@ -1,21 +1,23 @@
-package fr.zelus.jarvis.core.platform.action;
+package edu.uoc.som.jarvis.core.platform.action;
 
-import fr.zelus.jarvis.core.ExecutionService;
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.EventInstance;
+import edu.uoc.som.jarvis.core.ExecutionService;
+import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.intent.EventInstance;
+import edu.uoc.som.jarvis.intent.RecognizedIntent;
+import edu.uoc.som.jarvis.platform.ActionDefinition;
 
 import java.util.concurrent.Callable;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
- * The concrete implementation of an {@link fr.zelus.jarvis.platform.ActionDefinition} definition.
+ * The concrete implementation of an {@link ActionDefinition} definition.
  * <p>
  * A {@link RuntimeAction} represents an atomic action that are automatically executed by the
  * {@link ExecutionService}
  * component. Instances of this class are created by the associated {@link RuntimePlatform} from an input
- * {@link fr.zelus.jarvis.intent.RecognizedIntent}.
+ * {@link RecognizedIntent}.
  * <p>
  * Note that {@link RuntimeAction}s implementations must be stored in the <i>action</i> package of their associated
  * concrete {@link RuntimePlatform} implementation to enable their automated loading. For example, the action
@@ -23,7 +25,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * <i>myPlatformPackage.action</i>
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the action
- * @see fr.zelus.jarvis.platform.ActionDefinition
+ * @see ActionDefinition
  * @see ExecutionService
  * @see RuntimePlatform
  */

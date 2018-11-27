@@ -1,8 +1,8 @@
-package fr.zelus.jarvis.test.util.models;
+package edu.uoc.som.jarvis.test.util.models;
 
-import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.intent.IntentFactory;
-import fr.zelus.jarvis.intent.Library;
+import edu.uoc.som.jarvis.intent.IntentDefinition;
+import edu.uoc.som.jarvis.intent.IntentFactory;
+import edu.uoc.som.jarvis.intent.Library;
 
 public class TestIntentModel {
 

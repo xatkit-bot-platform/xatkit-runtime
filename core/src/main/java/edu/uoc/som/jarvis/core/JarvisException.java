@@ -1,4 +1,4 @@
-package fr.zelus.jarvis.core;
+package edu.uoc.som.jarvis.core;
 
 /**
  * Jarvis top-level exception.

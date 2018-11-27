@@ -1,8 +1,12 @@
-package fr.zelus.jarvis.core.platform.io;
+package edu.uoc.som.jarvis.core.platform.io;
 
-import fr.zelus.jarvis.core.EventDefinitionRegistry;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.intent.*;
+import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
+import edu.uoc.som.jarvis.intent.Context;
+import edu.uoc.som.jarvis.intent.ContextInstance;
+import edu.uoc.som.jarvis.intent.ContextParameter;
+import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.intent.*;
 
 import java.text.MessageFormat;
 import java.util.Collections;

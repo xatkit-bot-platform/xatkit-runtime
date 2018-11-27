@@ -1,7 +1,7 @@
-package fr.zelus.jarvis.core.platform.io;
+package edu.uoc.som.jarvis.core.platform.io;
 
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 
@@ -9,7 +9,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
  * A specialised {@link RuntimeEventProvider} that handles HTTP requests sent by the
- * {@link fr.zelus.jarvis.core.server.JarvisServer}.
+ * {@link edu.uoc.som.jarvis.core.server.JarvisServer}.
  * <p>
  * This class defines primitives to handle raw HTTP request contents, manipulate the parsed content, and provides an
  * utility method that checks if the {@link WebhookEventProvider} accepts a given {@code contentType}.
@@ -37,7 +37,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends
      * {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
-     * {@link fr.zelus.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
+     * {@link edu.uoc.som.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link WebhookEventProvider}
@@ -73,7 +73,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends
      * Handles the parsed request content and headers.
      * <p>
      * This method embeds the request content management that creates the associated
-     * {@link fr.zelus.jarvis.intent.EventInstance}. The {@code parsedContent} parameter is set by an internal call
+     * {@link edu.uoc.som.jarvis.intent.EventInstance}. The {@code parsedContent} parameter is set by an internal call
      * to {@link #parseContent(Object)}.
      *
      * @param parsedContent the parsed request content to handle
@@ -87,7 +87,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends
      * <p>
      * This method parses the provided {@code content} and internally calls
      * {@link #handleParsedContent(Object, Header[])} to
-     * create the associated {@link fr.zelus.jarvis.intent.EventInstance}s.
+     * create the associated {@link edu.uoc.som.jarvis.intent.EventInstance}s.
      * <p>
      * This method is part of the core API and cannot be reimplemented by concrete subclasses. Use
      * {@link #handleParsedContent(Object, Header[])} to tune the request content processing.

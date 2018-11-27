@@ -1,10 +1,10 @@
-package fr.zelus.jarvis.core.recognition;
+package edu.uoc.som.jarvis.core.recognition;
 
+import edu.uoc.som.jarvis.core.JarvisCore;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.intent.IntentDefinition;
+import edu.uoc.som.jarvis.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.intent.IntentDefinition;
-import fr.zelus.jarvis.intent.RecognizedIntent;
 import org.apache.commons.configuration2.Configuration;
 
 import java.text.MessageFormat;

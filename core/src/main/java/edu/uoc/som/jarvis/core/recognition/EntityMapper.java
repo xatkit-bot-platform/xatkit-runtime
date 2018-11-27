@@ -1,10 +1,10 @@
-package fr.zelus.jarvis.core.recognition;
+package edu.uoc.som.jarvis.core.recognition;
 
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.intent.BaseEntityDefinition;
+import edu.uoc.som.jarvis.intent.EntityDefinition;
+import edu.uoc.som.jarvis.intent.EntityType;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.intent.BaseEntityDefinition;
-import fr.zelus.jarvis.intent.EntityDefinition;
-import fr.zelus.jarvis.intent.EntityType;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -37,7 +37,7 @@ public class EntityMapper {
      *
      * @see #entities
      */
-    protected static String FALLBACK_ENTITY_KEY = "fr.zelus.jarvis.core.recognition.entity.fallback";
+    protected static String FALLBACK_ENTITY_KEY = "edu.uoc.som.jarvis.core.recognition.entity.fallback";
 
     /**
      * The {@link Map} storing the abstract-to-concrete entity mappings.

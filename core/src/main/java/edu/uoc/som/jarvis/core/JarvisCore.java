@@ -1,26 +1,26 @@
-package fr.zelus.jarvis.core;
+package edu.uoc.som.jarvis.core;
 
+import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
+import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProviderException;
+import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProviderFactory;
+import edu.uoc.som.jarvis.core.server.JarvisServer;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
+import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
+import edu.uoc.som.jarvis.execution.ActionInstance;
+import edu.uoc.som.jarvis.execution.ExecutionModel;
+import edu.uoc.som.jarvis.execution.ExecutionPackage;
+import edu.uoc.som.jarvis.execution.ExecutionRule;
+import edu.uoc.som.jarvis.intent.*;
+import edu.uoc.som.jarvis.platform.ActionDefinition;
+import edu.uoc.som.jarvis.platform.EventProviderDefinition;
+import edu.uoc.som.jarvis.platform.PlatformDefinition;
+import edu.uoc.som.jarvis.platform.PlatformPackage;
+import edu.uoc.som.jarvis.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.platform.RuntimePlatform;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.core_resources.utils.LibraryLoaderUtils;
-import fr.zelus.jarvis.core_resources.utils.PlatformLoaderUtils;
-import fr.zelus.jarvis.execution.ActionInstance;
-import fr.zelus.jarvis.execution.ExecutionModel;
-import fr.zelus.jarvis.execution.ExecutionPackage;
-import fr.zelus.jarvis.execution.ExecutionRule;
-import fr.zelus.jarvis.intent.*;
-import fr.zelus.jarvis.core.platform.io.RuntimeEventProvider;
-import fr.zelus.jarvis.platform.ActionDefinition;
-import fr.zelus.jarvis.platform.EventProviderDefinition;
-import fr.zelus.jarvis.platform.PlatformDefinition;
-import fr.zelus.jarvis.platform.PlatformPackage;
-import fr.zelus.jarvis.core.recognition.IntentRecognitionProvider;
-import fr.zelus.jarvis.core.recognition.IntentRecognitionProviderException;
-import fr.zelus.jarvis.core.recognition.IntentRecognitionProviderFactory;
-import fr.zelus.jarvis.core.server.JarvisServer;
-import fr.zelus.jarvis.util.Loader;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
@@ -116,7 +116,7 @@ public class JarvisCore {
     private RuntimePlatformRegistry runtimePlatformRegistry;
 
     /**
-     * The {@link EventDefinitionRegistry} used to cache {@link fr.zelus.jarvis.intent.EventDefinition}s and
+     * The {@link EventDefinitionRegistry} used to cache {@link EventDefinition}s and
      * {@link IntentDefinition}s from the input {@link ExecutionModel} and provides utility methods to retrieve
      * specific
      * {@link EventDefinition}s and {@link IntentDefinition}s and clear the cache.

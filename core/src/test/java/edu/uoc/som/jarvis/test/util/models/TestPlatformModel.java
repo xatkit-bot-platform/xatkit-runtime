@@ -1,9 +1,9 @@
-package fr.zelus.jarvis.test.util.models;
+package edu.uoc.som.jarvis.test.util.models;
 
-import fr.zelus.jarvis.platform.ActionDefinition;
-import fr.zelus.jarvis.platform.InputProviderDefinition;
-import fr.zelus.jarvis.platform.PlatformDefinition;
-import fr.zelus.jarvis.platform.PlatformFactory;
+import edu.uoc.som.jarvis.platform.ActionDefinition;
+import edu.uoc.som.jarvis.platform.InputProviderDefinition;
+import edu.uoc.som.jarvis.platform.PlatformDefinition;
+import edu.uoc.som.jarvis.platform.PlatformFactory;
 
 public class TestPlatformModel {
 
@@ -16,7 +16,7 @@ public class TestPlatformModel {
     public TestPlatformModel() {
         platformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
         platformDefinition.setName("StubRuntimePlatform");
-        platformDefinition.setRuntimePath("fr.zelus.jarvis.stubs.StubRuntimePlatform");
+        platformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.StubRuntimePlatform");
         actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
         actionDefinition.setName("StubRuntimeAction");
         platformDefinition.getActions().add(actionDefinition);

@@ -1,11 +1,11 @@
-package fr.zelus.jarvis.plugins.discord.platform.action;
+package edu.uoc.som.jarvis.plugins.discord.platform.action;
 
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeMessageAction;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 import fr.inria.atlanmod.commons.log.Log;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.platform.action.RuntimeMessageAction;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.plugins.discord.platform.DiscordPlatform;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.User;

@@ -1,24 +1,25 @@
-package fr.zelus.jarvis.core.platform;
+package edu.uoc.som.jarvis.core.platform;
 
-import fr.zelus.jarvis.AbstractJarvisTest;
-import fr.zelus.jarvis.core.JarvisCore;
-import fr.zelus.jarvis.core.JarvisException;
-import fr.zelus.jarvis.core.platform.action.RuntimeAction;
-import fr.zelus.jarvis.core.session.JarvisSession;
-import fr.zelus.jarvis.execution.*;
-import fr.zelus.jarvis.core.platform.io.WebhookEventProvider;
-import fr.zelus.jarvis.platform.ActionDefinition;
-import fr.zelus.jarvis.platform.EventProviderDefinition;
-import fr.zelus.jarvis.platform.Parameter;
-import fr.zelus.jarvis.platform.PlatformFactory;
-import fr.zelus.jarvis.core.server.JarvisServer;
-import fr.zelus.jarvis.stubs.EmptyRuntimePlatform;
-import fr.zelus.jarvis.stubs.StubJarvisCore;
-import fr.zelus.jarvis.stubs.action.StubRuntimeActionNoParameter;
-import fr.zelus.jarvis.stubs.action.StubRuntimeActionTwoConstructors;
-import fr.zelus.jarvis.stubs.io.StubInputProvider;
-import fr.zelus.jarvis.stubs.io.StubInputProviderNoConfigurationConstructor;
-import fr.zelus.jarvis.stubs.io.StubJsonWebhookEventProvider;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.core.JarvisCore;
+import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
+import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
+import edu.uoc.som.jarvis.core.server.JarvisServer;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.execution.*;
+import edu.uoc.som.jarvis.platform.ActionDefinition;
+import edu.uoc.som.jarvis.platform.EventProviderDefinition;
+import edu.uoc.som.jarvis.platform.Parameter;
+import edu.uoc.som.jarvis.platform.PlatformFactory;
+import edu.uoc.som.jarvis.stubs.EmptyRuntimePlatform;
+import edu.uoc.som.jarvis.stubs.StubJarvisCore;
+import edu.uoc.som.jarvis.stubs.action.StubRuntimeActionNoParameter;
+import edu.uoc.som.jarvis.stubs.action.StubRuntimeActionTwoConstructors;
+import edu.uoc.som.jarvis.stubs.io.StubInputProvider;
+import edu.uoc.som.jarvis.stubs.io.StubInputProviderNoConfigurationConstructor;
+import edu.uoc.som.jarvis.stubs.io.StubJsonWebhookEventProvider;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.*;
 
@@ -81,8 +82,8 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Test
     public void getJarvisCore() {
-        assertThat(runtimePlatform.getJarvisCore()).as("Not null JarvisCore").isNotNull();
-        assertThat(runtimePlatform.getJarvisCore()).as("Valid JarvisCore").isEqualTo(jarvisCore);
+        Assertions.assertThat(runtimePlatform.getJarvisCore()).as("Not null JarvisCore").isNotNull();
+        Assertions.assertThat(runtimePlatform.getJarvisCore()).as("Valid JarvisCore").isEqualTo(jarvisCore);
     }
 
     @Test(expected = NullPointerException.class)

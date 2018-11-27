@@ -1,6 +1,6 @@
-package fr.zelus.jarvis.core.platform.action;
+package edu.uoc.som.jarvis.core.platform.action;
 
-import fr.zelus.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.AbstractJarvisTest;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
