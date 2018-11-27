@@ -69,8 +69,8 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      */
     public RuntimeMessageAction(T runtimePlatform, JarvisSession session, String rawMessage) {
         super(runtimePlatform, session);
-        checkArgument(nonNull(rawMessage) && !rawMessage.isEmpty(), "Cannot construct a {0} action with the provided " +
-                "message {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
+        checkArgument(nonNull(rawMessage) && !rawMessage.isEmpty(), "Cannot construct a %s action with the provided " +
+                "message %s, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
         this.message = session.getJarvisContext().fillContextValues(rawMessage);
     }
 
@@ -160,8 +160,12 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
             try {
                 computationResult = compute();
             } catch (IOException e) {
-                Log.error("An {0} occurred when computing the action, trying to send the message again ({1}/{2})", e
-                        .getClass().getSimpleName(), attempts, IO_ERROR_RETRIES);
+                if(attempts < IO_ERROR_RETRIES + 1) {
+                    Log.error("An {0} occurred when computing the action, trying to send the message again ({1}/{2})", e
+                            .getClass().getSimpleName(), attempts, IO_ERROR_RETRIES);
+                } else {
+                    Log.error("Could not compute the action: {0}", e.getClass().getSimpleName());
+                }
                 /*
                  * Set the thrownException value, if the compute() method fails with an IOException every time we
                  * need to return an error message with it.
