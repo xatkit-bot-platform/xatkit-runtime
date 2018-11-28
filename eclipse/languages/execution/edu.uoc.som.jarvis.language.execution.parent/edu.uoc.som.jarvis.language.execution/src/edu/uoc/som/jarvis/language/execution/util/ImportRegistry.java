@@ -23,8 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.emf.common.CommonPlugin;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.plugin.EcorePlugin;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -155,7 +158,19 @@ public class ImportRegistry {
 		 */
 		if (isNull(resource)) {
 			File importResourceFile = new File(path);
-			URI importResourceFileURI = URI.createFileURI(importResourceFile.getAbsolutePath());
+			URI importResourceFileURI = null;
+			if(importResourceFile.exists()) {
+				importResourceFileURI = URI.createFileURI(importResourceFile.getAbsolutePath());
+			} else {
+				/*
+				 * Try to load the resource as a platform resource
+				 */
+				URI platformURI = URI.createPlatformResourceURI(path, false);
+				/*
+				 * Convert the URI to an absolute URI, platform:/ is not handled by the runtime engine
+				 */
+				importResourceFileURI = CommonPlugin.asLocalURI(platformURI);
+			}
 			URI importResourceURI = importResourceFileURI;
 			if (nonNull(alias)) {
 				URI importResourceAliasURI;
@@ -217,6 +232,9 @@ public class ImportRegistry {
 				resource.load(Collections.emptyMap());
 			} catch (IOException e) {
 				System.out.println("An error occurred when loading the resource");
+				return null;
+			} catch(IllegalArgumentException e) {
+				System.out.println("An error occurred when loading the resource, invalid platform URI provided");
 				return null;
 			}
 		} else {
