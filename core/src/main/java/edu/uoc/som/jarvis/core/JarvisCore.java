@@ -187,9 +187,8 @@ public class JarvisCore {
             this.configuration = configuration;
             this.executionResourceSet = initializeExecutionResourceSet();
             ExecutionModel executionModel = getExecutionModel(configuration.getProperty(EXECUTION_MODEL_KEY));
-            checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass().getSimpleName()
-
-                    , ExecutionModel.class.getSimpleName());
+            checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
+                    .getSimpleName(), ExecutionModel.class.getSimpleName());
             this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                     configuration);
             this.sessions = new HashMap<>();
@@ -246,11 +245,12 @@ public class JarvisCore {
                      * The Action is still a proxy, meaning that the proxy resolution failed.
                      */
                     if (actionDefinition.eIsProxy()) {
-                        throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
-                                "from the {1}", actionDefinition, ExecutionModel.class.getSimpleName()));
+                        throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy " +
+                                "{0} from the {1}", actionDefinition, ExecutionModel.class.getSimpleName()));
                     }
                     PlatformDefinition platform = (PlatformDefinition) actionDefinition.eContainer();
-                    RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform.getName());
+                    RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform
+                            .getName());
                     if (isNull(runtimePlatform)) {
                         runtimePlatform = loadRuntimePlatformFromPlatformModel(platform);
                         this.runtimePlatformRegistry.registerRuntimePlatform(runtimePlatform);
@@ -267,16 +267,10 @@ public class JarvisCore {
             }
             jarvisServer.start();
             Log.info("Jarvis bot started");
-        } catch(Throwable t) {
-            if(nonNull(this.executionService)) {
-                this.executionService.shutdown();
-            }
-            if(nonNull(this.jarvisServer)) {
-                this.jarvisServer.stop();
-            }
-            if(nonNull(this.intentRecognitionProvider)) {
-                intentRecognitionProvider.shutdown();
-            }
+        } catch (Throwable t) {
+            Log.error("An error occurred when starting the {0}, trying to close started services", this.getClass()
+                    .getSimpleName());
+            stopServices();
             throw t;
         }
     }
@@ -647,15 +641,48 @@ public class JarvisCore {
         /* Shutdown the ExecutionService first in case there are running tasks using the IntentRecognitionProvider
          * API.
          */
-        this.executionService.shutdown();
-        this.jarvisServer.stop();
-        this.intentRecognitionProvider.shutdown();
+        this.stopServices();
         Collection<RuntimePlatform> runtimePlatforms = this.getRuntimePlatformRegistry().getRuntimePlatforms();
         for (RuntimePlatform runtimePlatform : runtimePlatforms) {
             runtimePlatform.shutdown();
         }
         this.getRuntimePlatformRegistry().clearRuntimePlatforms();
         this.getEventDefinitionRegistry().clearEventDefinitions();
+    }
+
+    /**
+     * Stops the running services.
+     * <p>
+     * This method does not throw any exception, but logs an error if an issue occurred when stoping a service.
+     * Catching all the exception is done to attempt to stop all the services, but calling this method does not
+     * ensure that all the services have been properly stopped.
+     */
+    private void stopServices() {
+        /*
+         * Catch each Throwable, if a service throw an error when closing we want to try to close the other ones.
+         */
+        if (nonNull(this.executionService)) {
+            try {
+                this.executionService.shutdown();
+            } catch (Throwable t) {
+                Log.error("An error occurred when closing the {0}", this.executionService.getClass().getSimpleName());
+            }
+        }
+        if (nonNull(this.jarvisServer)) {
+            try {
+                this.jarvisServer.stop();
+            } catch (Throwable t) {
+                Log.error("An error occurred when closing the {0}", this.jarvisServer.getClass().getSimpleName());
+            }
+        }
+        if (nonNull(this.intentRecognitionProvider)) {
+            try {
+                this.intentRecognitionProvider.shutdown();
+            } catch (Throwable t) {
+                Log.error("An error occurred when closing the {0}", this.intentRecognitionProvider.getClass()
+                        .getSimpleName());
+            }
+        }
     }
 
     /**
@@ -709,5 +736,19 @@ public class JarvisCore {
      */
     public void clearJarvisSessions() {
         this.sessions.clear();
+    }
+
+    /**
+     * Logs a warning message and stops the running services if the {@link JarvisCore} hasn't been closed properly.
+     *
+     * @throws Throwable if an error occurred when stopping the running services.
+     */
+    @Override
+    protected void finalize() throws Throwable {
+        if (!this.isShutdown()) {
+            Log.warn("{0} hasn't been shutdown properly, trying to stop running services");
+            this.shutdown();
+        }
+        super.finalize();
     }
 }
