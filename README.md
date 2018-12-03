@@ -25,7 +25,7 @@ These assets constitute the input of the **Jarvis Runtime** component that start
 There are several benefits in using this modular architecture to specify chatbots:
 
 - The **Jarvis Modeling Language**  packages decouple the different dimensions of a chatbot definition, facilitating the reuse of each dimension across several chatbots. As an example, the Slack platform definition (that provides actions to send messages on specific Slack channels) can be reused in all chatbots interacting with Slack.
-- Each sub-language is totally independent of the concrete *intent recognition provider*, and the [Generic_Chat](https://github.com/SOM-Research/jarvis/wiki/Generic_ChatPlatform) platform allows to define messaging actions that are independent of the targeted messaging platforms, easing the maintenance and evolution of the chatbot.
+- Each sub-language is totally independent of the concrete *intent recognition provider*, and Jarvis allows to define messaging actions that are independent of the targeted messaging platforms (more information [here](Generic_ChatPlatform), easing the maintenance and evolution of the chatbot.
 - The **Jarvis Runtime** architecture can be easily extended to support new platform connections and computable actions.  Learn more on custom platform and actions definition [here]().
 
 You are now ready to start using Jarvis and [create your first chatbot](https://github.com/SOM-Research/jarvis/wiki/Getting-Started)! You can also have a look at the [installation instructions](https://github.com/SOM-Research/jarvis/wiki/Installation) to get setup the Jarvis modeling environment. 
