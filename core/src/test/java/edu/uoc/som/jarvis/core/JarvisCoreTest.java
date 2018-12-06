@@ -3,6 +3,7 @@ package edu.uoc.som.jarvis.core;
 import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.recognition.DefaultIntentRecognitionProvider;
 import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
+import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
 import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
@@ -51,10 +52,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JarvisCoreTest extends AbstractJarvisTest {
 
-    protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
-
-    protected static String VALID_LANGUAGE_CODE = "en-US";
-
     protected static ExecutionModel VALID_EXECUTION_MODEL;
 
     @BeforeClass
@@ -89,14 +86,12 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     protected JarvisCore jarvisCore;
 
-    public static Configuration buildConfiguration(String projectId, String languageCode, Object executionModel) {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
-        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
-        /*
-         * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
-         */
-        configuration.addProperty(DialogFlowApi.ENABLE_INTENT_LOADING_KEY, false);
+    public static Configuration buildConfiguration() {
+        return buildConfiguration(VALID_EXECUTION_MODEL);
+    }
+
+    public static Configuration buildConfiguration(Object executionModel) {
+        Configuration configuration = DialogFlowApiTest.buildConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, executionModel);
         return configuration;
     }
@@ -120,8 +115,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
      * @return a valid {@link JarvisCore} instance
      */
     private JarvisCore getValidJarvisCore() {
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
-                VALID_EXECUTION_MODEL);
+        Configuration configuration = buildConfiguration();
         jarvisCore = new JarvisCore(configuration);
         return jarvisCore;
     }
@@ -139,16 +133,14 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @Test(expected = JarvisException.class)
     public void constructInvalidCustomPlatformPathInConfiguration() {
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
-                VALID_EXECUTION_MODEL);
+        Configuration configuration = buildConfiguration();
         configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", "test");
         jarvisCore = new JarvisCore(configuration);
     }
 
     @Test
     public void constructValidCustomPlatformPathInConfiguration() {
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE,
-                VALID_EXECUTION_MODEL);
+        Configuration configuration = buildConfiguration();
         File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform.xmi")
                 .getFile());
         configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
@@ -168,14 +160,14 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @Test(expected = JarvisException.class)
     public void constructInvalidCustomLibraryPathInConfiguration() {
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_EXECUTION_MODEL);
+        Configuration configuration = buildConfiguration();
         configuration.addProperty(JarvisCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", "test");
         jarvisCore = new JarvisCore(configuration);
     }
 
     @Test
     public void constructValidCustomPlatformFromPathInConfiguration() {
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_EXECUTION_MODEL);
+        Configuration configuration = buildConfiguration();
         File validFile = new File(this.getClass().getClassLoader().getResource("Test_Libraries/ExampleLibrary.xmi")
                 .getFile());
         configuration.addProperty(JarvisCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", validFile.getAbsolutePath());
@@ -200,16 +192,13 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
         platformDefinition.setName("InvalidPlatform");
         platformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.InvalidPlatform");
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel);
+        Configuration configuration = buildConfiguration(executionModel);
         jarvisCore = new JarvisCore(configuration);
     }
 
     @Test
     public void constructValidConfiguration() {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VALID_PROJECT_ID);
-        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
-        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
+        Configuration configuration = buildConfiguration();
         jarvisCore = new JarvisCore(configuration);
         checkJarvisCore(jarvisCore);
     }
@@ -227,7 +216,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
         ExecutionModel executionModel = testExecutionModel.getExecutionModel();
 
-        jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel));
+        jarvisCore = new JarvisCore(buildConfiguration(executionModel));
         checkJarvisCore(jarvisCore, executionModel);
     }
 
@@ -242,7 +231,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         stubPlatformDefinition.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
         executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
-        jarvisCore = new JarvisCore(buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, executionModel));
+        jarvisCore = new JarvisCore(buildConfiguration(executionModel));
         checkJarvisCore(jarvisCore, executionModel);
         Assertions.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server WebhookEventProvider" +
                 " collection is not empty").isNotEmpty();
@@ -384,9 +373,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 "instance").isInstanceOf(DialogFlowApi.class);
         DialogFlowApi dialogFlowApi = (DialogFlowApi) jarvisCore.getIntentRecognitionProvider();
         softly.assertThat(dialogFlowApi.getProjectId()).as("Valid DialogFlowAPI project ID").isEqualTo
-                (VALID_PROJECT_ID);
+                (DialogFlowApiTest.VALID_PROJECT_ID);
         softly.assertThat(dialogFlowApi.getLanguageCode()).as("Valid DialogFlowAPI language code").isEqualTo
-                (VALID_LANGUAGE_CODE);
+                (DialogFlowApiTest.VALID_LANGUAGE_CODE);
         assertThat(jarvisCore.getExecutionService().getExecutionModel()).as("Not null ExecutionModel")
                 .isNotNull();
         softly.assertThat(jarvisCore.getExecutionService().getExecutionModel()).as("Valid " +

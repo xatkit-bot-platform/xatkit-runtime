@@ -30,6 +30,7 @@ import edu.uoc.som.jarvis.core.recognition.EntityMapper;
 import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
 import org.apache.commons.configuration2.Configuration;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -340,6 +341,12 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 Log.info("Using {0} credential file", credentialsPath);
                 CredentialsProvider credentialsProvider;
                 try {
+                    File credentialFile = new File(credentialsPath);
+                    if(!credentialFile.exists()) {
+                        Log.warn("Cannot load the credential file at {0}, trying to load it from the classpath",
+                                credentialsPath);
+                        credentialsPath = this.getClass().getClassLoader().getResource(credentialsPath).getFile();
+                    }
                     credentialsProvider = FixedCredentialsProvider.create(GoogleCredentials
                             .fromStream(new FileInputStream(credentialsPath)));
                 } catch (FileNotFoundException e) {

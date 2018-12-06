@@ -23,7 +23,9 @@ public class VariableLoaderHelper {
 
     private static String JARVIS_DIALOGFLOW_PROJECT = "JARVIS_DIALOGFLOW_PROJECT";
 
-    private static String JARVIS_TEST_DIALOGFLOW_PROJECT = "JARVIS_TEST_DIALOGFLOW_PROJECT";
+    private static String JARVIS_DIALOGFLOW_LANGUAGE = "JARVIS_DIALOGFLOW_LANGUAGE";
+
+    private static String JARVIS_DIALOGFLOW_CREDENTIALS_PATH = "JARVIS_DIALOGFLOW_CREDENTIALS_PATH";
 
     private static String JARVIS_SLACK_TOKEN_KEY = "JARVIS_SLACK_TOKEN";
 
@@ -31,6 +33,14 @@ public class VariableLoaderHelper {
 
     public static String getJarvisDialogFlowProject() {
         return getVariable(JARVIS_DIALOGFLOW_PROJECT);
+    }
+
+    public static String getJarvisDialogFlowLanguage() {
+        return getVariable(JARVIS_DIALOGFLOW_LANGUAGE);
+    }
+
+    public static String getJarvisDialogflowCredentialsPath() {
+        return getVariable(JARVIS_DIALOGFLOW_CREDENTIALS_PATH);
     }
 
     public static String getJarvisSlackToken() {

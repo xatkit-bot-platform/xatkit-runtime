@@ -3,6 +3,7 @@ package edu.uoc.som.jarvis.core;
 import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
+import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import edu.uoc.som.jarvis.execution.ActionInstance;
@@ -90,9 +91,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
         ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
 
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VALID_PROJECT_ID);
-        configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, VALID_LANGUAGE_CODE);
+        Configuration configuration = DialogFlowApiTest.buildConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
         VALID_JARVIS_CORE = new JarvisCore(configuration);
     }

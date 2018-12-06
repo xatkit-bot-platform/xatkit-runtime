@@ -25,10 +25,6 @@ import java.util.List;
  */
 public class StubJarvisCore extends JarvisCore {
 
-    protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
-
-    protected static String VALID_LANGUAGE_CODE = "en-US";
-
     protected static ExecutionModel VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE
             .createExecutionModel();
 
@@ -41,7 +37,7 @@ public class StubJarvisCore extends JarvisCore {
      * Constructs a valid {@link StubJarvisCore} instance.
      */
     public StubJarvisCore() {
-        super(JarvisCoreTest.buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE, VALID_EXECUTION_MODEL));
+        super(JarvisCoreTest.buildConfiguration(VALID_EXECUTION_MODEL));
         this.handledEvents = new ArrayList<>();
         IntentDefinition welcomeIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         welcomeIntentDefinition.setName("Default Welcome Intent");

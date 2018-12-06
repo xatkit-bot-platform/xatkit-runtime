@@ -9,13 +9,6 @@ import edu.uoc.som.jarvis.intent.*;
 import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
 import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
 import fr.inria.atlanmod.commons.log.Log;
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.*;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
-import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
@@ -32,9 +25,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class DialogFlowApiTest extends AbstractJarvisTest {
 
-    protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
+    public static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
 
-    protected static String VALID_LANGUAGE_CODE = "en-US";
+    public static String VALID_LANGUAGE_CODE = VariableLoaderHelper.getJarvisDialogFlowLanguage();
 
     protected static String SAMPLE_INPUT = "hello";
 
@@ -70,10 +63,17 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     // not tested here, only instantiated to enable IntentDefinition registration and Platform retrieval
     protected static JarvisCore jarvisCore;
 
+    public static Configuration buildConfiguration() {
+        return buildConfiguration(VariableLoaderHelper.getJarvisDialogFlowProject(), VariableLoaderHelper
+                .getJarvisDialogFlowLanguage());
+    }
+
     private static Configuration buildConfiguration(String projectId, String languageCode) {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
         configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
+        configuration.addProperty(DialogFlowApi.GOOGLE_CREDENTIALS_PATH_KEY, VariableLoaderHelper
+                .getJarvisDialogflowCredentialsPath());
         /*
          * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
          */
@@ -84,7 +84,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         TestExecutionModel testExecutionModel = new TestExecutionModel();
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        Configuration configuration = buildConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, testExecutionModel.getExecutionModel());
         jarvisCore = new JarvisCore(configuration);
         VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
@@ -136,18 +136,18 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
 
     private DialogFlowApi getValidDialogFlowApi() {
-        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
+        api = new DialogFlowApi(jarvisCore, buildConfiguration());
         return api;
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullJarvisCore() {
-        api = new DialogFlowApi(null, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
+        api = new DialogFlowApi(null, buildConfiguration());
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullProjectIdValidLanguageCode() {
-        api = new DialogFlowApi(null, buildConfiguration(null, "en-US"));
+        api = new DialogFlowApi(null, buildConfiguration(null, VALID_LANGUAGE_CODE));
     }
 
     @Test
@@ -158,7 +158,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @Test
     public void constructValid() {
-        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE));
+        api = new DialogFlowApi(jarvisCore, buildConfiguration());
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
         softly.assertThat(api.isShutdown()).as("Not shutdown").isFalse();
@@ -169,25 +169,6 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, null));
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
-    }
-
-    @Test
-    public void constructCredentialsFilePath() {
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, null);
-        String credentialsFilePath = this.getClass().getClassLoader().getResource("jarvis-secret.json").getFile();
-        configuration.addProperty(DialogFlowApi.GOOGLE_CREDENTIALS_PATH_KEY, credentialsFilePath);
-        api = new DialogFlowApi(jarvisCore, configuration);
-        /*
-         * Ensures that the underlying IntentsClient credentials are valid by listing the Agent intents.
-         */
-        Log.info("Listing DialogFlow intents to check permissions");
-        for (Intent registeredIntent : api.getRegisteredIntents()) {
-            Log.info("Found intent {0}", registeredIntent.getDisplayName());
-        }
-        /*
-         * Ensures that the underlying AgentsClient credentials are valid by training the Agent.
-         */
-        api.trainMLEngine();
     }
 
     @Test(expected = NullPointerException.class)
@@ -253,10 +234,10 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         softly.assertThat(registeredIntents).as("Registered Intent list is not empty").isNotEmpty();
         Intent foundParentIntent = null;
         Intent foundFollowUpIntent = null;
-        for(Intent intent : registeredIntents) {
-            if(intent.getDisplayName().equals(parentIntentName)) {
+        for (Intent intent : registeredIntents) {
+            if (intent.getDisplayName().equals(parentIntentName)) {
                 foundParentIntent = intent;
-            } else if(intent.getDisplayName().equals(followUpIntentName)) {
+            } else if (intent.getDisplayName().equals(followUpIntentName)) {
                 foundFollowUpIntent = intent;
             }
         }
@@ -646,12 +627,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @Test
     public void createSessionWithContextProperty() {
-        Configuration configuration = buildConfiguration(VALID_PROJECT_ID, VALID_LANGUAGE_CODE);
+        Configuration configuration = buildConfiguration();
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         api = new DialogFlowApi(jarvisCore, configuration);
         JarvisSession session = api.createSession("sessionID");
         checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
-        softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable timeout")
+        softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable " +
+                "timeout")
                 .isEqualTo(10);
     }
 

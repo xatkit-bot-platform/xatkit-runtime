@@ -3,6 +3,7 @@ package edu.uoc.som.jarvis.core.recognition;
 import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
+import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
 import edu.uoc.som.jarvis.stubs.StubJarvisCore;
 import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -35,8 +36,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
 
     @Test
     public void getIntentRecognitionProviderDialogFlowProperties() {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, VariableLoaderHelper.getJarvisDialogFlowProject());
+        Configuration configuration = DialogFlowApiTest.buildConfiguration();
         IntentRecognitionProvider provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
                 (stubJarvisCore, configuration);
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
