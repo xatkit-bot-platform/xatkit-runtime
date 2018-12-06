@@ -4,6 +4,7 @@ jarvis
 [![Build Status](https://travis-ci.com/SOM-Research/jarvis.svg?token=FBbqzUpaXaqnawrfdPca&branch=master)](https://travis-ci.com/SOM-Research/jarvis)
 [![codecov](https://codecov.io/gh/gdaniel/jarvis/branch/master/graph/badge.svg?token=02TcDpkeLm)](https://codecov.io/gh/gdaniel/jarvis)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f852d0d41b24f4f9a989db243647ac2)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gdaniel/jarvis&amp;utm_campaign=Badge_Grade)
+[![Javadoc Badge](https://img.shields.io/badge/Javadoc-v1.0.0--SNAPSHOT-brightgreen.svg)](https://som-research.github.io/jarvis-docs/releases/snapshot/doc/)
 
 Jarvis is a generic bot platform that embeds a dedicated **chatbot-specific modeling language** to specify user intentions and received events, and bind them to computable actions. The modeled chatbot definition is handled by the **Jarvis Runtime Engine**, which automatically manages its deployment and execution.
 
