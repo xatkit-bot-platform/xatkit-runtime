@@ -1,5 +1,6 @@
 jarvis
 ======
+[![License Badge](https://img.shields.io/badge/License-EPL%202.0-brightgreen.svg)](https://opensource.org/licenses/EPL-2.0)
 [![Build Status](https://travis-ci.com/SOM-Research/jarvis.svg?token=FBbqzUpaXaqnawrfdPca&branch=master)](https://travis-ci.com/SOM-Research/jarvis)
 [![codecov](https://codecov.io/gh/gdaniel/jarvis/branch/master/graph/badge.svg?token=02TcDpkeLm)](https://codecov.io/gh/gdaniel/jarvis)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f852d0d41b24f4f9a989db243647ac2)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gdaniel/jarvis&amp;utm_campaign=Badge_Grade)
