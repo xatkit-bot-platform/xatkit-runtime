@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.language.execution.util;
+package edu.uoc.som.jarvis.utils;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -27,7 +27,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.emf.common.CommonPlugin;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.plugin.EcorePlugin;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;

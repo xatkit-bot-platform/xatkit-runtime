@@ -46,6 +46,12 @@
 		</dependency>
 
         <!-- jarvis Internal -->
+        
+        <dependency>
+			<groupId>edu.uoc.som.jarvis</groupId>
+			<artifactId>edu.uoc.som.jarvis.utils</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>edu.uoc.som.jarvis</groupId>

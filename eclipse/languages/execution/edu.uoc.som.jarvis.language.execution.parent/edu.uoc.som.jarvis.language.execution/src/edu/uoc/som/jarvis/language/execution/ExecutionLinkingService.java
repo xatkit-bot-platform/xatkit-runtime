@@ -22,11 +22,11 @@ import edu.uoc.som.jarvis.execution.ExecutionRule;
 import edu.uoc.som.jarvis.execution.ParameterValue;
 import edu.uoc.som.jarvis.intent.EventDefinition;
 import edu.uoc.som.jarvis.intent.Library;
-import edu.uoc.som.jarvis.language.execution.util.ImportRegistry;
 import edu.uoc.som.jarvis.platform.ActionDefinition;
 import edu.uoc.som.jarvis.platform.EventProviderDefinition;
 import edu.uoc.som.jarvis.platform.Parameter;
 import edu.uoc.som.jarvis.platform.PlatformDefinition;
+import edu.uoc.som.jarvis.utils.ImportRegistry;
 
 public class ExecutionLinkingService extends DefaultLinkingService {
 

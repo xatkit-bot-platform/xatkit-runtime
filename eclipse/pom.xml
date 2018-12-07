@@ -16,7 +16,8 @@
 
 	<properties>
 		<maven.test.skip>true</maven.test.skip>
-
+		<!-- Dependency versions -->
+		<eclipse.runtime.version>3.13.0</eclipse.runtime.version>
 		<!-- Plugin versions -->
 		<tycho-maven-plugin.version>1.1.0</tycho-maven-plugin.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
@@ -35,7 +36,23 @@
 		<module>languages</module>
 		<module>features/edu.uoc.som.jarvis.feature</module>
 		<module>update/edu.uoc.som.jarvis.update</module>
+		<module>utils/edu.uoc.som.jarvis.utils</module>
 	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<!-- Eclipse -->
+            <!-- This dependency is only required to dynamically load the core Platforms -->
+            <!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
+            <dependency>
+                <groupId>org.eclipse.platform</groupId>
+                <artifactId>org.eclipse.core.runtime</artifactId>
+                <version>${eclipse.runtime.version}</version>
+            </dependency>
+
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>

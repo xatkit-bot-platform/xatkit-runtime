@@ -5,14 +5,13 @@
 package edu.uoc.som.jarvis.language.execution.ui.contentassist
 
 import org.eclipse.emf.ecore.EObject
-import org.eclipse.xtext.RuleCall
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.eclipse.xtext.Assignment
 import static java.util.Objects.isNull
 import edu.uoc.som.jarvis.execution.ExecutionModel
-import edu.uoc.som.jarvis.language.execution.util.ImportRegistry
 import edu.uoc.som.jarvis.platform.PlatformDefinition
+import edu.uoc.som.jarvis.utils.ImportRegistry
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist

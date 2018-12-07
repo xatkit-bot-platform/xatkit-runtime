@@ -304,19 +304,18 @@ version(s), and exceptions or additional permissions here}.&quot;
    </license>
 
    <requires>
-      <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.emf.ecore"/>
-      <import plugin="org.eclipse.xtext.xbase.lib"/>
-      <import plugin="org.eclipse.emf.ecore.xcore.lib"/>
       <import plugin="org.eclipse.xtext"/>
       <import plugin="org.eclipse.xtext.xbase"/>
       <import plugin="org.eclipse.equinox.common" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.xtext.xbase.lib"/>
       <import plugin="org.antlr.runtime"/>
       <import plugin="org.eclipse.xtext.util"/>
       <import plugin="org.eclipse.xtend.lib"/>
       <import plugin="edu.uoc.som.jarvis.intent" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.osgi"/>
       <import plugin="edu.uoc.som.jarvis.platform" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="edu.uoc.som.jarvis.language.intent" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.apache.log4j"/>
       <import plugin="org.eclipse.xtext.ide"/>
       <import plugin="org.eclipse.xtext.xbase.ide"/>
@@ -331,8 +330,10 @@ version(s), and exceptions or additional permissions here}.&quot;
       <import plugin="org.eclipse.xtext.builder"/>
       <import plugin="edu.uoc.som.jarvis.language.platform.ide" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.core.runtime" version="3.13.0" match="greaterOrEqual"/>
-      <import plugin="edu.uoc.som.jarvis.core_resources" version="1.0.0" match="greaterOrEqual"/>
       <import plugin="edu.uoc.som.jarvis.execution" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="edu.uoc.som.jarvis.core_resources" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="edu.uoc.som.jarvis.utils" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.emf.ecore.xmi" version="2.12.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
@@ -421,6 +422,13 @@ version(s), and exceptions or additional permissions here}.&quot;
 
    <plugin
          id="edu.uoc.som.jarvis.language.intent.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="edu.uoc.som.jarvis.utils"
          download-size="0"
          install-size="0"
          version="0.0.0"

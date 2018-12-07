@@ -17,7 +17,8 @@ Require-Bundle: edu.uoc.som.jarvis.language.execution,
  org.eclipse.xtext.builder,
  org.eclipse.xtend.lib;resolution:=optional,
  org.eclipse.xtext.xbase.lib,
- edu.uoc.som.jarvis.execution;bundle-version="1.0.0"
+ edu.uoc.som.jarvis.execution;bundle-version="1.0.0",
+ edu.uoc.som.jarvis.utils;bundle-version="1.0.0"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: edu.uoc.som.jarvis.language.execution.ui.quickfix,

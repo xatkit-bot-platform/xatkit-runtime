@@ -10,7 +10,7 @@ import edu.uoc.som.jarvis.platform.Parameter
 import edu.uoc.som.jarvis.execution.ExecutionModel
 import edu.uoc.som.jarvis.execution.ExecutionPackage
 import edu.uoc.som.jarvis.execution.ActionInstance
-import edu.uoc.som.jarvis.language.execution.util.ImportRegistry
+import edu.uoc.som.jarvis.utils.ImportRegistry
 
 /**
  * This class contains custom validation rules. 
