@@ -2,7 +2,7 @@ jarvis
 ======
 [![License Badge](https://img.shields.io/badge/license-EPL%202.0-brightgreen.svg)](https://opensource.org/licenses/EPL-2.0)
 [![Build Status](https://travis-ci.com/SOM-Research/jarvis.svg?token=FBbqzUpaXaqnawrfdPca&branch=master)](https://travis-ci.com/SOM-Research/jarvis)
-[![codecov](https://codecov.io/gh/gdaniel/jarvis/branch/master/graph/badge.svg?token=02TcDpkeLm)](https://codecov.io/gh/gdaniel/jarvis)
+[![codecov](https://codecov.io/gh/SOM-Research/jarvis/branch/master/graph/badge.svg)](https://codecov.io/gh/SOM-Research/jarvis)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f852d0d41b24f4f9a989db243647ac2)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gdaniel/jarvis&amp;utm_campaign=Badge_Grade)
 [![Javadoc Badge](https://img.shields.io/badge/javadoc-v1.0.0--SNAPSHOT-brightgreen.svg)](https://som-research.github.io/jarvis-docs/releases/snapshot/doc/)
 [![Gitter Badge](https://img.shields.io/badge/chat-on%20gitter-404040.svg)](https://gitter.im/jarvis-development/Lobby)
