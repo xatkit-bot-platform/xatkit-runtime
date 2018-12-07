@@ -20,6 +20,12 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import static java.util.Objects.nonNull
 import edu.uoc.som.jarvis.intent.BaseEntityDefinition
 import edu.uoc.som.jarvis.intent.EntityType
+import edu.uoc.som.jarvis.platform.PlatformDefinition
+import edu.uoc.som.jarvis.platform.ActionDefinition
+import edu.uoc.som.jarvis.platform.PlatformFactory
+import edu.uoc.som.jarvis.platform.Parameter
+import edu.uoc.som.jarvis.platform.EventProviderDefinition
+import edu.uoc.som.jarvis.platform.InputProviderDefinition
 
 /**
  * Generates code from your model files on save.
@@ -47,10 +53,48 @@ class PlatformGenerator extends AbstractGenerator {
 		 */
 		rr.contents.clear
 		rr.contents.addAll(resource.contents)
+		handlePlatformExtension(rr)
 		handleInlineContext(rr)
 		rr.save(Collections.emptyMap())
 	}
-
+	
+	def void handlePlatformExtension(Resource resource) {
+		var PlatformDefinition platform = resource.contents.get(0) as PlatformDefinition
+		if(nonNull(platform.extends)) {
+			for(ActionDefinition parentAction : platform.extends.actions) {
+				platform.actions.add(deepCopy(parentAction))
+			}
+			for(EventProviderDefinition parentEventProvider : platform.extends.eventProviderDefinitions) {
+				platform.eventProviderDefinitions.add(deepCopy(parentEventProvider))
+			}
+		}
+	}
+	
+	private def EventProviderDefinition deepCopy(EventProviderDefinition from) {
+		if(from instanceof InputProviderDefinition) {
+			var InputProviderDefinition inputProviderDefinition = PlatformFactory.eINSTANCE.createInputProviderDefinition
+			inputProviderDefinition.name = from.name
+			return inputProviderDefinition
+		} else {
+			throw new RuntimeException("Inheritance of EventProviders is not supported for now")
+		}
+	}
+	
+	private def ActionDefinition deepCopy(ActionDefinition from) {
+		var ActionDefinition actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition
+		actionDefinition.name = from.name
+		for(Parameter p : from.parameters) {
+			actionDefinition.parameters.add(deepCopy(p))
+		}
+		return actionDefinition
+	}
+	
+	private def Parameter deepCopy(Parameter from) {
+		var Parameter parameter = PlatformFactory.eINSTANCE.createParameter
+		parameter.key = from.key
+		return parameter
+	}
+	
 	def void handleInlineContext(Resource resource) {
 		resource.allContents.filter[o|o instanceof IntentDefinition].map[o|o as IntentDefinition].forEach [ i |
 			val List<String> newTrainingSentences = new ArrayList

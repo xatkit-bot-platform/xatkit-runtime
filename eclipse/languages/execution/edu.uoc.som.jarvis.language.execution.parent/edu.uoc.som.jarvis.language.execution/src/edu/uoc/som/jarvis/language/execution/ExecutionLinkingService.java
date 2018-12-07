@@ -44,15 +44,27 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				/*
 				 * Trying to retrieve an InputProvider from a loaded platform
 				 */
+				String[] splittedActionName = node.getText().trim().split("\\.");
+				if (splittedActionName.length != 2) {
+					System.out.println(MessageFormat.format(
+							"Cannot handle the event provider {0}, expecting a qualified name <Platform>.<EventProvider>",
+							node.getText().trim()));
+					return Collections.emptyList();
+				}
+				String platformName = splittedActionName[0];
+				String eventProviderName = splittedActionName[1];
+				System.out.println("Platform name: " + platformName);
+				System.out.println("EventProvider name: " + eventProviderName);
 				Collection<PlatformDefinition> platformDefinitions = ImportRegistry.getInstance()
 						.getLoadedPlatforms((ExecutionModel) context);
-				System.out.println("found " + platformDefinitions.size() + " platforms");
 				for (PlatformDefinition platformDefinition : platformDefinitions) {
-					for (EventProviderDefinition eventProviderDefinition : platformDefinition.getEventProviderDefinitions()) {
-						System.out.println("comparing EventProvider " + eventProviderDefinition.getName());
-						System.out.println("Node text: " + node.getText());
-						if (eventProviderDefinition.getName().equals(node.getText())) {
-							return Arrays.asList(eventProviderDefinition);
+					if(platformDefinition.getName().equals(platformName)) {
+						for(EventProviderDefinition eventProviderDefinition : platformDefinition.getEventProviderDefinitions()) {
+							System.out.println("comparing EventProvider " + eventProviderDefinition.getName());
+							System.out.println("Node text: " + node.getText());
+							if(eventProviderDefinition.getName().equals(eventProviderName)) {
+								return Arrays.asList(eventProviderDefinition);
+							}
 						}
 					}
 				}

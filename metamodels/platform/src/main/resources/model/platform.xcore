@@ -10,10 +10,17 @@ class PlatformDefinition {
     String runtimePath
     boolean ^abstract
     refers PlatformDefinition ^extends
-    refers PlatformDefinition[] extendedBy
     contains EventProviderDefinition[] eventProviderDefinitions
 	contains ActionDefinition[] actions
 	contains PlatformImportDeclaration[] imports
+	/*op ActionDefinition[] getAllActions() {
+		var list = newBasicEList()
+		list.addAll(actions)
+		if(^extends !== null) {
+			list.addAll(^extends.actions)
+		}
+		return list
+	}*/
 }
 
 class EventProviderDefinition {

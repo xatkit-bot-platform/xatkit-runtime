@@ -3,10 +3,25 @@
  */
 package edu.uoc.som.jarvis.language.platform.ui.contentassist
 
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.Assignment
+import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
+import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
+import edu.uoc.som.jarvis.platform.PlatformDefinition
+import edu.uoc.som.jarvis.utils.ImportRegistry
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
  * on how to customize the content assistant.
  */
 class PlatformProposalProvider extends AbstractPlatformProposalProvider {
+
+	override completePlatform_Extends(EObject model, Assignment assignment, ContentAssistContext context,
+		ICompletionProposalAcceptor acceptor) {
+			val PlatformDefinition platform = model as PlatformDefinition
+			val importedPlatforms = ImportRegistry.getInstance.getLoadedPlatforms(platform)
+			importedPlatforms.filter[p | !p.name.equals(platform.name)].forEach[p | 
+				acceptor.accept(createCompletionProposal(p.name, context))
+			]
+	}
 }

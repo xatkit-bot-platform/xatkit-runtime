@@ -41,6 +41,14 @@
             <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
         </dependency>
 
+        <!-- xcore -->
+        <!-- This dependency is required to support operation specification in xcore -->
+
+        <dependency>
+            <groupId>org.eclipse.xtext</groupId>
+            <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
+        </dependency>
+
         <!-- jarvis Internal -->
 
         <dependency>

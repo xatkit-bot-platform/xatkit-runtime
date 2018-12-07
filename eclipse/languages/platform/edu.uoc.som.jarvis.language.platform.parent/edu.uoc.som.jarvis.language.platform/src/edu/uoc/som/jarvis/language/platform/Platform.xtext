@@ -6,8 +6,11 @@ import "edu.uoc.som.jarvis.intent" as intent
 
 Platform returns PlatformDefinition:
 	{PlatformDefinition}
+	(imports+=PlatformImportDeclaration)*
+	(abstract?='Abstract')?
 	'Platform' name=EString
-	'path' runtimePath=EString
+	('extends' extends=[PlatformDefinition|ID])?
+	('path' runtimePath=EString)?
 	('providers' '{'
 		eventProviderDefinitions+=(InputProviderDefinition|EventProviderDefinition)
 		(eventProviderDefinitions+=(InputProviderDefinition|EventProviderDefinition))*
@@ -18,6 +21,10 @@ Platform returns PlatformDefinition:
 	'}')?
 	;
 	
+PlatformImportDeclaration returns intent::PlatformImportDeclaration:
+	{intent::PlatformImportDeclaration} 'import platform' path=STRING ('as' alias=ID)?
+;	
+
 EventProviderDefinition returns EventProviderDefinition:
 	{EventProviderDefinition}
 	'event' name=EString

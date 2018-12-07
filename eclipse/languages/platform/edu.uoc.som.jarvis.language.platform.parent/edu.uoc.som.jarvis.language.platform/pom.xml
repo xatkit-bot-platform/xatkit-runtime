@@ -47,6 +47,20 @@
 
         <!-- jarvis Internal -->
 
+		<dependency>
+			<groupId>edu.uoc.som.jarvis</groupId>
+			<artifactId>edu.uoc.som.jarvis.utils</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<!-- This dependency is required because edu.uoc.som.jarvis.utils depends on execution, -->
+		<!-- but transitive dependencies are not handled by Tycho. -->
+		<dependency>
+			<groupId>edu.uoc.som.jarvis</groupId>
+			<artifactId>execution</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
         <dependency>
             <groupId>edu.uoc.som.jarvis</groupId>
             <artifactId>platform</artifactId>
@@ -58,6 +72,12 @@
             <artifactId>intent</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <dependency>
+			<groupId>edu.uoc.som.jarvis</groupId>
+			<artifactId>core_resources</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 	</dependencies>
 

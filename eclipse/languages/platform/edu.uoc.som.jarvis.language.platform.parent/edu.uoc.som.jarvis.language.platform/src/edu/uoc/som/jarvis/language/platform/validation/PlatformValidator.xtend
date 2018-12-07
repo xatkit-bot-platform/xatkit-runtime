@@ -3,23 +3,60 @@
  */
 package edu.uoc.som.jarvis.language.platform.validation
 
+import org.eclipse.xtext.validation.Check
+import edu.uoc.som.jarvis.platform.PlatformDefinition
+import org.eclipse.emf.ecore.resource.Resource
+import edu.uoc.som.jarvis.utils.ImportRegistry
+import edu.uoc.som.jarvis.platform.PlatformPackage
+import static java.util.Objects.isNull
+import static java.util.Objects.nonNull
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class PlatformValidator extends AbstractPlatformValidator {
-	
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					ModulePackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
-	
+
+	@Check
+	def checkPlatformValidImports(PlatformDefinition platform) {
+		platform.imports.forEach [ i |
+			println("Checking import " + i)
+			var Resource platformResource = ImportRegistry.getInstance.loadImport(i)
+			if (isNull(platformResource)) {
+				error('Platform ' + i + " does not exist", PlatformPackage.Literals.PLATFORM_DEFINITION__IMPORTS)
+			}
+		]
+	}
+
+	@Check
+	def checkPlatformExtendsAbstractPlatform(PlatformDefinition platform) {
+		if (nonNull(platform.extends)) {
+			if (!platform.extends.abstract) {
+				error('Platform ' + platform.name + ' extends ' + platform.extends.name + ' which is not abstract',
+					PlatformPackage.Literals.PLATFORM_DEFINITION__EXTENDS)
+			}
+		}
+	}
+
+	@Check
+	def checkAbstractPlatformDoesNotDefinePath(PlatformDefinition platform) {
+		if (platform.abstract) {
+			if (nonNull(platform.runtimePath)) {
+				error("Abstract platforms should not declare a path",
+					PlatformPackage.Literals.PLATFORM_DEFINITION__RUNTIME_PATH)
+			}
+		}
+	}
+
+	@Check
+	def checkConcretePlatformDefinesPath(PlatformDefinition platform) {
+		if (!platform.abstract) {
+			if (isNull(platform.runtimePath) || platform.runtimePath.isEmpty) {
+				error("Not abstract platforms should declare a not empty path",
+					PlatformPackage.Literals.PLATFORM_DEFINITION__RUNTIME_PATH)
+			}
+		}
+	}
+
 }

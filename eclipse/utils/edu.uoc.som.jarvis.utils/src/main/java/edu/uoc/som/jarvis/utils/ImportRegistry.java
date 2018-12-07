@@ -68,6 +68,15 @@ public class ImportRegistry {
 		this.rSet.getPackageRegistry().put(ExecutionPackage.eINSTANCE.getNsURI(), ExecutionPackage.eINSTANCE);
 		this.rSet.getPackageRegistry().put(PlatformPackage.eINSTANCE.getNsURI(), PlatformPackage.eINSTANCE);
 		this.rSet.getPackageRegistry().put(IntentPackage.eINSTANCE.getNsURI(), IntentPackage.eINSTANCE);
+		loadJarvisCore();
+		ExecutionPackage.eINSTANCE.eClass();
+		PlatformPackage.eINSTANCE.eClass();
+		IntentPackage.eINSTANCE.eClass();
+		this.platforms = new HashMap<>();
+		this.libraries = new HashMap<>();
+	}
+	
+	private void loadJarvisCore() {
 		try {
 			loadJarvisCorePlatforms();
 		} catch (IOException | URISyntaxException e) {
@@ -80,31 +89,39 @@ public class ImportRegistry {
 			System.out.println("An error occurred when loading core libraries");
 			e.printStackTrace();
 		}
-		ExecutionPackage.eINSTANCE.eClass();
-		PlatformPackage.eINSTANCE.eClass();
-		IntentPackage.eINSTANCE.eClass();
-		this.platforms = new HashMap<>();
-		this.libraries = new HashMap<>();
 	}
 
-	public Collection<Resource> loadExecutionModelImports(ExecutionModel model) {
+	public Collection<Resource> loadImports(Collection<? extends ImportDeclaration> imports) {
 		/*
 		 * Clear the loaded platforms and libraries, we are reloading them all
 		 */
+		this.rSet.getResources().clear();
+		/*
+		 * Not efficient, the core platforms and libraries cannot be updated, we should load them only once (see #186)
+		 */
+		loadJarvisCore();
 		this.platforms.clear();
 		this.libraries.clear();
 		List<Resource> resources = new ArrayList<>();
-		for (ImportDeclaration importDeclaration : model.getImports()) {
+		for(ImportDeclaration importDeclaration : imports) {
 			resources.add(loadImport(importDeclaration));
 		}
 		return resources;
+	}
+	
+	public Collection<PlatformDefinition> getLoadedPlatforms(PlatformDefinition platform) {
+		/*
+		 * Reload all the platforms in case the imports have changes.
+		 */
+		this.loadImports(platform.getImports());
+		return this.platforms.values();
 	}
 
 	public Collection<PlatformDefinition> getLoadedPlatforms(ExecutionModel model) {
 		/*
 		 * Reload all the platforms in case the imports have changed.
 		 */
-		this.loadExecutionModelImports(model);
+		this.loadImports(model.getImports());
 		return this.platforms.values();
 	}
 
@@ -112,7 +129,7 @@ public class ImportRegistry {
 		/*
 		 * Reload all the libraries in case the imports have changed.
 		 */
-		this.loadExecutionModelImports(model);
+		this.loadImports(model.getImports());
 		return this.libraries.values();
 	}
 

@@ -22,10 +22,11 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 	override completeExecutionModel_EventProviderDefinitions(EObject model, Assignment assignment,
 		ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
 		var platforms = ImportRegistry.getInstance.getLoadedPlatforms(model as ExecutionModel)
-		platforms.map[m|m.eventProviderDefinitions.map[i|i.name]].flatten.forEach [ iName |
-			acceptor.accept(createCompletionProposal(iName, context))
-		]
-		super.completeExecutionModel_EventProviderDefinitions(model, assignment, context, acceptor)
+		for(PlatformDefinition platform : platforms) {
+			platform.eventProviderDefinitions.map[i | i.name].forEach[iName |
+				acceptor.accept(createCompletionProposal(platform.name + '.' + iName, context))
+			]
+		}
 	}
 
 	override completeExecutionRule_Event(EObject model, Assignment assignment, ContentAssistContext context,
@@ -64,17 +65,18 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 			}
 		}
 		val platforms = ImportRegistry.getInstance.getLoadedPlatforms(executionModel)
-		platforms.map[m|m.actions].flatten.forEach [ a |
-			var String prefix = (a.eContainer as PlatformDefinition).name + ".";
-			var parameterString = ""
-			if(!a.parameters.empty) {
-				parameterString += '('
-				parameterString += a.parameters.map[p|p.key + " : \"\""].join(", ")
-				parameterString += ')'
-			}
-			acceptor.accept(createCompletionProposal(prefix + a.name + parameterString, context))
-		]
-		super.completeActionInstance_Action(model, assignment, context, acceptor)
+		for(PlatformDefinition platform : platforms) {
+			platform.actions.forEach[a | 
+				var String prefix = platform.name + "."
+				var parameterString = ""
+				if(!a.parameters.empty) {
+					parameterString += '('
+					parameterString += a.parameters.map[p|p.key + " : \"\""].join(", ")
+					parameterString += ')'
+				}
+				acceptor.accept(createCompletionProposal(prefix + a.name + parameterString, context))
+			]
+		}
 	}
 
 }
