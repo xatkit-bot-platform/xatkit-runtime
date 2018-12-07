@@ -23,9 +23,9 @@ class ExecutionValidator extends AbstractExecutionValidator {
 	def checkExecutionModelValidImports(ExecutionModel model) {
 		model.imports.forEach[i | 
 			println("Checking import " + i)
-			var Resource moduleResource = ImportRegistry.getInstance.loadImport(i)
-			if(isNull(moduleResource)) {
-				error('Module ' + i + "does not exist", ExecutionPackage.Literals.EXECUTION_MODEL__IMPORTS)
+			var Resource platformResource = ImportRegistry.getInstance.loadImport(i)
+			if(isNull(platformResource)) {
+				error('Platform ' + i + "does not exist", ExecutionPackage.Literals.EXECUTION_MODEL__IMPORTS)
 			}
 		]
 	}
