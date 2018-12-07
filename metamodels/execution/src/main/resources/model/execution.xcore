@@ -6,24 +6,12 @@ import edu.uoc.som.jarvis.platform.ActionDefinition
 import edu.uoc.som.jarvis.platform.EventProviderDefinition
 import edu.uoc.som.jarvis.intent.EventDefinition
 import edu.uoc.som.jarvis.platform.Parameter
+import edu.uoc.som.jarvis.intent.ImportDeclaration
 
 class ExecutionModel {
     refers EventProviderDefinition[] eventProviderDefinitions
 	contains ExecutionRule[] executionRules
 	contains ImportDeclaration[] imports
-}
-
-abstract class ImportDeclaration {
-    String path
-    String alias
-}
-
-class PlatformImportDeclaration extends ImportDeclaration {
-
-}
-
-class LibraryImportDeclaration extends ImportDeclaration {
-
 }
 
 class ExecutionRule {

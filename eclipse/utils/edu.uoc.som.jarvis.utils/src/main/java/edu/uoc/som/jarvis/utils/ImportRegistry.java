@@ -37,11 +37,11 @@ import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
 import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
 import edu.uoc.som.jarvis.execution.ExecutionModel;
 import edu.uoc.som.jarvis.execution.ExecutionPackage;
-import edu.uoc.som.jarvis.execution.ImportDeclaration;
-import edu.uoc.som.jarvis.execution.LibraryImportDeclaration;
-import edu.uoc.som.jarvis.execution.PlatformImportDeclaration;
+import edu.uoc.som.jarvis.intent.ImportDeclaration;
 import edu.uoc.som.jarvis.intent.IntentPackage;
 import edu.uoc.som.jarvis.intent.Library;
+import edu.uoc.som.jarvis.intent.LibraryImportDeclaration;
+import edu.uoc.som.jarvis.intent.PlatformImportDeclaration;
 import edu.uoc.som.jarvis.platform.PlatformDefinition;
 import edu.uoc.som.jarvis.platform.PlatformPackage;
 

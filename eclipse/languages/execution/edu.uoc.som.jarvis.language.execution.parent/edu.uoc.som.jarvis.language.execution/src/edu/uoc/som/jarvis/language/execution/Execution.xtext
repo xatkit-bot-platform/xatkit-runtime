@@ -17,9 +17,9 @@ ExecutionModel returns ExecutionModel:
 	(executionRules+=ExecutionRule)*)?
 ;
 
-ImportDeclaration returns ImportDeclaration:
-	{PlatformImportDeclaration} 'import platform' path=STRING ('as' alias=ID)? |
-	{LibraryImportDeclaration} 'import library' path=STRING ('as' alias=ID)?
+ImportDeclaration returns intent::ImportDeclaration:
+	{intent::PlatformImportDeclaration} 'import platform' path=STRING ('as' alias=ID)? |
+	{intent::LibraryImportDeclaration} 'import library' path=STRING ('as' alias=ID)?
 ;
 
 
