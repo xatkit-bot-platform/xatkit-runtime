@@ -94,12 +94,23 @@ public class JarvisCore {
     public static String CUSTOM_LIBRARIES_KEY_PREFIX = "jarvis.libraries.custom.";
 
     /**
+     * The {@link Configuration} key prefix to store the abstract platform bindings.
+     * <p>
+     * This prefix is used to specify the path of the concrete {@link RuntimePlatform} to bind to their abstract
+     * definition in the provided execution model. Note that each used abstract platform needs to be bound
+     * separately, following this pattern {@code ABSTRACT_PLATFORM_BINDINGS_PREFIX + <abstract platform name> =
+     * <concrete platform path>}.
+     */
+    public static String ABSTRACT_PLATFORM_BINDINGS_PREFIX = "jarvis.platforms.abstract.";
+
+    /**
      * The {@link Configuration} used to initialize this class.
      * <p>
      * This {@link Configuration} is used to load and initialize platforms, see
-     * {@link #loadRuntimePlatformFromPlatformModel(PlatformDefinition)} for more information on platform loading.
+     * {@link #loadRuntimePlatformFromPlatformModel(PlatformDefinition, Configuration)} for more information on
+     * platform loading.
      *
-     * @see #loadRuntimePlatformFromPlatformModel(PlatformDefinition)
+     * @see #loadRuntimePlatformFromPlatformModel(PlatformDefinition, Configuration)
      */
     private Configuration configuration;
 
@@ -214,8 +225,8 @@ public class JarvisCore {
                 RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
                         (eventProviderPlatform.getName());
                 if (isNull(eventProviderRuntimePlatform)) {
-                    eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform);
-                    this.runtimePlatformRegistry.registerRuntimePlatform(eventProviderRuntimePlatform);
+                    eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform,
+                            configuration);
                 }
                 eventProviderRuntimePlatform.startEventProvider(eventProviderDefinition);
             }
@@ -252,8 +263,7 @@ public class JarvisCore {
                     RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform
                             .getName());
                     if (isNull(runtimePlatform)) {
-                        runtimePlatform = loadRuntimePlatformFromPlatformModel(platform);
-                        this.runtimePlatformRegistry.registerRuntimePlatform(runtimePlatform);
+                        runtimePlatform = loadRuntimePlatformFromPlatformModel(platform, configuration);
                     }
                     runtimePlatform.enableAction(actionDefinition);
                 }
@@ -540,24 +550,45 @@ public class JarvisCore {
     }
 
     /**
-     * Loads the {@link RuntimePlatform} defined by the provided {@link PlatformDefinition}.
+     * Loads the {@link RuntimePlatform} defined by the provided {@link PlatformDefinition} and registers it.
      * <p>
      * This method searches in the classpath a {@link Class} matching the input
      * {@link PlatformDefinition#getRuntimePath()} value and calls its default constructor.
+     * <p>
+     * The constructed {@link RuntimePlatform} is registered in the {@link RuntimePlatformRegistry} using its {@code
+     * name}. Note that if the provided {@code platformDefinition} is {@code abstract} the constructed
+     * {@link RuntimePlatform} is registered with the abstract {@link PlatformDefinition}'s name in order to
+     * correctly retrieve its actions when executing abstract actions specified in the execution model.
      *
      * @param platformDefinition the jarvis {@link PlatformDefinition} to load
+     * @param configuration      the jarvis {@link Configuration} used to retrieve abstract platform bindings
      * @return an instance of the loaded {@link RuntimePlatform}
      * @throws JarvisException if their is no {@link Class} matching the provided {@code platformDefinition} or if the
      *                         {@link RuntimePlatform} can not be constructed
      * @see PlatformDefinition
      * @see RuntimePlatform
      */
-    private RuntimePlatform loadRuntimePlatformFromPlatformModel(PlatformDefinition platformDefinition) throws
-            JarvisException {
-        Log.info("Loading RuntimePlatform {0}", platformDefinition.getName());
-        Class<? extends RuntimePlatform> runtimePlatformClass = Loader.loadClass(platformDefinition.getRuntimePath(),
-                RuntimePlatform.class);
-        return Loader.constructRuntimePlatform(runtimePlatformClass, this, configuration);
+    private RuntimePlatform loadRuntimePlatformFromPlatformModel(PlatformDefinition platformDefinition, Configuration
+            configuration) throws JarvisException {
+        Log.info("Loading RuntimePlatform for {0}", platformDefinition.getName());
+        String platformPath = platformDefinition.getRuntimePath();
+        if (platformDefinition.isAbstract()) {
+            /*
+             * The provided platformDefinition is abstract, we need to retrieve its concrete binding from the
+             * provided configuration.
+             */
+            String abstractPlatformDefinitionName = platformDefinition.getName();
+            String abstractPlatformBindingKey = ABSTRACT_PLATFORM_BINDINGS_PREFIX + abstractPlatformDefinitionName;
+            Log.info("{0} is abstract, retrieving its binding from the configuration", abstractPlatformDefinitionName);
+            platformPath = configuration.getString(abstractPlatformBindingKey);
+            checkNotNull(platformPath, "Cannot bind the provided path \"%s\" to the abstract platform %s, please " +
+                            "provide a non-null path in the configuration with the key %s", platformPath,
+                    abstractPlatformDefinitionName, abstractPlatformBindingKey);
+        }
+        Class<? extends RuntimePlatform> runtimePlatformClass = Loader.loadClass(platformPath, RuntimePlatform.class);
+        RuntimePlatform runtimePlatform = Loader.constructRuntimePlatform(runtimePlatformClass, this, configuration);
+        this.runtimePlatformRegistry.registerRuntimePlatform(platformDefinition.getName(), runtimePlatform);
+        return runtimePlatform;
     }
 
     /**

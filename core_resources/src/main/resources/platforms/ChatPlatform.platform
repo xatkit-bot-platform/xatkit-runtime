@@ -1,0 +1,10 @@
+Abstract Platform ChatPlatform
+
+providers {
+	input ChatProvider
+}
+
+actions {
+	PostMessage(message, channel)
+	Reply(message)
+}

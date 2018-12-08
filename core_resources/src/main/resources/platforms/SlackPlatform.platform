@@ -1,4 +1,6 @@
-Platform SlackPlatform
+import platform "ChatPlatform"
+
+Platform SlackPlatform extends ChatPlatform
 
 path "edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform"
 
@@ -7,8 +9,6 @@ providers {
 }
 
 actions {
-	PostMessage(message, channel)
-	Reply(message)
 	PostFileMessage(message, file, channel)
 	PostFileMessage(title, message, content, channel)
 	ReplyFileMessage(message, file)
