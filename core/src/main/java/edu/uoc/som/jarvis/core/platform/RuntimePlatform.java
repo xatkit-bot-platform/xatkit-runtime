@@ -387,8 +387,9 @@ public abstract class RuntimePlatform {
             }).toArray();
             return actionInstanceParameterValuesArray;
         }
-        String errorMessage = MessageFormat.format("The action does not define the good amount of parameters: " +
-                "expected {0}, found {1}", actionParameters.size(), actionInstanceParameterValues.size());
+        String errorMessage = MessageFormat.format("The {0} action does not define the good amount of parameters: " +
+                "expected {1}, found {2}", actionDefinition.getName(), actionParameters.size(),
+                actionInstanceParameterValues.size());
         Log.error(errorMessage);
         throw new JarvisException(errorMessage);
     }
