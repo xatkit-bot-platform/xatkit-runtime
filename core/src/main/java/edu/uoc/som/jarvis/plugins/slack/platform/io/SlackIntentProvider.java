@@ -33,7 +33,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
 /**
- * A Slack user input provider.
+ * A Slack user {@link RuntimeIntentProvider}.
  * <p>
  * This class relies on the Slack RTM API to receive direct messages and react to them. Note that this input provider
  * only captures direct messages sent to the Slack bot associated to this class.
