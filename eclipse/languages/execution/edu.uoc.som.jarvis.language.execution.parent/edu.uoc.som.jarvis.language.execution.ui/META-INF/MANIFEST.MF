@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: edu.uoc.som.jarvis.language.execution.ui
 Bundle-Vendor: SOM Research Lab
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.0
 Bundle-SymbolicName: edu.uoc.som.jarvis.language.execution.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: edu.uoc.som.jarvis.language.execution,

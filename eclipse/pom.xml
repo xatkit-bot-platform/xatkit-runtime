@@ -5,11 +5,10 @@
 	<parent>
 		<groupId>edu.uoc.som.jarvis</groupId>
 		<artifactId>jarvis</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<artifactId>eclipse</artifactId>
-
 	<packaging>pom</packaging>
 
 	<name>Jarvis Eclipse Components</name>
@@ -61,6 +60,11 @@
                 <artifactId>tycho-maven-plugin</artifactId>
                 <extensions>true</extensions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-versions-plugin</artifactId>
+			</plugin>
 		</plugins>
 
 		<pluginManagement>
@@ -109,6 +113,12 @@
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
 					<version>${lifecycle-mapping.version}</version>
+				</plugin>
+
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-versions-plugin</artifactId>
+					<version>${tycho-maven-plugin.version}</version>
 				</plugin>
 
 			</plugins>

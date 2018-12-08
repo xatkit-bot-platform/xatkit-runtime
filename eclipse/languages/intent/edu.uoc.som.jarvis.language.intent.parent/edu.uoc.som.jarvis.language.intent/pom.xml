@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>edu.uoc.som.jarvis.language.intent</groupId>
 		<artifactId>edu.uoc.som.jarvis.language.intent.parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<artifactId>edu.uoc.som.jarvis.language.intent</artifactId>

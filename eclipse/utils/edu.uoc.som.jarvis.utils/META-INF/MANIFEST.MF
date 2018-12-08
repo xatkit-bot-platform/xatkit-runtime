@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Utils
 Bundle-SymbolicName: edu.uoc.som.jarvis.utils;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.0
 Bundle-Activator: edu.uoc.som.jarvis.utils.Activator
 Require-Bundle: org.eclipse.core.runtime,
  edu.uoc.som.jarvis.intent;bundle-version="1.0.0";visibility:=reexport,
