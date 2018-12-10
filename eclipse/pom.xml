@@ -5,11 +5,14 @@
 	<parent>
 		<groupId>edu.uoc.som.jarvis</groupId>
 		<artifactId>jarvis</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>eclipse</artifactId>
 	<packaging>pom</packaging>
+	<!-- The version is required to run tycho-versions -->
+	<!-- tycho-versions will remove the version after an update, put it back to ease the next release -->
+	<version>1.0.1-SNAPSHOT</version>
 
 	<name>Jarvis Eclipse Components</name>
 

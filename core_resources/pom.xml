@@ -7,7 +7,7 @@
     <parent>
         <artifactId>jarvis</artifactId>
         <groupId>edu.uoc.som.jarvis</groupId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>core_resources</artifactId>

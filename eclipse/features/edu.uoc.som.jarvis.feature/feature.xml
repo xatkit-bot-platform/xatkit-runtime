@@ -2,7 +2,7 @@
 <feature
       id="edu.uoc.som.jarvis.feature"
       label="Jarvis DSLs"
-      version="1.0.0"
+      version="1.0.1.qualifier"
       provider-name="SOM Research Lab">
 
    <description url="https://github.com/gdaniel/jarvis/wiki">
