@@ -4,6 +4,7 @@ jarvis
 [![Build Status](https://travis-ci.com/SOM-Research/jarvis.svg?token=FBbqzUpaXaqnawrfdPca&branch=master)](https://travis-ci.com/SOM-Research/jarvis)
 [![codecov](https://codecov.io/gh/SOM-Research/jarvis/branch/master/graph/badge.svg)](https://codecov.io/gh/SOM-Research/jarvis)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/4cdbb07fc78f4b0f9c3a5b5c254a4c2b)](https://www.codacy.com/app/gdaniel/jarvis?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SOM-Research/jarvis&amp;utm_campaign=Badge_Grade)
+[![BCH compliance](https://bettercodehub.com/edge/badge/SOM-Research/jarvis?branch=master)](https://bettercodehub.com/)
 [![Javadoc Badge](https://img.shields.io/badge/javadoc-v1.0.0-brightgreen.svg)](https://som-research.github.io/jarvis-docs/releases/v1.0.0/doc/)
 [![Latest Javadoc Badge](https://img.shields.io/badge/javadoc-latest-brightgreen.svg)](https://som-research.github.io/jarvis-docs/releases/snapshot/doc/)
 [![Gitter Badge](https://img.shields.io/badge/chat-on%20gitter-404040.svg)](https://gitter.im/jarvis-development/Lobby)
