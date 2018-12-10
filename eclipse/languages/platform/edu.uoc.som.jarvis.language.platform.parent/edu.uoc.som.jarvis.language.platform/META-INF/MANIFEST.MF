@@ -12,11 +12,11 @@ Require-Bundle: org.eclipse.xtext,
  org.antlr.runtime,
  org.eclipse.xtext.util,
  org.eclipse.xtend.lib,
- edu.uoc.som.jarvis.intent;bundle-version="1.0.0",
+ edu.uoc.som.jarvis.intent;bundle-version="1.0.1",
  org.eclipse.osgi,
- edu.uoc.som.jarvis.platform;bundle-version="1.0.0",
- edu.uoc.som.jarvis.language.intent;bundle-version="1.0.0",
- edu.uoc.som.jarvis.utils;bundle-version="1.0.0"
+ edu.uoc.som.jarvis.platform;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.language.intent;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.utils;bundle-version="1.0.1"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: edu.uoc.som.jarvis.language.platform,
  edu.uoc.som.jarvis.language.platform.formatting2,

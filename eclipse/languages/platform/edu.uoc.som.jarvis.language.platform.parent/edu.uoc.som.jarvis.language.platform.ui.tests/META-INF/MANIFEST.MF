@@ -12,9 +12,9 @@ Require-Bundle: org.junit;bundle-version="4.12.0",
  org.eclipse.xtext.xbase.junit,
  org.eclipse.core.runtime,
  org.eclipse.ui.workbench;resolution:=optional,
- edu.uoc.som.jarvis.intent;bundle-version="1.0.0",
- edu.uoc.som.jarvis.language.platform.ui;bundle-version="1.0.0",
- edu.uoc.som.jarvis.platform;bundle-version="1.0.0"
+ edu.uoc.som.jarvis.intent;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.language.platform.ui;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.platform;bundle-version="1.0.1"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: edu.uoc.som.jarvis.language.platform.ui.tests;x-internal=true
 Import-Package: org.hamcrest.core,

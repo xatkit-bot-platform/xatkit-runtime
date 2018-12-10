@@ -15,12 +15,12 @@ Require-Bundle: org.eclipse.xtext.ui,
  org.eclipse.xtext.builder,
  org.eclipse.xtend.lib;resolution:=optional,
  org.eclipse.xtext.xbase.lib,
- edu.uoc.som.jarvis.intent;bundle-version="1.0.0",
- edu.uoc.som.jarvis.language.platform;bundle-version="1.0.0",
- edu.uoc.som.jarvis.language.platform.ide;bundle-version="1.0.0",
- edu.uoc.som.jarvis.platform;bundle-version="1.0.0",
- edu.uoc.som.jarvis.language.intent.ui,
- edu.uoc.som.jarvis.utils;bundle-version="1.0.0"
+ edu.uoc.som.jarvis.intent;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.language.platform;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.language.platform.ide;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.platform;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.language.intent.ui;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.utils;bundle-version="1.0.1"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: edu.uoc.som.jarvis.language.platform.ui.contentassist,

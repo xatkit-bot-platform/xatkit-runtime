@@ -5,9 +5,9 @@ Bundle-Vendor: SOM Research Lab
 Bundle-Version: 1.0.1.qualifier
 Bundle-SymbolicName: edu.uoc.som.jarvis.language.intent.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: edu.uoc.som.jarvis.language.intent,
- edu.uoc.som.jarvis.language.intent.ide,
- edu.uoc.som.jarvis.intent,
+Require-Bundle: edu.uoc.som.jarvis.language.intent;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.language.intent.ide;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.intent;bundle-version="1.0.1",
  org.eclipse.xtext.ui,
  org.eclipse.xtext.ui.shared,
  org.eclipse.xtext.ui.codetemplates.ui,
