@@ -196,7 +196,7 @@ public class JarvisCore {
         checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
         try {
             this.configuration = configuration;
-            this.executionResourceSet = initializeExecutionResourceSet();
+            initializeExecutionResourceSet();
             ExecutionModel executionModel = getExecutionModel(configuration.getProperty(EXECUTION_MODEL_KEY));
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
                     .getSimpleName(), ExecutionModel.class.getSimpleName());
@@ -353,9 +353,9 @@ public class JarvisCore {
     /**
      * Creates and initializes the {@link ResourceSet} used to load the provided {@link ExecutionModel}.
      * <p>
-     * This method registers the Jarvis language's {@link EPackage}s and loads the <i>core platforms</i>
-     * {@link Resource}s, <i>custom platforms</i> {@link Resource}s, and <i>custom libraries</i> {@link Resource}s in
-     * the created {@link ResourceSet}.
+     * This method registers the Jarvis language's {@link EPackage}s, loads the core <i>library</i> and
+     * <i>platform</i> {@link Resource}s, and loads the custom <i>library</i> and <i>platforms</i> specified in the
+     * {@link Configuration}.
      * <p>
      * <i>Core platforms</i> loading is done by searching in the classpath the {@code core_platforms/platforms/} folder,
      * and loads each {@code xmi} file it contains as a platform {@link Resource}. Note that this method loads
@@ -382,123 +382,197 @@ public class JarvisCore {
      * {@link LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP}, {@link PlatformLoaderUtils#CORE_PLATFORM_PATHMAP} and
      * {@link PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP} for further information.
      *
-     * @throws JarvisException if an error occurred when loading the platform {@link Resource}s
+     * @throws JarvisException if an error occurred when loading the {@link Resource}s
+     * @see #loadCoreLibraries()
+     * @see #loadCustomLibraries()
+     * @see #loadCorePlatforms()
+     * @see #loadCustomPlatforms()
      * @see PlatformLoaderUtils#CORE_PLATFORM_PATHMAP
      * @see PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP
      * @see LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP
      */
-    private ResourceSet initializeExecutionResourceSet() {
-        ResourceSet resourceSet = new ResourceSetImpl();
-        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
-                ());
-        resourceSet.getPackageRegistry().put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
-        resourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
-        resourceSet.getPackageRegistry().put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
+    private void initializeExecutionResourceSet() {
+        executionResourceSet = new ResourceSetImpl();
+        executionResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new
+                XMIResourceFactoryImpl());
+        executionResourceSet.getPackageRegistry().put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
+        executionResourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
+        executionResourceSet.getPackageRegistry().put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
+        loadCoreLibraries();
+        loadCustomLibraries();
+        loadCorePlatforms();
+        loadCustomPlatforms();
+    }
 
+    /**
+     * Loads the core <i>libraries</i> in this class' {@link ResourceSet}.
+     * <p>
+     * <i>Core libraries</i> loading is done by searching in the classpath the {@code core_resources/libraries/xmi/}
+     * folder, and loads each {@code xmi} file it contains as a library {@link Resource}. Note that this method
+     * loads <b>all</b> the <i>core library</i> {@link Resource}s, even if they are not used in the application's
+     * {@link ExecutionModel}.
+     * <p>
+     * <b>Note:</b> this method loads the {@code libraries/xmi/} folder from the {@code core_resources} jar file if
+     * the application is executed in standalone mode. In a development environment (i.e. with all the project
+     * sources imported) this method will retrieve the {@code libraries/xmi/} folder from the local installation, if
+     * it exists.
+     *
+     * @see #getPath(String)
+     * @see #loadCoreResources(Path, String, Class)
+     */
+    private void loadCoreLibraries() {
         Log.info("Loading Jarvis core libraries");
         Path librariesPath = getPath("libraries/xmi/");
-        try {
-            Files.walk(librariesPath, 1).filter(l -> !Files.isDirectory(l)).forEach(libraryPath -> {
-                try {
-                    InputStream is = Files.newInputStream(libraryPath);
-                    URI libraryPathmapURI = URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + libraryPath
-                            .getFileName());
+        loadCoreResources(librariesPath, LibraryLoaderUtils.CORE_LIBRARY_PATHMAP, Library.class);
+    }
 
-                    resourceSet.getURIConverter().getURIMap().put(libraryPathmapURI, URI.createURI(libraryPath
-                            .getFileName().toString()));
-                    Resource libraryResource = resourceSet.createResource(libraryPathmapURI);
-                    libraryResource.load(is, Collections.emptyMap());
-                    Library library = (Library) libraryResource.getContents().get(0);
+    /**
+     * Loads the core <i>platforms</i> in this class" {@link ResourceSet}.
+     * <p>
+     * <i>Core platforms</i> loading is done by searching in the classpath the {@code core_resources/platforms/xmi/}
+     * folder, and loads each {@code xmi} file it contains as a library {@link Resource}. Note that this method loads
+     * <b>all</b> the <i>core platform</i> {@link Resource}s, even if they are not used in the application's
+     * {@link ExecutionModel}.
+     * <p>
+     * <b>Note:</b> this method loads the {@code platforms/xmi/} folder from the {@code core_resources} jar file if
+     * the application is executed in standalone mode. In a development environment (i.e. with all the project
+     * sources imported) this method will retrieve the {@code platforms/xmi/} folder from the local installation, if
+     * it exists.
+     *
+     * @see #getPath(String)
+     * @see #loadCoreResources(Path, String, Class)
+     */
+    private void loadCorePlatforms() {
+        Log.info("Loading Jarvis core platforms");
+        Path platformsPath = getPath("platforms/xmi/");
+        loadCoreResources(platformsPath, PlatformLoaderUtils.CORE_PLATFORM_PATHMAP, PlatformDefinition.class);
+    }
+
+    /**
+     * Loads the core {@link Resource}s in the provided {@code folderPath}, using the specified {@code pathmapPrefix}.
+     * <p>
+     * This method crawls the direct contents of the provided {@code folderPath} (sub-folders are ignored), and tries
+     * to load each file as an EMF {@link Resource} using the specified {@code pathmapPrefix}. This method also
+     * verifies that the top-level element of the loaded {@link Resource} is an instance of the provided {@code
+     * topLevelElementType} in order to prevent invalid {@link Resource} loading.
+     * <p>
+     * The provided {@code pathmapPrefix} allows to load core {@link Resource}s independently of their concrete
+     * location. This allows to load core {@link Resource}s from {@link ExecutionModel}s designed in a different
+     * environment.
+     *
+     * @param folderPath          the {@link Path} of the folder containing the {@link Resource}s to load
+     * @param pathmapPrefix       the pathmap used to prefix the core {@link Resource}'s {@link URI}
+     * @param topLevelElementType the expected type of the top-level element of the loaded {@link Resource}
+     * @param <T>                 the type of the top-level element
+     * @throws JarvisException if an error occurred when crawling the folder's content or when loading a core
+     *                         {@link Resource}
+     */
+    private <T> void loadCoreResources(Path folderPath, String pathmapPrefix, Class<T> topLevelElementType) {
+        try {
+            Files.walk(folderPath, 1).filter(l -> !Files.isDirectory(l)).forEach(resourcePath -> {
+                try {
+                    InputStream is = Files.newInputStream(resourcePath);
+                    URI resourceURI = URI.createURI(resourcePath.getFileName().toString());
+                    URI resourcePathmapURI = URI.createURI(pathmapPrefix + resourcePath.getFileName());
+                    executionResourceSet.getURIConverter().getURIMap().put(resourcePathmapURI, resourceURI);
+                    Resource resource = executionResourceSet.createResource(resourcePathmapURI);
+                    resource.load(is, Collections.emptyMap());
+                    /*
+                     * Check that the top level element in the resource is an instance of the provided
+                     * topLevelElementType.
+                     */
+                    T topLevelElement = (T) resource.getContents().get(0);
                     is.close();
-                    Log.info("Library {0} loaded", library.getName());
+                    Log.info("{0} {1} loaded", topLevelElementType.getSimpleName(), topLevelElement);
                 } catch (IOException e) {
-                    throw new JarvisException(MessageFormat.format("An error occurred when loading the library {0}, " +
-                            "see attached exception", libraryPath), e);
+                    throw new JarvisException(MessageFormat.format("An error occurred when loading the {0}, see " +
+                            "attached exception", resourcePath), e);
                 }
             });
         } catch (IOException e) {
-            throw new JarvisException("An error occurred when crawling the core libraries, see attached exception", e);
+            throw new JarvisException(MessageFormat.format("An error occurred when crawling the core {0} at the " +
+                    "location {1}, see attached exception", topLevelElementType.getSimpleName(), folderPath), e);
         }
+    }
 
+    /**
+     * Loads the custom <i>libraries</i> specified in the Jarvis {@link Configuration}.
+     * <p>
+     * <i>Custom libraries</i> loading is done by searching in the provided {@link Configuration} file the entries
+     * starting with {@link #CUSTOM_LIBRARIES_KEY_PREFIX}. These entries are handled as absolute paths to the
+     * <i>custom library</i> {@link Resource}s, and are loaded using the
+     * {@link LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP} pathmap prefix, enabling proxy resolution from the provided
+     * {@link ExecutionModel}.
+     *
+     * @see #loadCustomResource(String, URI, Class)
+     */
+    private void loadCustomLibraries() {
         Log.info("Loading Jarvis custom libraries");
         configuration.getKeys().forEachRemaining(key -> {
             if (key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX)) {
                 String libraryPath = configuration.getString(key);
                 String libraryName = key.substring(CUSTOM_LIBRARIES_KEY_PREFIX.length());
-                URI libraryPathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + libraryName);
-                /*
-                 * The provided path is handled as a File path. Loading custom libraries from external jars is left for
-                 * a future release.
-                 */
-                File libraryFile = new File(libraryPath);
-                if (libraryFile.exists() && libraryFile.isFile()) {
-                    URI libraryFileURI = URI.createFileURI(libraryFile.getAbsolutePath());
-                    resourceSet.getURIConverter().getURIMap().put(libraryPathmapURI, libraryFileURI);
-                    Resource libraryResource = resourceSet.getResource(libraryFileURI, true);
-                    Library library = (Library) libraryResource.getContents().get(0);
-                    Log.info("Library {0} loaded", library.getName());
-                } else {
-                    throw new JarvisException(MessageFormat.format("Cannot load the custom library {0}, the provided" +
-                            "path {0} is not a valid file", libraryPath));
-                }
+                URI pathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + libraryName);
+                loadCustomResource(libraryPath, pathmapURI, Library.class);
             }
-            /*
-             * The key is not a custom platform path, skipping it.
-             */
         });
+    }
 
-        Log.info("Loading Jarvis core platforms");
-        Path platformsPath = getPath("platforms/xmi/");
-        try {
-            Files.walk(platformsPath, 1).filter(p -> !Files.isDirectory(p)).forEach(platformPath -> {
-                try {
-                    InputStream is = Files.newInputStream(platformPath);
-                    URI platformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + platformPath
-                            .getFileName());
-
-                    resourceSet.getURIConverter().getURIMap().put(platformPathmapURI, URI.createURI(platformPath
-                            .getFileName().toString()));
-                    Resource platformResource = resourceSet.createResource(platformPathmapURI);
-                    platformResource.load(is, Collections.emptyMap());
-                    PlatformDefinition platform = (PlatformDefinition) platformResource.getContents().get(0);
-                    is.close();
-                    Log.info("Platform {0} loaded", platform.getName());
-                } catch (IOException e) {
-                    throw new JarvisException(MessageFormat.format("An error occurred when loading the platform {0}, " +
-                            "see attached exception", platformPath), e);
-                }
-            });
-        } catch (IOException e) {
-            throw new JarvisException("An error occurred when crawling the core platforms, see attached exception", e);
-        }
-
+    /**
+     * Loads the custom <i>platforms</i> specified in the Jarvis {@link Configuration}.
+     * <p>
+     * <i>Custom platforms</i> loading is done by searching in the provided {@link Configuration} file the entries
+     * starting with {@link #CUSTOM_PLATFORMS_KEY_PREFIX}. These entries are handled as absolute paths to the
+     * <i>custom platform</i> {@link Resource}s, and are loaded using the
+     * {@link PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP} pathmap prefix, enabling proxy resolution from the
+     * provided {@link ExecutionModel}.
+     */
+    private void loadCustomPlatforms() {
         Log.info("Loading Jarvis custom platforms");
         configuration.getKeys().forEachRemaining(key -> {
             if (key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)) {
                 String platformPath = configuration.getString(key);
                 String platformName = key.substring(CUSTOM_PLATFORMS_KEY_PREFIX.length());
-                URI platformPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + platformName);
-                /*
-                 * The provided path is handled as a File path. Loading custom platforms from external jars is left for
-                 * a future release.
-                 */
-                File platformFile = new File(platformPath);
-                if (platformFile.exists() && platformFile.isFile()) {
-                    URI platformFileURI = URI.createFileURI(platformFile.getAbsolutePath());
-                    resourceSet.getURIConverter().getURIMap().put(platformPathmapURI, platformFileURI);
-                    Resource platformResource = resourceSet.getResource(platformFileURI, true);
-                    PlatformDefinition platform = (PlatformDefinition) platformResource.getContents().get(0);
-                    Log.info("Platform {0} loaded", platform.getName());
-                } else {
-                    throw new JarvisException(MessageFormat.format("Cannot load the custom platform {0}, the provided" +
-                            "path {0} is not a valid file", platformPath));
-                }
+                URI pathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + platformName);
+                loadCustomResource(platformPath, pathmapURI, PlatformDefinition.class);
             }
-            /*
-             * The key is not a custom platform path, skipping it.
-             */
         });
-        return resourceSet;
+    }
+
+    /**
+     * Loads the custom {@link Resource} located at the provided {@code path}, using the given {@code pathmapURI}.
+     * <p>
+     * This method checks that the provided {@code path} is a valid {@link File}, and tries to load it as an EMF
+     * {@link Resource} using the specified {@code pathmapURI}. This method also verifies that the top-level element
+     * of the loaded {@link Resource} is an instance of the provided {@code topLevelElementType} in order to prevent
+     * invalid {@link Resource} loading.
+     * <p>
+     * The provided {@code pathmapURI} allows to load custom {@link Resource}s independently of their concrete
+     * location. This allows to load custom {@link Resource}s from {@link ExecutionModel} designed in a different
+     * environment.
+     *
+     * @param path                the path of the file to load
+     * @param pathmapURI          the pathmap {@link URI} used to load the {@link Resource}
+     * @param topLevelElementType the expected type of the top-level element of the loaded {@link Resource}
+     * @param <T>                 the type of the top-level element
+     * @throws JarvisException if an error occurred when loading the {@link Resource}
+     */
+    private <T> void loadCustomResource(String path, URI pathmapURI, Class<T> topLevelElementType) {
+        /*
+         * The provided path is handled as a File path. Loading custom resources from external jars is left for a
+         * future release.
+         */
+        File resourceFile = new File(path);
+        if (resourceFile.exists() && resourceFile.isFile()) {
+            URI resourceFileURI = URI.createFileURI(resourceFile.getAbsolutePath());
+            executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
+            Resource resource = executionResourceSet.getResource(resourceFileURI, true);
+            T topLevelElement = (T) resource.getContents().get(0);
+            Log.info("{0} {1} loaded", topLevelElement);
+        } else {
+            throw new JarvisException(MessageFormat.format("Cannot load the custom {0}, the provided path {1} is " +
+                    "not a valid file", topLevelElementType.getSimpleName(), path));
+        }
     }
 
     /**
