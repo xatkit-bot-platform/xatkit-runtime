@@ -21,6 +21,14 @@ class PlatformDefinition {
 		}
 		return list
 	}*/
+	op EventProviderDefinition getEventProviderDefinition(String eventProviderName) {
+            for(EventProviderDefinition eventProviderDefinition : getEventProviderDefinitions()) {
+                if(eventProviderDefinition.getName().equals(eventProviderName)) {
+                    return eventProviderDefinition;
+                }
+            }
+            return null;
+        }
 }
 
 class EventProviderDefinition {
