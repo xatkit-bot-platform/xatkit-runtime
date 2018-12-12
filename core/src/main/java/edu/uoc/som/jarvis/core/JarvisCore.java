@@ -179,13 +179,6 @@ public class JarvisCore {
      * <li><b>jarvis.execution.model</b>: the {@link ExecutionModel} defining the Intent to
      * Action bindings (or the string representing its location)</li>
      * </ul>
-     * <p>
-     * The provided {@link ExecutionModel} defines the Intent to Action bindings that are executed by the
-     * application. This constructor takes care of loading the {@link RuntimePlatform}s associated to the provided
-     * {@link ExecutionModel} and enables the corresponding {@link RuntimeAction}s.
-     * <p>
-     * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@link ExecutionModel} have to be
-     * in the classpath in order to be dynamically loaded and instantiated.
      *
      * @param configuration the {@link Configuration} to construct the instance from
      * @throws NullPointerException if the provided {@code configuration} or one of the mandatory values is {@code null}
@@ -211,70 +204,7 @@ public class JarvisCore {
              * instance to call JarvisServer#registerWebhookEventProvider
              */
             this.jarvisServer = new JarvisServer(configuration);
-            boolean intentRegistered = false;
-            for (EventProviderDefinition eventProviderDefinition : executionModel.getEventProviderDefinitions()) {
-                /*
-                 * The EventProviderDefinition is still a proxy, meaning that the proxy resolution failed.
-                 */
-                if (eventProviderDefinition.eIsProxy()) {
-                    throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
-                            "from " +
-                            "the {1}", eventProviderDefinition, ExecutionModel.class.getSimpleName()));
-                }
-                PlatformDefinition eventProviderPlatform = (PlatformDefinition) eventProviderDefinition.eContainer();
-                RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
-                        (eventProviderPlatform.getName());
-                if (isNull(eventProviderRuntimePlatform)) {
-                    eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform,
-                            configuration);
-                }
-                eventProviderRuntimePlatform.startEventProvider(eventProviderDefinition);
-            }
-            for (ExecutionRule rule : executionModel.getExecutionRules()) {
-                /*
-                 * We don't need to check whether the EventDefinition is a proxy, EventDefinitions are contained in
-                 * EventProviderDefinitions, that have been checked before.
-                 */
-                EventDefinition eventDefinition = rule.getEvent();
-                this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
-                Log.info("Registering event {0}", eventDefinition.getName());
-                if (eventDefinition instanceof IntentDefinition) {
-                    IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
-                    try {
-                        this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
-                        intentRegistered = true;
-                    } catch (IntentRecognitionProviderException e) {
-                        Log.warn(e.getMessage());
-                    }
-                }
-                /*
-                 * Load the action platforms
-                 */
-                for (ActionInstance actionInstance : rule.getActions()) {
-                    ActionDefinition actionDefinition = actionInstance.getAction();
-                    /*
-                     * The Action is still a proxy, meaning that the proxy resolution failed.
-                     */
-                    if (actionDefinition.eIsProxy()) {
-                        throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy " +
-                                "{0} from the {1}", actionDefinition, ExecutionModel.class.getSimpleName()));
-                    }
-                    PlatformDefinition platform = (PlatformDefinition) actionDefinition.eContainer();
-                    RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform
-                            .getName());
-                    if (isNull(runtimePlatform)) {
-                        runtimePlatform = loadRuntimePlatformFromPlatformModel(platform, configuration);
-                    }
-                    runtimePlatform.enableAction(actionDefinition);
-                }
-            }
-            if (intentRegistered) {
-                /*
-                 * New intents have been registered in the IntentRecognitionProvider, we should explicitly ask the
-                 * ML Engine to train in order to take them into account.
-                 */
-                intentRecognitionProvider.trainMLEngine();
-            }
+            this.loadExecutionModel(executionModel);
             jarvisServer.start();
             Log.info("Jarvis bot started");
         } catch (Throwable t) {
@@ -282,6 +212,128 @@ public class JarvisCore {
                     .getSimpleName());
             stopServices();
             throw t;
+        }
+    }
+
+    /**
+     * Load the runtime instances from the provided {@link ExecutionModel}.
+     * <p>
+     * This method starts the {@link RuntimeEventProvider}s, builds the {@link RuntimePlatform}s, and enables their
+     * {@link RuntimeAction}s from the definitions specified in the provided {@code executionModel}.
+     * <p>
+     * This method also registers the {@link IntentDefinition}s used in the provided {@code executionModel} in the
+     * {@link IntentRecognitionProvider}.
+     * <p>
+     * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@link ExecutionModel} have to be
+     * in the classpath in order to be dynamically loaded and instantiated.
+     *
+     * @param executionModel the {@link ExecutionModel} to load the runtime instances from
+     * @see #startEventProviders(ExecutionModel)
+     * @see #registerExecutionRuleEvent(ExecutionRule)
+     * @see #enableExecutionRuleActions(ExecutionRule)
+     */
+    private void loadExecutionModel(ExecutionModel executionModel) {
+        boolean intentRegistered = false;
+        this.startEventProviders(executionModel);
+        for (ExecutionRule rule : executionModel.getExecutionRules()) {
+            intentRegistered |= this.registerExecutionRuleEvent(rule);
+            this.enableExecutionRuleActions(rule);
+        }
+        if (intentRegistered) {
+            /*
+             * New intents have been registered in the IntentRecognitionProvider, we should explicitly ask the
+             * ML Engine to train in order to take them into account.
+             */
+            intentRecognitionProvider.trainMLEngine();
+        }
+    }
+
+    /**
+     * Starts the {@link RuntimeEventProvider}s used in the provided {@code executionModel}.
+     * <p>
+     * This method instantiates the {@link RuntimePlatform}s managing the {@link RuntimeEventProvider}s to construct
+     * if necessary (i.e. if they have not been instantiated before).
+     *
+     * @param executionModel the {@link ExecutionModel} to start the {@link RuntimeEventProvider}s from
+     */
+    private void startEventProviders(ExecutionModel executionModel) {
+        for (EventProviderDefinition eventProviderDefinition : executionModel.getEventProviderDefinitions()) {
+            /*
+             * The EventProviderDefinition is still a proxy, meaning that the proxy resolution failed.
+             */
+            if (eventProviderDefinition.eIsProxy()) {
+                throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
+                        "from the {1}", eventProviderDefinition, ExecutionModel.class.getSimpleName()));
+            }
+            PlatformDefinition eventProviderPlatform = (PlatformDefinition) eventProviderDefinition.eContainer();
+            RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
+                    (eventProviderPlatform.getName());
+            if (isNull(eventProviderRuntimePlatform)) {
+                eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform,
+                        configuration);
+            }
+            eventProviderRuntimePlatform.startEventProvider(eventProviderDefinition);
+        }
+    }
+
+    /**
+     * Registers the {@link EventDefinition} of the provided {@code rule} to the {@link IntentRecognitionProvider}.
+     *
+     * @param rule the {@link ExecutionRule} to register the {@link EventDefinition} from
+     * @return {@code true} if the {@link EventDefinition} was registered in the {@link IntentRecognitionProvider},
+     * {@code false} otherwise
+     */
+    private boolean registerExecutionRuleEvent(ExecutionRule rule) {
+        /*
+         * We don't need to check whether the EventDefinition is a proxy, EventDefinitions are contained in
+         * EventProviderDefinitions, that have been checked before.
+         */
+        EventDefinition eventDefinition = rule.getEvent();
+        this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
+        Log.info("Registering event {0}", eventDefinition.getName());
+        if (eventDefinition instanceof IntentDefinition) {
+            IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
+            try {
+                this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
+                return true;
+            } catch (IntentRecognitionProviderException e) {
+                Log.warn(e.getMessage());
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Enables the {@link RuntimeAction}s associated to the provided {@code rule}.
+     * <p>
+     * This method retrieves all the {@link ActionInstance}s used in the provided {@code rule} and enable through
+     * their containing {@link RuntimePlatform}.
+     * <p>
+     * This method instantiates the {@link RuntimePlatform}s containing the {@link RuntimeAction}s associated to the
+     * retrieved {@link ActionInstance} if necessary (i.e. if they have not been initialized before).
+     *
+     * @param rule the {@link ExecutionRule} to enable the {@link RuntimeAction}s from
+     */
+    private void enableExecutionRuleActions(ExecutionRule rule) {
+        /*
+         * Load the action platforms
+         */
+        for (ActionInstance actionInstance : rule.getActions()) {
+            ActionDefinition actionDefinition = actionInstance.getAction();
+            /*
+             * The Action is still a proxy, meaning that the proxy resolution failed.
+             */
+            if (actionDefinition.eIsProxy()) {
+                throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy " +
+                        "{0} from the {1}", actionDefinition, ExecutionModel.class.getSimpleName()));
+            }
+            PlatformDefinition platform = (PlatformDefinition) actionDefinition.eContainer();
+            RuntimePlatform runtimePlatform = this.runtimePlatformRegistry.getRuntimePlatform(platform
+                    .getName());
+            if (isNull(runtimePlatform)) {
+                runtimePlatform = loadRuntimePlatformFromPlatformModel(platform, configuration);
+            }
+            runtimePlatform.enableAction(actionDefinition);
         }
     }
 

@@ -19,21 +19,9 @@ import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import edu.uoc.som.jarvis.intent.*;
 import fr.inria.atlanmod.commons.log.Log;
-import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.intent.*;
-import edu.uoc.som.jarvis.intent.EntityType;
-import edu.uoc.som.jarvis.core.recognition.EntityMapper;
-import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
 import org.apache.commons.configuration2.Configuration;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -306,26 +294,59 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     public DialogFlowApi(JarvisCore jarvisCore, Configuration configuration) {
         checkNotNull(jarvisCore, "Cannot construct a DialogFlow API instance with a null JarvisCore instance");
         checkNotNull(configuration, "Cannot construct a DialogFlow API instance from a configuration");
+        Log.info("Starting DialogFlow Client");
+        this.jarvisCore = jarvisCore;
+        this.configuration = configuration;
+        this.loadConfiguration(configuration);
+        this.projectAgentName = ProjectAgentName.of(projectId);
+        this.buildDialogFlowClients(configuration);
+        this.projectName = ProjectName.of(projectId);
+        this.intentFactory = IntentFactory.eINSTANCE;
+        this.entityMapper = new DialogFlowEntityMapper();
+        this.importRegisteredIntents();
+
+    }
+
+    /**
+     * Initializes the class' attributes from the provided {@code configuration}.
+     *
+     * @param configuration the {@link Configuration} to retrieve the attribute values from
+     */
+    private void loadConfiguration(Configuration configuration) {
+        this.projectId = configuration.getString(PROJECT_ID_KEY);
+        checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
+        this.languageCode = configuration.getString(LANGUAGE_CODE_KEY);
+        if (isNull(languageCode)) {
+            Log.warn("No language code provided, using the default one ({0})", DEFAULT_LANGUAGE_CODE);
+            languageCode = DEFAULT_LANGUAGE_CODE;
+        }
+        this.enableIntentLoader = configuration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
+        this.enableContextMerge = configuration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
+    }
+
+    /**
+     * Initializes the DialogFlow clients using the provided {@code configuration}.
+     * <p>
+     * This method builds the DialogFlow's {@link AgentsClient}, {@link SessionsClient}, {@link IntentsClient}, and
+     * {@link ContextsClient}, and initializes them with the credentials file path provided in the {@code
+     * configuration}.
+     * <p>
+     * If the provided {@code configuration} does not define a credentials file path the created clients are
+     * initialized from the credentials file path stored in the {@code GOOGLE_APPLICATION_CREDENTIALS} environment
+     * variable.
+     *
+     * @param configuration the {@link Configuration} containing the credentials file path
+     * @throws DialogFlowException if the provided {@code configuration} or {@code GOOGLE_APPLICATION_CREDENTIALS}
+     *                             environment variable does not contain a valid credentials file path
+     */
+    private void buildDialogFlowClients(Configuration configuration) {
+        CredentialsProvider credentialsProvider = getCredentialsProvider(configuration);
+        AgentsSettings agentsSettings;
+        IntentsSettings intentsSettings;
+        SessionsSettings sessionsSettings;
+        ContextsSettings contextsSettings;
         try {
-            Log.info("Starting DialogFlow Client");
-            this.jarvisCore = jarvisCore;
-            this.configuration = configuration;
-            this.projectId = configuration.getString(PROJECT_ID_KEY);
-            checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
-            this.languageCode = configuration.getString(LANGUAGE_CODE_KEY);
-            if (isNull(languageCode)) {
-                Log.warn("No language code provided, using the default one ({0})", DEFAULT_LANGUAGE_CODE);
-                languageCode = DEFAULT_LANGUAGE_CODE;
-            }
-            this.enableIntentLoader = configuration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
-            this.enableContextMerge = configuration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
-            this.projectAgentName = ProjectAgentName.of(projectId);
-            String credentialsPath = configuration.getString(GOOGLE_CREDENTIALS_PATH_KEY);
-            AgentsSettings agentsSettings;
-            IntentsSettings intentsSettings;
-            SessionsSettings sessionsSettings;
-            ContextsSettings contextsSettings;
-            if (isNull(credentialsPath)) {
+            if (isNull(credentialsProvider)) {
                 /*
                  * No credentials provided, using the GOOGLE_APPLICATION_CREDENTIALS environment variable.
                  */
@@ -335,24 +356,6 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 sessionsSettings = SessionsSettings.newBuilder().build();
                 contextsSettings = ContextsSettings.newBuilder().build();
             } else {
-                /*
-                 * A credential file path is provided in the configuration, use it to initialize the AgentsClient.
-                 */
-                Log.info("Using {0} credential file", credentialsPath);
-                CredentialsProvider credentialsProvider;
-                try {
-                    File credentialFile = new File(credentialsPath);
-                    if(!credentialFile.exists()) {
-                        Log.warn("Cannot load the credential file at {0}, trying to load it from the classpath",
-                                credentialsPath);
-                        credentialsPath = this.getClass().getClassLoader().getResource(credentialsPath).getFile();
-                    }
-                    credentialsProvider = FixedCredentialsProvider.create(GoogleCredentials
-                            .fromStream(new FileInputStream(credentialsPath)));
-                } catch (FileNotFoundException e) {
-                    throw new DialogFlowException(MessageFormat.format("Cannot find the credentials file at {0}",
-                            credentialsPath), e);
-                }
                 agentsSettings = AgentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
                 intentsSettings = IntentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
                 sessionsSettings = SessionsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
@@ -362,32 +365,68 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             this.sessionsClient = SessionsClient.create(sessionsSettings);
             this.intentsClient = IntentsClient.create(intentsSettings);
             this.contextsClient = ContextsClient.create(contextsSettings);
-            this.projectName = ProjectName.of(projectId);
-            this.intentFactory = IntentFactory.eINSTANCE;
-            /*
-             * Initialize and configure the EntityMapper to convert entities from the intent metamodel to
-             * DialogFlow-compatible entities.
-             */
-            this.entityMapper = new EntityMapper();
-            this.entityMapper.addEntityMapping(edu.uoc.som.jarvis.intent.EntityType.CITY.getLiteral(), "@sys.geo-city");
-            this.entityMapper.addEntityMapping(edu.uoc.som.jarvis.intent.EntityType.ANY.getLiteral(), "@sys.any");
-            this.entityMapper.setFallbackEntityMapping("@sys.any");
-            /*
-             * Initialize the registeredIntents map with the intents already stored in the DialogFlow project.
-             */
-            this.registeredIntents = new HashMap<>();
-            if (enableIntentLoader) {
-                Log.info("Loading Intents previously registered in the DialogFlow project {0}", projectName
-                        .getProject());
-                for (Intent intent : getRegisteredIntents()) {
-                    registeredIntents.put(intent.getDisplayName(), intent);
-                }
-            } else {
-                Log.info("Intent loading is disabled, existing Intents in the DialogFlow project {0} will not be " +
-                        "imported", projectName.getProject());
-            }
         } catch (IOException e) {
-            throw new DialogFlowException("Cannot construct the DialogFlow API", e);
+            throw new DialogFlowException("An error occurred when initializing the DialogFlow clients, see attached " +
+                    "exception", e);
+        }
+    }
+
+    /**
+     * Creates the Google's {@link CredentialsProvider} from the provided {@code configuration}.
+     * <p>
+     * This method loads the credentials file provided in the {@link Configuration} with the key
+     * {@link #GOOGLE_CREDENTIALS_PATH_KEY}. If the file does not exist it attempts to load it from the classpath.
+     *
+     * @param configuration the {@link Configuration} containing the credentials file path
+     * @return the created {@link CredentialsProvider}, or {@code null} if the provided {@code configuration} does
+     * not specify a credentials file path
+     * @throws DialogFlowException if an error occurred when loading the credentials file
+     */
+    private CredentialsProvider getCredentialsProvider(Configuration configuration) {
+        String credentialsPath = configuration.getString(GOOGLE_CREDENTIALS_PATH_KEY);
+        if (nonNull(credentialsPath)) {
+            Log.info("Loading Google Credentials file {0}", credentialsPath);
+            InputStream credentialsInputStream;
+            try {
+                File credentialsFile = new File(credentialsPath);
+                if (credentialsFile.exists()) {
+                    credentialsInputStream = new FileInputStream(credentialsFile);
+                } else {
+                    Log.warn("Cannot load the credentials file at {0}, trying to load it from the classpath",
+                            credentialsPath);
+                    String classpathCredentialsPath = this.getClass().getClassLoader().getResource(credentialsPath)
+                            .getFile();
+                    credentialsInputStream = new FileInputStream(classpathCredentialsPath);
+                }
+                return FixedCredentialsProvider.create(GoogleCredentials.fromStream(credentialsInputStream));
+            } catch (FileNotFoundException e) {
+                throw new DialogFlowException(MessageFormat.format("Cannot find the credentials file at {0}",
+                        credentialsPath), e);
+            } catch (IOException e) {
+                throw new DialogFlowException("Cannot retrieve the credentials provider, see attached exception", e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Imports the intents registered in the DialogFlow project.
+     * <p>
+     * Intents import can be disabled to reduce the number of queries sent to the DialogFlow API by setting the
+     * {@link #ENABLE_INTENT_LOADING_KEY} property to {@code false} in the provided {@link Configuration}.
+     * Note that disabling intents import may generate consistency issues when creating, deleting, and matching intents.
+     */
+    private void importRegisteredIntents() {
+        this.registeredIntents = new HashMap<>();
+        if (enableIntentLoader) {
+            Log.info("Loading Intents previously registered in the DialogFlow project {0}", projectName
+                    .getProject());
+            for (Intent intent : getRegisteredIntents()) {
+                registeredIntents.put(intent.getDisplayName(), intent);
+            }
+        } else {
+            Log.info("Intent loading is disabled, existing Intents in the DialogFlow project {0} will not be " +
+                    "imported", projectName.getProject());
         }
     }
 
@@ -551,7 +590,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      *                              {@code null}, or if one of the {@link ContextParameter}'s name from the provided
      *                              {@code outContexts} is {@code null}
      */
-    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<edu.uoc.som.jarvis.intent.Context> outContexts) {
+    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<edu.uoc.som.jarvis.intent
+            .Context> outContexts) {
         checkNotNull(trainingSentence, "Cannot create a %s from the provided training sentence %s", Intent
                 .TrainingPhrase.class.getSimpleName(), trainingSentence);
         checkNotNull(outContexts, "Cannot create a %s from the provided output %s list %s", Intent.TrainingPhrase
@@ -705,13 +745,15 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * This method iterates the provided {@link edu.uoc.som.jarvis.intent.Context}s, and maps their contained
      * parameter's entities to their concrete DialogFlow implementation.
      *
-     * @param contexts the {@link List} of Jarvis {@link edu.uoc.som.jarvis.intent.Context}s to create the parameters from
+     * @param contexts the {@link List} of Jarvis {@link edu.uoc.som.jarvis.intent.Context}s to create the parameters
+     *                 from
      * @return the {@link List} of DialogFlow context parameters
      * @throws NullPointerException if the provided {@code contexts} {@link List} is {@code null}, or if one of the
      *                              provided {@link ContextParameter}'s name is {@code null}
      */
     protected List<Intent.Parameter> createParameters(List<edu.uoc.som.jarvis.intent.Context> contexts) {
-        checkNotNull(contexts, "Cannot create the DialogFlow parameters from the provided %s List %s", edu.uoc.som.jarvis.intent.Context.class.getSimpleName(), contexts);
+        checkNotNull(contexts, "Cannot create the DialogFlow parameters from the provided %s List %s", edu.uoc.som
+                .jarvis.intent.Context.class.getSimpleName(), contexts);
         List<Intent.Parameter> results = new ArrayList<>();
         for (edu.uoc.som.jarvis.intent.Context context : contexts) {
             for (ContextParameter contextParameter : context.getParameters()) {
