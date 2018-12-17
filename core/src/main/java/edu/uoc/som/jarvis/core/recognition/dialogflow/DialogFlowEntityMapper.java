@@ -17,8 +17,8 @@ public class DialogFlowEntityMapper extends EntityMapper {
      */
     public DialogFlowEntityMapper() {
         super();
-        this.addEntityMapping(EntityType.CITY.getLiteral(), "@sys.geo-city");
-        this.addEntityMapping(EntityType.ANY.getLiteral(), "@sys.any");
+        this.addEntityMapping(EntityType.ANY, "@sys.any");
+        this.addEntityMapping(EntityType.CITY, "@sys.geo-city");
         this.setFallbackEntityMapping("@sys.any");
     }
 }

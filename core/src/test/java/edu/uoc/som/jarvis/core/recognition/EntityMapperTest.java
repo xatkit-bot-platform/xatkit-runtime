@@ -26,6 +26,8 @@ public class EntityMapperTest extends AbstractJarvisTest {
 
     private static String VALID_ENTITY_STRING = "city";
 
+    private static EntityType VALID_ENTITY_TYPE;
+
     private static EntityDefinition VALID_ENTITY;
 
     private static String CONCRETE_VALUE = "concrete";
@@ -34,8 +36,9 @@ public class EntityMapperTest extends AbstractJarvisTest {
 
     @BeforeClass
     public static void setUpBeforeClass() {
+        VALID_ENTITY_TYPE = EntityType.get(VALID_ENTITY_STRING);
         VALID_ENTITY = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        ((BaseEntityDefinition) VALID_ENTITY).setEntityType(EntityType.get(VALID_ENTITY_STRING));
+        ((BaseEntityDefinition) VALID_ENTITY).setEntityType(VALID_ENTITY_TYPE);
     }
 
     @Before
@@ -56,12 +59,12 @@ public class EntityMapperTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void addEntityMappingNullConcreteEntity() {
-        mapper.addEntityMapping(VALID_ENTITY_STRING, null);
+        mapper.addEntityMapping(VALID_ENTITY_TYPE, null);
     }
 
     @Test
     public void addEntityMappingValid() {
-        mapper.addEntityMapping(VALID_ENTITY_STRING, CONCRETE_VALUE);
+        mapper.addEntityMapping(VALID_ENTITY_TYPE, CONCRETE_VALUE);
         assertThat(mapper.entities).as("Mapping contains an entry for the abstract entity").containsKey(VALID_ENTITY_STRING);
         assertThat(mapper.entities.get(VALID_ENTITY_STRING)).as("Mapping contains the provided concrete value mapped to the " +
                 "abstract entity").isEqualTo(CONCRETE_VALUE);
@@ -89,13 +92,13 @@ public class EntityMapperTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void getStringMappingForNullAbstractEntity() {
-        mapper.getMappingFor((String) null);
+        mapper.getMappingFor((EntityType) null);
     }
 
     @Test
     public void getStringMappingForRegisteredAbstractEntity() {
-        mapper.addEntityMapping(VALID_ENTITY_STRING, CONCRETE_VALUE);
-        String concrete = mapper.getMappingFor(VALID_ENTITY_STRING);
+        mapper.addEntityMapping(VALID_ENTITY_TYPE, CONCRETE_VALUE);
+        String concrete = mapper.getMappingFor(VALID_ENTITY_TYPE);
         assertThat(concrete).as("Mapped value is not null").isNotNull();
         assertThat(concrete).as("Mapped value is valid").isEqualTo(CONCRETE_VALUE);
     }
@@ -105,23 +108,23 @@ public class EntityMapperTest extends AbstractJarvisTest {
         /*
          * Check that the fallback is not returned if there is a direct mapping.
          */
-        mapper.addEntityMapping(VALID_ENTITY_STRING, CONCRETE_VALUE);
+        mapper.addEntityMapping(VALID_ENTITY_TYPE, CONCRETE_VALUE);
         mapper.setFallbackEntityMapping(FALLBACK_VALUE);
-        String concrete = mapper.getMappingFor(VALID_ENTITY_STRING);
+        String concrete = mapper.getMappingFor(VALID_ENTITY_TYPE);
         assertThat(concrete).as("Mapped value is not null").isNotNull();
         assertThat(concrete).as("Mapped value is valid and not fallback").isEqualTo(CONCRETE_VALUE);
     }
 
     @Test
     public void getStringMappingForNotRegisteredAbstractEntityNoFallback() {
-        String concrete = mapper.getMappingFor(VALID_ENTITY_STRING);
+        String concrete = mapper.getMappingFor(VALID_ENTITY_TYPE);
         assertThat(concrete).as("Mapped value is null").isNull();
     }
 
     @Test
     public void getStringMappingForNotRegisteredAbstractEntityFallback() {
         mapper.setFallbackEntityMapping(FALLBACK_VALUE);
-        String concrete = mapper.getMappingFor(VALID_ENTITY_STRING);
+        String concrete = mapper.getMappingFor(VALID_ENTITY_TYPE);
         assertThat(concrete).as("Mapped value is not null").isNotNull();
         assertThat(concrete).as("Mapped value is fallback").isEqualTo(FALLBACK_VALUE);
     }
@@ -238,7 +241,7 @@ public class EntityMapperTest extends AbstractJarvisTest {
 
     @Test
     public void getEntityMappingForRegisteredAbstractEntity() {
-        mapper.addEntityMapping(VALID_ENTITY_STRING, CONCRETE_VALUE);
+        mapper.addEntityMapping(VALID_ENTITY_TYPE, CONCRETE_VALUE);
         String concrete = mapper.getMappingFor(VALID_ENTITY);
         assertThat(concrete).as("Mapped value is not null").isNotNull();
         assertThat(concrete).as("Mapped value is valid").isEqualTo(CONCRETE_VALUE);
@@ -252,7 +255,7 @@ public class EntityMapperTest extends AbstractJarvisTest {
         /*
          * Check that the fallback is not returned if there is a direct mapping
          */
-        mapper.addEntityMapping(VALID_ENTITY_STRING, CONCRETE_VALUE);
+        mapper.addEntityMapping(VALID_ENTITY_TYPE, CONCRETE_VALUE);
         mapper.setFallbackEntityMapping(FALLBACK_VALUE);
         String concrete = mapper.getMappingFor(VALID_ENTITY);
         assertThat(concrete).as("Mapped value is not null").isNotNull();
