@@ -22,6 +22,7 @@ class LibraryImportDeclaration extends ImportDeclaration {
 
 class Library {
 	String name
+	contains CustomEntityDefinition[] customEntities
 	contains EventDefinition[] eventDefinitions
 }
 
@@ -63,7 +64,7 @@ class Context {
 class ContextParameter {
     String name
     String textFragment
-    contains EntityDefinition entity
+    contains EntityDefinitionReference entity
 }
 
 class EventInstance {
@@ -95,6 +96,24 @@ class ContextParameterValue {
     String value
 }
 
+abstract class EntityDefinitionReference {
+    op EntityDefinition getReferredEntity()
+}
+
+class BaseEntityDefinitionReference extends EntityDefinitionReference {
+    contains BaseEntityDefinition baseEntity
+    op EntityDefinition getReferredEntity() {
+        return baseEntity;
+    }
+}
+
+class CustomEntityDefinitionReference extends EntityDefinitionReference {
+    refers CustomEntityDefinition customEntity
+    op EntityDefinition getReferredEntity() {
+        return customEntity;
+    }
+}
+
 abstract class EntityDefinition {
 
 }
@@ -103,11 +122,19 @@ class BaseEntityDefinition extends EntityDefinition {
     EntityType entityType
 }
 
-// class EntityDefinitionLink extends EntityDefinition {
-//   refers EntityDefinition referredEntityDefinition -> for CompositeEntityDefinitions created in platforms
-// }
 
-// class CompositeEntityDefinition extends EntityDefinition
+abstract class CustomEntityDefinition extends EntityDefinition {
+    String name
+}
+
+class MappingEntityDefinition extends CustomEntityDefinition {
+    contains MappingEntityDefinitionEntry[] entries
+}
+
+class MappingEntityDefinitionEntry {
+    String referenceValue
+    String[] synonyms
+}
 
 enum EntityType {
     ANY as "any" = 0

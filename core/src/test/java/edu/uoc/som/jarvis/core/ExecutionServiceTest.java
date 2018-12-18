@@ -2,7 +2,6 @@ package edu.uoc.som.jarvis.core;
 
 import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
 import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
@@ -15,24 +14,19 @@ import edu.uoc.som.jarvis.platform.ActionDefinition;
 import edu.uoc.som.jarvis.platform.PlatformDefinition;
 import edu.uoc.som.jarvis.platform.PlatformFactory;
 import edu.uoc.som.jarvis.stubs.StubRuntimePlatform;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
 import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
 import edu.uoc.som.jarvis.test.util.models.TestIntentModel;
 import edu.uoc.som.jarvis.test.util.models.TestPlatformModel;
-import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.*;
 
 import java.util.UUID;
 
+import static edu.uoc.som.jarvis.test.util.ElementFactory.createBaseEntityDefinitionReference;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ExecutionServiceTest extends AbstractJarvisTest {
-
-    protected static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
-
-    protected static String VALID_LANGUAGE_CODE = "en-US";
 
     protected static ExecutionModel VALID_EXECUTION_MODEL;
 
@@ -43,7 +37,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
      */
     protected static EventInstance ON_ERROR_EVENT_INSTANCE;
 
-    protected static EntityDefinition VALID_ENTITY_DEFINITION;
+    protected static EntityDefinitionReference VALID_ENTITY_DEFINITION_REFERENCE;
 
     protected static JarvisCore VALID_JARVIS_CORE;
 
@@ -88,8 +82,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         VALID_EVENT_INSTANCE.setDefinition(testIntentModel.getIntentDefinition());
         ON_ERROR_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
         ON_ERROR_EVENT_INSTANCE.setDefinition(onErrorIntentDefinition);
-        VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
+        VALID_ENTITY_DEFINITION_REFERENCE = createBaseEntityDefinitionReference(EntityType.ANY);
 
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
@@ -193,14 +186,14 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         outContext1.setName("Context1");
         ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter1.setName("Parameter1");
-        contextParameter1.setEntity(VALID_ENTITY_DEFINITION);
+        contextParameter1.setEntity(VALID_ENTITY_DEFINITION_REFERENCE);
         contextParameter1.setTextFragment("love");
         outContext1.getParameters().add(contextParameter1);
         Context outContext2 = IntentFactory.eINSTANCE.createContext();
         outContext2.setName("Context2");
         ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter2.setName("Parameter2");
-        contextParameter2.setEntity(VALID_ENTITY_DEFINITION);
+        contextParameter2.setEntity(VALID_ENTITY_DEFINITION_REFERENCE);
         contextParameter2.setTextFragment("monkey");
         outContext2.getParameters().add(contextParameter2);
         intentDefinition.getOutContexts().add(outContext1);
