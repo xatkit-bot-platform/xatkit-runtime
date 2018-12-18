@@ -7,6 +7,7 @@ import com.google.api.gax.rpc.FailedPreconditionException;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.v2.*;
 import com.google.cloud.dialogflow.v2.Context;
+import com.google.cloud.dialogflow.v2.EntityType;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
@@ -210,6 +211,18 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     private IntentsClient intentsClient;
 
     /**
+     * The client instance managing DialogFlow entity-related queries.
+     * <p>
+     * This client is used to compute entity-level operations, such as retrieving the list of registered
+     * {@link com.google.cloud.dialogflow.v2.EntityType.Entity} instances, or deleting specific
+     * {@link com.google.cloud.dialogflow.v2.EntityType.Entity}.
+     *
+     * @see #registerEntityDefinition(EntityDefinition)
+     * @see #deleteEntityDefinition(EntityDefinition)
+     */
+    private EntityTypesClient entityTypesClient;
+
+    /**
      * The client instance managing DialogFlow sessions.
      * <p>
      * This instance is used to initiate new sessions (see {@link #createSession(String)}) and send {@link Intent}
@@ -327,9 +340,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Initializes the DialogFlow clients using the provided {@code configuration}.
      * <p>
-     * This method builds the DialogFlow's {@link AgentsClient}, {@link SessionsClient}, {@link IntentsClient}, and
-     * {@link ContextsClient}, and initializes them with the credentials file path provided in the {@code
-     * configuration}.
+     * This method builds the DialogFlow's {@link AgentsClient}, {@link SessionsClient},
+     * {@link EntityTypesClient}, {@link IntentsClient}, and {@link ContextsClient}, and initializes them with the
+     * credentials file path provided in the {@code configuration}.
      * <p>
      * If the provided {@code configuration} does not define a credentials file path the created clients are
      * initialized from the credentials file path stored in the {@code GOOGLE_APPLICATION_CREDENTIALS} environment
@@ -343,6 +356,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         CredentialsProvider credentialsProvider = getCredentialsProvider(configuration);
         AgentsSettings agentsSettings;
         IntentsSettings intentsSettings;
+        EntityTypesSettings entityTypesSettings;
         SessionsSettings sessionsSettings;
         ContextsSettings contextsSettings;
         try {
@@ -353,17 +367,21 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 Log.info("No credentials file provided, using GOOGLE_APPLICATION_CREDENTIALS environment variable");
                 agentsSettings = AgentsSettings.newBuilder().build();
                 intentsSettings = IntentsSettings.newBuilder().build();
+                entityTypesSettings = EntityTypesSettings.newBuilder().build();
                 sessionsSettings = SessionsSettings.newBuilder().build();
                 contextsSettings = ContextsSettings.newBuilder().build();
             } else {
                 agentsSettings = AgentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
                 intentsSettings = IntentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
+                entityTypesSettings = EntityTypesSettings.newBuilder().setCredentialsProvider(credentialsProvider)
+                        .build();
                 sessionsSettings = SessionsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
                 contextsSettings = ContextsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
             }
             this.agentsClient = AgentsClient.create(agentsSettings);
             this.sessionsClient = SessionsClient.create(sessionsSettings);
             this.intentsClient = IntentsClient.create(intentsSettings);
+            this.entityTypesClient = EntityTypesClient.create(entityTypesSettings);
             this.contextsClient = ContextsClient.create(contextsSettings);
         } catch (IOException e) {
             throw new DialogFlowException("An error occurred when initializing the DialogFlow clients, see attached " +
@@ -449,6 +467,25 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     }
 
     /**
+     * Returns the description of the {@link EntityType}s that are registered in the DialogFlow project.
+     * <p>
+     * <b>Note:</b> this method is package private for testing purposes, and should not be called by client code.
+     *
+     * @return the descriptions of the {@link EntityType}s that are registered in the DialogFlow project
+     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
+     */
+    List<EntityType> getRegisteredEntityTypes() {
+        if (isShutdown()) {
+            throw new DialogFlowException("Cannot retrieve the registered Entities, the DialogFlow API is shutdown");
+        }
+        List<EntityType> registeredEntityTypes = new ArrayList<>();
+        for (EntityType entityType : entityTypesClient.listEntityTypes(projectAgentName).iterateAll()) {
+            registeredEntityTypes.add(entityType);
+        }
+        return registeredEntityTypes;
+    }
+
+    /**
      * Returns the full descriptions of the {@link Intent}s that are registered in the DialogFlow project.
      * <p>
      * The full descriptions of the {@link Intent}s include the {@code training phrases}, that are typically used in
@@ -500,9 +537,75 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * {@inheritDoc}
      * <p>
+     * This method reuses the information contained in the provided {@link EntityDefinition} to create a new
+     * DialogFlow {@link EntityType} and add it to the current project.
+     *
+     * @param entityDefinition the {@link EntityDefinition} to register to the DialogFlow project
+     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown, or if the {@link EntityType} already
+     *                             exists in the DialogFlow project
+     */
+    public void registerEntityDefinition(EntityDefinition entityDefinition) {
+        if (isShutdown()) {
+            throw new DialogFlowException(MessageFormat.format("Cannot register the {0} {1}, the DialogFlow API is" +
+                    " shutdown", EntityDefinition.class.getSimpleName(), entityDefinition));
+        }
+        if (entityDefinition instanceof BaseEntityDefinition) {
+            BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
+            Log.trace("Skipping registration of {0} ({1}), {0} are natively supported by DialogFlow",
+                    BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType().getLiteral());
+        } else {
+            EntityType entityType;
+            if (entityDefinition instanceof MappingEntityDefinition) {
+                MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) entityDefinition;
+                String entityName = mappingEntityDefinition.getName();
+                List<EntityType.Entity> entities = createEntities(mappingEntityDefinition.getEntries());
+                EntityType.Builder builder = com.google.cloud.dialogflow.v2.EntityType.newBuilder()
+                        .setKind(com.google.cloud.dialogflow.v2.EntityType.Kind.KIND_MAP).setDisplayName(entityName)
+                        .addAllEntities(entities);
+                entityType = builder.build();
+            } else {
+                throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
+                        entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
+            }
+            try {
+                entityTypesClient.createEntityType(projectAgentName, entityType);
+            } catch (FailedPreconditionException e) {
+                String errorMessage = MessageFormat.format("Cannot register the entity {0}, the entity already " +
+                        "exists", entityDefinition);
+                Log.error(errorMessage);
+                throw new DialogFlowException(errorMessage, e);
+            }
+        }
+    }
+
+    /**
+     * Creates the DialogFlow {@link com.google.cloud.dialogflow.v2.EntityType.Entity} instances from the provided
+     * {@code entries}.
+     *
+     * @param entries the {@link MappingEntityDefinitionEntry} entries to map to DialogFlow's
+     *                {@link com.google.cloud.dialogflow.v2.EntityType.Entity} instances.
+     * @return the created {@link List} of DialogFlow {@link com.google.cloud.dialogflow.v2.EntityType.Entity} instances
+     * @throws NullPointerException if the provided {@code entries} is {@code null}
+     */
+    private List<EntityType.Entity> createEntities(List<MappingEntityDefinitionEntry> entries) {
+        checkNotNull(entries, "Cannot create the {0} from the provided list {1}", EntityType.Entity.class
+                .getSimpleName(), entries);
+        List<EntityType.Entity> entities = new ArrayList<>();
+        for (MappingEntityDefinitionEntry entry : entries) {
+            EntityType.Entity.Builder builder = EntityType.Entity.newBuilder().setValue(entry.getReferenceValue())
+                    .addAllSynonyms(entry.getSynonyms());
+            entities.add(builder.build());
+        }
+        return entities;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
      * This method reuses the information contained in the provided {@link IntentDefinition} to create a new
      * DialogFlow {@link Intent} and add it to the current project.
      *
+     * @param intentDefinition the {@link IntentDefinition} to register to the DialogFlow project
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown, or if the {@link Intent} already exists in
      *                             the DialogFlow project
      * @see #createInContextNames(IntentDefinition)
@@ -518,6 +621,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         checkNotNull(intentDefinition, "Cannot register the IntentDefinition null");
         checkNotNull(intentDefinition.getName(), "Cannot register the IntentDefinition with null as its name");
         Log.info("Registering DialogFlow intent {0}", intentDefinition.getName());
+
         List<String> trainingSentences = intentDefinition.getTrainingSentences();
         List<Intent.TrainingPhrase> dialogFlowTrainingPhrases = new ArrayList<>();
         for (String trainingSentence : trainingSentences) {
@@ -631,7 +735,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                         if (sentencePart.equals(parameter.getTextFragment())) {
                             checkNotNull("Cannot build the training sentence \"%s\", the parameter for the fragment " +
                                     "\"%s\" does not define a name", trainingSentence, parameter.getTextFragment());
-                            String dialogFlowEntity = entityMapper.getMappingFor(parameter.getEntity().getReferredEntity());
+                            String dialogFlowEntity = entityMapper.getMappingFor(parameter.getEntity()
+                                    .getReferredEntity());
                             partBuilder.setEntityType(dialogFlowEntity).setAlias(parameter.getName());
                         }
                     }
@@ -784,6 +889,42 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private String adaptIntentDefinitionNameToDialogFlow(String intentDefinitionName) {
         return intentDefinitionName.replaceAll("_", " ");
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
+     */
+    @Override
+    public void deleteEntityDefinition(EntityDefinition entityDefinition) {
+        if (isShutdown()) {
+            throw new DialogFlowException(MessageFormat.format("Cannot delete the Intent {0}, the DialogFlow API is " +
+                    "shutdown", entityDefinition));
+        }
+        checkNotNull(entityDefinition, "Cannot delete the {0} {1}", EntityDefinition.class.getSimpleName(),
+                entityDefinition);
+        if (entityDefinition instanceof BaseEntityDefinition) {
+            BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
+            Log.trace("Skipping deletion of {0} ({1}), {0} are natively supported by DialogFlow and cannot be " +
+                    "deleted", BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType()
+                    .getLiteral());
+        } else if (entityDefinition instanceof CustomEntityDefinition) {
+            CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) entityDefinition;
+            List<EntityType> entityTypes = getRegisteredEntityTypes();
+            for (EntityType entityType : entityTypes) {
+                if (entityType.getDisplayName().equals(customEntityDefinition.getName())) {
+                    Log.info("Deleting entity {0}", customEntityDefinition.getName());
+                    entityTypesClient.deleteEntityType(entityType.getName());
+                    Log.info("Entity {0} successfully deleted", customEntityDefinition.getName());
+                    return;
+                }
+            }
+            Log.warn("Cannot delete the entity {0}, the entity does not exist", customEntityDefinition.getName());
+        } else {
+            throw new DialogFlowException(MessageFormat.format("Cannot delete the provided {0}, unsupported {1}",
+                    entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
+        }
     }
 
     /**

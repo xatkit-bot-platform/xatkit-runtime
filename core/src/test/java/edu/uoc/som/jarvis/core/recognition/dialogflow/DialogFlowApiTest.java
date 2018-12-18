@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,6 +54,18 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
      * @see #tearDown()
      */
     private IntentDefinition registeredIntentDefinition;
+
+    /**
+     * Stores the last {@link EntityDefinition} registered by
+     * {@link DialogFlowApi#registerEntityDefinition(EntityDefinition)}.
+     * <p>
+     * <b>Note:</b> this variable must be set by each test case calling
+     * {@link DialogFlowApi#registerEntityDefinition(EntityDefinition)}, to enable their deletion in the
+     * {@link #tearDown()} method. Not setting this variable would add test-related entities in the DialogFlow project.
+     *
+     * @see #tearDown()
+     */
+    private EntityDefinition registeredEntityDefinition;
 
     // not tested here, only instantiated to enable IntentDefinition registration and Platform retrieval
     protected static JarvisCore jarvisCore;
@@ -106,6 +119,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * Reset the variable value to null to avoid unnecessary deletion calls.
          */
         registeredIntentDefinition = null;
+        /*
+         * Delete the EntityDefinition after the IntentDefinition in case the IntentDefinition defines a parameter to
+          * the entity.
+         */
+        if(nonNull(registeredEntityDefinition)) {
+            api.deleteEntityDefinition(registeredEntityDefinition);
+        }
         if (nonNull(api)) {
             try {
                 api.shutdown();
@@ -161,6 +181,47 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
     }
 
+    @Test
+    public void registerMappingEntityDefinition() {
+        api = getValidDialogFlowApi();
+        MappingEntityDefinition mappingEntityDefinition = IntentFactory.eINSTANCE.createMappingEntityDefinition();
+        registeredEntityDefinition = mappingEntityDefinition;
+        mappingEntityDefinition.setName("Class");
+        MappingEntityDefinitionEntry entry1 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
+        entry1.setReferenceValue("Person");
+        entry1.getSynonyms().add("People");
+        entry1.getSynonyms().add("Fellow");
+        MappingEntityDefinitionEntry entry2 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
+        entry2.setReferenceValue("Order");
+        entry2.getSynonyms().add("Command");
+        mappingEntityDefinition.getEntries().add(entry1);
+        mappingEntityDefinition.getEntries().add(entry2);
+        api.registerEntityDefinition(mappingEntityDefinition);
+        List<com.google.cloud.dialogflow.v2.EntityType> entityTypes = api.getRegisteredEntityTypes();
+        assertThat(entityTypes).as("A single EntityType has been registered").hasSize(1);
+        com.google.cloud.dialogflow.v2.EntityType entityType = entityTypes.get(0);
+        assertThat(entityType.getDisplayName()).as("Valid display name").isEqualTo(mappingEntityDefinition.getName());
+        assertThat(entityType.getKind()).as("Valid kind value").isEqualTo(com.google.cloud.dialogflow.v2.EntityType
+                .Kind.KIND_MAP);
+        assertThat(entityType.getEntitiesCount()).as("EntityType contains 2 entities").isEqualTo(2);
+        List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities = entityType.getEntitiesList();
+        checkEntities(entities, mappingEntityDefinition.getEntries());
+    }
+
+    private void checkEntities(List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities,
+                               List<MappingEntityDefinitionEntry> entries) {
+        for(MappingEntityDefinitionEntry entry : entries) {
+            List<com.google.cloud.dialogflow.v2.EntityType.Entity> foundEntities = entities.stream().filter(e -> e
+                    .getValue().equals(entry.getReferenceValue())).collect(Collectors.toList());
+            assertThat(foundEntities).as("A single entity matches the entry").hasSize(1);
+            com.google.cloud.dialogflow.v2.EntityType.Entity foundEntity = foundEntities.get(0);
+            assertThat(foundEntity.getSynonymsList()).as("Valid synonym number").hasSize(entry.getSynonyms().size());
+            for(String foundSynonym : foundEntity.getSynonymsList()) {
+                assertThat(entry.getSynonyms()).as("Entries contain the synonym").contains(foundSynonym);
+            }
+        }
+    }
+
     @Test(expected = NullPointerException.class)
     public void registerIntentDefinitionNullIntentDefinition() {
         api = getValidDialogFlowApi();
@@ -199,6 +260,30 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         boolean foundTrainingPhrase = hasTrainingPhrase(foundIntent, trainingPhrase);
         softly.assertThat(foundTrainingPhrase).as("The IntentDefinition's training phrase is in the retrieved " +
                 "Intent").isTrue();
+    }
+
+
+
+    @Test
+    public void registerIntentDefinitionCustomEntity() {
+        api = getValidDialogFlowApi();
+        IntentDefinition registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        String intentName = "TestRegisterCustomEntity";
+        registeredIntentDefinition.setName(intentName);
+        String trainingPhrase = "test Custom";
+        registeredIntentDefinition.getTrainingSentences().add(trainingPhrase);
+        Context context = IntentFactory.eINSTANCE.createContext();
+        registeredIntentDefinition.getOutContexts().add(context);
+        context.setName("CustomContextName");
+        ContextParameter parameter = IntentFactory.eINSTANCE.createContextParameter();
+        context.getParameters().add(parameter);
+        parameter.setName("key");
+        parameter.setTextFragment("Custom");
+
+//        CustomEntityDefinitionReference reference = IntentFactory.eINSTANCE.createCustomEntityDefinitionReference();
+//        reference.setCustomEntity(mappingEntityDefinition);
+//        parameter.setEntity(reference);
+        api.registerIntentDefinition(registeredIntentDefinition);
     }
 
     @Test

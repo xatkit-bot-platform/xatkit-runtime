@@ -1,6 +1,7 @@
 package edu.uoc.som.jarvis.core.recognition.dialogflow;
 
 import edu.uoc.som.jarvis.core.recognition.EntityMapper;
+import edu.uoc.som.jarvis.intent.CustomEntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityType;
 
@@ -134,5 +135,18 @@ public class DialogFlowEntityMapper extends EntityMapper {
     private void registerGenericEntities() {
         this.addEntityMapping(ANY, "@sys.any");
         this.addEntityMapping(URL, "@sys.url");
+    }
+
+    /**
+     * Maps the provided {@code customEntityDefinition} to its DialogFlow implementation.
+     *
+     * @param customEntityDefinition the {@link CustomEntityDefinition} to retrieve the concrete entity
+     *                               {@link String} from
+     * @return a {@link String} identifying the DialogFlow entity corresponding to the provided {@code
+     * customEntityDefinition}
+     */
+    @Override
+    protected String getMappingForCustomEntity(CustomEntityDefinition customEntityDefinition) {
+        return "@" + customEntityDefinition.getName();
     }
 }

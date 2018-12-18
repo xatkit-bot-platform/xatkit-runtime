@@ -2,6 +2,7 @@ package edu.uoc.som.jarvis.core.recognition;
 
 import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.intent.BaseEntityDefinition;
+import edu.uoc.som.jarvis.intent.CustomEntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityType;
 import fr.inria.atlanmod.commons.log.Log;
@@ -26,7 +27,13 @@ import static java.util.Objects.nonNull;
  * that do not have a concrete mapping in the {@link IntentRecognitionProvider} platform.
  * <p>
  * The mapping for a given abstract entity can be retrieved by calling the {@link #getMappingFor(EntityType)} with the
- * {@code abstractEntity} name as parameter.
+ * {@code abstractEntity} type as parameter.
+ * <p>
+ * <b>Note:</b> this class does not support {@link CustomEntityDefinition} mapping (see
+ * {@link #getMappingForCustomEntity(CustomEntityDefinition)}). Since these entities are defined dynamically there is
+ * no facilities to map them in a static way. Concrete {@link EntityMapper}s tailored to a given intent recognition
+ * platform can override the method {@link #getMappingForCustomEntity(CustomEntityDefinition)} to implement this
+ * dynamic mapping.
  *
  * @see IntentRecognitionProvider
  */
@@ -170,13 +177,30 @@ public class EntityMapper {
                             " %s: %s needs to define a valid %s", BaseEntityDefinition.class.getSimpleName(),
                     BaseEntityDefinition.class.getSimpleName(), EntityType.class.getSimpleName());
             return this.getMappingFor(((BaseEntityDefinition) abstractEntity).getEntityType());
+        } else if (abstractEntity instanceof CustomEntityDefinition) {
+            return getMappingForCustomEntity((CustomEntityDefinition) abstractEntity);
         } else {
-            /*
-             * Non-CoreEntity instances are not supported for now (see #145)
-             */
             throw new JarvisException(MessageFormat.format("{0} does not support the provided {1} {2}", this.getClass
                     ().getSimpleName(), EntityDefinition.class.getSimpleName(), abstractEntity.getClass()
                     .getSimpleName()));
         }
+    }
+
+    /**
+     * Returns the {@link String} representing the entity mapped from the provided {@code customEntityDefinition}.
+     * <p>
+     * <b>Note:</b> this class does not support {@link CustomEntityDefinition} mapping and this method throws a
+     * {@link JarvisException}. Since these entities are defined dynamically there is no facilities to map them in a
+     * static way. Concrete {@link EntityMapper}s tailored to a given intent recognition platform can override this
+     * method to implement this dynamic mapping.
+     *
+     * @param customEntityDefinition the {@link CustomEntityDefinition} to retrieve the concrete entity
+     *                               {@link String} from
+     * @return the mapped concrete entity {@link String}
+     * @throws JarvisException when called
+     */
+    protected String getMappingForCustomEntity(CustomEntityDefinition customEntityDefinition) {
+        throw new JarvisException(MessageFormat.format("{0} does not support {1} mapping", this.getClass()
+                .getSimpleName(), customEntityDefinition.getClass().getSimpleName()));
     }
 }

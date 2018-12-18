@@ -6,6 +6,7 @@ import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
 import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
 import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProviderException;
 import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProviderFactory;
+import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowException;
 import edu.uoc.som.jarvis.core.server.JarvisServer;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
@@ -278,10 +279,15 @@ public class JarvisCore {
 
     /**
      * Registers the {@link EventDefinition} of the provided {@code rule} to the {@link IntentRecognitionProvider}.
+     * <p>
+     * If the provided {@code rule} contains an {@link IntentDefinition} this method also attempts to register its
+     * contexts if they are required in its training sentences.
      *
      * @param rule the {@link ExecutionRule} to register the {@link EventDefinition} from
      * @return {@code true} if the {@link EventDefinition} was registered in the {@link IntentRecognitionProvider},
      * {@code false} otherwise
+     * @see IntentRecognitionProvider#registerEntityDefinition(EntityDefinition)
+     * @see IntentRecognitionProvider#registerIntentDefinition(IntentDefinition)
      */
     private boolean registerExecutionRuleEvent(ExecutionRule rule) {
         /*
@@ -293,6 +299,16 @@ public class JarvisCore {
         Log.info("Registering event {0}", eventDefinition.getName());
         if (eventDefinition instanceof IntentDefinition) {
             IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
+            for (Context outContext : intentDefinition.getOutContexts()) {
+                for (ContextParameter parameter : outContext.getParameters()) {
+                    try {
+                        this.intentRecognitionProvider.registerEntityDefinition(parameter.getEntity()
+                                .getReferredEntity());
+                    } catch (DialogFlowException e) {
+                        Log.warn(e.getMessage());
+                    }
+                }
+            }
             try {
                 this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
                 return true;
