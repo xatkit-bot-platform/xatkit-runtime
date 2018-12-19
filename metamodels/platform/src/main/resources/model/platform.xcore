@@ -22,13 +22,16 @@ class PlatformDefinition {
 		return list
 	}*/
 	op EventProviderDefinition getEventProviderDefinition(String eventProviderName) {
-            for(EventProviderDefinition eventProviderDefinition : getEventProviderDefinitions()) {
-                if(eventProviderDefinition.getName().equals(eventProviderName)) {
-                    return eventProviderDefinition;
-                }
+        for(EventProviderDefinition eventProviderDefinition : getEventProviderDefinitions()) {
+            if(eventProviderDefinition.getName().equals(eventProviderName)) {
+                return eventProviderDefinition;
             }
-            return null;
         }
+        return null;
+    }
+    op ActionDefinition[] getActions(String actionName) {
+    	return actions.filter[a | a.name.equals(actionName)].asEList
+    }
 }
 
 class EventProviderDefinition {
