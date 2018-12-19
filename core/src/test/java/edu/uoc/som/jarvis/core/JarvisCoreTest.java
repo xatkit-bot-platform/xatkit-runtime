@@ -7,25 +7,12 @@ import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
 import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
-import edu.uoc.som.jarvis.platform.EventProviderDefinition;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.platform.PlatformFactory;
-import edu.uoc.som.jarvis.stubs.io.StubJsonWebhookEventProvider;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
-import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
-import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
 import edu.uoc.som.jarvis.execution.ExecutionFactory;
 import edu.uoc.som.jarvis.execution.ExecutionModel;
 import edu.uoc.som.jarvis.platform.EventProviderDefinition;
 import edu.uoc.som.jarvis.platform.PlatformDefinition;
 import edu.uoc.som.jarvis.platform.PlatformFactory;
-import edu.uoc.som.jarvis.core.recognition.DefaultIntentRecognitionProvider;
-import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
 import edu.uoc.som.jarvis.stubs.io.StubJsonWebhookEventProvider;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
 import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -389,10 +376,6 @@ public class JarvisCoreTest extends AbstractJarvisTest {
                 ".xmi");
         assertThat(jarvisCore.executionResourceSet.getResource(discordPlatformPathmapURI, false)).as("DiscordPlatform" +
                 " pathmap resolved").isNotNull();
-        URI genericChatPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP +
-                "GenericChatPlatform.xmi");
-        assertThat(jarvisCore.executionResourceSet.getResource(genericChatPlatformPathmapURI, false)).as
-                ("GenericChatPlatform pathmap resolved").isNotNull();
         URI githubPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "GithubPlatform.xmi");
         assertThat(jarvisCore.executionResourceSet.getResource(githubPlatformPathmapURI, false)).as("GithubPlatform " +
                 "pathmap resolved").isNotNull();

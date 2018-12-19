@@ -1,6 +1,7 @@
 package edu.uoc.som.jarvis.core.recognition;
 
 import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.intent.EntityDefinition;
 import edu.uoc.som.jarvis.intent.IntentDefinition;
 import edu.uoc.som.jarvis.intent.RecognizedIntent;
 
@@ -14,6 +15,19 @@ import edu.uoc.som.jarvis.intent.RecognizedIntent;
 public interface IntentRecognitionProvider {
 
     /**
+     * Registers the provided {@code entityDefinition} in the underlying intent recognition provider.
+     * <p>
+     * <b>Note:</b> unless explicitly stated in subclasses, this method does not train the underlying machine
+     * learning engine, so multiple entity registrations does not generate multiple training calls. Once all the
+     * {@link EntityDefinition}s have been registered in the underlying intent recognition provider use
+     * {@link #trainMLEngine()} to train the ML engine.
+     *
+     * @param entityDefinition the {@link EntityDefinition} to delete from the underlying intent recognition provider
+     * @see #trainMLEngine()
+     */
+    void registerEntityDefinition(EntityDefinition entityDefinition);
+
+    /**
      * Registers the provided {@code intentDefinition} in the underlying intent recognition provider.
      * <p>
      * <b>Note:</b> unless explicitly stated in subclasses, this method does not train the underlying machine
@@ -25,6 +39,19 @@ public interface IntentRecognitionProvider {
      * @see #trainMLEngine()
      */
     void registerIntentDefinition(IntentDefinition intentDefinition);
+
+    /**
+     * Deletes the provided {@code entityDefinition} from the underlying intent recognition provider.
+     * <p>
+     * <b>Note:</b> unless explicitly stated in subclasses, this method does not train the underlying machine
+     * learning engine, so multiple entity deletion does not generate multiple training calls. Once all the
+     * {@link EntityDefinition}s have been deleted from the underlying intent recognition provider use
+     * {@link #trainMLEngine()} to train the ML engine.
+     *
+     * @param entityDefinition the {@link EntityDefinition} to delete from the underlying intent recognition provider
+     * @see #trainMLEngine()
+     */
+    void deleteEntityDefinition(EntityDefinition entityDefinition);
 
     /**
      * Deletes the provided {@code intentDefinition} from the underlying intent recognition provider.

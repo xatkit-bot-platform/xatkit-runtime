@@ -2,6 +2,7 @@ package edu.uoc.som.jarvis.core.recognition;
 
 import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.intent.BaseEntityDefinition;
+import edu.uoc.som.jarvis.intent.CustomEntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityType;
 import fr.inria.atlanmod.commons.log.Log;
@@ -18,15 +19,21 @@ import static java.util.Objects.nonNull;
 /**
  * A mapper that bind concrete entity names to their abstract definitions.
  * <p>
- * This class is configured through the {@link #addEntityMapping(String, String)} method, that allows to specify a
+ * This class is configured through the {@link #addEntityMapping(EntityType, String)} method, that allows to specify a
  * mapping from an abstract entity to a concrete entity name. This mapping is used to retrieve
  * {@link IntentRecognitionProvider} specific entities, and deploy jarvis generically on different platforms.
  * <p>
  * This class also defines the {@link #setFallbackEntityMapping(String)}, that allows to handle abstract entities
  * that do not have a concrete mapping in the {@link IntentRecognitionProvider} platform.
  * <p>
- * The mapping for a given abstract entity can be retrieved by calling the {@link #getMappingFor(String)} with the
- * {@code abstractEntity} name as parameter.
+ * The mapping for a given abstract entity can be retrieved by calling the {@link #getMappingFor(EntityType)} with the
+ * {@code abstractEntity} type as parameter.
+ * <p>
+ * <b>Note:</b> this class does not support {@link CustomEntityDefinition} mapping (see
+ * {@link #getMappingForCustomEntity(CustomEntityDefinition)}). Since these entities are defined dynamically there is
+ * no facilities to map them in a static way. Concrete {@link EntityMapper}s tailored to a given intent recognition
+ * platform can override the method {@link #getMappingForCustomEntity(CustomEntityDefinition)} to implement this
+ * dynamic mapping.
  *
  * @see IntentRecognitionProvider
  */
@@ -48,9 +55,9 @@ public class EntityMapper {
      * Constructs a new {@link EntityMapper}.
      * <p>
      * This constructor initializes this class with an empty mapping, that can be populated using
-     * {@link #addEntityMapping(String, String)} and {@link #setFallbackEntityMapping(String)}.
+     * {@link #addEntityMapping(EntityType, String)} and {@link #setFallbackEntityMapping(String)}.
      *
-     * @see #addEntityMapping(String, String)
+     * @see #addEntityMapping(EntityType, String)
      * @see #setFallbackEntityMapping(String)
      */
     public EntityMapper() {
@@ -58,27 +65,30 @@ public class EntityMapper {
     }
 
     /**
-     * Adds a new mapping between the provided {@code abstractEntity} and the given {@code concreteEntity}.
+     * Adds a new mapping between the provided {@code abstractEntityType} and the given {@code concreteEntity}.
      * <p>
-     * The stored mapping can be accessed by calling {@link #getMappingFor(String)} with {@code abstractEntity} as
-     * parameter.
+     * The stored mapping can be accessed by calling {@link #getMappingFor(EntityDefinition)} with {@code
+     * abstractEntityType} as parameter.
      *
-     * @param abstractEntity the {@link String} representing the abstract entity to map
-     * @param concreteEntity the {@link String} representing the concrete entity to associate to the provided {@code
-     *                       abstractEntity}
-     * @throws NullPointerException if the provided {@code abstractEntity} or {@code concreteEntity} is {@code null}
-     * @see #getMappingFor(String)
+     * @param abstractEntityType the {@link EntityType} representing the abstract entity to map
+     * @param concreteEntity     the {@link String} representing the concrete entity to associate to the provided {@code
+     *                           abstractEntityType}
+     * @throws NullPointerException if the provided {@code abstractEntityType} or {@code concreteEntity} is {@code null}
+     * @see #getMappingFor(EntityDefinition)
      */
-    public void addEntityMapping(String abstractEntity, String concreteEntity) {
-        checkNotNull(abstractEntity, "Cannot register a mapping for the abstract entity %s, please provide a " +
-                "non-null String", abstractEntity);
+    public void addEntityMapping(EntityType abstractEntityType, String concreteEntity) {
+        checkNotNull(abstractEntityType, "Cannot register a mapping for the abstract entity %s please provide a " +
+                "non-null " +
+                "%s", abstractEntityType, EntityType.class.getSimpleName());
         checkNotNull(concreteEntity, "Cannot register a mapping for the concrete entity %s, please provide a " +
                 "non-null String", concreteEntity);
-        if (this.entities.containsKey(abstractEntity)) {
+        String abstractEntityLiteral = abstractEntityType.getLiteral();
+        if (this.entities.containsKey(abstractEntityLiteral)) {
             Log.warn("{0} already contains a mapping for {1} ({2}), overriding it with the given value {3}", this
-                    .getClass().getSimpleName(), abstractEntity, this.entities.get(abstractEntity), concreteEntity);
+                    .getClass().getSimpleName(), abstractEntityLiteral, this.entities.get
+                    (abstractEntityLiteral), concreteEntity);
         }
-        this.entities.put(abstractEntity, concreteEntity);
+        this.entities.put(abstractEntityLiteral, concreteEntity);
     }
 
     /**
@@ -86,12 +96,12 @@ public class EntityMapper {
      * <p>
      * This method allows to specify a {@code concreteEntity} that will be mapped to all the {@code abstractEntities}
      * that does not have a direct implementation in the {@link IntentRecognitionProvider} platform. (see
-     * {@link #getMappingFor(String)}).
+     * {@link #getMappingFor(EntityType)}).
      *
      * @param concreteEntity the {@link String} representing the concrete entity to use as fallback entity
      * @throws NullPointerException     if the provided {@code concreteEntity} is {@code null}
      * @throws IllegalArgumentException if a {@code concreteEntity} is already registered as fallback entity
-     * @see #getMappingFor(String)
+     * @see #getMappingFor(EntityType)
      */
     public void setFallbackEntityMapping(String concreteEntity) {
         checkNotNull(concreteEntity, "Cannot register the concrete fallback entity %s, please provide a non-null " +
@@ -102,28 +112,31 @@ public class EntityMapper {
     }
 
     /**
-     * Returns the {@code concreteEntity} mapped to the provided {@code abstractEntity}.
+     * Returns the {@code concreteEntity} mapped to the provided {@code abstractEntityType}.
      * <p>
-     * This method looks in the registered mappings (set by calling {@link #addEntityMapping(String, String)}) and
-     * returns the one associated to the provided {@code abstractEntity}. If there is no direct mapping for the
-     * {@code abstractEntity}, the fallback entity (set by calling {@link #setFallbackEntityMapping(String)}) is
+     * This method looks in the registered mappings (set by calling {@link #addEntityMapping(EntityType, String)}) and
+     * returns the one associated to the provided {@code abstractEntityType}. If there is no direct mapping for the
+     * {@code abstractEntityType}, the fallback entity (set by calling {@link #setFallbackEntityMapping(String)}) is
      * returned.
      *
-     * @param abstractEntity the {@link String} representing the abstract entity to retrieve the concrete mapping from
-     * @return the {@code concreteEntity} mapped to the provided {@code abstractEntity}, or {@code null} if there is
+     * @param abstractEntityType the {@link String} representing the abstract entity to retrieve the concrete mapping
+     *                           from
+     * @return the {@code concreteEntity} mapped to the provided {@code abstractEntityType}, or {@code null} if there is
      * no such mapping
-     * @throws NullPointerException if the provided {@code abstractEntity} is {@code null}
-     * @see #addEntityMapping(String, String)
+     * @throws NullPointerException if the provided {@code abstractEntityType} is {@code null}
+     * @see #addEntityMapping(EntityType, String)
      * @see #setFallbackEntityMapping(String)
      */
-    public String getMappingFor(String abstractEntity) {
-        checkNotNull(abstractEntity, "Cannot retrieve the concrete mapping for the abstract entity %s, please provide" +
-                " a non-null String", abstractEntity);
-        String concreteEntity = this.entities.get(abstractEntity);
+    public String getMappingFor(EntityType abstractEntityType) {
+        checkNotNull(abstractEntityType, "Cannot retrieve the concrete mapping for the abstract entity %s, please " +
+                "provide" +
+                " a non-null %s", abstractEntityType, EntityType.class.getSimpleName());
+        String abstractEntityTypeLiteral = abstractEntityType.getLiteral();
+        String concreteEntity = this.entities.get(abstractEntityTypeLiteral);
         if (isNull(concreteEntity)) {
             concreteEntity = this.entities.get(FALLBACK_ENTITY_KEY);
             Log.warn("Cannot find a mapping for the abstract entity {0}, returning the fallback entity ({1})",
-                    abstractEntity, concreteEntity);
+                    abstractEntityTypeLiteral, concreteEntity);
         }
         return concreteEntity;
     }
@@ -131,7 +144,7 @@ public class EntityMapper {
     /**
      * Returns the {@code concreteEntity} mapped to the provided {@code abstractEntity}.
      * <p>
-     * This method looks in the registered mappings (set by calling {@link #addEntityMapping(String, String)}) and
+     * This method looks in the registered mappings (set by calling {@link #addEntityMapping(EntityType, String)}) and
      * returns the one associated to name extracted from the provided {@code abstractEntity}. Name extraction will
      * downcast the provided {@link EntityDefinition} to {@link BaseEntityDefinition}, and compute the
      * {@link EntityDefinition} name from its associated {@link EntityType} literal. Note that other subclasses of
@@ -163,14 +176,31 @@ public class EntityMapper {
             checkArgument(nonNull(coreEntity.getEntityType()), "Cannot retrieve the concrete mapping for the provided" +
                             " %s: %s needs to define a valid %s", BaseEntityDefinition.class.getSimpleName(),
                     BaseEntityDefinition.class.getSimpleName(), EntityType.class.getSimpleName());
-            return this.getMappingFor(((BaseEntityDefinition) abstractEntity).getEntityType().getLiteral());
+            return this.getMappingFor(((BaseEntityDefinition) abstractEntity).getEntityType());
+        } else if (abstractEntity instanceof CustomEntityDefinition) {
+            return getMappingForCustomEntity((CustomEntityDefinition) abstractEntity);
         } else {
-            /*
-             * Non-CoreEntity instances are not supported for now (see #145)
-             */
             throw new JarvisException(MessageFormat.format("{0} does not support the provided {1} {2}", this.getClass
                     ().getSimpleName(), EntityDefinition.class.getSimpleName(), abstractEntity.getClass()
                     .getSimpleName()));
         }
+    }
+
+    /**
+     * Returns the {@link String} representing the entity mapped from the provided {@code customEntityDefinition}.
+     * <p>
+     * <b>Note:</b> this class does not support {@link CustomEntityDefinition} mapping and this method throws a
+     * {@link JarvisException}. Since these entities are defined dynamically there is no facilities to map them in a
+     * static way. Concrete {@link EntityMapper}s tailored to a given intent recognition platform can override this
+     * method to implement this dynamic mapping.
+     *
+     * @param customEntityDefinition the {@link CustomEntityDefinition} to retrieve the concrete entity
+     *                               {@link String} from
+     * @return the mapped concrete entity {@link String}
+     * @throws JarvisException when called
+     */
+    protected String getMappingForCustomEntity(CustomEntityDefinition customEntityDefinition) {
+        throw new JarvisException(MessageFormat.format("{0} does not support {1} mapping", this.getClass()
+                .getSimpleName(), customEntityDefinition.getClass().getSimpleName()));
     }
 }

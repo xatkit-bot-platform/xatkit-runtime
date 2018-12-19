@@ -18,10 +18,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static edu.uoc.som.jarvis.test.util.ElementFactory.createBaseEntityDefinitionReference;
 
 public class DialogFlowApiTest extends AbstractJarvisTest {
 
@@ -30,13 +32,6 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     public static String VALID_LANGUAGE_CODE = VariableLoaderHelper.getJarvisDialogFlowLanguage();
 
     protected static String SAMPLE_INPUT = "hello";
-
-    protected static EntityDefinition VALID_ENTITY_DEFINITION;
-
-    /*
-     * EntityDefinition is contained in the context parameter, we need to create a second testing instance.
-     */
-    protected static EntityDefinition VALID_ENTITY_DEFINITION_2;
 
     protected static IntentDefinition VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT;
 
@@ -60,6 +55,18 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
      */
     private IntentDefinition registeredIntentDefinition;
 
+    /**
+     * Stores the last {@link EntityDefinition} registered by
+     * {@link DialogFlowApi#registerEntityDefinition(EntityDefinition)}.
+     * <p>
+     * <b>Note:</b> this variable must be set by each test case calling
+     * {@link DialogFlowApi#registerEntityDefinition(EntityDefinition)}, to enable their deletion in the
+     * {@link #tearDown()} method. Not setting this variable would add test-related entities in the DialogFlow project.
+     *
+     * @see #tearDown()
+     */
+    private EntityDefinition registeredEntityDefinition;
+
     // not tested here, only instantiated to enable IntentDefinition registration and Platform retrieval
     protected static JarvisCore jarvisCore;
 
@@ -81,24 +88,20 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         return configuration;
     }
 
+
     @BeforeClass
     public static void setUpBeforeClass() {
         TestExecutionModel testExecutionModel = new TestExecutionModel();
         Configuration configuration = buildConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, testExecutionModel.getExecutionModel());
         jarvisCore = new JarvisCore(configuration);
-        VALID_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        ((BaseEntityDefinition) VALID_ENTITY_DEFINITION).setEntityType(EntityType.ANY);
-        VALID_ENTITY_DEFINITION_2 = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        ((BaseEntityDefinition) VALID_ENTITY_DEFINITION_2).setEntityType(EntityType.ANY);
         VALID_OUT_CONTEXT = IntentFactory.eINSTANCE.createContext();
         VALID_OUT_CONTEXT.setName("ValidContext");
         ContextParameter contextParameter = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter.setName("param");
         contextParameter.setTextFragment("test");
-        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        entityDefinition.setEntityType(EntityType.ANY);
-        contextParameter.setEntity(entityDefinition);
+        EntityDefinitionReference entityReference = createBaseEntityDefinitionReference(EntityType.ANY);
+        contextParameter.setEntity(entityReference);
         VALID_OUT_CONTEXT.getParameters().add(contextParameter);
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT = IntentFactory.eINSTANCE.createIntentDefinition();
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.setName("TestIntentDefinition");
@@ -116,6 +119,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * Reset the variable value to null to avoid unnecessary deletion calls.
          */
         registeredIntentDefinition = null;
+        /*
+         * Delete the EntityDefinition after the IntentDefinition in case the IntentDefinition defines a parameter to
+          * the entity.
+         */
+        if(nonNull(registeredEntityDefinition)) {
+            api.deleteEntityDefinition(registeredEntityDefinition);
+        }
         if (nonNull(api)) {
             try {
                 api.shutdown();
@@ -171,6 +181,47 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
     }
 
+    @Test
+    public void registerMappingEntityDefinition() {
+        api = getValidDialogFlowApi();
+        MappingEntityDefinition mappingEntityDefinition = IntentFactory.eINSTANCE.createMappingEntityDefinition();
+        registeredEntityDefinition = mappingEntityDefinition;
+        mappingEntityDefinition.setName("Class");
+        MappingEntityDefinitionEntry entry1 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
+        entry1.setReferenceValue("Person");
+        entry1.getSynonyms().add("People");
+        entry1.getSynonyms().add("Fellow");
+        MappingEntityDefinitionEntry entry2 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
+        entry2.setReferenceValue("Order");
+        entry2.getSynonyms().add("Command");
+        mappingEntityDefinition.getEntries().add(entry1);
+        mappingEntityDefinition.getEntries().add(entry2);
+        api.registerEntityDefinition(mappingEntityDefinition);
+        List<com.google.cloud.dialogflow.v2.EntityType> entityTypes = api.getRegisteredEntityTypes();
+        assertThat(entityTypes).as("A single EntityType has been registered").hasSize(1);
+        com.google.cloud.dialogflow.v2.EntityType entityType = entityTypes.get(0);
+        assertThat(entityType.getDisplayName()).as("Valid display name").isEqualTo(mappingEntityDefinition.getName());
+        assertThat(entityType.getKind()).as("Valid kind value").isEqualTo(com.google.cloud.dialogflow.v2.EntityType
+                .Kind.KIND_MAP);
+        assertThat(entityType.getEntitiesCount()).as("EntityType contains 2 entities").isEqualTo(2);
+        List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities = entityType.getEntitiesList();
+        checkEntities(entities, mappingEntityDefinition.getEntries());
+    }
+
+    private void checkEntities(List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities,
+                               List<MappingEntityDefinitionEntry> entries) {
+        for(MappingEntityDefinitionEntry entry : entries) {
+            List<com.google.cloud.dialogflow.v2.EntityType.Entity> foundEntities = entities.stream().filter(e -> e
+                    .getValue().equals(entry.getReferenceValue())).collect(Collectors.toList());
+            assertThat(foundEntities).as("A single entity matches the entry").hasSize(1);
+            com.google.cloud.dialogflow.v2.EntityType.Entity foundEntity = foundEntities.get(0);
+            assertThat(foundEntity.getSynonymsList()).as("Valid synonym number").hasSize(entry.getSynonyms().size());
+            for(String foundSynonym : foundEntity.getSynonymsList()) {
+                assertThat(entry.getSynonyms()).as("Entries contain the synonym").contains(foundSynonym);
+            }
+        }
+    }
+
     @Test(expected = NullPointerException.class)
     public void registerIntentDefinitionNullIntentDefinition() {
         api = getValidDialogFlowApi();
@@ -209,6 +260,30 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         boolean foundTrainingPhrase = hasTrainingPhrase(foundIntent, trainingPhrase);
         softly.assertThat(foundTrainingPhrase).as("The IntentDefinition's training phrase is in the retrieved " +
                 "Intent").isTrue();
+    }
+
+
+
+    @Test
+    public void registerIntentDefinitionCustomEntity() {
+        api = getValidDialogFlowApi();
+        IntentDefinition registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        String intentName = "TestRegisterCustomEntity";
+        registeredIntentDefinition.setName(intentName);
+        String trainingPhrase = "test Custom";
+        registeredIntentDefinition.getTrainingSentences().add(trainingPhrase);
+        Context context = IntentFactory.eINSTANCE.createContext();
+        registeredIntentDefinition.getOutContexts().add(context);
+        context.setName("CustomContextName");
+        ContextParameter parameter = IntentFactory.eINSTANCE.createContextParameter();
+        context.getParameters().add(parameter);
+        parameter.setName("key");
+        parameter.setTextFragment("Custom");
+
+//        CustomEntityDefinitionReference reference = IntentFactory.eINSTANCE.createCustomEntityDefinitionReference();
+//        reference.setCustomEntity(mappingEntityDefinition);
+//        parameter.setEntity(reference);
+        api.registerIntentDefinition(registeredIntentDefinition);
     }
 
     @Test
@@ -345,9 +420,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         ContextParameter param = IntentFactory.eINSTANCE.createContextParameter();
         param.setName("param");
         param.setTextFragment("head");
-        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        entityDefinition.setEntityType(EntityType.ANY);
-        param.setEntity(entityDefinition);
+        EntityDefinitionReference entityReference = createBaseEntityDefinitionReference(EntityType.ANY);
+        param.setEntity(entityReference);
         context.getParameters().add(param);
         api = getValidDialogFlowApi();
         Intent.TrainingPhrase trainingPhrase = api.createTrainingPhrase
@@ -372,9 +446,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         context.setName("ValidContext2");
         ContextParameter param = IntentFactory.eINSTANCE.createContextParameter();
         param.setTextFragment("head");
-        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        entityDefinition.setEntityType(EntityType.ANY);
-        param.setEntity(entityDefinition);
+        EntityDefinitionReference entityReference = createBaseEntityDefinitionReference(EntityType.ANY);
+        param.setEntity(entityReference);
         context.getParameters().add(param);
         api = getValidDialogFlowApi();
         Intent.TrainingPhrase trainingPhrase = api.createTrainingPhrase
@@ -533,9 +606,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         context.setLifeSpan(3);
         ContextParameter param1 = IntentFactory.eINSTANCE.createContextParameter();
         param1.setName("param1");
-        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        entityDefinition.setEntityType(EntityType.ANY);
-        param1.setEntity(entityDefinition);
+        EntityDefinitionReference entityReference = createBaseEntityDefinitionReference(EntityType.ANY);
+        param1.setEntity(entityReference);
         context.getParameters().add(param1);
         api = getValidDialogFlowApi();
         List<Intent.Parameter> parameters = api.createParameters(Arrays.asList(context));
@@ -567,9 +639,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         context.setName("Context");
         context.setLifeSpan(3);
         ContextParameter param1 = IntentFactory.eINSTANCE.createContextParameter();
-        BaseEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        entityDefinition.setEntityType(EntityType.ANY);
-        param1.setEntity(entityDefinition);
+        EntityDefinitionReference entityReference = createBaseEntityDefinitionReference(EntityType.ANY);
+        param1.setEntity(entityReference);
         context.getParameters().add(param1);
         api = getValidDialogFlowApi();
         api.createParameters(Arrays.asList(context));
@@ -836,14 +907,14 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         outContext1.setName("Context1");
         ContextParameter contextParameter1 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter1.setName("Parameter1");
-        contextParameter1.setEntity(VALID_ENTITY_DEFINITION);
+        contextParameter1.setEntity(createBaseEntityDefinitionReference(EntityType.ANY));
         contextParameter1.setTextFragment("cheese");
         outContext1.getParameters().add(contextParameter1);
         Context outContext2 = IntentFactory.eINSTANCE.createContext();
         outContext2.setName("Context2");
         ContextParameter contextParameter2 = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter2.setName("Parameter2");
-        contextParameter2.setEntity(VALID_ENTITY_DEFINITION_2);
+        contextParameter2.setEntity(createBaseEntityDefinitionReference(EntityType.ANY));
         contextParameter2.setTextFragment("steak");
         outContext2.getParameters().add(contextParameter2);
         outContext2.setLifeSpan(4);

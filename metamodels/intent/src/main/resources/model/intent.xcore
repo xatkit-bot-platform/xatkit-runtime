@@ -22,6 +22,7 @@ class LibraryImportDeclaration extends ImportDeclaration {
 
 class Library {
 	String name
+	contains CustomEntityDefinition[] customEntities
 	contains EventDefinition[] eventDefinitions
 }
 
@@ -63,7 +64,7 @@ class Context {
 class ContextParameter {
     String name
     String textFragment
-    contains EntityDefinition entity
+    contains EntityDefinitionReference entity
 }
 
 class EventInstance {
@@ -95,6 +96,24 @@ class ContextParameterValue {
     String value
 }
 
+abstract class EntityDefinitionReference {
+    op EntityDefinition getReferredEntity()
+}
+
+class BaseEntityDefinitionReference extends EntityDefinitionReference {
+    contains BaseEntityDefinition baseEntity
+    op EntityDefinition getReferredEntity() {
+        return baseEntity;
+    }
+}
+
+class CustomEntityDefinitionReference extends EntityDefinitionReference {
+    refers CustomEntityDefinition customEntity
+    op EntityDefinition getReferredEntity() {
+        return customEntity;
+    }
+}
+
 abstract class EntityDefinition {
 
 }
@@ -103,15 +122,72 @@ class BaseEntityDefinition extends EntityDefinition {
     EntityType entityType
 }
 
-// class EntityDefinitionLink extends EntityDefinition {
-//   refers EntityDefinition referredEntityDefinition -> for CompositeEntityDefinitions created in platforms
-// }
 
-// class CompositeEntityDefinition extends EntityDefinition
+abstract class CustomEntityDefinition extends EntityDefinition {
+    String name
+}
+
+class MappingEntityDefinition extends CustomEntityDefinition {
+    contains MappingEntityDefinitionEntry[] entries
+}
+
+class MappingEntityDefinitionEntry {
+    String referenceValue
+    String[] synonyms
+}
 
 enum EntityType {
     ANY as "any" = 0
-    CITY as "city" = 1
+    DATE_TIME as "date-time" = 1
+    DATE as "date" = 2
+    DATE_PERIOD as "date-period" = 3
+    TIME as "time" = 4
+    TIME_PERIOD as "time-period" = 5
+    NUMBER as "number" = 6
+    CARDINAL as "cardinal" = 7
+    ORDINAL as "ordinal" = 8
+    INTEGER as "integer" = 9
+    NUMBER_SEQUENCE as "number-sequence" = 10
+    FLIGHT_NUMBER as "flight-number" = 11
+    UNIT_AREA as "unit-area" = 12
+    UNIT_CURRENCY as "unit-currency" = 13
+    UNIT_LENGTH as "unit-length" = 14
+    UNIT_SPEED as "unit-speed" = 15
+    UNIT_VOLUME as "unit-volume" = 16
+    UNIT_WEIGHT as "unit-weight" = 17
+    UNIT_INFORMATION as "unit-information" = 18
+    PERCENTAGE as "percentage" = 19
+    TEMPERATURE as "temperature" = 20
+    DURATION as "duration" = 21
+    AGE as "age" = 22
+    ADDRESS as "address" = 23
+    STREET_ADDRESS as "street-address" = 24
+    ZIP_CODE as "zip-code" = 25
+    CAPITAL as "capital" = 26
+    COUNTRY as "country" = 27
+    COUNTRY_CODE as "country-code" = 28
+    CITY as "city" = 29
+    STATE as "state" = 30
+    CITY_US as "city-us" = 31
+    STATE_US as "state-us" = 32
+    COUNTY_US as "county-us" = 33
+    CITY_GB as "city-gb" = 34
+    STATE_GB as "state-gb" = 35
+    COUNTY_GB as "county-gb" = 36
+    PLACE_ATTRACTION_US as "place-attraction-us" = 37
+    PLACE_ATTRACTION_GB as "place-attraction-gb" = 38
+    PLACE_ATTRACTION as "place-attraction" = 39
+    AIRPORT as "airport" = 40
+    LOCATION as "location" = 41
+    EMAIL as "email" = 42
+    PHONE_NUMBER as "phone-number" = 43
+    GIVEN_NAME as "given-name" = 44
+    LAST_NAME as "last-name" = 45
+    MUSIC_ARTIST as "music-artist" = 46
+    MUSIC_GENRE as "music-genre" = 47
+    COLOR as "color" = 48
+    LANGUAGE as "language" = 49
+    URL as "url" = 50
 }
 
 

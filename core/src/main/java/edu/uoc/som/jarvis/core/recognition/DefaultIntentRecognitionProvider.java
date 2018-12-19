@@ -2,6 +2,7 @@ package edu.uoc.som.jarvis.core.recognition;
 
 import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.intent.EntityDefinition;
 import edu.uoc.som.jarvis.intent.IntentDefinition;
 import edu.uoc.som.jarvis.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
@@ -60,10 +61,25 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     /**
      * This method is not implemented and throws an {@link UnsupportedOperationException}.
      * <p>
+     * Use valid {@link IntentRecognitionProvider}s to enable {@link EntityDefinition} registration.
+     *
+     * @param entityDefinition the {@link EntityDefinition} to register to the underlying intent recognition provider
+     * @throws UnsupportedOperationException when called
+     */
+    @Override
+    public void registerEntityDefinition(EntityDefinition entityDefinition) {
+        throw new UnsupportedOperationException(MessageFormat.format("Unsupported operation: cannot register {0} to " +
+                "{1}, please use a valid {2} to manage {0}s", EntityDefinition.class.getSimpleName(), this.getClass()
+                .getSimpleName(), IntentRecognitionProvider.class.getSimpleName()));
+    }
+
+    /**
+     * This method is not implemented and throws an {@link UnsupportedOperationException}.
+     * <p>
      * Use valid {@link IntentRecognitionProvider}s to enable {@link IntentDefinition} registration.
      *
      * @param intentDefinition the {@link IntentDefinition} to register to the underlying intent recognition provider
-     * @throws IntentRecognitionProviderException when called
+     * @throws UnsupportedOperationException when called
      */
     @Override
     public void registerIntentDefinition(IntentDefinition intentDefinition) {
@@ -75,10 +91,25 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     /**
      * This method is not implemented and throws an {@link UnsupportedOperationException}.
      * <p>
+     * Use valid {@link IntentRecognitionProvider}s to enable {@link EntityDefinition} deletion.
+     *
+     * @param entityDefinition the {@link EntityDefinition} to delete from the underlying intent recognition provider
+     * @throws UnsupportedOperationException when called
+     */
+    @Override
+    public void deleteEntityDefinition(EntityDefinition entityDefinition) {
+        throw new UnsupportedOperationException(MessageFormat.format("Unsupported operation: cannot delete {0} " +
+                "from {1}, please use a valid {2} to manage {0}s", EntityDefinition.class.getSimpleName(), this
+                .getClass().getSimpleName(), IntentRecognitionProvider.class.getSimpleName()));
+    }
+
+    /**
+     * This method is not implemented and throws an {@link UnsupportedOperationException}.
+     * <p>
      * Use valid {@link IntentRecognitionProvider}s to enable {@link IntentDefinition} deletion.
      *
      * @param intentDefinition the {@link IntentDefinition} to delete from the underlying intent recognition provider
-     * @throws IntentRecognitionProviderException when called
+     * @throws UnsupportedOperationException when called
      */
     @Override
     public void deleteIntentDefinition(IntentDefinition intentDefinition) {
@@ -92,7 +123,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * <p>
      * Use valid {@link IntentRecognitionProvider}s to enable ML training.
      *
-     * @throws IntentRecognitionProviderException when called
+     * @throws UnsupportedOperationException when called
      */
     @Override
     public void trainMLEngine() {
@@ -133,7 +164,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * @param input   the {@link String} representing the textual input to process and extract the intent from
      * @param session the {@link JarvisSession} used to access context information
      * @return this method throws an {@link IntentRecognitionProviderException}
-     * @throws IntentRecognitionProviderException when called
+     * @throws UnsupportedOperationException when called
      */
     @Override
     public RecognizedIntent getIntent(String input, JarvisSession session) {
