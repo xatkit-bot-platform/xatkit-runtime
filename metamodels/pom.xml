@@ -19,6 +19,7 @@
         <!-- Dependency versions -->
         <eclipse.text.version>3.5.101</eclipse.text.version>
         <emf.codegen.ecore.xtext.version>1.2.0</emf.codegen.ecore.xtext.version>
+        <guava.version>20.0</guava.version>
         <!-- Plugin versions -->
         <xtext-maven-plugin.version>2.9.2</xtext-maven-plugin.version>
     </properties>
@@ -44,6 +45,15 @@
                         <artifactId>guava</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <!-- Replace the xbase.lib guava dependency with a more recent one that does not conflict with Jarvis -->
+            <!-- This dependency should only be used in metamodels which require advanced xcore generation features -->
+            <!-- such as xtend lambdas -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
             </dependency>
 
         </dependencies>
