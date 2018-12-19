@@ -45,12 +45,17 @@ OutContextDefinition returns Context:
 
 ContextParameter returns ContextParameter:
 	{ContextParameter}
-	name=EString ('<-' textFragment=EString '('entity=EntityDefinition')')?
+	name=EString ('<-' textFragment=EString '('entity=EntityDefinitionReference')')?
 ;
 
-EntityDefinition returns BaseEntityDefinition:
+EntityDefinitionReference returns BaseEntityDefinitionReference:
+	{BaseEntityDefinitionReference}
+	'@' baseEntity=BaseEntityDefinition
+;
+
+BaseEntityDefinition returns BaseEntityDefinition:
 	{BaseEntityDefinition}
-	'@' entityType=EntityType
+	entityType=EntityType
 ;
 
 enum EntityType returns EntityType:

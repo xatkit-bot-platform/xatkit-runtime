@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
@@ -75,7 +77,7 @@ public class ImportRegistry {
 		this.platforms = new HashMap<>();
 		this.libraries = new HashMap<>();
 	}
-	
+
 	private void loadJarvisCore() {
 		try {
 			loadJarvisCorePlatforms();
@@ -85,7 +87,7 @@ public class ImportRegistry {
 		}
 		try {
 			loadJarvisCoreLibraries();
-		} catch(IOException | URISyntaxException e) {
+		} catch (IOException | URISyntaxException e) {
 			System.out.println("An error occurred when loading core libraries");
 			e.printStackTrace();
 		}
@@ -103,13 +105,13 @@ public class ImportRegistry {
 		this.platforms.clear();
 		this.libraries.clear();
 		List<Resource> resources = new ArrayList<>();
-		for(ImportDeclaration importDeclaration : imports) {
+		for (ImportDeclaration importDeclaration : imports) {
 			resources.add(loadImport(importDeclaration));
 		}
 		return resources;
 	}
-	
-	public Collection<PlatformDefinition> getLoadedPlatforms(PlatformDefinition platform) {
+
+	public Collection<PlatformDefinition> getImportedPlatforms(PlatformDefinition platform) {
 		/*
 		 * Reload all the platforms in case the imports have changes.
 		 */
@@ -117,7 +119,26 @@ public class ImportRegistry {
 		return this.platforms.values();
 	}
 
-	public Collection<PlatformDefinition> getLoadedPlatforms(ExecutionModel model) {
+	/**
+	 * Returns the {@link PlatformDefinition} imported by the provided {@code model} with the given
+	 * {@code platformName}.
+	 * 
+	 * @param model        the {@link ExecutionModel} to retrieve the imported {@link PlatformDefinition} from
+	 * @param platformName the name of the {@link PlatformDefinition} to retrieve
+	 * @return the imported {@link PlatformDefinition}, or {@code null} if there is no imported
+	 *         {@link PlatformDefinition} matching the provided {@code platformName}
+	 */
+	public PlatformDefinition getImportedPlatform(ExecutionModel model, String platformName) {
+		Optional<PlatformDefinition> result = this.getImportedPlatforms(model).stream()
+				.filter(p -> p.getName().equals(platformName)).findFirst();
+		if (result.isPresent()) {
+			return result.get();
+		} else {
+			return null;
+		}
+	}
+
+	public Collection<PlatformDefinition> getImportedPlatforms(ExecutionModel model) {
 		/*
 		 * Reload all the platforms in case the imports have changed.
 		 */
@@ -125,7 +146,7 @@ public class ImportRegistry {
 		return this.platforms.values();
 	}
 
-	public Collection<Library> getLoadedLibraries(ExecutionModel model) {
+	public Collection<Library> getImportedLibraries(ExecutionModel model) {
 		/*
 		 * Reload all the libraries in case the imports have changed.
 		 */
@@ -175,7 +196,7 @@ public class ImportRegistry {
 		if (isNull(resource)) {
 			File importResourceFile = new File(path);
 			URI importResourceFileURI = null;
-			if(importResourceFile.exists()) {
+			if (importResourceFile.exists()) {
 				importResourceFileURI = URI.createFileURI(importResourceFile.getAbsolutePath());
 			} else {
 				/*
@@ -249,7 +270,7 @@ public class ImportRegistry {
 			} catch (IOException e) {
 				System.out.println("An error occurred when loading the resource");
 				return null;
-			} catch(IllegalArgumentException e) {
+			} catch (IllegalArgumentException e) {
 				System.out.println("An error occurred when loading the resource, invalid platform URI provided");
 				return null;
 			}
@@ -338,18 +359,18 @@ public class ImportRegistry {
 		if (resolvedPlatformFolderURI.getScheme().equals("jar")) {
 			try {
 				/*
-                 * Try to get the FileSystem if it exists, this may be the case if this method has been called to
-                 * get the path of a resource stored in a jar file.
-                 */
+				 * Try to get the FileSystem if it exists, this may be the case if this method has been called to get
+				 * the path of a resource stored in a jar file.
+				 */
 				FileSystems.getFileSystem(resolvedPlatformFolderURI);
-			}catch(FileSystemNotFoundException e) {
+			} catch (FileSystemNotFoundException e) {
 				/*
-                 * The FileSystem does not exist, try to create a new one with the provided URI. This is
-                 * typically the case when loading a resource from a jar file for the first time.
-                 */
+				 * The FileSystem does not exist, try to create a new one with the provided URI. This is typically the
+				 * case when loading a resource from a jar file for the first time.
+				 */
 				Map<String, String> env = new HashMap<>();
-                env.put("create", "true");
-                FileSystems.newFileSystem(resolvedPlatformFolderURI, Collections.emptyMap());
+				env.put("create", "true");
+				FileSystems.newFileSystem(resolvedPlatformFolderURI, Collections.emptyMap());
 			}
 		}
 		return Paths.get(resolvedPlatformFolderURI);

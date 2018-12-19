@@ -27,7 +27,7 @@ public class PlatformLinkingService extends DefaultLinkingService {
 			PlatformDefinition platformDefinition = (PlatformDefinition) context;
 			if (ref.equals(PlatformPackage.eINSTANCE.getPlatformDefinition_Extends())) {
 				Collection<PlatformDefinition> importedPlatformDefinitions = ImportRegistry.getInstance()
-						.getLoadedPlatforms(platformDefinition);
+						.getImportedPlatforms(platformDefinition);
 				System.out.println("Found " + importedPlatformDefinitions.size() + " platforms");
 				for(PlatformDefinition importedPlatform : importedPlatformDefinitions) {
 					if(importedPlatform.getName().equals(node.getText())) {

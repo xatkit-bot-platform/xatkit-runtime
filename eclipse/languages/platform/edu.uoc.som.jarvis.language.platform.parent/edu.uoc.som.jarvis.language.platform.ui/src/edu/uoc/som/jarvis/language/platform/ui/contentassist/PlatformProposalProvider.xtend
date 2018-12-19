@@ -19,7 +19,7 @@ class PlatformProposalProvider extends AbstractPlatformProposalProvider {
 	override completePlatform_Extends(EObject model, Assignment assignment, ContentAssistContext context,
 		ICompletionProposalAcceptor acceptor) {
 			val PlatformDefinition platform = model as PlatformDefinition
-			val importedPlatforms = ImportRegistry.getInstance.getLoadedPlatforms(platform)
+			val importedPlatforms = ImportRegistry.getInstance.getImportedPlatforms(platform)
 			importedPlatforms.filter[p | !p.name.equals(platform.name)].forEach[p | 
 				acceptor.accept(createCompletionProposal(p.name, context))
 			]

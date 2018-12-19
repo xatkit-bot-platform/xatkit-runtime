@@ -76,7 +76,10 @@ class IntentGenerator extends AbstractGenerator {
 							println(MessageFormat.format("Creating new output context parameter {0} (entityType={1})", contextParameterName, entityName))
 							var contextParameter = factory.createContextParameter
 							contextParameter.name = contextParameterName
-							contextParameter.entity = IntentFactory.eINSTANCE.createBaseEntityDefinition()
+							var baseEntityReference = IntentFactory.eINSTANCE.createBaseEntityDefinitionReference
+							contextParameter.entity = baseEntityReference
+							var baseEntityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition()
+							baseEntityReference.baseEntity = baseEntityDefinition
 							println("Searching for entityType " + entityName.toLowerCase)
 							println("Found " + EntityType.get(entityName.toLowerCase))
 							(contextParameter.entity as BaseEntityDefinition).entityType = EntityType.get(entityName.toLowerCase)

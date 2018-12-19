@@ -21,7 +21,7 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 
 	override completeExecutionModel_EventProviderDefinitions(EObject model, Assignment assignment,
 		ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
-		var platforms = ImportRegistry.getInstance.getLoadedPlatforms(model as ExecutionModel)
+		var platforms = ImportRegistry.getInstance.getImportedPlatforms(model as ExecutionModel)
 		for(PlatformDefinition platform : platforms) {
 			platform.eventProviderDefinitions.map[i | i.name].forEach[iName |
 				acceptor.accept(createCompletionProposal(platform.name + '.' + iName, context))
@@ -34,7 +34,7 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 		/*
 		 * Intents from libraries.
 		 */
-		var libraries = ImportRegistry.getInstance.getLoadedLibraries(model.eContainer as ExecutionModel)
+		var libraries = ImportRegistry.getInstance.getImportedLibraries(model.eContainer as ExecutionModel)
 		libraries.map[m|m.eventDefinitions.map[e|e.name]].flatten.forEach[eName |
 			acceptor.accept(createCompletionProposal(eName, context))
 		]
@@ -64,7 +64,7 @@ class ExecutionProposalProvider extends AbstractExecutionProposalProvider {
 				executionModel = currentObject
 			}
 		}
-		val platforms = ImportRegistry.getInstance.getLoadedPlatforms(executionModel)
+		val platforms = ImportRegistry.getInstance.getImportedPlatforms(executionModel)
 		for(PlatformDefinition platform : platforms) {
 			platform.actions.forEach[a | 
 				var String prefix = platform.name + "."
