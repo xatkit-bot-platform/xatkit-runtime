@@ -20,10 +20,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static edu.uoc.som.jarvis.test.util.ElementFactory.createBaseEntityDefinitionReference;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static edu.uoc.som.jarvis.test.util.ElementFactory.createBaseEntityDefinitionReference;
 
 public class DialogFlowApiTest extends AbstractJarvisTest {
 
@@ -36,6 +36,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     protected static IntentDefinition VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT;
 
     protected static Context VALID_OUT_CONTEXT;
+
+    protected static MappingEntityDefinition VALID_MAPPING_ENTITY_DEFINITION;
 
     protected static String VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER = "I love the monkey head";
 
@@ -107,6 +109,18 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.setName("TestIntentDefinition");
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.getTrainingSentences().add("test intent definition");
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.getOutContexts().add(VALID_OUT_CONTEXT);
+
+        VALID_MAPPING_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createMappingEntityDefinition();
+        VALID_MAPPING_ENTITY_DEFINITION.setName("Class");
+        MappingEntityDefinitionEntry entry1 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
+        entry1.setReferenceValue("Person");
+        entry1.getSynonyms().add("People");
+        entry1.getSynonyms().add("Fellow");
+        MappingEntityDefinitionEntry entry2 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
+        entry2.setReferenceValue("Order");
+        entry2.getSynonyms().add("Command");
+        VALID_MAPPING_ENTITY_DEFINITION.getEntries().add(entry1);
+        VALID_MAPPING_ENTITY_DEFINITION.getEntries().add(entry2);
     }
 
     @After
@@ -121,9 +135,9 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         registeredIntentDefinition = null;
         /*
          * Delete the EntityDefinition after the IntentDefinition in case the IntentDefinition defines a parameter to
-          * the entity.
+         * the entity.
          */
-        if(nonNull(registeredEntityDefinition)) {
+        if (nonNull(registeredEntityDefinition)) {
             api.deleteEntityDefinition(registeredEntityDefinition);
         }
         if (nonNull(api)) {
@@ -184,39 +198,29 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void registerMappingEntityDefinition() {
         api = getValidDialogFlowApi();
-        MappingEntityDefinition mappingEntityDefinition = IntentFactory.eINSTANCE.createMappingEntityDefinition();
-        registeredEntityDefinition = mappingEntityDefinition;
-        mappingEntityDefinition.setName("Class");
-        MappingEntityDefinitionEntry entry1 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
-        entry1.setReferenceValue("Person");
-        entry1.getSynonyms().add("People");
-        entry1.getSynonyms().add("Fellow");
-        MappingEntityDefinitionEntry entry2 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
-        entry2.setReferenceValue("Order");
-        entry2.getSynonyms().add("Command");
-        mappingEntityDefinition.getEntries().add(entry1);
-        mappingEntityDefinition.getEntries().add(entry2);
-        api.registerEntityDefinition(mappingEntityDefinition);
+        registeredEntityDefinition = VALID_MAPPING_ENTITY_DEFINITION;
+        api.registerEntityDefinition(registeredEntityDefinition);
         List<com.google.cloud.dialogflow.v2.EntityType> entityTypes = api.getRegisteredEntityTypes();
         assertThat(entityTypes).as("A single EntityType has been registered").hasSize(1);
         com.google.cloud.dialogflow.v2.EntityType entityType = entityTypes.get(0);
-        assertThat(entityType.getDisplayName()).as("Valid display name").isEqualTo(mappingEntityDefinition.getName());
+        assertThat(entityType.getDisplayName()).as("Valid display name").isEqualTo(VALID_MAPPING_ENTITY_DEFINITION
+                .getName());
         assertThat(entityType.getKind()).as("Valid kind value").isEqualTo(com.google.cloud.dialogflow.v2.EntityType
                 .Kind.KIND_MAP);
         assertThat(entityType.getEntitiesCount()).as("EntityType contains 2 entities").isEqualTo(2);
         List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities = entityType.getEntitiesList();
-        checkEntities(entities, mappingEntityDefinition.getEntries());
+        checkEntities(entities, VALID_MAPPING_ENTITY_DEFINITION.getEntries());
     }
 
     private void checkEntities(List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities,
                                List<MappingEntityDefinitionEntry> entries) {
-        for(MappingEntityDefinitionEntry entry : entries) {
+        for (MappingEntityDefinitionEntry entry : entries) {
             List<com.google.cloud.dialogflow.v2.EntityType.Entity> foundEntities = entities.stream().filter(e -> e
                     .getValue().equals(entry.getReferenceValue())).collect(Collectors.toList());
             assertThat(foundEntities).as("A single entity matches the entry").hasSize(1);
             com.google.cloud.dialogflow.v2.EntityType.Entity foundEntity = foundEntities.get(0);
             assertThat(foundEntity.getSynonymsList()).as("Valid synonym number").hasSize(entry.getSynonyms().size());
-            for(String foundSynonym : foundEntity.getSynonymsList()) {
+            for (String foundSynonym : foundEntity.getSynonymsList()) {
                 assertThat(entry.getSynonyms()).as("Entries contain the synonym").contains(foundSynonym);
             }
         }
@@ -245,29 +249,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         registeredIntentDefinition.getTrainingSentences().add(trainingPhrase);
         api.registerIntentDefinition(registeredIntentDefinition);
         List<Intent> registeredIntents = api.getRegisteredIntentsFullView();
-        assertThat(registeredIntents).as("Registered Intent list is not null").isNotNull();
-        softly.assertThat(registeredIntents).as("Registered Intent list is not empty").isNotEmpty();
-        Intent foundIntent = null;
-        for (Intent intent : registeredIntents) {
-            if (intent.getDisplayName().equals(intentName)) {
-                foundIntent = intent;
-            }
-        }
-        assertThat(foundIntent).as("Registered Intent list contains the registered IntentDefinition")
-                .isNotNull();
-        softly.assertThat(foundIntent.getTrainingPhrasesList()).as("Intent's training phrase list is not empty")
-                .isNotEmpty();
-        boolean foundTrainingPhrase = hasTrainingPhrase(foundIntent, trainingPhrase);
-        softly.assertThat(foundTrainingPhrase).as("The IntentDefinition's training phrase is in the retrieved " +
-                "Intent").isTrue();
+        checkRegisteredIntent(registeredIntentDefinition, registeredIntents);
     }
 
-
-
     @Test
-    public void registerIntentDefinitionCustomEntity() {
+    public void registerIntentDefinitionCustomEntityNotRegisteredEntity() {
         api = getValidDialogFlowApi();
-        IntentDefinition registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         String intentName = "TestRegisterCustomEntity";
         registeredIntentDefinition.setName(intentName);
         String trainingPhrase = "test Custom";
@@ -279,11 +267,15 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         context.getParameters().add(parameter);
         parameter.setName("key");
         parameter.setTextFragment("Custom");
-
-//        CustomEntityDefinitionReference reference = IntentFactory.eINSTANCE.createCustomEntityDefinitionReference();
-//        reference.setCustomEntity(mappingEntityDefinition);
-//        parameter.setEntity(reference);
+        CustomEntityDefinitionReference reference = IntentFactory.eINSTANCE.createCustomEntityDefinitionReference();
+        reference.setCustomEntity(VALID_MAPPING_ENTITY_DEFINITION);
+        parameter.setEntity(reference);
         api.registerIntentDefinition(registeredIntentDefinition);
+        List<Intent> registeredIntents = api.getRegisteredIntentsFullView();
+        /*
+         * The Intent is registered even if the Entity is not registered
+         */
+        checkRegisteredIntent(registeredIntentDefinition, registeredIntents);
     }
 
     @Test
@@ -349,6 +341,26 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         registeredIntentDefinition.getTrainingSentences().add("test jarvis");
         api.registerIntentDefinition(registeredIntentDefinition);
         api.registerIntentDefinition(registeredIntentDefinition);
+    }
+
+    private void checkRegisteredIntent(IntentDefinition registeredIntent, List<Intent> dialogFlowIntents) {
+        assertThat(dialogFlowIntents).as("Registered Intent list is not null").isNotNull();
+        softly.assertThat(dialogFlowIntents).as("Registered Intent list is not empty").isNotEmpty();
+        Intent foundIntent = null;
+        for (Intent intent : dialogFlowIntents) {
+            if (intent.getDisplayName().equals(registeredIntent.getName())) {
+                foundIntent = intent;
+            }
+        }
+        assertThat(foundIntent).as("Registered Intent list contains the registered IntentDefinition")
+                .isNotNull();
+        softly.assertThat(foundIntent.getTrainingPhrasesList()).as("Intent's training phrase list is not empty")
+                .isNotEmpty();
+        for (String trainingPhrase : registeredIntent.getTrainingSentences()) {
+            boolean foundTrainingPhrase = hasTrainingPhrase(foundIntent, trainingPhrase);
+            softly.assertThat(foundTrainingPhrase).as("The IntentDefinition's training phrase is in the retrieved " +
+                    "Intent").isTrue();
+        }
     }
 
     @Test(expected = NullPointerException.class)
@@ -1025,13 +1037,20 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     private boolean hasTrainingPhrase(Intent intent, String trainingPhrase) {
         for (Intent.TrainingPhrase intentTrainingPhrase : intent.getTrainingPhrasesList()) {
-            for (Intent.TrainingPhrase.Part part : intentTrainingPhrase.getPartsList()) {
-                if (part.getText().equals(trainingPhrase)) {
-                    return true;
-                }
+            String mergedParts = mergeTrainingPhraseParts(intentTrainingPhrase);
+            if(mergedParts.equals(trainingPhrase)) {
+                return true;
             }
         }
         return false;
+    }
+
+    private String mergeTrainingPhraseParts(Intent.TrainingPhrase trainingPhrase) {
+        StringBuilder sb = new StringBuilder();
+        for(Intent.TrainingPhrase.Part part : trainingPhrase.getPartsList()) {
+            sb.append(part.getText());
+        }
+        return sb.toString();
     }
 
     private void checkDialogFlowSession(JarvisSession session, String expectedProjectId, String expectedSessionId) {

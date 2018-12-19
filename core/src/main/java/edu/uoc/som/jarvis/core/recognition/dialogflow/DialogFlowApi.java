@@ -733,8 +733,12 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 for (edu.uoc.som.jarvis.intent.Context context : outContexts) {
                     for (ContextParameter parameter : context.getParameters()) {
                         if (sentencePart.equals(parameter.getTextFragment())) {
-                            checkNotNull("Cannot build the training sentence \"%s\", the parameter for the fragment " +
-                                    "\"%s\" does not define a name", trainingSentence, parameter.getTextFragment());
+                            checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the " +
+                                            "parameter for the fragment \"%s\" does not define a name",
+                                    trainingSentence, parameter.getTextFragment());
+                            checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the " +
+                                            "parameter for the fragment \"%s\" does not define an entity",
+                                    trainingSentence, parameter.getTextFragment());
                             String dialogFlowEntity = entityMapper.getMappingFor(parameter.getEntity()
                                     .getReferredEntity());
                             partBuilder.setEntityType(dialogFlowEntity).setAlias(parameter.getName());
