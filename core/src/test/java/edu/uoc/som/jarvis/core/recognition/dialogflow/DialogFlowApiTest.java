@@ -219,9 +219,17 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
                     .getValue().equals(entry.getReferenceValue())).collect(Collectors.toList());
             assertThat(foundEntities).as("A single entity matches the entry").hasSize(1);
             com.google.cloud.dialogflow.v2.EntityType.Entity foundEntity = foundEntities.get(0);
-            assertThat(foundEntity.getSynonymsList()).as("Valid synonym number").hasSize(entry.getSynonyms().size());
-            for (String foundSynonym : foundEntity.getSynonymsList()) {
-                assertThat(entry.getSynonyms()).as("Entries contain the synonym").contains(foundSynonym);
+            /*
+             * There is 1 more synonym in the registered Entity: the value of the entity itself (see
+             * https://dialogflow.com/docs/entities/developer-entities)
+             */
+            assertThat(foundEntity.getSynonymsList()).as("Valid synonym number").hasSize(entry.getSynonyms().size() +
+                    1);
+            assertThat(foundEntity.getSynonymsList()).as("Synonym list contains the entry reference value").contains
+                    (entry.getReferenceValue());
+            for(String entrySynonym : entry.getSynonyms()) {
+                assertThat(foundEntity.getSynonymsList()).as("Synonym list contains the entry synonym " +
+                        entrySynonym).contains(entrySynonym);
             }
         }
     }

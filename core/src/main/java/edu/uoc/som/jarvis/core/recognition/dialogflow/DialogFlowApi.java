@@ -593,7 +593,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         List<EntityType.Entity> entities = new ArrayList<>();
         for (MappingEntityDefinitionEntry entry : entries) {
             EntityType.Entity.Builder builder = EntityType.Entity.newBuilder().setValue(entry.getReferenceValue())
-                    .addAllSynonyms(entry.getSynonyms());
+                    .addAllSynonyms(entry.getSynonyms()).addSynonyms(entry.getReferenceValue());
             entities.add(builder.build());
         }
         return entities;
