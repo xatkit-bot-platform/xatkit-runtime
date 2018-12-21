@@ -7,7 +7,22 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 Library returns Library:
 	{Library}
 	'Library' name=EString
+	(customEntities+=CustomEntityDefinition)*
 	(eventDefinitions+=(EventDefinition|IntentDefinition))*
+;
+
+CustomEntityDefinition:
+	MappingEntityDefinition
+;
+
+MappingEntityDefinition returns MappingEntityDefinition:
+	'mapping' name=ID '{'
+	(entries+=MappingEntityDefinitionEntry)+
+	'}'
+;
+
+MappingEntityDefinitionEntry returns MappingEntityDefinitionEntry:
+	'value'referenceValue=EString ('synonyms:'(synonyms+=EString)+)?
 ;
 
 EventDefinition returns EventDefinition:
@@ -48,9 +63,19 @@ ContextParameter returns ContextParameter:
 	name=EString ('<-' textFragment=EString '('entity=EntityDefinitionReference')')?
 ;
 
-EntityDefinitionReference returns BaseEntityDefinitionReference:
+EntityDefinitionReference returns EntityDefinitionReference:
+	(BaseEntityDefinitionReference | CustomEntityDefinitionReference)	
+;
+
+BaseEntityDefinitionReference returns BaseEntityDefinitionReference:
 	{BaseEntityDefinitionReference}
 	'@' baseEntity=BaseEntityDefinition
+;
+
+CustomEntityDefinitionReference returns CustomEntityDefinitionReference:
+	{CustomEntityDefinitionReference}
+	'@' customEntity=[CustomEntityDefinition]
+	
 ;
 
 BaseEntityDefinition returns BaseEntityDefinition:
