@@ -15,10 +15,19 @@ import java.text.MessageFormat
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import static java.util.Objects.nonNull
+import static java.util.Objects.isNull
+import edu.uoc.som.jarvis.intent.Library
 import edu.uoc.som.jarvis.intent.Context
 import edu.uoc.som.jarvis.intent.IntentFactory
 import edu.uoc.som.jarvis.intent.EntityType
 import edu.uoc.som.jarvis.intent.BaseEntityDefinition
+import edu.uoc.som.jarvis.intent.ContextParameter
+import edu.uoc.som.jarvis.intent.BaseEntityDefinitionReference
+import edu.uoc.som.jarvis.intent.CustomEntityDefinition
+import edu.uoc.som.jarvis.intent.CustomEntityDefinitionReference
+import edu.uoc.som.jarvis.intent.MappingEntityDefinition
+import edu.uoc.som.jarvis.intent.EntityDefinitionReference
+import edu.uoc.som.jarvis.intent.EntityDefinition
 
 /**
  * Generates code from your model files on save.
@@ -28,15 +37,15 @@ import edu.uoc.som.jarvis.intent.BaseEntityDefinition
 class IntentGenerator extends AbstractGenerator {
 
 	private static Pattern inlineContextPattern = Pattern.compile("\\((\\w+):(\\w+)=@((?:\\w|-|_)+)\\)")
-	
+
 	private static IntentFactory factory = IntentFactory.eINSTANCE
 
 	private static int placeholderCount = 0;
-	
+
 	private static def String getPlaceholder() {
 		return "Placeholder" + placeholderCount++;
 	}
-	
+
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val uri = resource.URI
 		var rr = resource.resourceSet.createResource(uri.trimFileExtension.appendFileExtension("xmi"))
@@ -46,65 +55,211 @@ class IntentGenerator extends AbstractGenerator {
 		 */
 		rr.contents.clear
 		rr.contents.addAll(resource.contents)
-		handleInlineContext(rr)
+		buildContextsFromInlineDefinitions(rr)
 		rr.save(Collections.emptyMap())
 	}
-	
-	def void handleInlineContext(Resource resource) {
-		resource.allContents.filter[o|o instanceof IntentDefinition].map[o|o as IntentDefinition].forEach [ i |
-			val List<String> newTrainingSentences = new ArrayList
-			i.trainingSentences.forEach [ ts |
-				println(MessageFormat.format("Processing training sentence {0}", ts))
-				val Matcher matcher = inlineContextPattern.matcher(ts)
+
+	/**
+	 * Processes the inline context definitions in the provided {@code resource} and creates the corresponding 
+	 * {@link Context} and {@link ContextParameter} instances.
+	 * <p>
+	 * This method removes the parts of the {@code resource}'s IntentDefinition training sentences corresponding to 
+	 * inline context definitions (i.e. matching the pattern {@code (context:parameter=@entity)}) and replace them with 
+	 * a placeholder (see {@link #getPlaceholder()}).
+	 * 
+	 * @param resource the {@link Resource} to process
+	 */
+	def void buildContextsFromInlineDefinitions(Resource resource) {
+		val Library library = resource.contents.get(0) as Library
+		resource.allContents.filter[o|o instanceof IntentDefinition].map[o|o as IntentDefinition].forEach [ intentDefinition |
+			/*
+			 * Store the training sentences in a dedicated array: training sentences containing inline context 
+			 * definition are updated with a placeholder an need to be added again to the IntentDefinition.
+			 */
+			val List<String> updatedTrainingSentences = new ArrayList
+			intentDefinition.trainingSentences.forEach [ trainingSentence |
+				println(MessageFormat.format("Processing training sentence {0}", trainingSentence))
+				val Matcher matcher = inlineContextPattern.matcher(trainingSentence)
 				if(matcher.find()) {
+					/*
+					 * The training sentence contains an inline context definition, we need to create the corresponding 
+					 * context, parameter, and set its entity.
+					 */
 					val matchedGroup = matcher.group()
-					println(MessageFormat.format("Found the inline pattern {0}", matchedGroup))
+					println(MessageFormat.format("Found the inline context definition {0}", matchedGroup))
 					val String contextName = matcher.group(1)
 					val String contextParameterName = matcher.group(2)
 					val String entityName = matcher.group(3)
-					if(nonNull(contextName) && nonNull(contextParameterName) && nonNull(entityName)) {
-						var Context context = null
-						if(i.outContexts.map[cc|cc.name].contains(contextName)) {
-							println(MessageFormat.format("The output context {0} already exists", contextName))
-							context = i.outContexts.findFirst[cc|cc.name.equals(contextName)]
-						} else {
-							println(MessageFormat.format("The output context {0} does not exist, creating a new instance", contextName))
-							context = factory.createContext
-							context.name = contextName
-						}
-						if(!context.parameters.map[pp|pp.name].contains(contextParameterName)) {
-							println(MessageFormat.format("Creating new output context parameter {0} (entityType={1})", contextParameterName, entityName))
-							var contextParameter = factory.createContextParameter
-							contextParameter.name = contextParameterName
-							var baseEntityReference = IntentFactory.eINSTANCE.createBaseEntityDefinitionReference
-							contextParameter.entity = baseEntityReference
-							var baseEntityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition()
-							baseEntityReference.baseEntity = baseEntityDefinition
-							println("Searching for entityType " + entityName.toLowerCase)
-							println("Found " + EntityType.get(entityName.toLowerCase))
-							(contextParameter.entity as BaseEntityDefinition).entityType = EntityType.get(entityName.toLowerCase)
-							contextParameter.textFragment = placeholder
-							context.parameters.add(contextParameter)
-							newTrainingSentences.add(ts.replace(matchedGroup, contextParameter.textFragment))
-							i.outContexts.add(context)
-						} else {
-							/*
-							 * The context parameter already exists, this is the case if there are multiple training 
-							 * sentences with inline context declarations.
-							 * TODO we should throw an exception if the context parameter is different from the existing one
-							 */ 
-							println(MessageFormat.format("Context parameter {0}:{1} already exists, skipping it", contextName, contextParameterName))
-							val fragment = context.parameters.findFirst[pp | pp.name.equals(contextParameterName)].textFragment
-							newTrainingSentences.add(ts.replace(matchedGroup, fragment))
-						}
-
-					}
+					var Context context = getOrCreateContext(intentDefinition, contextName)
+					var ContextParameter contextParameter = getOrCreateContextParameter(context, contextParameterName)
+					setContextParameterEntity(contextParameter, library, entityName)
+					/*
+					 * Replace the training sentence with the contextParameter text fragment. This removes the 
+					 * (context:parameter=@entity) pattern from the training sentence and replaces it with a 
+					 * placeholder.
+					 */
+					updatedTrainingSentences.add(trainingSentence.replace(matchedGroup, contextParameter.textFragment))
 				} else {
-					newTrainingSentences.add(ts)
+					updatedTrainingSentences.add(trainingSentence)
 				}
-				i.trainingSentences.clear
-				i.trainingSentences.addAll(newTrainingSentences)
+				/*
+				 * Clear the list before adding all the updated training sentences. This ensures that the training 
+				 * sentences containing inline context definitions are removed from the IntentDefinition.
+				 */
+				intentDefinition.trainingSentences.clear
+				intentDefinition.trainingSentences.addAll(updatedTrainingSentences)
 			]
 		]
+	}
+
+	/**
+	 * Retrieves or creates the {@link Context} instance corresponding to the provided {@code contextName}.
+	 * <p>
+	 * This method searches in the provided {@code intentDefinition}'s out context list an instance matching the 
+	 * provided name and returns it. If such instance does not exist a new {@link Context} instance is created with 
+	 * the provided {@code contextName} and added to the provided {@code intentDefinition}'s out context list.
+	 * 
+	 * @param intentDefinition the {@link IntentDefinition} to get or create the {@link Context} for
+	 * @param contextName the name of the {@link Context} to retrieve
+	 * 
+	 * @return the retrieved {@link Context} if it exists, {@code null} otherwise
+	 */
+	def Context getOrCreateContext(IntentDefinition intentDefinition, String contextName) {
+		// TODO check arguments and remove the initial null check
+		if(nonNull(contextName)) {
+			var Context context = intentDefinition.outContexts.findFirst[outContext|outContext.name.equals(contextName)]
+			if(isNull(context)) {
+				context = factory.createContext
+				context.name = contextName
+				intentDefinition.outContexts.add(context)
+			}
+			return context
+		}
+	}
+
+	/**
+	 * Retrieves or creates the {@link ContextParameter} instance corresponding to the provided 
+	 * {@code contextParameterName}.
+	 * <p>
+	 * This method searches in the provided {@code context}'s parameter list an instance matching the provided name and 
+	 * returns it. If such instance does not exist a new {@link ContextParameter} instance is created with the provided 
+	 * {@code contextParameterName} and added to the provided {@code context}'s parameter list.
+	 * 
+	 * @param context the {@link Context} to get or create the {@link ContextParameter} for
+	 * @param contextParameterName the name of the {@link ContextParameter} to retrieve
+	 * 
+	 * @return the retrieved {@link ContextParameter} if it exists, {@code null} otherwise
+	 */
+	def ContextParameter getOrCreateContextParameter(Context context, String contextParameterName) {
+		// TODO check arguments
+		var ContextParameter contextParameter = context.parameters.findFirst [ parameter |
+			parameter.name.equals(contextParameterName)
+		]
+		if(isNull(contextParameter)) {
+			contextParameter = factory.createContextParameter
+			contextParameter.name = contextParameterName
+			context.parameters.add(contextParameter)
+		}
+		return contextParameter
+	}
+
+	/**
+	 * Sets the {@link EntityDefinition} reference of the provided {@code contextParameter}.
+	 * <p>
+	 * This method retrieves the {@link EntityDefinition} associated to the provided {@code entityName}, creates the 
+	 * corresponding {@link EntityDefinitionReference}, and binds it to the given {@code contextParameter}. 
+	 * 
+	 * @param contextParameter the {@link ContextParameter} to set the {@link EntityDefinition} reference of
+	 * @param library the {@link Library} used to retrieve custom entity definitions
+	 * @param entityName the name of the entity to set
+	 */
+	def void setContextParameterEntity(ContextParameter contextParameter, Library library, String entityName) {
+		if(isNull(contextParameter.entity)) {
+			val EntityDefinition entityDefinition = getEntityDefinition(library, entityName)
+			val EntityDefinitionReference entityDefinitionReference = buildEntityDefinitionReference(entityDefinition)
+			contextParameter.entity = entityDefinitionReference
+			contextParameter.textFragment = getTextFragmentFor(entityDefinition)
+		} else {
+			/*
+			 * The EntityDefinitionReference is already set, skipping it.
+			 */
+		}
+	}
+
+	/**
+	 * Retrieves the {@link EntityDefinition} matching the provided {@code entityName}.
+	 * <p>
+	 * This method first searches for {@link BaseEntityDefinition} matching the provided {@code entityName}. If no base 
+	 * entity is found this method attempts to retrieve a {@link CustomEntityDefinition} from the provided 
+	 * {@code library} matching the given {@code entityName}.
+	 * 
+	 * @param library the {@link Library} used to retrieve custom entity definitions
+	 * @param entityName the name of the {@link EntityDefinition} to retrieve
+	 * 
+	 * @return the retrieved {@link EntityDefinition} if it exists, {@code null} otherwise
+	 */
+	def EntityDefinition getEntityDefinition(Library library, String entityName) {
+		var EntityType entityType = EntityType.get(entityName.toLowerCase)
+		if(nonNull(entityType)) {
+			println(MessageFormat.format("Entity {0} is a BaseEntityDefinition", entityName))
+			var BaseEntityDefinition baseEntityDefinition = factory.createBaseEntityDefinition
+			baseEntityDefinition.entityType = entityType
+			return baseEntityDefinition
+		} else {
+			var CustomEntityDefinition customEntityDefinition = library.customEntities.findFirst [ customEntity |
+				customEntity.name.equals(entityName)
+			]
+			if(nonNull(customEntityDefinition)) {
+				return customEntityDefinition
+			} else {
+				throw new IllegalArgumentException(
+					MessageFormat.format("Cannot find the EntityDefinition associated to {0}", entityName))
+			}
+		}
+	}
+
+	/**
+	 * Builds an {@link EntityDefinitionReference} for the provided {@code entityDefinition}.
+	 * 
+	 * @param entityDefinition the entityDefinition to create a reference for
+	 * @return the created {@link EntityDefinitionReference}
+	 */
+	def EntityDefinitionReference buildEntityDefinitionReference(EntityDefinition entityDefinition) {
+		if(entityDefinition instanceof BaseEntityDefinition) {
+			var BaseEntityDefinitionReference reference = factory.createBaseEntityDefinitionReference
+			reference.baseEntity = entityDefinition as BaseEntityDefinition
+			return reference
+		}
+		if(entityDefinition instanceof CustomEntityDefinition) {
+			var CustomEntityDefinitionReference reference = factory.createCustomEntityDefinitionReference
+			reference.customEntity = entityDefinition as CustomEntityDefinition
+			return reference
+		}
+		return null
+	}
+
+	/**
+	 * Computes the training sentence text fragment associated to the provided {@code entityDefinition}.
+	 * <p>
+	 * This method returns a placeholder value (see {@link #getPlaceholder}) for {@link BaseEntityDefinition} instances. 
+	 * If the provided {@code entityDefinition} is a {@link CustomEntityDefinition} this method attempts to extract 
+	 * concrete values usable as text fragments its content. Unsupported {@link CustomEntityDefinition} subclasses are 
+	 * handled by returning a placeholder.
+	 * 
+	 * @param entityDefinition the {@link EntityDefinition} to retrieve the text fragment from
+	 * @return the computed text fragment
+	 */
+	def String getTextFragmentFor(EntityDefinition entityDefinition) {
+		if(entityDefinition instanceof BaseEntityDefinition) {
+			return getPlaceholder()
+		}
+		if(entityDefinition instanceof MappingEntityDefinition) {
+			val MappingEntityDefinition mappingEntityDefinition = entityDefinition as MappingEntityDefinition
+			return mappingEntityDefinition.entries.get(0).referenceValue
+		}
+		println(
+			MessageFormat.format("Unknown EntityDefinition type {0} returning a text fragment placeholder",
+				entityDefinition.eClass.name))
+		return getPlaceholder()
 	}
 }
