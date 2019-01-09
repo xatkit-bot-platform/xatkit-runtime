@@ -7,8 +7,8 @@ providers {
 		event Issue_Opened
 		outContext "issue" {
 			params {
-				sender->url
-				issue->state
+				"sender->url"
+				"issue->state"
 				repository->owner->organizations_url
 				repository->has_projects
 				issue->user->site_admin
@@ -73,7 +73,7 @@ providers {
 				repository->trees_url
 				repository->owner->repos_url
 				repository->watchers
-				issue->user->url
+				"issue->user->url"
 				issue->user->received_events_url
 				repository->merges_url
 				repository->subscription_url
@@ -93,7 +93,7 @@ providers {
 				repository->owner->events_url
 				repository->owner->gists_url
 				repository->size
-				issue->number
+				"issue->number"
 				repository->collaborators_url
 				repository->pushed_at
 				issue->closed_at
@@ -110,17 +110,17 @@ providers {
 				repository->downloads_url
 				repository->notifications_url
 				sender->followers_url
-				repository->owner->url
+				"repository->owner->url"
 				sender->organizations_url
 				repository->milestones_url
 				repository->stargazers_count
-				repository->url
+				"repository->url"
 				issue->author_association
 				issue->title
 				issue->comments_url
 				issue->user->events_url
-				repository->language
-				issue->url
+				"repository->language"
+				"issue->url"
 				sender->avatar_url
 				repository->svn_url
 				repository->git_url
@@ -160,9 +160,9 @@ providers {
 		event Issue_Edited
 		outContext "issue" {
 			params {
-				sender->url
+				"sender->url"
 				changes->title->from
-				issue->state
+				"issue->state"
 				repository->owner->organizations_url
 				repository->has_projects
 				issue->user->site_admin
@@ -227,7 +227,7 @@ providers {
 				repository->trees_url
 				repository->owner->repos_url
 				repository->watchers
-				issue->user->url
+				"issue->user->url"
 				issue->user->received_events_url
 				repository->merges_url
 				repository->subscription_url
@@ -247,7 +247,7 @@ providers {
 				repository->owner->events_url
 				repository->owner->gists_url
 				repository->size
-				issue->number
+				"issue->number"
 				repository->collaborators_url
 				repository->pushed_at
 				issue->closed_at
@@ -264,17 +264,17 @@ providers {
 				repository->downloads_url
 				repository->notifications_url
 				sender->followers_url
-				repository->owner->url
+				"repository->owner->url"
 				sender->organizations_url
 				repository->milestones_url
 				repository->stargazers_count
-				repository->url
+				"repository->url"
 				issue->author_association
 				issue->title
 				issue->comments_url
 				issue->user->events_url
-				repository->language
-				issue->url
+				"repository->language"
+				"issue->url"
 				sender->avatar_url
 				repository->svn_url
 				repository->git_url
@@ -314,8 +314,8 @@ providers {
 		event Issue_Closed
 		outContext "issue" {
 			params {
-				sender->url
-				issue->state
+				"sender->url"
+				"issue->state"
 				repository->owner->organizations_url
 				repository->has_projects
 				issue->user->site_admin
@@ -380,7 +380,7 @@ providers {
 				repository->trees_url
 				repository->owner->repos_url
 				repository->watchers
-				issue->user->url
+				"issue->user->url"
 				issue->user->received_events_url
 				repository->merges_url
 				repository->subscription_url
@@ -400,7 +400,7 @@ providers {
 				repository->owner->events_url
 				repository->owner->gists_url
 				repository->size
-				issue->number
+				"issue->number"
 				repository->collaborators_url
 				repository->pushed_at
 				issue->closed_at
@@ -417,17 +417,17 @@ providers {
 				repository->downloads_url
 				repository->notifications_url
 				sender->followers_url
-				repository->owner->url
+				"repository->owner->url"
 				sender->organizations_url
 				repository->milestones_url
 				repository->stargazers_count
-				repository->url
+				"repository->url"
 				issue->author_association
 				issue->title
 				issue->comments_url
 				issue->user->events_url
-				repository->language
-				issue->url
+				"repository->language"
+				"issue->url"
 				sender->avatar_url
 				repository->svn_url
 				repository->git_url
@@ -467,8 +467,8 @@ providers {
 		event Issue_Reopened
 		outContext "issue" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -533,7 +533,7 @@ providers {
 			    repository->trees_url
 			    repository->owner->repos_url
 			    repository->watchers
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
@@ -553,7 +553,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -570,17 +570,17 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->author_association
 			    issue->title
 			    issue->comments_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -620,8 +620,8 @@ providers {
 		event Issue_Assigned
 		outContext "issue" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -703,7 +703,7 @@ providers {
 			    assignee->organizations_url
 			    repository->watchers
 			    assignee->received_events_url
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
@@ -724,7 +724,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -750,19 +750,19 @@ providers {
 			    repository->notifications_url
 			    sender->followers_url
 			    issue->assignee->repos_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->assignee->followers_url
 			    issue->author_association
 			    issue->title
 			    issue->comments_url
 			    assignee->html_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -786,8 +786,8 @@ providers {
 			    repository->archive_url
 			    repository->has_downloads
 			    repository->name
-			    issue->assignee->url
-			    assignee->url
+			    "issue->assignee->url"
+			    "assignee->url"
 			    repository->full_name
 			    repository->clone_url
 			    sender->starred_url
@@ -808,8 +808,8 @@ providers {
 		event Issue_Unassigned
 		outContext "issue" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -884,7 +884,7 @@ providers {
 			    assignee->organizations_url
 			    repository->watchers
 			    assignee->received_events_url
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
@@ -904,7 +904,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -925,18 +925,18 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->author_association
 			    issue->title
 			    issue->comments_url
 			    assignee->html_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -958,7 +958,7 @@ providers {
 			    repository->archive_url
 			    repository->has_downloads
 			    repository->name
-			    assignee->url
+			    "assignee->url"
 			    repository->full_name
 			    repository->clone_url
 			    sender->starred_url
@@ -979,8 +979,8 @@ providers {
 		event Issue_Labeled
 		outContext "issue" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -1048,12 +1048,12 @@ providers {
 			    repository->trees_url
 			    repository->owner->repos_url
 			    repository->watchers
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
-			    label->url
-			    label->color
+			    "label->url"
+			    "label->color"
 			    repository->owner->html_url
 			    repository->blobs_url
 			    repository->owner->following_url
@@ -1070,7 +1070,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -1087,17 +1087,17 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->author_association
 			    issue->title
 			    issue->comments_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -1138,8 +1138,8 @@ providers {
 		event Issue_Unlabeled
 		outContext "issue" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -1207,12 +1207,12 @@ providers {
 			    repository->trees_url
 			    repository->owner->repos_url
 			    repository->watchers
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
-			    label->url
-			    label->color
+			    "label->url"
+			    "label->color"
 			    repository->owner->html_url
 			    repository->blobs_url
 			    repository->owner->following_url
@@ -1229,7 +1229,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -1246,17 +1246,17 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->author_association
 			    issue->title
 			    issue->comments_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -1297,10 +1297,10 @@ providers {
 		event Issue_Milestoned
 		outContext "issue" {
 			params {
-				sender->url
+				"sender->url"
 			    issue->milestone->creator->followers_url
 			    issue->milestone->updated_at
-			    issue->state
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -1330,7 +1330,7 @@ providers {
 			    repository->compare_url
 			    repository->teams_url
 			    repository->homepage
-			    issue->milestone->url
+			    "issue->milestone->url"
 			    issue->labels
 			    issue->milestone->creator->received_events_url
 			    repository->forks_count
@@ -1374,7 +1374,7 @@ providers {
 			    issue->milestone->labels_url
 			    repository->owner->repos_url
 			    repository->watchers
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
@@ -1395,11 +1395,11 @@ providers {
 			    sender->gists_url
 			    repository->node_id
 			    repository->owner->events_url
-			    issue->milestone->state
+			    "issue->milestone->state"
 			    repository->owner->gists_url
 			    repository->size
 			    issue->milestone->creator->html_url
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    issue->milestone->creator->login
 			    repository->pushed_at
@@ -1410,7 +1410,7 @@ providers {
 			    repository->stargazers_url
 			    issue->milestone->creator->following_url
 			    repository->owner->received_events_url
-			    issue->milestone->number
+			    "issue->milestone->number"
 			    repository->archived
 			    issue->created_at
 			    repository->open_issues
@@ -1421,22 +1421,22 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    issue->milestone->node_id
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->milestone->description
 			    issue->milestone->creator->avatar_url
 			    issue->milestone->creator->events_url
 			    issue->author_association
 			    issue->title
 			    issue->comments_url
-			    issue->milestone->creator->url
+			    "issue->milestone->creator->url"
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -1482,8 +1482,8 @@ providers {
 		event Issue_Demilestoned
 		outContext "issue" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -1548,7 +1548,7 @@ providers {
 			    repository->trees_url
 			    repository->owner->repos_url
 			    repository->watchers
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
@@ -1568,7 +1568,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -1585,17 +1585,17 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->author_association
 			    issue->title
 			    issue->comments_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -1635,8 +1635,8 @@ providers {
 		event Issue_Comment_Created
 		outContext "issue_comment" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -1712,7 +1712,7 @@ providers {
 			    comment->user->avatar_url
 			    repository->owner->repos_url
 			    repository->watchers
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
@@ -1723,7 +1723,7 @@ providers {
 			    sender->subscriptions_url
 			    sender->site_admin
 			    issue->user->subscriptions_url
-			    comment->url
+			    "comment->url"
 			    comment->user->starred_url
 			    repository->owner->avatar_url
 			    issue->user->organizations_url
@@ -1735,7 +1735,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -1744,7 +1744,7 @@ providers {
 			    repository->stargazers_url
 			    comment->user->login
 			    repository->owner->received_events_url
-			    comment->user->url
+			    "comment->user->url"
 			    repository->archived
 			    issue->created_at
 			    repository->open_issues
@@ -1754,19 +1754,19 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->author_association
 			    issue->title
 			    comment->user->received_events_url
 			    comment->user->type
 			    issue->comments_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    comment->user->gists_url
 			    comment->user->repos_url
 			    sender->avatar_url
@@ -1815,8 +1815,8 @@ providers {
 		event Issue_Comment_Edited
 		outContext "issue_comment" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -1892,7 +1892,7 @@ providers {
 			    comment->user->avatar_url
 			    repository->owner->repos_url
 			    repository->watchers
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
@@ -1903,7 +1903,7 @@ providers {
 			    sender->subscriptions_url
 			    sender->site_admin
 			    issue->user->subscriptions_url
-			    comment->url
+			    "comment->url"
 			    comment->user->starred_url
 			    repository->owner->avatar_url
 			    issue->user->organizations_url
@@ -1915,7 +1915,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -1924,7 +1924,7 @@ providers {
 			    repository->stargazers_url
 			    comment->user->login
 			    repository->owner->received_events_url
-			    comment->user->url
+			    "comment->user->url"
 			    repository->archived
 			    issue->created_at
 			    repository->open_issues
@@ -1934,19 +1934,19 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->author_association
 			    issue->title
 			    comment->user->received_events_url
 			    comment->user->type
 			    issue->comments_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    comment->user->gists_url
 			    comment->user->repos_url
 			    sender->avatar_url
@@ -1996,8 +1996,8 @@ providers {
 		event Issue_Comment_Deleted
 		outContext "issue_comment" {
 			params {
-				sender->url
-			    issue->state
+				"sender->url"
+			    "issue->state"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    issue->user->site_admin
@@ -2073,7 +2073,7 @@ providers {
 			    comment->user->avatar_url
 			    repository->owner->repos_url
 			    repository->watchers
-			    issue->user->url
+			    "issue->user->url"
 			    issue->user->received_events_url
 			    repository->merges_url
 			    repository->subscription_url
@@ -2084,7 +2084,7 @@ providers {
 			    sender->subscriptions_url
 			    sender->site_admin
 			    issue->user->subscriptions_url
-			    comment->url
+			    "comment->url"
 			    comment->user->starred_url
 			    repository->owner->avatar_url
 			    issue->user->organizations_url
@@ -2096,7 +2096,7 @@ providers {
 			    repository->owner->events_url
 			    repository->owner->gists_url
 			    repository->size
-			    issue->number
+			    "issue->number"
 			    repository->collaborators_url
 			    repository->pushed_at
 			    issue->closed_at
@@ -2105,7 +2105,7 @@ providers {
 			    repository->stargazers_url
 			    comment->user->login
 			    repository->owner->received_events_url
-			    comment->user->url
+			    "comment->user->url"
 			    repository->archived
 			    issue->created_at
 			    repository->open_issues
@@ -2115,19 +2115,19 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
+			    "repository->url"
 			    issue->author_association
 			    issue->title
 			    comment->user->received_events_url
 			    comment->user->type
 			    issue->comments_url
 			    issue->user->events_url
-			    repository->language
-			    issue->url
+			    "repository->language"
+			    "issue->url"
 			    comment->user->gists_url
 			    comment->user->repos_url
 			    sender->avatar_url
@@ -2177,7 +2177,7 @@ providers {
 		outContext "pull_request_comment" {
 			params {
 				body
-				url
+				"url"
 				user
 				pull_request_number
 				pull_request_title
@@ -2187,7 +2187,7 @@ providers {
 		outContext "pull_request_comment" {
 			params {
 				body
-				url
+				"url"
 				user
 				pull_request_number
 				pull_request_title
@@ -2198,7 +2198,7 @@ providers {
 		outContext "pull_request_comment" {
 			params {
 				body
-				url
+				"url"
 				user
 				pull_request_number
 				pull_request_title
@@ -2210,7 +2210,7 @@ providers {
 				user
 				page_name
 				page_title
-				url
+				"url"
 			}
 		}
 		event Wiki_Page_Edited
@@ -2219,13 +2219,13 @@ providers {
 				user
 				page_name
 				page_title
-				url
+				"url"
 			}
 		}
 		event Pull_Request_Opened
 		outContext "pull_request" {
 			params {
-				sender->url
+				"sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -2266,7 +2266,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -2276,7 +2276,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -2292,7 +2292,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -2307,7 +2307,7 @@ providers {
 			    repository->archive_url
 			    pull_request->_links->commits->href
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
 			    pull_request->base->repo->tags_url
 			    repository->description
@@ -2322,11 +2322,11 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    number
+			    "number"
 			    pull_request->user->node_id
 			    repository->owner->type
 			    action
@@ -2346,7 +2346,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -2356,7 +2356,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -2397,7 +2397,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    pull_request->user->following_url
 			    pull_request->requested_teams
@@ -2499,7 +2499,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    pull_request->base->user->subscriptions_url
@@ -2514,7 +2514,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -2549,13 +2549,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    pull_request->additions
 			    repository->git_tags_url
 			    pull_request->head->repo->collaborators_url
@@ -2590,12 +2590,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -2626,7 +2626,7 @@ providers {
 		event Pull_Request_Closed
 		outContext "pull_request" {
 			params {
-				sender->url
+				"sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -2667,7 +2667,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -2677,7 +2677,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -2693,7 +2693,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -2708,7 +2708,7 @@ providers {
 			    repository->archive_url
 			    pull_request->_links->commits->href
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
 			    pull_request->base->repo->tags_url
 			    repository->description
@@ -2723,11 +2723,11 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    number
+			    "number"
 			    pull_request->user->node_id
 			    repository->owner->type
 			    action
@@ -2747,7 +2747,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -2757,7 +2757,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -2798,7 +2798,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    pull_request->user->following_url
 			    pull_request->requested_teams
@@ -2900,7 +2900,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    pull_request->base->user->subscriptions_url
@@ -2915,7 +2915,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -2950,13 +2950,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    pull_request->additions
 			    repository->git_tags_url
 			    pull_request->head->repo->collaborators_url
@@ -2991,12 +2991,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -3027,7 +3027,7 @@ providers {
 		event Pull_Request_Edited
 		outContext "pull_request" {
 			params {
-				sender->url
+				"sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -3068,7 +3068,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -3078,7 +3078,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -3094,7 +3094,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -3109,7 +3109,7 @@ providers {
 			    repository->archive_url
 			    pull_request->_links->commits->href
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
 			    pull_request->base->repo->tags_url
 			    repository->description
@@ -3125,11 +3125,11 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    number
+			    "number"
 			    pull_request->user->node_id
 			    repository->owner->type
 			    action
@@ -3149,7 +3149,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -3159,7 +3159,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -3200,7 +3200,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    pull_request->user->following_url
 			    pull_request->requested_teams
@@ -3302,7 +3302,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    pull_request->base->user->subscriptions_url
@@ -3317,7 +3317,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -3352,13 +3352,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    pull_request->additions
 			    repository->git_tags_url
 			    pull_request->head->repo->collaborators_url
@@ -3393,12 +3393,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -3429,7 +3429,7 @@ providers {
 		event Pull_Request_Reopened
 		outContext "pull_request" {
 			params {
-				sender->url
+				"sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -3470,7 +3470,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -3480,7 +3480,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -3496,7 +3496,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -3511,7 +3511,7 @@ providers {
 			    repository->archive_url
 			    pull_request->_links->commits->href
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
 			    pull_request->base->repo->tags_url
 			    repository->description
@@ -3526,11 +3526,11 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    number
+			    "number"
 			    pull_request->user->node_id
 			    repository->owner->type
 			    action
@@ -3550,7 +3550,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -3560,7 +3560,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -3601,7 +3601,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    pull_request->user->following_url
 			    pull_request->requested_teams
@@ -3703,7 +3703,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    pull_request->base->user->subscriptions_url
@@ -3718,7 +3718,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -3753,13 +3753,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    pull_request->additions
 			    repository->git_tags_url
 			    pull_request->head->repo->collaborators_url
@@ -3794,12 +3794,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -3830,7 +3830,7 @@ providers {
 		event Pull_Request_Assigned
 		outContext "pull_request" {
 			params {
-				sender->url
+				"sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -3874,7 +3874,7 @@ providers {
 			    pull_request->assignee->site_admin
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -3884,7 +3884,7 @@ providers {
 			    pull_request->mergeable_state
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -3902,7 +3902,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -3917,9 +3917,9 @@ providers {
 			    repository->archive_url
 			    pull_request->_links->commits->href
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
-			    assignee->url
+			    "assignee->url"
 			    pull_request->base->repo->tags_url
 			    repository->description
 			    pull_request->maintainer_can_modify
@@ -3934,11 +3934,11 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    number
+			    "number"
 			    pull_request->user->node_id
 			    repository->owner->type
 			    action
@@ -3960,7 +3960,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -3971,7 +3971,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -4015,7 +4015,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    pull_request->user->following_url
 			    pull_request->requested_teams
@@ -4126,7 +4126,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    assignee->html_url
@@ -4142,7 +4142,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -4180,13 +4180,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    assignee->gists_url
 			    pull_request->additions
 			    pull_request->assignee->gravatar_id
@@ -4197,7 +4197,7 @@ providers {
 			    repository->hooks_url
 			    repository->html_url
 			    pull_request->assignee->id
-			    pull_request->assignee->url
+			    "pull_request->assignee->url"
 			    repository->owner->id
 			    pull_request->head->repo->subscribers_url
 			    pull_request->head->repo->forks
@@ -4229,12 +4229,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    pull_request->assignee->followers_url
 			    sender->avatar_url
@@ -4266,7 +4266,7 @@ providers {
 		event Pull_Request_Unassigned
 		outContext "pull_request" {
 			params {
-				sender->url
+				"sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -4308,7 +4308,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -4319,7 +4319,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -4337,7 +4337,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -4352,9 +4352,9 @@ providers {
 			    repository->archive_url
 			    pull_request->_links->commits->href
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
-			    assignee->url
+			    "assignee->url"
 			    pull_request->base->repo->tags_url
 			    repository->description
 			    pull_request->maintainer_can_modify
@@ -4368,11 +4368,11 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    number
+			    "number"
 			    pull_request->user->node_id
 			    repository->owner->type
 			    action
@@ -4392,7 +4392,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -4402,7 +4402,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -4445,7 +4445,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    pull_request->user->following_url
 			    pull_request->requested_teams
@@ -4553,7 +4553,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    assignee->html_url
@@ -4569,7 +4569,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -4605,13 +4605,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    assignee->gists_url
 			    pull_request->additions
 			    repository->git_tags_url
@@ -4649,12 +4649,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -4686,7 +4686,7 @@ providers {
 		outContext "pull_request" {
 			params {
 				requested_reviewer->gists_url
-			    sender->url
+			    "sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -4728,7 +4728,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -4739,7 +4739,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -4756,7 +4756,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -4773,7 +4773,7 @@ providers {
 			    pull_request->_links->commits->href
 			    requested_reviewer->starred_url
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
 			    pull_request->base->repo->tags_url
 			    repository->description
@@ -4788,12 +4788,12 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    requested_reviewer->url
-			    number
+			    "requested_reviewer->url"
+			    "number"
 			    requested_reviewer->following_url
 			    pull_request->user->node_id
 			    repository->owner->type
@@ -4814,7 +4814,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -4824,7 +4824,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -4866,7 +4866,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    requested_reviewer->node_id
 			    pull_request->user->following_url
@@ -4973,7 +4973,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    pull_request->base->user->subscriptions_url
@@ -4988,7 +4988,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -5024,13 +5024,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    pull_request->additions
 			    repository->git_tags_url
 			    pull_request->head->repo->collaborators_url
@@ -5068,12 +5068,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -5105,7 +5105,7 @@ providers {
 		outContext "pull_request" {
 			params {
 				requested_reviewer->gists_url
-			    sender->url
+			    "sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -5147,7 +5147,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -5158,7 +5158,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -5175,7 +5175,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -5192,7 +5192,7 @@ providers {
 			    pull_request->_links->commits->href
 			    requested_reviewer->starred_url
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
 			    pull_request->base->repo->tags_url
 			    repository->description
@@ -5207,12 +5207,12 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    requested_reviewer->url
-			    number
+			    "requested_reviewer->url"
+			    "number"
 			    requested_reviewer->following_url
 			    pull_request->user->node_id
 			    repository->owner->type
@@ -5233,7 +5233,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -5243,7 +5243,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -5285,7 +5285,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    requested_reviewer->node_id
 			    pull_request->user->following_url
@@ -5392,7 +5392,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    pull_request->base->user->subscriptions_url
@@ -5407,7 +5407,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -5443,13 +5443,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    pull_request->additions
 			    repository->git_tags_url
 			    pull_request->head->repo->collaborators_url
@@ -5487,12 +5487,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -5523,7 +5523,7 @@ providers {
 		event Pull_Request_Labeled
 		outContext "pull_request" {
 			params {
-				sender->url
+				"sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -5566,7 +5566,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -5576,7 +5576,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -5592,7 +5592,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -5607,7 +5607,7 @@ providers {
 			    repository->archive_url
 			    pull_request->_links->commits->href
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
 			    pull_request->base->repo->tags_url
 			    repository->description
@@ -5622,11 +5622,11 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    number
+			    "number"
 			    pull_request->user->node_id
 			    repository->owner->type
 			    action
@@ -5646,7 +5646,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -5656,7 +5656,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -5669,8 +5669,8 @@ providers {
 			    pull_request->base->repo->created_at
 			    pull_request->head->repo->assignees_url
 			    pull_request->base->user->starred_url
-			    label->url
-			    label->color
+			    "label->url"
+			    "label->color"
 			    repository->owner->html_url
 			    pull_request->head->repo->forks_count
 			    repository->owner->following_url
@@ -5699,7 +5699,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    pull_request->user->following_url
 			    pull_request->requested_teams
@@ -5802,7 +5802,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    pull_request->base->user->subscriptions_url
@@ -5817,7 +5817,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -5852,13 +5852,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    pull_request->additions
 			    repository->git_tags_url
 			    pull_request->head->repo->collaborators_url
@@ -5893,12 +5893,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -5930,7 +5930,7 @@ providers {
 		event Pull_Request_Unlabeled
 		outContext "pull_request" {
 			params {
-				sender->url
+				"sender->url"
 			    pull_request->base->repo->owner->html_url
 			    pull_request->merge_commit_sha
 			    repository->owner->organizations_url
@@ -5973,7 +5973,7 @@ providers {
 			    pull_request->head->repo->pulls_url
 			    pull_request->head->repo->fork
 			    pull_request->head->repo->commits_url
-			    pull_request->base->repo->owner->url
+			    "pull_request->base->repo->owner->url"
 			    pull_request->base->label
 			    repository->trees_url
 			    pull_request->head->user->html_url
@@ -5983,7 +5983,7 @@ providers {
 			    pull_request->assignee
 			    pull_request->head->repo->owner->followers_url
 			    repository->subscription_url
-			    pull_request->state
+			    "pull_request->state"
 			    repository->blobs_url
 			    pull_request->base->user->gravatar_id
 			    pull_request->base->user->id
@@ -5999,7 +5999,7 @@ providers {
 			    sender->followers_url
 			    pull_request->review_comment_url
 			    pull_request->head->repo->git_url
-			    repository->url
+			    "repository->url"
 			    pull_request->base->repo->assignees_url
 			    pull_request->head->repo->has_projects
 			    pull_request->base->user->login
@@ -6014,7 +6014,7 @@ providers {
 			    repository->archive_url
 			    pull_request->_links->commits->href
 			    repository->name
-			    pull_request->base->user->url
+			    "pull_request->base->user->url"
 			    pull_request->head->repo->open_issues
 			    pull_request->base->repo->tags_url
 			    repository->description
@@ -6029,11 +6029,11 @@ providers {
 			    pull_request->body
 			    pull_request->head->repo->has_wiki
 			    pull_request->base->repo->teams_url
-			    pull_request->base->repo->url
+			    "pull_request->base->repo->url"
 			    pull_request->user->subscriptions_url
 			    pull_request->user->organizations_url
 			    pull_request->base->user->gists_url
-			    number
+			    "number"
 			    pull_request->user->node_id
 			    repository->owner->type
 			    action
@@ -6053,7 +6053,7 @@ providers {
 			    pull_request->head->user->events_url
 			    repository->forks_count
 			    pull_request->base->repo->git_tags_url
-			    pull_request->url
+			    "pull_request->url"
 			    pull_request->base->repo->owner->following_url
 			    pull_request->base->repo->issues_url
 			    pull_request->head->sha
@@ -6063,7 +6063,7 @@ providers {
 			    pull_request->base->repo->releases_url
 			    repository->watchers_count
 			    sender->received_events_url
-			    pull_request->head->repo->owner->url
+			    "pull_request->head->repo->owner->url"
 			    pull_request->base->user->site_admin
 			    pull_request->head->repo->watchers_count
 			    pull_request->base->repo->forks_url
@@ -6076,8 +6076,8 @@ providers {
 			    pull_request->base->repo->created_at
 			    pull_request->head->repo->assignees_url
 			    pull_request->base->user->starred_url
-			    label->url
-			    label->color
+			    "label->url"
+			    "label->color"
 			    repository->owner->html_url
 			    pull_request->head->repo->forks_count
 			    repository->owner->following_url
@@ -6106,7 +6106,7 @@ providers {
 			    pull_request->base->repo->owner->node_id
 			    pull_request->head->repo->created_at
 			    pull_request->head->repo->teams_url
-			    pull_request->head->user->url
+			    "pull_request->head->user->url"
 			    pull_request->base->user->received_events_url
 			    pull_request->user->following_url
 			    pull_request->requested_teams
@@ -6209,7 +6209,7 @@ providers {
 			    pull_request->user->repos_url
 			    pull_request->base->repo->default_branch
 			    pull_request->base->repo->deployments_url
-			    pull_request->head->repo->language
+			    "pull_request->head->repo->language"
 			    pull_request->title
 			    pull_request->head->repo->owner->gravatar_id
 			    pull_request->base->user->subscriptions_url
@@ -6224,7 +6224,7 @@ providers {
 			    repository->has_issues
 			    pull_request->head->repo->branches_url
 			    pull_request->base->repo->has_issues
-			    pull_request->number
+			    "pull_request->number"
 			    pull_request->head->repo->owner->type
 			    pull_request->deletions
 			    pull_request->base->repo->name
@@ -6259,13 +6259,13 @@ providers {
 			    sender->events_url
 			    pull_request->head->user->type
 			    pull_request->base->repo->size
-			    pull_request->base->repo->language
+			    "pull_request->base->repo->language"
 			    pull_request->head->repo->statuses_url
 			    pull_request->head->repo->mirror_url
 			    repository->created_at
 			    pull_request->head->user->gravatar_id
-			    pull_request->user->url
-			    pull_request->head->repo->url
+			    "pull_request->user->url"
+			    "pull_request->head->repo->url"
 			    pull_request->additions
 			    repository->git_tags_url
 			    pull_request->head->repo->collaborators_url
@@ -6300,12 +6300,12 @@ providers {
 			    pull_request->_links->statuses->href
 			    repository->downloads_url
 			    pull_request->base->repo->comments_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    repository->milestones_url
 			    pull_request->user->avatar_url
 			    pull_request->user->events_url
 			    pull_request->base->repo->issue_comment_url
-			    repository->language
+			    "repository->language"
 			    pull_request->head->repo->owner->gists_url
 			    sender->avatar_url
 			    pull_request->requested_reviewers
@@ -6337,7 +6337,7 @@ providers {
 		event Label_Created
 		outContext "label" {
 			params {
-				sender->url
+				"sender->url"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    repository->languages_url
@@ -6387,8 +6387,8 @@ providers {
 			    repository->watchers
 			    repository->merges_url
 			    repository->subscription_url
-			    label->url
-			    label->color
+			    "label->url"
+			    "label->color"
 			    repository->owner->html_url
 			    repository->blobs_url
 			    repository->owner->following_url
@@ -6415,12 +6415,12 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
-			    repository->language
+			    "repository->url"
+			    "repository->language"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -6456,7 +6456,7 @@ providers {
 		event Label_Edited
 		outContext "label" {
 			params {
-				sender->url
+				"sender->url"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    repository->languages_url
@@ -6506,8 +6506,8 @@ providers {
 			    repository->watchers
 			    repository->merges_url
 			    repository->subscription_url
-			    label->url
-			    label->color
+			    "label->url"
+			    "label->color"
 			    repository->owner->html_url
 			    repository->blobs_url
 			    repository->owner->following_url
@@ -6534,12 +6534,12 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
-			    repository->language
+			    "repository->url"
+			    "repository->language"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -6576,7 +6576,7 @@ providers {
 		event Label_Deleted
 		outContext "label" {
 			params {
-				sender->url
+				"sender->url"
 			    repository->owner->organizations_url
 			    repository->has_projects
 			    repository->languages_url
@@ -6626,8 +6626,8 @@ providers {
 			    repository->watchers
 			    repository->merges_url
 			    repository->subscription_url
-			    label->url
-			    label->color
+			    "label->url"
+			    "label->color"
 			    repository->owner->html_url
 			    repository->blobs_url
 			    repository->owner->following_url
@@ -6654,12 +6654,12 @@ providers {
 			    repository->downloads_url
 			    repository->notifications_url
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
-			    repository->url
-			    repository->language
+			    "repository->url"
+			    "repository->language"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
@@ -6695,10 +6695,10 @@ providers {
 		event Push
 		outContext "push" {
 			params {
-				sender->url
+				"sender->url"
 			    repository->owner->organizations_url
 			    repository->has_projects
-			    pusher->email
+			    "pusher->email"
 			    repository->languages_url
 			    repository->has_pages
 			    pusher->name
@@ -6740,7 +6740,7 @@ providers {
 			    repository->watchers_count
 			    sender->received_events_url
 			    repository->created_at
-			    head_commit->url
+			    "head_commit->url"
 			    after
 			    sender->node_id
 			    repository->git_tags_url
@@ -6749,13 +6749,13 @@ providers {
 			    head_commit->committer->name
 			    repository->html_url
 			    repository->owner->gravatar_id
-			    head_commit->author->email
+			    "head_commit->author->email"
 			    repository->owner->id
 			    sender->html_url
 			    repository->trees_url
 			    repository->stargazers
 			    repository->owner->repos_url
-			    repository->owner->email
+			    "repository->owner->email"
 			    deleted
 			    repository->watchers
 			    head_commit->added
@@ -6792,15 +6792,15 @@ providers {
 			    repository->notifications_url
 			    head_commit->timestamp
 			    sender->followers_url
-			    repository->owner->url
+			    "repository->owner->url"
 			    sender->organizations_url
 			    repository->milestones_url
 			    repository->stargazers_count
 			    commits
-			    repository->url
-			    head_commit->committer->email
+			    "repository->url"
+			    "head_commit->committer->email"
 			    head_commit->tree_id
-			    repository->language
+			    "repository->language"
 			    sender->avatar_url
 			    repository->svn_url
 			    repository->git_url
