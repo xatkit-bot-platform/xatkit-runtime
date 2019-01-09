@@ -30,12 +30,19 @@ EventProviderDefinition returns EventProviderDefinition:
 	'event' name=EString
 	'{'
 		(eventDefinitions+=EventDefinition)*
+		('static' outContexts+=OutContextDefinition)*
+		
 	'}'
 ;
 
 InputProviderDefinition returns InputProviderDefinition:
 	{InputProviderDefinition}
 	'input' name=EString 
+	(
+	'{'
+	  ('static' outContexts+=OutContextDefinition)*
+	'}' 	
+	)?
 ;
 
 Action returns ActionDefinition:

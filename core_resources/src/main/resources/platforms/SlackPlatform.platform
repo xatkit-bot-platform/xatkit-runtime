@@ -5,7 +5,14 @@ Platform SlackPlatform extends ChatPlatform
 path "edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform"
 
 providers {
-	input SlackIntentProvider
+	input SlackIntentProvider {
+		static outContext slack (lifeSpan = 1) {
+			params {
+				channel
+				username
+			}
+		}
+	}
 }
 
 actions {
