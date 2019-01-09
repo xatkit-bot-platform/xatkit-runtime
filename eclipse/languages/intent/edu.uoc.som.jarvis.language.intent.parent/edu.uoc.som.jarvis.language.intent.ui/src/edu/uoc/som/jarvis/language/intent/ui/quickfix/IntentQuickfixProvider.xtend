@@ -4,6 +4,12 @@
 package edu.uoc.som.jarvis.language.intent.ui.quickfix
 
 import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
+import edu.uoc.som.jarvis.language.intent.validation.IntentValidator
+import org.eclipse.xtext.ui.editor.quickfix.Fix
+import org.eclipse.xtext.validation.Issue
+import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
+import org.eclipse.xtext.ui.editor.model.XtextDocumentProvider.UnchangedElementListener
+import java.text.MessageFormat
 
 /**
  * Custom quickfixes.
@@ -12,13 +18,31 @@ import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
  */
 class IntentQuickfixProvider extends DefaultQuickfixProvider {
 
-//	@Fix(IntentValidator.INVALID_NAME)
-//	def capitalizeName(Issue issue, IssueResolutionAcceptor acceptor) {
-//		acceptor.accept(issue, 'Capitalize name', 'Capitalize the name.', 'upcase.png') [
-//			context |
-//			val xtextDocument = context.xtextDocument
-//			val firstLetter = xtextDocument.get(issue.offset, 1)
-//			xtextDocument.replace(issue.offset, 1, firstLetter.toUpperCase)
-//		]
-//	}
+	/**
+	 * Replaces the invalid text fragment with a valid value form its associated {@link EntityDefinition}.
+	 */
+	@Fix(IntentValidator.INVALID_CONTEXT_PARAMETER_TEXT_FRAGMENT)
+	def useFragmentFromSynonymList(Issue issue, IssueResolutionAcceptor acceptor) {
+		val String fragment = issue.data.get(0)
+		val String entity = issue.data.get(1)
+		val String[] proposals = issue.data.get(2).split(IntentValidator.ARRAY_SEPARATOR)
+		/*
+		 * Create a quickfix proposal for each valid value of the associated entity
+		 */
+		proposals.forEach[proposal | 
+			acceptor.accept(issue, MessageFormat.format("Replace with {0}", proposal), MessageFormat.format("Replaces {0} with the value {1} from the entity {2}", fragment, proposal, entity), null)[
+				context |
+					val xtextDocument = context.xtextDocument
+					var fragmentLength = fragment.length
+					if(xtextDocument.get(issue.offset -1, 1).equals("\"")) {
+						/*
+						 * Fragments can be surrounded with quotation marks in case they contain multiple words and/or 
+						 * reserved keywords. In this case we need to replace the quotation marks too.
+						 */
+						fragmentLength += 2
+					}
+					xtextDocument.replace(issue.offset, fragmentLength, "\"" + proposal + "\"")
+			]
+		]
+	}
 }

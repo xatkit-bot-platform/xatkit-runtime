@@ -3,23 +3,77 @@
  */
 package edu.uoc.som.jarvis.language.intent.validation
 
+import edu.uoc.som.jarvis.intent.ContextParameter
+import org.eclipse.xtext.validation.Check
+import static java.util.Objects.nonNull
+import edu.uoc.som.jarvis.intent.EntityDefinition
+import edu.uoc.som.jarvis.intent.MappingEntityDefinition
+import java.util.Collections
+import java.util.ArrayList
+import java.util.List
+import edu.uoc.som.jarvis.intent.IntentPackage
+import java.text.MessageFormat
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class IntentValidator extends AbstractIntentValidator {
-	
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					IntentPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
-	
+
+	/**
+	 * The array separator used to serialize arrays into issue data string when generating warnings and errors.
+	 */
+	public static val ARRAY_SEPARATOR = "###"
+
+	/**
+	 * The error code associated to the {@link #checkOutContextTextFragment} check.
+	 */
+	public static val INVALID_CONTEXT_PARAMETER_TEXT_FRAGMENT = "invalid-context-parameter-text-fragment"
+
+	/**
+	 * Checks that the provided {@code parameter}'s text fragment is defined in its associated {@link EntityDefinition}.
+	 * <p>
+	 * Deploying bots with placeholder text fragments can create consistency issues at the recognition level. If the 
+	 * provided {@link ContextParameter} is associated to an {@link EntityDefinition} defining concrete values this 
+	 * methods generates a warning.
+	 * <p>
+	 * A quickfix for this warning is implemented in {@link IntentQuickFixProvider#useFragmentFromSynonymList}.
+	 * 
+	 * @param parameter the {@link ContextParameter} to check
+	 * 
+	 * @see IntentQuickFixProvider#useFragmentFromSynonymList
+	 */
+	@Check
+	def checkOutContextTextFragment(ContextParameter parameter) {
+		/*
+		 * Only check parameters which define a text fragment and an entity, we cannot check that a value is a 
+		 * placeholder if we don't know the entity to compare it against.
+		 */
+		if(nonNull(parameter.textFragment) && nonNull(parameter.entity)) {
+			var EntityDefinition entityDefinition = parameter.entity.referredEntity
+			if(entityDefinition instanceof MappingEntityDefinition) {
+				var MappingEntityDefinition mappingEntityDefinition = entityDefinition as MappingEntityDefinition
+				var List<String> entryValues = mappingEntityDefinition.entries.map [ entry |
+					/*
+					 * Creates a list containing the value of the entry and all its synonyms. The value itself can be 
+					 * used as a valid placeholder.
+					 */
+					var List<String> mappedEntries = new ArrayList
+					mappedEntries.add(entry.referenceValue)
+					mappedEntries.addAll(entry.synonyms)
+					mappedEntries
+				].flatten.toList
+				if(!entryValues.contains(parameter.textFragment)) {
+					warning(
+						MessageFormat.format(
+							"The fragment {0} is not a valid entry for the entity {1}, deploying it may generate consistency issues",
+							parameter.textFragment, mappingEntityDefinition.name),
+						IntentPackage.Literals.CONTEXT_PARAMETER__TEXT_FRAGMENT,
+						INVALID_CONTEXT_PARAMETER_TEXT_FRAGMENT, parameter.textFragment, mappingEntityDefinition.name,
+						entryValues.join(ARRAY_SEPARATOR))
+				}
+			}
+		}
+	}
 }
