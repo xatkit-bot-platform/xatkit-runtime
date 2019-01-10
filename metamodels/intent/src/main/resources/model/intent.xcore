@@ -129,6 +129,12 @@ abstract class CustomEntityDefinition extends EntityDefinition {
 
 class MappingEntityDefinition extends CustomEntityDefinition {
     contains MappingEntityDefinitionEntry[] entries
+    op String[] getEntryValues() {
+    	val result = newBasicEList()
+    	entries.forEach[entry | result.add(entry.referenceValue)]
+    	entries.forEach[entry | result.addAll(entry.synonyms)]
+        return result
+    }
 }
 
 class MappingEntityDefinitionEntry {

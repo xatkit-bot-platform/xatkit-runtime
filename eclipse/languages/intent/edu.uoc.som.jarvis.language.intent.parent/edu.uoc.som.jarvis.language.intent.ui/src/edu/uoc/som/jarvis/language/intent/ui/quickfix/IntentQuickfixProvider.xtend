@@ -13,7 +13,7 @@ import java.text.MessageFormat
 
 /**
  * Custom quickfixes.
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#quick-fixes
  */
 class IntentQuickfixProvider extends DefaultQuickfixProvider {
@@ -29,19 +29,20 @@ class IntentQuickfixProvider extends DefaultQuickfixProvider {
 		/*
 		 * Create a quickfix proposal for each valid value of the associated entity
 		 */
-		proposals.forEach[proposal | 
-			acceptor.accept(issue, MessageFormat.format("Replace with {0}", proposal), MessageFormat.format("Replaces {0} with the value {1} from the entity {2}", fragment, proposal, entity), null)[
-				context |
-					val xtextDocument = context.xtextDocument
-					var fragmentLength = fragment.length
-					if(xtextDocument.get(issue.offset -1, 1).equals("\"")) {
-						/*
-						 * Fragments can be surrounded with quotation marks in case they contain multiple words and/or 
-						 * reserved keywords. In this case we need to replace the quotation marks too.
-						 */
-						fragmentLength += 2
-					}
-					xtextDocument.replace(issue.offset, fragmentLength, "\"" + proposal + "\"")
+		proposals.forEach [ proposal |
+			acceptor.accept(issue, MessageFormat.format("Replace with {0}", proposal),
+				MessageFormat.format("Replaces {0} with the value {1} from the entity {2}", fragment, proposal, entity),
+				null) [ context |
+				val xtextDocument = context.xtextDocument
+				var fragmentLength = fragment.length
+				if(xtextDocument.get(issue.offset, 1).equals("\"")) {
+					/*
+					 * Fragments can start with a quotation marks in case they contain multiple words and/or 
+					 * reserved keywords. In this case we need to replace the quotation marks too.
+					 */
+					fragmentLength += 2
+				}
+				xtextDocument.replace(issue.offset, fragmentLength, "\"" + proposal + "\"")
 			]
 		]
 	}

@@ -54,16 +54,7 @@ class IntentValidator extends AbstractIntentValidator {
 			var EntityDefinition entityDefinition = parameter.entity.referredEntity
 			if(entityDefinition instanceof MappingEntityDefinition) {
 				var MappingEntityDefinition mappingEntityDefinition = entityDefinition as MappingEntityDefinition
-				var List<String> entryValues = mappingEntityDefinition.entries.map [ entry |
-					/*
-					 * Creates a list containing the value of the entry and all its synonyms. The value itself can be 
-					 * used as a valid placeholder.
-					 */
-					var List<String> mappedEntries = new ArrayList
-					mappedEntries.add(entry.referenceValue)
-					mappedEntries.addAll(entry.synonyms)
-					mappedEntries
-				].flatten.toList
+				var List<String> entryValues = mappingEntityDefinition.entryValues
 				if(!entryValues.contains(parameter.textFragment)) {
 					warning(
 						MessageFormat.format(

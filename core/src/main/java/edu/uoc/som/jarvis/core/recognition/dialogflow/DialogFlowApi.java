@@ -803,6 +803,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     protected List<Context> createOutContexts(IntentDefinition intentDefinition) {
         checkNotNull(intentDefinition, "Cannot create the out contexts from the provided %s %s", IntentDefinition
                 .class.getSimpleName(), intentDefinition);
+        DialogFlowCheckingUtils.checkOutContexts(intentDefinition);
         List<edu.uoc.som.jarvis.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
         List<Context> results = new ArrayList<>();
         for (edu.uoc.som.jarvis.intent.Context context : intentDefinitionContexts) {

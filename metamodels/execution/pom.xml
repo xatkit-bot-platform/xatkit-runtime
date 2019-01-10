@@ -80,7 +80,8 @@
                             *;
                             scope=compile|runtime;
                             type=!pom;
-                            groupId=!${project.groupId}|fr.inria.atlanmod.commons|org.eclipse.emf|org.apache.logging.log4j
+                            groupId=!${project.groupId}|fr.inria.atlanmod.commons|org.apache.logging.log4j;
+                            artifactId=!org.eclipse.emf.common|org.eclipse.emf.ecore
                         </Embed-Dependency>
                         <Require-Bundle>
                             edu.uoc.som.jarvis.intent;visibility:=reexport,
