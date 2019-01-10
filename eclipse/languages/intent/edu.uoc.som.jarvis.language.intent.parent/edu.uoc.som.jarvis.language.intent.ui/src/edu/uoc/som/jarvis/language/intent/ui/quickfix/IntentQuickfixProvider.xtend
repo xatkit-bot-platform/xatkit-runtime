@@ -10,6 +10,8 @@ import org.eclipse.xtext.validation.Issue
 import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
 import org.eclipse.xtext.ui.editor.model.XtextDocumentProvider.UnchangedElementListener
 import java.text.MessageFormat
+import edu.uoc.som.jarvis.intent.ContextParameter
+import edu.uoc.som.jarvis.intent.Context
 
 /**
  * Custom quickfixes.
@@ -21,7 +23,7 @@ class IntentQuickfixProvider extends DefaultQuickfixProvider {
 	/**
 	 * Replaces the invalid text fragment with a valid value form its associated {@link EntityDefinition}.
 	 */
-	@Fix(IntentValidator.INVALID_CONTEXT_PARAMETER_TEXT_FRAGMENT)
+	@Fix(IntentValidator.CONTEXT_PARAMETER_TEXT_FRAGMENT_INVALID_ENTITY)
 	def useFragmentFromSynonymList(Issue issue, IssueResolutionAcceptor acceptor) {
 		val String fragment = issue.data.get(0)
 		val String entity = issue.data.get(1)
@@ -35,7 +37,7 @@ class IntentQuickfixProvider extends DefaultQuickfixProvider {
 				null) [ context |
 				val xtextDocument = context.xtextDocument
 				var fragmentLength = fragment.length
-				if(xtextDocument.get(issue.offset, 1).equals("\"")) {
+				if (xtextDocument.get(issue.offset, 1).equals("\"")) {
 					/*
 					 * Fragments can start with a quotation marks in case they contain multiple words and/or 
 					 * reserved keywords. In this case we need to replace the quotation marks too.
@@ -45,5 +47,23 @@ class IntentQuickfixProvider extends DefaultQuickfixProvider {
 				xtextDocument.replace(issue.offset, fragmentLength, "\"" + proposal + "\"")
 			]
 		]
+	}
+
+	/**
+	 * Removes the context parameter containing the text fragment that is not associated to a training sentence.
+	 */
+	@Fix(IntentValidator.CONTEXT_PARAMETER_TEXT_FRAGMENT_NOT_IN_TRAINING_SENTENCES)
+	def deleteContextParameterWithoutAssociatedTrainingSentence(Issue issue, IssueResolutionAcceptor acceptor) {
+		val String fragment = issue.data.get(0)
+		val String parameterName = issue.data.get(1)
+		val String contextName = issue.data.get(2)
+		val String entityName = issue.data.get(3)
+		acceptor.accept(issue, MessageFormat.format("Remove parameter {0}", parameterName),
+			MessageFormat.format("Removes the parameter {0} from the context {1}", parameterName, contextName), null)[ element, context |
+				if(element instanceof ContextParameter) {
+					var Context containingContext = (element as ContextParameter).eContainer as Context
+					containingContext.parameters.remove(element)
+				}
+			]
 	}
 }

@@ -3,16 +3,18 @@
  */
 package edu.uoc.som.jarvis.language.intent.validation
 
+import edu.uoc.som.jarvis.intent.Context
 import edu.uoc.som.jarvis.intent.ContextParameter
-import org.eclipse.xtext.validation.Check
-import static java.util.Objects.nonNull
 import edu.uoc.som.jarvis.intent.EntityDefinition
-import edu.uoc.som.jarvis.intent.MappingEntityDefinition
-import java.util.Collections
-import java.util.ArrayList
-import java.util.List
+import edu.uoc.som.jarvis.intent.IntentDefinition
 import edu.uoc.som.jarvis.intent.IntentPackage
+import edu.uoc.som.jarvis.intent.MappingEntityDefinition
 import java.text.MessageFormat
+import java.util.List
+import org.eclipse.xtext.validation.Check
+
+import static java.util.Objects.nonNull
+import static java.util.Objects.isNull
 
 /**
  * This class contains custom validation rules. 
@@ -29,7 +31,9 @@ class IntentValidator extends AbstractIntentValidator {
 	/**
 	 * The error code associated to the {@link #checkOutContextTextFragment} check.
 	 */
-	public static val INVALID_CONTEXT_PARAMETER_TEXT_FRAGMENT = "invalid-context-parameter-text-fragment"
+	public static val CONTEXT_PARAMETER_TEXT_FRAGMENT_INVALID_ENTITY = "text-fragment-invalid-entity"
+
+	public static val CONTEXT_PARAMETER_TEXT_FRAGMENT_NOT_IN_TRAINING_SENTENCES = "text-fragment-not-in-training-sentences"
 
 	/**
 	 * Checks that the provided {@code parameter}'s text fragment is defined in its associated {@link EntityDefinition}.
@@ -45,24 +49,64 @@ class IntentValidator extends AbstractIntentValidator {
 	 * @see IntentQuickFixProvider#useFragmentFromSynonymList
 	 */
 	@Check
-	def checkOutContextTextFragment(ContextParameter parameter) {
+	def checkContextParameterTextFragmentCorrespondsToMappingEntity(ContextParameter parameter) {
 		/*
 		 * Only check parameters which define a text fragment and an entity, we cannot check that a value is a 
 		 * placeholder if we don't know the entity to compare it against.
 		 */
-		if(nonNull(parameter.textFragment) && nonNull(parameter.entity)) {
+		if (nonNull(parameter.textFragment) && nonNull(parameter.entity)) {
 			var EntityDefinition entityDefinition = parameter.entity.referredEntity
-			if(entityDefinition instanceof MappingEntityDefinition) {
+			if (entityDefinition instanceof MappingEntityDefinition) {
 				var MappingEntityDefinition mappingEntityDefinition = entityDefinition as MappingEntityDefinition
 				var List<String> entryValues = mappingEntityDefinition.entryValues
-				if(!entryValues.contains(parameter.textFragment)) {
+				if (!entryValues.contains(parameter.textFragment)) {
 					warning(
 						MessageFormat.format(
 							"The fragment {0} is not a valid entry for the entity {1}, deploying it may generate consistency issues",
 							parameter.textFragment, mappingEntityDefinition.name),
+						IntentPackage.Literals.CONTEXT_PARAMETER__TEXT_FRAGMENT, IntentValidator.
+							CONTEXT_PARAMETER_TEXT_FRAGMENT_INVALID_ENTITY, parameter.textFragment,
+						mappingEntityDefinition.name, entryValues.join(ARRAY_SEPARATOR))
+				}
+			}
+		}
+	}
+
+	/**
+	 * Checks that the provided {@code parameter}'s text fragment is contained in at least one training sentence.
+	 * <p>
+	 * This method checks {@link ContextParameter} instances that are contained in an {@link IntentDefinition} and 
+	 * searches a training sentences containing its text fragment value. If no such training sentence can be found an 
+	 * error is generated, since the context parameter value won't be set by the recognition platform.
+	 * <p>
+	 * A quick fix for this error is implemented in 
+	 * {@link IntentQuickFixProvider#deleteContextParameterWithoutAssociatedTrainingSentence}.
+	 * 
+	 * @param parameter the {@link ContextParameter} to check
+	 * 
+	 * @see IntentQuickFixProvider#deleteContextParameterWithoutAssociatedTrainingSentence
+	 */
+	@Check
+	def checkContextParameterTextFragmentInIntentDefinitionTrainingSentences(ContextParameter parameter) {
+		if (nonNull(parameter.textFragment)) {
+			var Context context = parameter.eContainer as Context
+			if (context.eContainer instanceof IntentDefinition) {
+				var IntentDefinition intentDefinition = context.eContainer as IntentDefinition
+				var String fragmentTrainingSentence = intentDefinition.trainingSentences.findFirst [ trainingSentence |
+					trainingSentence.contains(parameter.textFragment)
+				]
+				if (isNull(fragmentTrainingSentence)) {
+					error(
+						MessageFormat.format(
+							"The fragment {0} is not contained in any training sentence of the intent {1}",
+							parameter.textFragment, intentDefinition.name),
 						IntentPackage.Literals.CONTEXT_PARAMETER__TEXT_FRAGMENT,
-						INVALID_CONTEXT_PARAMETER_TEXT_FRAGMENT, parameter.textFragment, mappingEntityDefinition.name,
-						entryValues.join(ARRAY_SEPARATOR))
+						IntentValidator.CONTEXT_PARAMETER_TEXT_FRAGMENT_NOT_IN_TRAINING_SENTENCES,
+						parameter.textFragment,
+						parameter.name,
+						context.name,
+						intentDefinition.name
+					)
 				}
 			}
 		}
