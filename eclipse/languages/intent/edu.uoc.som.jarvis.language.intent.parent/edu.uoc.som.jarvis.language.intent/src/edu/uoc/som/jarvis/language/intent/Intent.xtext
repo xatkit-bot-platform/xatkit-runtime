@@ -12,7 +12,7 @@ Library returns Library:
 ;
 
 CustomEntityDefinition:
-	MappingEntityDefinition
+	MappingEntityDefinition | CompositeEntityDefinition
 ;
 
 MappingEntityDefinition returns MappingEntityDefinition:
@@ -24,6 +24,30 @@ MappingEntityDefinition returns MappingEntityDefinition:
 MappingEntityDefinitionEntry returns MappingEntityDefinitionEntry:
 	'value'referenceValue=EString ('synonyms:'(synonyms+=EString)+)?
 ;
+
+CompositeEntityDefinition returns CompositeEntityDefinition:
+	'composite' name=ID '{'
+	(entries+=CompositeEntityDefinitionEntry)+
+	'}'
+;
+
+CompositeEntityDefinitionEntry returns CompositeEntityDefinitionEntry:
+	'value' (fragments+=TextFragment)+
+;
+
+TextFragment:
+	EntityTextFragment | LiteralTextFragment
+;
+
+EntityTextFragment returns EntityTextFragment: 
+	entityReference=EntityDefinitionReference
+;
+
+LiteralTextFragment returns LiteralTextFragment: 
+	value=EString
+;
+
+
 
 EventDefinition returns EventDefinition:
 	{EventDefinition}
