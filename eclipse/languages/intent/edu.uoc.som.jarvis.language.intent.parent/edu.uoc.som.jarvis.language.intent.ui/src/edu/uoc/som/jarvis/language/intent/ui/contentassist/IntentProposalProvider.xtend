@@ -3,10 +3,48 @@
  */
 package edu.uoc.som.jarvis.language.intent.ui.contentassist
 
+import com.google.inject.Inject
+import edu.uoc.som.jarvis.language.intent.services.IntentGrammarAccess
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.RuleCall
+import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
+import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
+import org.eclipse.xtext.Group
+import org.eclipse.xtext.Keyword
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
  * on how to customize the content assistant.
  */
 class IntentProposalProvider extends AbstractIntentProposalProvider {
+	
+	@Inject extension IntentGrammarAccess
+	
+	override complete_RequiresContext(EObject model, RuleCall ruleCall, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		requiresContextAccess.group.createKeywordProposal(context, acceptor)
+	}
+	
+	override complete_CreatesContext(EObject model, RuleCall ruleCall, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		createsContextAccess.group.createKeywordProposal(context, acceptor)
+	}
+	
+	override complete_WithLifespan(EObject model, RuleCall ruleCall, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		withLifespanAccess.group.createKeywordProposal(context, acceptor)
+	}
+	
+	override complete_SetsParameter(EObject model, RuleCall ruleCall, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		setsParameterAccess.group.createKeywordProposal(context, acceptor)
+	}
+	
+	override complete_FromFragment(EObject model, RuleCall ruleCall, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		fromFragmentAccess.group.createKeywordProposal(context, acceptor)
+	}
+	
+	def createKeywordProposal(Group group, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		if(group == null) {
+			return null
+		}
+		val proposalString = group.elements.filter(Keyword).map[value].join(" ") + " "
+		acceptor.accept(createCompletionProposal(proposalString, proposalString, null, context))
+	}
 }

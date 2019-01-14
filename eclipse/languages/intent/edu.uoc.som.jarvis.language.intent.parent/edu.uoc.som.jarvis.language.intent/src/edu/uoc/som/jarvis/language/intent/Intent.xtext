@@ -35,32 +35,30 @@ IntentDefinition returns IntentDefinition:
 	{IntentDefinition}
 	'intent' name=EString ('follows' follows=[IntentDefinition|ID])?
 	'{'
+		(inContexts+=InContextDefinition)*
 		'inputs' '{'
 			trainingSentences+=EString (trainingSentences+=EString)*
 		'}'
-		(inContexts+=InContextDefinition)*
 		(outContexts+=OutContextDefinition)*
 	'}'
 	;
 
 InContextDefinition returns Context:
 	{Context}
-	'inContext' name=EString ('(' 'lifeSpan' '='lifeSpan=INT ')')?
+	RequiresContext name=EString //('(' 'lifeSpan' '='lifeSpan=INT ')')?
 ;
-	
+
 OutContextDefinition returns Context:
 	{Context}
-	'outContext' name=EString ('(' 'lifeSpan' '=' lifeSpan=INT ')')?
+	CreatesContext name=EString (WithLifespan lifeSpan=INT)?
 	('{'
-		'params' '{'
-			(parameters+=ContextParameter)+
-		'}'
+		(parameters+=ContextParameter)+
 	'}')?
 ;
 
 ContextParameter returns ContextParameter:
 	{ContextParameter}
-	name=EString ('<-' textFragment=EString '('entity=EntityDefinitionReference')')?
+	SetsParameter name=EString (FromFragment textFragment=EString '(' 'entity' entity=EntityDefinitionReference')')?
 ;
 
 EntityDefinitionReference returns EntityDefinitionReference:
@@ -69,12 +67,12 @@ EntityDefinitionReference returns EntityDefinitionReference:
 
 BaseEntityDefinitionReference returns BaseEntityDefinitionReference:
 	{BaseEntityDefinitionReference}
-	'@' baseEntity=BaseEntityDefinition
+	baseEntity=BaseEntityDefinition
 ;
 
 CustomEntityDefinitionReference returns CustomEntityDefinitionReference:
 	{CustomEntityDefinitionReference}
-	'@' customEntity=[CustomEntityDefinition]
+	customEntity=[CustomEntityDefinition]
 	
 ;
 
@@ -139,3 +137,30 @@ enum EntityType returns EntityType:
 
 EString returns ecore::EString:
 	STRING | ID('->'ID)*;
+
+
+/*
+ * Multiple keyword instructions.
+ * Instructions containing multiple keywords are moved to dedicated rules to enable multiple keyword completion (see 
+ * https://blogs.itemis.com/en/xtext-hint-content-assist-for-multiple-consecutive-keywords)
+ */
+
+RequiresContext:
+	'requires' 'context'
+;
+
+CreatesContext:
+	'creates' 'context'
+;
+
+WithLifespan:
+	'with' 'lifespan'
+;
+	
+SetsParameter:
+	'sets' 'parameter'
+;
+
+FromFragment:
+	'from' 'fragment'
+;
