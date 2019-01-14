@@ -142,6 +142,30 @@ class MappingEntityDefinitionEntry {
     String[] synonyms
 }
 
+class CompositeEntityDefinition extends CustomEntityDefinition {
+    contains CompositeEntityDefinitionEntry[] entries
+}
+
+class CompositeEntityDefinitionEntry {
+    contains TextFragment[] fragments
+    op EntityDefinition[] getEntities() {
+        fragments.filter[fragment | fragment instanceof EntityTextFragment]
+        .map[fragment | (fragment as EntityTextFragment).entityReference.getReferredEntity()].asEList()
+    }
+}
+
+abstract class TextFragment {
+
+}
+
+class EntityTextFragment extends TextFragment {
+    contains EntityDefinitionReference entityReference
+}
+
+class LiteralTextFragment extends TextFragment {
+    String value
+}
+
 enum EntityType {
     ANY as "any" = 0
     DATE_TIME as "date-time" = 1
