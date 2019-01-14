@@ -30,7 +30,7 @@ EventProviderDefinition returns EventProviderDefinition:
 	'event' name=EString
 	'{'
 		(eventDefinitions+=EventDefinition)*
-		('static' outContexts+=OutContextDefinition)*
+		(outContexts+=OutContextDefinition)*
 		
 	'}'
 ;
@@ -40,7 +40,7 @@ InputProviderDefinition returns InputProviderDefinition:
 	'input' name=EString 
 	(
 	'{'
-	  ('static' outContexts+=OutContextDefinition)*
+	  (outContexts+=OutContextDefinition)*
 	'}' 	
 	)?
 ;

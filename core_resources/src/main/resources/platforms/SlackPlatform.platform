@@ -6,11 +6,9 @@ path "edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform"
 
 providers {
 	input SlackIntentProvider {
-		static outContext slack (lifeSpan = 1) {
-			params {
-				channel
-				username
-			}
+		creates context slack with lifespan 1 {
+			sets parameter channel
+			sets parameter username
 		}
 	}
 }

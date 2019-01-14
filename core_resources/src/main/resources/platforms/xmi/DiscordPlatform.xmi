@@ -2,7 +2,7 @@
 <platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:platform="edu.uoc.som.jarvis.platform" name="DiscordPlatform" runtimePath="edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform">
   <extends href="pathmap://JARVIS_CORE_PLATFORM/ChatPlatform.xmi#/"/>
   <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="DiscordIntentProvider">
-    <outContexts name="discord">
+    <outContexts name="discord" lifeSpan="1">
       <parameters name="channel"/>
       <parameters name="username"/>
     </outContexts>
