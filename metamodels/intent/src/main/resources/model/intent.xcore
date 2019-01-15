@@ -115,11 +115,15 @@ class CustomEntityDefinitionReference extends EntityDefinitionReference {
 }
 
 abstract class EntityDefinition {
+    op String getName()
 
 }
 
 class BaseEntityDefinition extends EntityDefinition {
     EntityType entityType
+    op String getName() {
+        return entityType.getLiteral()
+    }
 }
 
 
