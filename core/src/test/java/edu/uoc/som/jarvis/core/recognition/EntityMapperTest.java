@@ -235,6 +235,11 @@ public class EntityMapperTest extends AbstractJarvisTest {
             public void eNotify(Notification notification) {
 
             }
+
+            @Override
+            public String getName() {
+                return null;
+            }
         };
         mapper.getMappingFor(entityDefinition);
     }
