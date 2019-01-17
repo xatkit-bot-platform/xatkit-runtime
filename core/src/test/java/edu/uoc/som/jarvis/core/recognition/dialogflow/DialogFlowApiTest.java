@@ -14,10 +14,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static edu.uoc.som.jarvis.test.util.ElementFactory.createBaseEntityDefinitionReference;
@@ -38,6 +35,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     protected static Context VALID_OUT_CONTEXT;
 
     protected static MappingEntityDefinition VALID_MAPPING_ENTITY_DEFINITION;
+
+    protected static CompositeEntityDefinition VALID_COMPOSITE_ENTITY_DEFINITION;
 
     protected static String VALID_TRAINING_SENTENCE_WITHOUT_CONTEXT_PARAMETER = "I love the monkey head";
 
@@ -67,7 +66,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
      *
      * @see #tearDown()
      */
-    private EntityDefinition registeredEntityDefinition;
+    private List<EntityDefinition> registeredEntityDefinitions = new ArrayList<>();
 
     // not tested here, only instantiated to enable IntentDefinition registration and Platform retrieval
     protected static JarvisCore jarvisCore;
@@ -121,6 +120,31 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         entry2.getSynonyms().add("Command");
         VALID_MAPPING_ENTITY_DEFINITION.getEntries().add(entry1);
         VALID_MAPPING_ENTITY_DEFINITION.getEntries().add(entry2);
+
+        VALID_COMPOSITE_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createCompositeEntityDefinition();
+        VALID_COMPOSITE_ENTITY_DEFINITION.setName("Composite");
+
+        // Creates the entry "this is a @Class:Class @sys.age:age
+        CompositeEntityDefinitionEntry compositeEntry1 = IntentFactory.eINSTANCE.createCompositeEntityDefinitionEntry();
+        LiteralTextFragment literalTextFragment1 = IntentFactory.eINSTANCE.createLiteralTextFragment();
+        literalTextFragment1.setValue("this is a ");
+        EntityTextFragment entityTextFragment1 = IntentFactory.eINSTANCE.createEntityTextFragment();
+        EntityDefinitionReference entityTextFragment1Reference = IntentFactory.eINSTANCE
+                .createCustomEntityDefinitionReference();
+        ((CustomEntityDefinitionReference) entityTextFragment1Reference).setCustomEntity
+                (VALID_MAPPING_ENTITY_DEFINITION);
+        entityTextFragment1.setEntityReference(entityTextFragment1Reference);
+        EntityTextFragment entityTextFragment2 = IntentFactory.eINSTANCE.createEntityTextFragment();
+        EntityDefinitionReference entityTextFragment2Reference = IntentFactory.eINSTANCE
+                .createBaseEntityDefinitionReference();
+        BaseEntityDefinition baseEntityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        baseEntityDefinition.setEntityType(EntityType.AGE);
+        ((BaseEntityDefinitionReference) entityTextFragment2Reference).setBaseEntity(baseEntityDefinition);
+        entityTextFragment2.setEntityReference(entityTextFragment2Reference);
+        compositeEntry1.getFragments().add(literalTextFragment1);
+        compositeEntry1.getFragments().add(entityTextFragment1);
+        compositeEntry1.getFragments().add(entityTextFragment2);
+        VALID_COMPOSITE_ENTITY_DEFINITION.getEntries().add(compositeEntry1);
     }
 
     @After
@@ -137,8 +161,16 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * Delete the EntityDefinition after the IntentDefinition in case the IntentDefinition defines a parameter to
          * the entity.
          */
-        if (nonNull(registeredEntityDefinition)) {
-            api.deleteEntityDefinition(registeredEntityDefinition);
+        if (!registeredEntityDefinitions.isEmpty()) {
+            /*
+             * First retrieve the CompositeEntityDefinitions and remove them, otherwise the framework will throw an
+             * error when attempting to remove a MappingEntityDefinition that is referenced from a Composite one.
+             */
+            registeredEntityDefinitions.stream().filter(e -> e instanceof CompositeEntityDefinition).forEach(e -> api
+                    .deleteEntityDefinition(e));
+            registeredEntityDefinitions.stream().filter(e -> e instanceof MappingEntityDefinition).forEach(e -> api
+                    .deleteEntityDefinition(e));
+            registeredEntityDefinitions.clear();
         }
         if (nonNull(api)) {
             try {
@@ -198,8 +230,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void registerMappingEntityDefinition() {
         api = getValidDialogFlowApi();
-        registeredEntityDefinition = VALID_MAPPING_ENTITY_DEFINITION;
-        api.registerEntityDefinition(registeredEntityDefinition);
+        registeredEntityDefinitions.add(VALID_MAPPING_ENTITY_DEFINITION);
+        api.registerEntityDefinition(VALID_MAPPING_ENTITY_DEFINITION);
         List<com.google.cloud.dialogflow.v2.EntityType> entityTypes = api.getRegisteredEntityTypes();
         assertThat(entityTypes).as("A single EntityType has been registered").hasSize(1);
         com.google.cloud.dialogflow.v2.EntityType entityType = entityTypes.get(0);
@@ -210,6 +242,15 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         assertThat(entityType.getEntitiesCount()).as("EntityType contains 2 entities").isEqualTo(2);
         List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities = entityType.getEntitiesList();
         checkEntities(entities, VALID_MAPPING_ENTITY_DEFINITION.getEntries());
+    }
+
+//    @Test
+    public void registerCompositeEntityDefinition() {
+        api = getValidDialogFlowApi();
+//        registeredEntityDefinitions.add(VALID_MAPPING_ENTITY_DEFINITION);
+        api.registerEntityDefinition(VALID_MAPPING_ENTITY_DEFINITION); // not tested here
+//        registeredEntityDefinitions.add(VALID_COMPOSITE_ENTITY_DEFINITION);
+        api.registerEntityDefinition(VALID_COMPOSITE_ENTITY_DEFINITION);
     }
 
     private void checkEntities(List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities,
@@ -227,7 +268,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
                     1);
             assertThat(foundEntity.getSynonymsList()).as("Synonym list contains the entry reference value").contains
                     (entry.getReferenceValue());
-            for(String entrySynonym : entry.getSynonyms()) {
+            for (String entrySynonym : entry.getSynonyms()) {
                 assertThat(foundEntity.getSynonymsList()).as("Synonym list contains the entry synonym " +
                         entrySynonym).contains(entrySynonym);
             }
@@ -1046,7 +1087,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     private boolean hasTrainingPhrase(Intent intent, String trainingPhrase) {
         for (Intent.TrainingPhrase intentTrainingPhrase : intent.getTrainingPhrasesList()) {
             String mergedParts = mergeTrainingPhraseParts(intentTrainingPhrase);
-            if(mergedParts.equals(trainingPhrase)) {
+            if (mergedParts.equals(trainingPhrase)) {
                 return true;
             }
         }
@@ -1055,7 +1096,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     private String mergeTrainingPhraseParts(Intent.TrainingPhrase trainingPhrase) {
         StringBuilder sb = new StringBuilder();
-        for(Intent.TrainingPhrase.Part part : trainingPhrase.getPartsList()) {
+        for (Intent.TrainingPhrase.Part part : trainingPhrase.getPartsList()) {
             sb.append(part.getText());
         }
         return sb.toString();

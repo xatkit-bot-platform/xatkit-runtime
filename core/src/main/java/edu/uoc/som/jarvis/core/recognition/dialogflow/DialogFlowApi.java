@@ -563,6 +563,13 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                         .setKind(com.google.cloud.dialogflow.v2.EntityType.Kind.KIND_MAP).setDisplayName(entityName)
                         .addAllEntities(entities);
                 entityType = builder.build();
+            } else if (entityDefinition instanceof CompositeEntityDefinition) {
+                CompositeEntityDefinition compositeEntityDefinition = (CompositeEntityDefinition) entityDefinition;
+                String entityName = compositeEntityDefinition.getName();
+                List<EntityType.Entity> entities = createEntitiesFromComposite(compositeEntityDefinition.getEntries());
+                EntityType.Builder builder = com.google.cloud.dialogflow.v2.EntityType.newBuilder().setKind
+                        (EntityType.Kind.KIND_LIST).setDisplayName(entityName).addAllEntities(entities);
+                entityType = builder.build();
             } else {
                 throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
                         entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
@@ -597,6 +604,45 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             entities.add(builder.build());
         }
         return entities;
+    }
+
+    private List<EntityType.Entity> createEntitiesFromComposite(List<CompositeEntityDefinitionEntry> entries) {
+        checkNotNull(entries, "Cannot create the {0} from the provided list {1}", EntityType.Entity.class
+                .getSimpleName(), entries);
+        List<EntityType.Entity> entities = new ArrayList<>();
+        for(CompositeEntityDefinitionEntry entry : entries) {
+            String valueString = createValueString(entry);
+            EntityType.Entity.Builder builder = EntityType.Entity.newBuilder().setValue(valueString).addSynonyms
+                    (valueString); // fix DF issue
+            entities.add(builder.build());
+        }
+        return entities;
+    }
+
+    private String createValueString(CompositeEntityDefinitionEntry entry) {
+        StringBuilder sb = new StringBuilder();
+        for(TextFragment fragment : entry.getFragments()) {
+            if(fragment instanceof LiteralTextFragment) {
+                sb.append(((LiteralTextFragment)fragment).getValue());
+            } else if(fragment instanceof EntityTextFragment) {
+                /*
+                 * Builds a String with the entity name and a default parameter value. The parameter value is set
+                 * with the name of the entity itself (eg. @Class:Class). This is fine for composite entities
+                 * referring once to their entities, but does not scale to more complex ones with multiple references
+                  * to the same entity (see #199).
+                 */
+                EntityDefinition fragmentEntity = ((EntityTextFragment) fragment).getEntityReference()
+                        .getReferredEntity();
+                String mappedEntity = entityMapper.getMappingFor(fragmentEntity);
+                String mappedEntityParameterName = fragmentEntity.getName();
+                sb.append(mappedEntity);
+                sb.append(":");
+                sb.append(mappedEntityParameterName);
+                sb.append(" ");
+            }
+        }
+        Log.info("VALUE STRING {0}", sb.toString());
+        return sb.toString();
     }
 
     /**
