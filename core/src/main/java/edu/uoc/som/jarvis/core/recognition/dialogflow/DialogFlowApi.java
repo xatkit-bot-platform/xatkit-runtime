@@ -553,27 +553,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
             Log.trace("Skipping registration of {0} ({1}), {0} are natively supported by DialogFlow",
                     BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType().getLiteral());
-        } else {
-            EntityType entityType;
-            if (entityDefinition instanceof MappingEntityDefinition) {
-                MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) entityDefinition;
-                String entityName = mappingEntityDefinition.getName();
-                List<EntityType.Entity> entities = createEntities(mappingEntityDefinition.getEntries());
-                EntityType.Builder builder = com.google.cloud.dialogflow.v2.EntityType.newBuilder()
-                        .setKind(com.google.cloud.dialogflow.v2.EntityType.Kind.KIND_MAP).setDisplayName(entityName)
-                        .addAllEntities(entities);
-                entityType = builder.build();
-            } else if (entityDefinition instanceof CompositeEntityDefinition) {
-                CompositeEntityDefinition compositeEntityDefinition = (CompositeEntityDefinition) entityDefinition;
-                String entityName = compositeEntityDefinition.getName();
-                List<EntityType.Entity> entities = createEntitiesFromComposite(compositeEntityDefinition.getEntries());
-                EntityType.Builder builder = com.google.cloud.dialogflow.v2.EntityType.newBuilder().setKind
-                        (EntityType.Kind.KIND_LIST).setDisplayName(entityName).addAllEntities(entities);
-                entityType = builder.build();
-            } else {
-                throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
-                        entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
-            }
+        } else if (entityDefinition instanceof CustomEntityDefinition) {
+            EntityType entityType = createEntityTypeFromCustomEntityDefinition((CustomEntityDefinition)
+                    entityDefinition);
             try {
                 entityTypesClient.createEntityType(projectAgentName, entityType);
             } catch (FailedPreconditionException e) {
@@ -582,23 +564,60 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 Log.error(errorMessage);
                 throw new DialogFlowException(errorMessage, e);
             }
+        } else {
+            throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
+                    entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
         }
     }
 
     /**
-     * Creates the DialogFlow {@link com.google.cloud.dialogflow.v2.EntityType.Entity} instances from the provided
-     * {@code entries}.
+     * Creates a DialogFlow {@link EntityType} from the provided {@code entityDefinition}.
+     * <p>
+     * This method does not register the created {@link EntityType} in the DialogFlow project.
      *
-     * @param entries the {@link MappingEntityDefinitionEntry} entries to map to DialogFlow's
-     *                {@link com.google.cloud.dialogflow.v2.EntityType.Entity} instances.
-     * @return the created {@link List} of DialogFlow {@link com.google.cloud.dialogflow.v2.EntityType.Entity} instances
-     * @throws NullPointerException if the provided {@code entries} is {@code null}
+     * @param entityDefinition the {@link CustomEntityDefinition} to create an {@link EntityType} from
+     * @return the created {@link EntityType}
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
-    private List<EntityType.Entity> createEntities(List<MappingEntityDefinitionEntry> entries) {
-        checkNotNull(entries, "Cannot create the {0} from the provided list {1}", EntityType.Entity.class
-                .getSimpleName(), entries);
+    private EntityType createEntityTypeFromCustomEntityDefinition(CustomEntityDefinition entityDefinition) {
+        checkNotNull(entityDefinition, "Cannot create the %s from the provided %s %s", EntityType.Entity.class
+                .getSimpleName(), CustomEntityDefinition.class.getSimpleName(), entityDefinition);
+        String entityName = entityDefinition.getName();
+        EntityType.Builder builder = EntityType.newBuilder().setDisplayName(entityName);
+        if (entityDefinition instanceof MappingEntityDefinition) {
+            MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) entityDefinition;
+            List<EntityType.Entity> entities = createEntities(mappingEntityDefinition);
+            builder.setKind(EntityType.Kind.KIND_MAP).addAllEntities(entities);
+        } else if (entityDefinition instanceof CompositeEntityDefinition) {
+            CompositeEntityDefinition compositeEntityDefinition = (CompositeEntityDefinition) entityDefinition;
+            List<EntityType.Entity> entities = createEntities(compositeEntityDefinition);
+            builder.setKind(EntityType.Kind.KIND_LIST).addAllEntities(entities);
+        } else {
+            throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
+                    entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
+        }
+        return builder.build();
+    }
+
+    /**
+     * Creates the DialogFlow {@link EntityType.Entity} instances from the provided {@code mappingEntityDefinition}.
+     * <p>
+     * {@link EntityType.Entity} instances are created from the provided {@link MappingEntityDefinition}'s entries,
+     * and contain the specified <i>referredValue</i> as well as the list of <i>synonyms</i>. The created
+     * {@link EntityType.Entity} instances correspond to DialogFlow's
+     * <a href="https://dialogflow.com/docs/entities/developer-entities#developer_mapping">Developer Mapping
+     * Entities</a>.
+     *
+     * @param mappingEntityDefinition the {@link MappingEntityDefinition} to create the {@link EntityType.Entity}
+     *                                instances from
+     * @return the created {@link List} of DialogFlow {@link EntityType.Entity} instances
+     * @throws NullPointerException if the provided {@code mappingEntityDefinition} is {@code null}
+     */
+    private List<EntityType.Entity> createEntities(MappingEntityDefinition mappingEntityDefinition) {
+        checkNotNull(mappingEntityDefinition, "Cannot create the %s from the provided %s %s", EntityType.Entity.class
+                .getSimpleName(), MappingEntityDefinition.class.getSimpleName(), mappingEntityDefinition);
         List<EntityType.Entity> entities = new ArrayList<>();
-        for (MappingEntityDefinitionEntry entry : entries) {
+        for (MappingEntityDefinitionEntry entry : mappingEntityDefinition.getEntries()) {
             EntityType.Entity.Builder builder = EntityType.Entity.newBuilder().setValue(entry.getReferenceValue())
                     .addAllSynonyms(entry.getSynonyms()).addSynonyms(entry.getReferenceValue());
             entities.add(builder.build());
@@ -606,30 +625,62 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         return entities;
     }
 
-    private List<EntityType.Entity> createEntitiesFromComposite(List<CompositeEntityDefinitionEntry> entries) {
-        checkNotNull(entries, "Cannot create the {0} from the provided list {1}", EntityType.Entity.class
-                .getSimpleName(), entries);
+    /**
+     * Creates the DialogFlow {@link EntityType.Entity} instances from the provided {@code compositeEntityDefinition}.
+     * <p>
+     * {@link EntityType.Entity} instances are created from the provided {@link CompositeEntityDefinition}'s entries,
+     * and contain a valid String representation of their <i>value</i> (see
+     * {@link #createEntityValue(CompositeEntityDefinitionEntry)}). The created {@link EntityType.Entity} instances
+     * correspond to DialogFlow's
+     * <a href="https://dialogflow.com/docs/entities/developer-entities#developer_enum">Developer Enums Entities</a>.
+     *
+     * @param compositeEntityDefinition the {@link CompositeEntityDefinition} to create the {@link EntityType.Entity}
+     *                                  instances from
+     * @return the create {@link List} of DialogFlow {@link EntityType.Entity} instances
+     * @throws NullPointerException if the provided {@code compositeEntityDefinition} is {@code null}
+     */
+    private List<EntityType.Entity> createEntities(CompositeEntityDefinition compositeEntityDefinition) {
+        checkNotNull(compositeEntityDefinition, "Cannot create the %s from the provided %s %s", EntityType.Entity
+                .class.getSimpleName(), CompositeEntityDefinition.class.getSimpleName(), compositeEntityDefinition);
         List<EntityType.Entity> entities = new ArrayList<>();
-        for(CompositeEntityDefinitionEntry entry : entries) {
-            String valueString = createValueString(entry);
+        for (CompositeEntityDefinitionEntry entry : compositeEntityDefinition.getEntries()) {
+            String valueString = createEntityValue(entry);
+            /*
+             * Add the created value as the only synonym for the created Entity: DialogFlow does not allow to create
+             * Entities that does not contain their value in their synonym list.
+             */
             EntityType.Entity.Builder builder = EntityType.Entity.newBuilder().setValue(valueString).addSynonyms
-                    (valueString); // fix DF issue
+                    (valueString);
             entities.add(builder.build());
         }
         return entities;
     }
 
-    private String createValueString(CompositeEntityDefinitionEntry entry) {
+    /**
+     * Creates a valid String entity value from the provided {@code entry}.
+     * <p>
+     * This method iterates the {@code entry}'s {@link TextFragment}s and merge them in a String that can be used as
+     * the value of a DialogFlow {@link EntityType.Entity}. Note that {@link EntityTextFragment}s are translated
+     * based on the mapping defined in the {@link DialogFlowEntityMapper}, and the name of their corresponding
+     * variable is set based on their name.
+     *
+     * @param entry the {@link CompositeEntityDefinition} to create an entity value from
+     * @return the create entity value
+     * @throws NullPointerException if the provided {@code entry} is {@code null}
+     */
+    private String createEntityValue(CompositeEntityDefinitionEntry entry) {
+        checkNotNull(entry, "Cannot create the {0} value from the provided {1} {2}", EntityType.Entity.class
+                .getSimpleName(), CompositeEntityDefinition.class.getSimpleName(), entry);
         StringBuilder sb = new StringBuilder();
-        for(TextFragment fragment : entry.getFragments()) {
-            if(fragment instanceof LiteralTextFragment) {
-                sb.append(((LiteralTextFragment)fragment).getValue());
-            } else if(fragment instanceof EntityTextFragment) {
+        for (TextFragment fragment : entry.getFragments()) {
+            if (fragment instanceof LiteralTextFragment) {
+                sb.append(((LiteralTextFragment) fragment).getValue());
+            } else if (fragment instanceof EntityTextFragment) {
                 /*
                  * Builds a String with the entity name and a default parameter value. The parameter value is set
                  * with the name of the entity itself (eg. @Class:Class). This is fine for composite entities
                  * referring once to their entities, but does not scale to more complex ones with multiple references
-                  * to the same entity (see #199).
+                 * to the same entity (see #199).
                  */
                 EntityDefinition fragmentEntity = ((EntityTextFragment) fragment).getEntityReference()
                         .getReferredEntity();
@@ -641,7 +692,6 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 sb.append(" ");
             }
         }
-        Log.info("VALUE STRING {0}", sb.toString());
         return sb.toString();
     }
 
