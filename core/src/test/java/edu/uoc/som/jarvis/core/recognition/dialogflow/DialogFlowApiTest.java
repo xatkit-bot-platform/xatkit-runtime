@@ -244,13 +244,25 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         checkEntities(entities, VALID_MAPPING_ENTITY_DEFINITION.getEntries());
     }
 
-//    @Test
-    public void registerCompositeEntityDefinition() {
+    @Test
+    public void registerCompositeEntityDefinitionRegisteredReferencedEntity() {
         api = getValidDialogFlowApi();
-//        registeredEntityDefinitions.add(VALID_MAPPING_ENTITY_DEFINITION);
-        api.registerEntityDefinition(VALID_MAPPING_ENTITY_DEFINITION); // not tested here
-//        registeredEntityDefinitions.add(VALID_COMPOSITE_ENTITY_DEFINITION);
+        registeredEntityDefinitions.add(VALID_MAPPING_ENTITY_DEFINITION);
+        api.registerEntityDefinition(VALID_MAPPING_ENTITY_DEFINITION);
+        registeredEntityDefinitions.add(VALID_COMPOSITE_ENTITY_DEFINITION);
         api.registerEntityDefinition(VALID_COMPOSITE_ENTITY_DEFINITION);
+        List<com.google.cloud.dialogflow.v2.EntityType> entityTypes = api.getRegisteredEntityTypes();
+        assertThat(entityTypes).as("Two EntityTypes have been registered").hasSize(2);
+        Optional<com.google.cloud.dialogflow.v2.EntityType> registeredComposite = entityTypes.stream().filter(e -> e
+                .getDisplayName().equals(VALID_COMPOSITE_ENTITY_DEFINITION.getName())).findAny();
+        assertThat(registeredComposite).as("Composite EntityType is registered").isPresent();
+        assertThat(registeredComposite.get().getKind()).as("Valid kind value").isEqualTo(com.google.cloud.dialogflow
+                .v2.EntityType.Kind.KIND_LIST);
+        assertThat(registeredComposite.get().getEntitiesCount()).as("EntityType contains 1 entity").isEqualTo(1);
+        /*
+         * TODO check the entity contents, but it relies on the DialogFlowEntityMapper, so not sure we need to test
+         * it here.
+         */
     }
 
     private void checkEntities(List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities,
