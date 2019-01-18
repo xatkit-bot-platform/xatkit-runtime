@@ -4,7 +4,7 @@ dist: trusty
 language: java
 jdk: oraclejdk8
 script:
-- bash sleep 60s
+- bash .util/sleep.sh
 - mvn -B jacoco:prepare-agent test jacoco:report jacoco:report-aggregate
 after_success:
 - bash <(curl -s https://codecov.io/bash) -t $CODECOV_UPLOAD_TOKEN
