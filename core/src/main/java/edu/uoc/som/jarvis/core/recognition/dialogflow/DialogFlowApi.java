@@ -554,6 +554,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             Log.trace("Skipping registration of {0} ({1}), {0} are natively supported by DialogFlow",
                     BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType().getLiteral());
         } else if (entityDefinition instanceof CustomEntityDefinition) {
+            Log.info("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
             EntityType entityType = createEntityTypeFromCustomEntityDefinition((CustomEntityDefinition)
                     entityDefinition);
             try {
@@ -647,7 +648,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                     /*
                      * Only register CustomEntityDefinitions, the other ones are already part of the system.
                      */
-                    this.registerEntityDefinition(referredEntityDefinition);
+                    try {
+                        this.registerEntityDefinition(referredEntityDefinition);
+                    } catch(DialogFlowException e) {
+                        /*
+                         * Simply log a warning here, the entity may have been registered before.
+                         */
+                        Log.warn(e.getMessage());
+                    }
                 }
             }
         }
