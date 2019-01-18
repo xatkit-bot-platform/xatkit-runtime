@@ -590,6 +590,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             builder.setKind(EntityType.Kind.KIND_MAP).addAllEntities(entities);
         } else if (entityDefinition instanceof CompositeEntityDefinition) {
             CompositeEntityDefinition compositeEntityDefinition = (CompositeEntityDefinition) entityDefinition;
+            registerReferencedEntityDefinitions(compositeEntityDefinition);
             List<EntityType.Entity> entities = createEntities(compositeEntityDefinition);
             builder.setKind(EntityType.Kind.KIND_LIST).addAllEntities(entities);
         } else {
@@ -623,6 +624,33 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             entities.add(builder.build());
         }
         return entities;
+    }
+
+    /**
+     * Registers the {@link EntityDefinition}s referred by the provided {@code compositeEntityDefinition}.
+     * <p>
+     * Note that this method only registers {@link CustomEntityDefinition}s referred from the provided {@code
+     * compositeEntityDefinition}. {@link BaseEntityDefinition}s are already registered since they are part of the
+     * platform.
+     *
+     * @param compositeEntityDefinition the {@link CompositeEntityDefinition} to register the referred
+     *                                  {@link EntityDefinition}s of
+     * @throws NullPointerException if the provided {@code compositeEntityDefinition} is {@code null}
+     * @see #registerEntityDefinition(EntityDefinition)
+     */
+    private void registerReferencedEntityDefinitions(CompositeEntityDefinition compositeEntityDefinition) {
+        checkNotNull(compositeEntityDefinition, "Cannot register referenced %s from %s %s", EntityDefinition.class
+                .getSimpleName(), CompositeEntityDefinition.class.getSimpleName(), compositeEntityDefinition);
+        for (CompositeEntityDefinitionEntry entry : compositeEntityDefinition.getEntries()) {
+            for (EntityDefinition referredEntityDefinition : entry.getEntities()) {
+                if (referredEntityDefinition instanceof CustomEntityDefinition) {
+                    /*
+                     * Only register CustomEntityDefinitions, the other ones are already part of the system.
+                     */
+                    this.registerEntityDefinition(referredEntityDefinition);
+                }
+            }
+        }
     }
 
     /**

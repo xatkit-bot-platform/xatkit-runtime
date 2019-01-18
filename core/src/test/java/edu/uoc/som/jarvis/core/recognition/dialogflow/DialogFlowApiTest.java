@@ -265,6 +265,33 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          */
     }
 
+    @Test
+    public void registerCompositeEntityDefinitionNotRegisteredReferencedEntity() {
+        api = getValidDialogFlowApi();
+        registeredEntityDefinitions.add(VALID_MAPPING_ENTITY_DEFINITION);
+        /*
+         * Do not register the mapping entity, this test checks that it is registered from the referenced entities of
+         * the composite one.
+         */
+        registeredEntityDefinitions.add(VALID_COMPOSITE_ENTITY_DEFINITION);
+        api.registerEntityDefinition(VALID_COMPOSITE_ENTITY_DEFINITION);
+        List<com.google.cloud.dialogflow.v2.EntityType> entityTypes = api.getRegisteredEntityTypes();
+        assertThat(entityTypes).as("Two EntityTypes have been registered").hasSize(2);
+
+        Optional<com.google.cloud.dialogflow.v2.EntityType> registeredMapping = entityTypes.stream().filter(e -> e
+                .getDisplayName().equals(VALID_MAPPING_ENTITY_DEFINITION.getName())).findAny();
+        assertThat(registeredMapping).as("Mapping EntityType is registered").isPresent();
+        /*
+         * Do not check the mapping entity type contents, this is done in mapping-related test cases.
+         */
+        Optional<com.google.cloud.dialogflow.v2.EntityType> registeredComposite = entityTypes.stream().filter(e -> e
+                .getDisplayName().equals(VALID_COMPOSITE_ENTITY_DEFINITION.getName())).findAny();
+        assertThat(registeredComposite).as("Composite EntityType is registered").isPresent();
+        assertThat(registeredComposite.get().getKind()).as("Valid kind value").isEqualTo(com.google.cloud.dialogflow
+                .v2.EntityType.Kind.KIND_LIST);
+        assertThat(registeredComposite.get().getEntitiesCount()).as("EntityType contains 1 entity").isEqualTo(1);
+    }
+
     private void checkEntities(List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities,
                                List<MappingEntityDefinitionEntry> entries) {
         for (MappingEntityDefinitionEntry entry : entries) {
