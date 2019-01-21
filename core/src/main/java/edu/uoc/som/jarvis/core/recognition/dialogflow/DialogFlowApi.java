@@ -618,7 +618,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                     EntityType createdEntityType = entityTypesClient.createEntityType(projectAgentName, entityType);
                     this.registeredEntityTypes.put(entityDefinition.getName(), createdEntityType);
                 } catch (FailedPreconditionException e) {
-                   throw new DialogFlowException(MessageFormat.format("Cannot register the entity {0}, the entity " +
+                    throw new DialogFlowException(MessageFormat.format("Cannot register the entity {0}, the entity " +
                             "already exists", entityDefinition), e);
                 }
             } else {
@@ -862,10 +862,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             Log.info("Intent {0} successfully registered", response.getDisplayName());
         } catch (FailedPreconditionException e) {
             if (e.getMessage().contains("already exists")) {
-                String errorMessage = MessageFormat.format("Cannot register the intent {0}, the intent already " +
-                        "exists", intentDefinition.getName());
-                Log.error(errorMessage);
-                throw new DialogFlowException(errorMessage, e);
+                throw new DialogFlowException(MessageFormat.format("Cannot register the intent {0}, the intent " +
+                        "already exists", intentDefinition.getName()), e);
             }
         }
     }
