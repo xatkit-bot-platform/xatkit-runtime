@@ -53,11 +53,11 @@ public class VariableLoaderHelper {
 
     private static String getVariable(String key) {
         String token = System.getenv(key);
-        if(isNull(token) || token.isEmpty()) {
-            Log.info("Cannot retrieve Jarvis bot API token from the environment variables, using local file {0} ",
-                    LOCAL_FILE_PATH);
+        if (isNull(token) || token.isEmpty()) {
+            Log.debug("Cannot retrieve Jarvis variable {0} from the environment variables, using local file {1} ",
+                    key, LOCAL_FILE_PATH);
             URL resource = VariableLoaderHelper.class.getClassLoader().getResource(LOCAL_FILE_PATH);
-            if(isNull(resource)) {
+            if (isNull(resource)) {
                 throw new RuntimeException(MessageFormat.format("Cannot retrieve Jarvis bot variables from local " +
                         "file: the file {0} does not exist", LOCAL_FILE_PATH));
             }
@@ -65,14 +65,14 @@ public class VariableLoaderHelper {
             FileInputStream fileInputStream;
             try {
                 fileInputStream = new FileInputStream(fileString);
-            } catch(FileNotFoundException e) {
+            } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
             Reader reader = new InputStreamReader(fileInputStream);
             PropertiesConfiguration configuration = new PropertiesConfiguration();
             try {
                 configuration.read(reader);
-            } catch(ConfigurationException | IOException e) {
+            } catch (ConfigurationException | IOException e) {
                 throw new RuntimeException(e);
             }
             return configuration.getString(key);
