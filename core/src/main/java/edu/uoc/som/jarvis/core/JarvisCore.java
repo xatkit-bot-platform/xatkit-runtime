@@ -20,10 +20,12 @@ import edu.uoc.som.jarvis.platform.ActionDefinition;
 import edu.uoc.som.jarvis.platform.EventProviderDefinition;
 import edu.uoc.som.jarvis.platform.PlatformDefinition;
 import edu.uoc.som.jarvis.platform.PlatformPackage;
+import edu.uoc.som.jarvis.util.EMFUtils;
 import edu.uoc.som.jarvis.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -535,7 +537,8 @@ public class JarvisCore {
      * @throws JarvisException if an error occurred when crawling the folder's content or when loading a core
      *                         {@link Resource}
      */
-    private <T> void loadCoreResources(Path folderPath, String pathmapPrefix, Class<T> topLevelElementType) {
+    private <T extends EObject> void loadCoreResources(Path folderPath, String pathmapPrefix, Class<T>
+            topLevelElementType) {
         try {
             Files.walk(folderPath, 1).filter(l -> !Files.isDirectory(l)).forEach(resourcePath -> {
                 try {
@@ -551,7 +554,8 @@ public class JarvisCore {
                      */
                     T topLevelElement = (T) resource.getContents().get(0);
                     is.close();
-                    Log.info("{0} {1} loaded", topLevelElementType.getSimpleName(), topLevelElement);
+                    Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
+                    Log.debug("\tPath: {0}", resourcePath);
                 } catch (IOException e) {
                     throw new JarvisException(MessageFormat.format("An error occurred when loading the {0}, see " +
                             "attached exception", resourcePath), e);
@@ -625,7 +629,7 @@ public class JarvisCore {
      * @param <T>                 the type of the top-level element
      * @throws JarvisException if an error occurred when loading the {@link Resource}
      */
-    private <T> void loadCustomResource(String path, URI pathmapURI, Class<T> topLevelElementType) {
+    private <T extends EObject> void loadCustomResource(String path, URI pathmapURI, Class<T> topLevelElementType) {
         /*
          * The provided path is handled as a File path. Loading custom resources from external jars is left for a
          * future release.
@@ -636,7 +640,8 @@ public class JarvisCore {
             executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
             Resource resource = executionResourceSet.getResource(resourceFileURI, true);
             T topLevelElement = (T) resource.getContents().get(0);
-            Log.info("{0} {1} loaded", topLevelElement);
+            Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
+            Log.debug("\tPath: {0}", resourceFile.toString());
         } else {
             throw new JarvisException(MessageFormat.format("Cannot load the custom {0}, the provided path {1} is " +
                     "not a valid file", topLevelElementType.getSimpleName(), path));
