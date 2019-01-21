@@ -24,10 +24,7 @@ import org.apache.commons.configuration2.Configuration;
 
 import java.io.*;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -93,6 +90,20 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     public static String ENABLE_INTENT_LOADING_KEY = "jarvis.dialogflow.intent.loading";
 
     /**
+     * The {@link Configuration} key to store whether to initialize the {@link #registeredEntityTypes} {@link Map}
+     * with the {@link EntityType}s already stored in the DialogFlow project.
+     * <p>
+     * Entity loading is enabled by default, and should not be an issue when using the {@link DialogFlowApi} in
+     * development context. However, creating multiple instances of the {@link DialogFlowApi} (e.g. when running the
+     * Jarvis test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
+     * avoid Entity loading, limiting the number of queries to the DialogFlow API.
+     * <p>
+     * Note that disabling {@link EntityType} loading may create consistency issues between the DialogFlow agent and
+     * the local {@link DialogFlowApi}, and is not recommended in development environment.
+     */
+    public static String ENABLE_ENTITY_LOADING_KEY = "jarvis.dialogflow.entity.loading";
+
+    /**
      * The {@link Configuration} key to store whether to merge the local {@link JarvisSession} in the DialogFlow one.
      * <p>
      * This option is enabled by default to ensure consistency between the local {@link JarvisSession} and the
@@ -156,6 +167,18 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #ENABLE_INTENT_LOADING_KEY
      */
     private boolean enableIntentLoader;
+
+    /**
+     * A flag allowing the {@link DialogFlowApi} to load previously registered {@link EntityType}s from the
+     * DialogFlow agent.
+     * <p>
+     * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
+     * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
+     * {@link DialogFlowApi}.
+     *
+     * @see #ENABLE_ENTITY_LOADING_KEY
+     */
+    private boolean enableEntityLoader;
 
     /**
      * A flag allowing the {@link DialogFlowApi} to merge local {@link JarvisSession}s in the DialogFlow one.
@@ -268,6 +291,13 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     private Map<String, Intent> registeredIntents;
 
     /**
+     * A local cache used to retrieve registered {@link EntityType}s from their display name.
+     * <p>
+     * This cache is used to limit the number of calls to the DialogFlow API.
+     */
+    private Map<String, EntityType> registeredEntityTypes;
+
+    /**
      * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following keys:
@@ -317,6 +347,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         this.intentFactory = IntentFactory.eINSTANCE;
         this.entityMapper = new DialogFlowEntityMapper();
         this.importRegisteredIntents();
+        this.importRegisteredEntities();
 
     }
 
@@ -334,6 +365,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             languageCode = DEFAULT_LANGUAGE_CODE;
         }
         this.enableIntentLoader = configuration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
+        this.enableEntityLoader = configuration.getBoolean(ENABLE_ENTITY_LOADING_KEY, true);
         this.enableContextMerge = configuration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
     }
 
@@ -449,6 +481,26 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     }
 
     /**
+     * Imports the entities registered in the DialogFlow project.
+     * <p>
+     * Entities import can be disabled to reduce the number of queries sent to the DialogFlow API by setting the
+     * {@link #ENABLE_ENTITY_LOADING_KEY} property to {@code false} in the provided {@link Configuration}. Note that
+     * disabling entities import may generate consistency issues when creating, deleting, and matching intents.
+     */
+    private void importRegisteredEntities() {
+        this.registeredEntityTypes = new HashMap<>();
+        if (enableEntityLoader) {
+            Log.info("Loading Entities previously registered in the DialogFlow project {0}", projectName.getProject());
+            for (EntityType entityType : getRegisteredEntityTypes()) {
+                registeredEntityTypes.put(entityType.getDisplayName(), entityType);
+            }
+        } else {
+            Log.info("Entity loading is disabled, existing Entities in the DialogFlow project {0} will not be " +
+                    "imported", projectName.getProject());
+        }
+    }
+
+    /**
      * Returns the DialogFlow project unique identifier.
      *
      * @return the DialogFlow project unique identifier
@@ -555,15 +607,22 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                     BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType().getLiteral());
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             Log.info("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
-            EntityType entityType = createEntityTypeFromCustomEntityDefinition((CustomEntityDefinition)
-                    entityDefinition);
-            try {
-                entityTypesClient.createEntityType(projectAgentName, entityType);
-            } catch (FailedPreconditionException e) {
-                String errorMessage = MessageFormat.format("Cannot register the entity {0}, the entity already " +
-                        "exists", entityDefinition);
-                Log.error(errorMessage);
-                throw new DialogFlowException(errorMessage, e);
+            EntityType entityType = this.registeredEntityTypes.get(entityDefinition.getName());
+            if (isNull(entityType)) {
+                entityType = createEntityTypeFromCustomEntityDefinition((CustomEntityDefinition) entityDefinition);
+                try {
+                    /*
+                     * Store the EntityType returned by the DialogFlow API: some fields such as the name are
+                     * automatically set by the platform.
+                     */
+                    EntityType createdEntityType = entityTypesClient.createEntityType(projectAgentName, entityType);
+                    this.registeredEntityTypes.put(entityDefinition.getName(), createdEntityType);
+                } catch (FailedPreconditionException e) {
+                   throw new DialogFlowException(MessageFormat.format("Cannot register the entity {0}, the entity " +
+                            "already exists", entityDefinition), e);
+                }
+            } else {
+                Log.info("{0} {1} is already registered", EntityType.class.getSimpleName(), entityDefinition.getName());
             }
         } else {
             throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
@@ -650,7 +709,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                      */
                     try {
                         this.registerEntityDefinition(referredEntityDefinition);
-                    } catch(DialogFlowException e) {
+                    } catch (DialogFlowException e) {
                         /*
                          * Simply log a warning here, the entity may have been registered before.
                          */
@@ -753,6 +812,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         checkNotNull(intentDefinition, "Cannot register the IntentDefinition null");
         checkNotNull(intentDefinition.getName(), "Cannot register the IntentDefinition with null as its name");
         Log.info("Registering DialogFlow intent {0}", intentDefinition.getName());
+        if (this.registeredIntents.containsKey(intentDefinition.getName())) {
+            Log.info("Intent {0} already registered", intentDefinition.getName());
+        }
 
         List<String> trainingSentences = intentDefinition.getTrainingSentences();
         List<Intent.TrainingPhrase> dialogFlowTrainingPhrases = new ArrayList<>();
@@ -1048,16 +1110,31 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                     .getLiteral());
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) entityDefinition;
-            List<EntityType> entityTypes = getRegisteredEntityTypes();
-            for (EntityType entityType : entityTypes) {
-                if (entityType.getDisplayName().equals(customEntityDefinition.getName())) {
-                    Log.info("Deleting entity {0}", customEntityDefinition.getName());
-                    entityTypesClient.deleteEntityType(entityType.getName());
-                    Log.info("Entity {0} successfully deleted", customEntityDefinition.getName());
+            /*
+             * Reduce the number of calls to the DialogFlow API by first looking for the EntityType in the local cache.
+             */
+            EntityType entityType = this.registeredEntityTypes.get(customEntityDefinition.getName());
+            if (isNull(entityType)) {
+                /*
+                 * The EntityType is not in the local cache, loading it through a DialogFlow query.
+                 */
+                Optional<EntityType> dialogFlowEntityType = getRegisteredEntityTypes().stream().filter
+                        (registeredEntityType -> registeredEntityType.getDisplayName().equals(customEntityDefinition
+                                .getName())).findAny();
+                if (dialogFlowEntityType.isPresent()) {
+                    entityType = dialogFlowEntityType.get();
+                } else {
+                    Log.warn("Cannot delete the {0} {1}, the entity type does not exist", EntityType.class
+                            .getSimpleName(), entityDefinition.getName());
                     return;
                 }
             }
-            Log.warn("Cannot delete the entity {0}, the entity does not exist", customEntityDefinition.getName());
+            entityTypesClient.deleteEntityType(entityType.getName());
+            Log.info("{0} {1} successfully deleted", EntityType.class.getSimpleName(), entityType.getDisplayName());
+            /*
+             * Remove the deleted EntityType from the local cache.
+             */
+            this.registeredEntityTypes.remove(entityType.getDisplayName());
         } else {
             throw new DialogFlowException(MessageFormat.format("Cannot delete the provided {0}, unsupported {1}",
                     entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
@@ -1077,16 +1154,30 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         }
         checkNotNull(intentDefinition, "Cannot delete the IntentDefinition null");
         checkNotNull(intentDefinition.getName(), "Cannot delete the IntentDefinition with null as its name");
-        List<Intent> registeredIntents = getRegisteredIntents();
-        for (Intent intent : registeredIntents) {
-            if (intent.getDisplayName().equals(intentDefinition.getName())) {
-                Log.info("Deleting intent {0}", intentDefinition.getName());
-                intentsClient.deleteIntent(intent.getName());
-                Log.info("Intent {0} successfully deleted", intentDefinition.getName());
+        /*
+         * Reduce the number of calls to the DialogFlow API by first looking for the Intent in the local cache.
+         */
+        Intent intent = this.registeredIntents.get(intentDefinition.getName());
+        if (isNull(intent)) {
+            /*
+             * The Intent is not in the local cache, loading it through a DialogFlow query.
+             */
+            Optional<Intent> dialogFlowIntent = getRegisteredIntents().stream().filter(registeredIntent ->
+                    registeredIntent.getDisplayName().equals(intentDefinition.getName())).findAny();
+            if (dialogFlowIntent.isPresent()) {
+                intent = dialogFlowIntent.get();
+            } else {
+                Log.warn("Cannot delete the {0} {1}, the intent does not exist", Intent.class.getSimpleName(),
+                        intentDefinition.getName());
                 return;
             }
         }
-        Log.warn("Cannot delete the Intent {0}, the intent does not exist", intentDefinition.getName());
+        intentsClient.deleteIntent(intent.getName());
+        Log.info("{0} {1} successfully deleted", Intent.class.getSimpleName(), intentDefinition.getName());
+        /*
+         * Remove the deleted Intent from the local cache.
+         */
+        this.registeredIntents.remove(intent.getDisplayName());
     }
 
     /**

@@ -86,6 +86,10 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
          */
         configuration.addProperty(DialogFlowApi.ENABLE_INTENT_LOADING_KEY, false);
+        /*
+         * Disable Entity loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
+         */
+        configuration.addProperty(DialogFlowApi.ENABLE_ENTITY_LOADING_KEY, false);
         return configuration;
     }
 
@@ -168,6 +172,11 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
              */
             registeredEntityDefinitions.stream().filter(e -> e instanceof CompositeEntityDefinition).forEach(e -> api
                     .deleteEntityDefinition(e));
+            try {
+                Thread.sleep(10000);
+            } catch(InterruptedException e) {
+                Log.error(e);
+            }
             registeredEntityDefinitions.stream().filter(e -> e instanceof MappingEntityDefinition).forEach(e -> api
                     .deleteEntityDefinition(e));
             registeredEntityDefinitions.clear();
