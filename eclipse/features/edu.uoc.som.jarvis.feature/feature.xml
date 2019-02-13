@@ -5,9 +5,10 @@
       version="1.0.1.qualifier"
       provider-name="SOM Research Lab">
 
-   <description url="https://github.com/gdaniel/jarvis/wiki">
-      Provides a set of Eclipse-based editors to create Platform and
-Orchestration models.
+   <description url="https://github.com/SOM-Research/jarvis/wiki">
+      Provides a set of Eclipse-based editors to create Intent, Platform and
+Execution models.
+- Jarvis Intent Editor is automatically opened for *.intent
 - Jarvis Platform Editor is automatically opened for *.platform
 files.
 - Jarvis Execution Editor is automatically opened for *.execution
