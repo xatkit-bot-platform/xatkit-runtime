@@ -1,0 +1,10 @@
+Library TutorialIntentLibrary
+
+intent HowAreYou {
+	inputs {
+		"How are you?"
+		"What's up?"
+		"How do you feel?"
+	}
+}
+
