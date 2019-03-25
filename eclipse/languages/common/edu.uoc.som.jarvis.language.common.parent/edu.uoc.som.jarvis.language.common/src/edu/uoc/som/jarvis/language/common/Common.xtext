@@ -1,0 +1,53 @@
+grammar edu.uoc.som.jarvis.language.common.Common with org.eclipse.xtext.common.Terminals
+
+generate common "http://www.uoc.edu/som/jarvis/language/common/Common"
+
+Program:
+	(instructions += Instruction)*
+;
+
+Instruction:
+	VariableDeclaration | Expression
+;
+
+VariableDeclaration:
+	'def' name=ID ('=' value=Expression)?
+;
+
+Expression:
+	Operation | OperationCall | Literal
+;
+
+Operation:
+	(UnaryOperation)
+;
+
+UnaryOperation:
+	'!' exp=Expression
+;
+
+OperationCall returns Expression:
+	PropertyAccess ({OperationCall.source = current} '.' name=ID '(' (args+=Expression (',' args+=Expression)*)? ')')*
+;
+
+PropertyAccess returns Expression:
+	VariableAccess ({PropertyAccess.source = current}  '.' feature=ID)*
+;
+
+// if this returns an Expression then the generated xcore doesn't contain VariableAccess
+VariableAccess:
+	referredVariable = [VariableDeclaration|ID]
+;
+
+// if this returns an Expression then the generated xcore doesn't contain Literal
+Literal:
+	StringLiteral | NumberLiteral
+;
+
+StringLiteral:
+	value = STRING
+;
+
+NumberLiteral:
+	value = INT
+;
