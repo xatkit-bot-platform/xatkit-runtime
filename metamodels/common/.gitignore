@@ -1,0 +1,12 @@
+# Generated EMF Code
+**/java-gen
+**/description.txt
+
+# Eclipse
+*.classpath
+*.project
+*.settings
+build.properties
+**/MANIFEST.MF
+plugin.properties
+plugin.xml

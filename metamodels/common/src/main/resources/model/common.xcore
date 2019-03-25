@@ -1,0 +1,55 @@
+@Ecore(nsURI="edu.uoc.som.jarvis.common")
+@GenModel(modelDirectory="/common/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
+package edu.uoc.som.jarvis.common
+
+class Program {
+    contains Instruction[] instructions
+}
+
+abstract class Instruction {
+    
+}
+
+class VariableDeclaration extends Instruction {
+    String name
+    contains Expression value
+}
+
+abstract class Expression extends Instruction {
+    
+}
+
+abstract class Operation extends Expression {
+    
+}
+
+class UnaryOperation extends Operation {
+     contains Expression exp
+}
+
+class VariableAccess extends Expression {
+    refers VariableDeclaration referredVariable
+}
+
+abstract class Literal extends Expression {
+    
+}
+
+class StringLiteral extends Literal {
+    String value
+}
+
+class NumberLiteral extends Literal {
+    int value
+}
+
+class OperationCall extends Expression {
+    String name
+    contains Expression source
+    contains Expression[] args
+}
+
+class PropertyAccess extends Expression {
+    String feature
+    contains Expression source
+}
