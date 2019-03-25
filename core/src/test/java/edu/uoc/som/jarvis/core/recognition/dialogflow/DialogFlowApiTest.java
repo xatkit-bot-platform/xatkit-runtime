@@ -174,7 +174,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
                     .deleteEntityDefinition(e));
             try {
                 Thread.sleep(10000);
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 Log.error(e);
             }
             registeredEntityDefinitions.stream().filter(e -> e instanceof MappingEntityDefinition).forEach(e -> api
@@ -342,8 +342,12 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         String intentName = "TestRegister";
         String trainingPhrase = "test";
+        String defaultAnswer1 = "answer";
+        String defaultAnswer2 = "this is another answer";
         registeredIntentDefinition.setName(intentName);
         registeredIntentDefinition.getTrainingSentences().add(trainingPhrase);
+        registeredIntentDefinition.getDefaultAnswers().add(defaultAnswer1);
+        registeredIntentDefinition.getDefaultAnswers().add(defaultAnswer2);
         api.registerIntentDefinition(registeredIntentDefinition);
         List<Intent> registeredIntents = api.getRegisteredIntentsFullView();
         checkRegisteredIntent(registeredIntentDefinition, registeredIntents);
@@ -457,6 +461,16 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
             boolean foundTrainingPhrase = hasTrainingPhrase(foundIntent, trainingPhrase);
             softly.assertThat(foundTrainingPhrase).as("The IntentDefinition's training phrase is in the retrieved " +
                     "Intent").isTrue();
+        }
+
+        if (!registeredIntent.getDefaultAnswers().isEmpty()) {
+            List<String> messages = foundIntent.getMessagesList().stream().map(
+                    m -> m.getText().getTextList()
+            ).flatMap(Collection::stream).collect(Collectors.toList());
+            softly.assertThat(messages).as("Intent's message list has the same size as the register intent's default " +
+                    "answer list").hasSize(registeredIntent.getDefaultAnswers().size());
+            softly.assertThat(messages).as("Intent's message list is not empty").isNotEmpty();
+            softly.assertThat(messages).as("Intent's message list contains all the default answers").containsAll(registeredIntent.getDefaultAnswers());
         }
     }
 

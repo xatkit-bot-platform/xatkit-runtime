@@ -64,6 +64,10 @@ IntentDefinition returns IntentDefinition:
 			trainingSentences+=EString (trainingSentences+=EString)*
 		'}'
 		(outContexts+=OutContextDefinition)*
+		('default answers' '{'
+			defaultAnswers+=EString (defaultAnswers+=EString)*
+		'}'
+		)?
 	'}'
 	;
 

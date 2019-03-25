@@ -45,6 +45,7 @@ class IntentDefinition extends EventDefinition {
     refers IntentDefinition[] followedBy opposite follows
     contains Context[] inContexts
     String[] trainingSentences
+    String[] defaultAnswers
 }
 
 class Context {
