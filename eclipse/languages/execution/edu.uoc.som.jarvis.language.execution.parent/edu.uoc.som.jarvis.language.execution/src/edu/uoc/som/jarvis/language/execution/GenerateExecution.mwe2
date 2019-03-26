@@ -32,6 +32,7 @@ Workflow {
 		language = StandardLanguage {
 			name = "edu.uoc.som.jarvis.language.execution.Execution"
 			fileExtensions = "execution"
+			referencedResource = "platform:/resource/edu.uoc.som.jarvis.common/model/common.xcore"
 			referencedResource = "platform:/resource/edu.uoc.som.jarvis.execution/model/execution.xcore"
 			referencedResource = "platform:/resource/edu.uoc.som.jarvis.intent/model/intent.xcore"
 			referencedResource = "platform:/resource/edu.uoc.som.jarvis.platform/model/platform.xcore"

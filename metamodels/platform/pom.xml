@@ -53,6 +53,12 @@
 
         <dependency>
             <groupId>edu.uoc.som.jarvis</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>edu.uoc.som.jarvis</groupId>
             <artifactId>intent</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -92,6 +98,7 @@
                             artifactId=!org.eclipse.emf.common|org.eclipse.emf.ecore
                         </Embed-Dependency>
                         <Require-Bundle>
+                            edu.uoc.som.jarvis.common;visibility:=reexport,
                             edu.uoc.som.jarvis.intent;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>

@@ -34,15 +34,15 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.osgi.framework.Bundle;
 
+import edu.uoc.som.jarvis.common.ImportDeclaration;
+import edu.uoc.som.jarvis.common.LibraryImportDeclaration;
+import edu.uoc.som.jarvis.common.PlatformImportDeclaration;
 import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
 import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
 import edu.uoc.som.jarvis.execution.ExecutionModel;
 import edu.uoc.som.jarvis.execution.ExecutionPackage;
-import edu.uoc.som.jarvis.intent.ImportDeclaration;
 import edu.uoc.som.jarvis.intent.IntentPackage;
 import edu.uoc.som.jarvis.intent.Library;
-import edu.uoc.som.jarvis.intent.LibraryImportDeclaration;
-import edu.uoc.som.jarvis.intent.PlatformImportDeclaration;
 import edu.uoc.som.jarvis.platform.PlatformDefinition;
 import edu.uoc.som.jarvis.platform.PlatformPackage;
 

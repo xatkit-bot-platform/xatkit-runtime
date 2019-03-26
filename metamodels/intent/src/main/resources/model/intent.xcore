@@ -2,23 +2,6 @@
 @GenModel(modelDirectory="/intent/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
 package edu.uoc.som.jarvis.intent
 
-/*
- * Imports are defined in the intent metamodel because it is imported by all the other ones. However, a proper solution
- * would be to define a dedicated metamodel for language-related constructs (see #21)
- */
-abstract class ImportDeclaration {
-    String path
-    String alias
-}
-
-class PlatformImportDeclaration extends ImportDeclaration {
-
-}
-
-class LibraryImportDeclaration extends ImportDeclaration {
-
-}
-
 
 class Library {
 	String name

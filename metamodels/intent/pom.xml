@@ -49,6 +49,14 @@
             <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
         </dependency>
 
+        <!-- jarvis Internal -->
+
+        <dependency>
+            <groupId>edu.uoc.som.jarvis</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Tests -->
 
         <dependency>
@@ -80,6 +88,7 @@
                             artifactId=!org.eclipse.emf.common|org.eclipse.emf.ecore
                         </Embed-Dependency>
                         <Require-Bundle>
+                            edu.uoc.som.jarvis.common;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>

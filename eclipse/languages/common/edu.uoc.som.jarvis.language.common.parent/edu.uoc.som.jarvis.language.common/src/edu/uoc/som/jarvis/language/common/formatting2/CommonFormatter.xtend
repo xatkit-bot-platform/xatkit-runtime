@@ -4,9 +4,9 @@
 package edu.uoc.som.jarvis.language.common.formatting2
 
 import com.google.inject.Inject
-import edu.uoc.som.jarvis.language.common.common.Instruction
-import edu.uoc.som.jarvis.language.common.common.Program
-import edu.uoc.som.jarvis.language.common.common.VariableDeclaration
+import edu.uoc.som.jarvis.common.Instruction
+import edu.uoc.som.jarvis.common.Program
+import edu.uoc.som.jarvis.common.VariableDeclaration
 import edu.uoc.som.jarvis.language.common.services.CommonGrammarAccess
 import org.eclipse.xtext.formatting2.AbstractFormatter2
 import org.eclipse.xtext.formatting2.IFormattableDocument

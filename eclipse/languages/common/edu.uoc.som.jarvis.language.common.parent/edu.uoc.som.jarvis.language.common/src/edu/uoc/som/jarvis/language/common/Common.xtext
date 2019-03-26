@@ -1,13 +1,18 @@
 grammar edu.uoc.som.jarvis.language.common.Common with org.eclipse.xtext.common.Terminals
 
-generate common "http://www.uoc.edu/som/jarvis/language/common/Common"
+import "edu.uoc.som.jarvis.common"
 
 Program:
 	(instructions += Instruction)*
 ;
 
 Instruction:
-	VariableDeclaration | Expression
+	VariableDeclaration | Expression | ImportDeclaration
+;
+
+ImportDeclaration returns ImportDeclaration:
+	{PlatformImportDeclaration} 'import platform' path=STRING ('as' alias=ID)?
+	| {LibraryImportDeclaration} 'import library' path=STRING ('as' alias=ID)?
 ;
 
 VariableDeclaration:

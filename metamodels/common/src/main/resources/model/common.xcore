@@ -10,6 +10,19 @@ abstract class Instruction {
     
 }
 
+abstract class ImportDeclaration extends Instruction {
+    String path
+    String alias
+}
+
+class PlatformImportDeclaration extends ImportDeclaration {
+
+}
+
+class LibraryImportDeclaration extends ImportDeclaration {
+
+}
+
 class VariableDeclaration extends Instruction {
     String name
     contains Expression value

@@ -4,12 +4,12 @@
 package edu.uoc.som.jarvis.language.common.tests
 
 import com.google.inject.Inject
-import edu.uoc.som.jarvis.language.common.common.PropertyAccess
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
 import org.junit.Test
 import org.junit.runner.RunWith
+import edu.uoc.som.jarvis.common.PropertyAccess
 
 @RunWith(XtextRunner)
 @InjectWith(CommonInjectorProvider)
