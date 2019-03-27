@@ -214,6 +214,18 @@ public class CommonInterpreterTest {
         assertThat(result).as("correct context value result").isEqualTo("val");
     }
 
+    @Test
+    public void string_literal_plus_string_literal() {
+        Object result = interpreter.compute(getProgram("string_literal_+_string_literal"));
+        assertThat(result).as("valid concat result").isEqualTo("anothervalue");
+    }
+
+    @Test
+    public void number_literal_plus_number_literal() {
+        Object result = interpreter.compute(getProgram("number_literal_+_number_literal"));
+        assertThat(result).as("valid sum").isEqualTo(6);
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case

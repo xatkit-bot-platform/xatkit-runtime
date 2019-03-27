@@ -20,15 +20,19 @@ VariableDeclaration:
 ;
 
 Expression:
-	Operation | OperationCall
+	BinaryOperation
 ;
 
-Operation:
+/*Operation:
 	(UnaryOperation)
 ;
 
 UnaryOperation:
 	'!' exp=Expression
+;*/
+
+BinaryOperation returns Expression:
+	OperationCall ({OperationCall.source = current} name='+' args+=Expression)*
 ;
 
 OperationCall returns Expression:
@@ -49,7 +53,7 @@ VariableAccess:
 ;
 
 ContextAccess:
-	{ContextAccess} 'context' '(' contextName=ID ')'
+	'context' '(' contextName=ID ')'
 ;
 
 // if this returns an Expression then the generated xcore doesn't contain Literal

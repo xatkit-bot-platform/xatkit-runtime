@@ -27,6 +27,10 @@ public class ObjectOperationProvider implements OperationProvider {
      */
     @Override
     public Operation getOperation(OperationCall abstractOperation) {
-        return new ObjectOperation(abstractOperation.getName());
+        if(abstractOperation.getName().equals("+")) {
+            return new AdditionOperation();
+        } else {
+            return new ObjectOperation(abstractOperation.getName());
+        }
     }
 }
