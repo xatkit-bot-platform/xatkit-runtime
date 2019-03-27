@@ -188,6 +188,7 @@ public class ExecutionService {
      */
     private void executeExecutionRule(ExecutionRule executionRule, JarvisSession session) {
         ExecutionContext context = new ExecutionContext();
+        context.setSession(session);
         for (VariableDeclaration variable : executionRule.getVariables()) {
             CommonInterpreter.getInstance().compute(variable, context);
         }
