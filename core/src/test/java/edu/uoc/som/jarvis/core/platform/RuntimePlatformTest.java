@@ -1,13 +1,20 @@
 package edu.uoc.som.jarvis.core.platform;
 
 import edu.uoc.som.jarvis.AbstractJarvisTest;
+import edu.uoc.som.jarvis.common.CommonFactory;
+import edu.uoc.som.jarvis.common.StringLiteral;
+import edu.uoc.som.jarvis.common.VariableAccess;
+import edu.uoc.som.jarvis.common.VariableDeclaration;
 import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.interpreter.ExecutionContext;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
 import edu.uoc.som.jarvis.core.server.JarvisServer;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.execution.*;
+import edu.uoc.som.jarvis.execution.ActionInstance;
+import edu.uoc.som.jarvis.execution.ExecutionFactory;
+import edu.uoc.som.jarvis.execution.ParameterValue;
 import edu.uoc.som.jarvis.platform.ActionDefinition;
 import edu.uoc.som.jarvis.platform.EventProviderDefinition;
 import edu.uoc.som.jarvis.platform.Parameter;
@@ -24,6 +31,7 @@ import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -32,9 +40,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RuntimePlatformTest extends AbstractJarvisTest {
 
+    private static ExecutionFactory executionFactory = ExecutionFactory.eINSTANCE;
+
+    private static CommonFactory commonFactory = CommonFactory.eINSTANCE;
+
     private RuntimePlatform runtimePlatform;
 
     private static JarvisCore jarvisCore;
+
+    private ExecutionContext executionContext;
 
     @BeforeClass
     public static void setUpBeforeClass() {
@@ -66,6 +80,10 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         if (!jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().isEmpty()) {
 
         }
+        /*
+         * An empty execution context (not tested here)
+         */
+        executionContext = new ExecutionContext();
     }
 
     @After
@@ -192,22 +210,22 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void createRuntimeActionNullActionInstance() {
-        runtimePlatform.createRuntimeAction(null, new JarvisSession("id"));
+        runtimePlatform.createRuntimeAction(null, new JarvisSession("id"), executionContext);
     }
 
     @Test(expected = JarvisException.class)
     public void createRuntimeActionNotEnabledAction() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
-        ActionInstance actionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
+        ActionInstance actionInstance = executionFactory.createActionInstance();
         actionInstance.setAction(actionDefinition);
-        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("id"));
+        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("id"), executionContext);
     }
 
     @Test
     public void createRuntimeActionValidActionInstanceNoParameters() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"));
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"), executionContext);
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf(StubRuntimeActionNoParameter
                 .class);
     }
@@ -216,12 +234,12 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     public void createRuntimeActionValidActionInstanceWithReturnType() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        Variable returnVariable = ExecutionFactory.eINSTANCE.createVariable();
+        VariableDeclaration returnVariable = commonFactory.createVariableDeclaration();
         returnVariable.setName("return");
-        VariableAccess returnVariableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
+        VariableAccess returnVariableAccess = commonFactory.createVariableAccess();
         returnVariableAccess.setReferredVariable(returnVariable);
         actionInstance.setReturnVariable(returnVariableAccess);
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("session"));
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("session"), executionContext);
         assertThat(runtimeAction.getReturnVariable()).as("Valid return variable name").isEqualTo(returnVariable
                 .getName());
     }
@@ -233,13 +251,13 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         actionDefinition.getParameters().add(param);
-        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
-        StringLiteral value = ExecutionFactory.eINSTANCE.createStringLiteral();
+        ParameterValue parameterValue = executionFactory.createParameterValue();
+        StringLiteral value = commonFactory.createStringLiteral();
         parameterValue.setExpression(value);
 //        parameterValue.setParameter(param);
         value.setValue("myValue");
         actionInstance.getValues().add(parameterValue);
-        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"));
+        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"), executionContext);
     }
 
     @Test(expected = JarvisException.class)
@@ -249,30 +267,35 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("myParam");
         // Do not attach the Parameter to the Action
-        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
-        StringLiteral value = ExecutionFactory.eINSTANCE.createStringLiteral();
+        ParameterValue parameterValue = executionFactory.createParameterValue();
+        StringLiteral value = commonFactory.createStringLiteral();
         parameterValue.setExpression(value);
 //        parameterValue.setParameter(param);
         value.setValue("myValue");
         actionInstance.getValues().add(parameterValue);
-        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"));
+        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"), executionContext);
     }
 
     @Test
     public void createRuntimeParameterActionConstructor1ValidActionInstanceVariableAccess() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
+        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
         paramVariable.setName("param");
-        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
+        StringLiteral paramValue = commonFactory.createStringLiteral();
+//        paramValue.setValue("test");
+        paramVariable.setValue(paramValue);
+        VariableAccess variableAccess = commonFactory.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue = executionFactory.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
-        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture("test"));
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, session);
+//        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture("test"));
+        executionContext.setValue(paramVariable.getName(), "test");
+
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, session, executionContext);
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf
                 (StubRuntimeActionTwoConstructors.class);
         StubRuntimeActionTwoConstructors runtimeActionTwoConstructors = (StubRuntimeActionTwoConstructors)
@@ -285,20 +308,21 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     public void createRuntimeParameterActionConstructor2ValidActionInstanceVariableAccess() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
+        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
         paramVariable.setName("param");
-        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = commonFactory.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue = executionFactory.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
-        // Register the variable in the context to allow its access
-        JarvisSession session = new JarvisSession("sessionID");
-        List<String> listParam = new ArrayList<>();
-        listParam.add("test");
-        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture
-                (listParam));
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, session);
+        /*
+         * Register manually the value in the execution context, this is handled by the ExecutionService.
+         */
+        executionContext.setValue("param", Collections.singletonList("test"));
+
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession(
+                "sessionID"),
+                executionContext);
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf
                 (StubRuntimeActionTwoConstructors.class);
         StubRuntimeActionTwoConstructors runtimeActionTwoConstructors = (StubRuntimeActionTwoConstructors) runtimeAction;
@@ -311,34 +335,32 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     public void createRuntimeParameterActionConstructor1ValidActionInstanceVariableNotRegistered() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
+        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
         paramVariable.setName("param");
-        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = commonFactory.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue = executionFactory.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
-        List<String> listParam = new ArrayList<>();
-        listParam.add("test");
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"));
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"), executionContext);
     }
 
     @Test(expected = JarvisException.class)
     public void createRuntimeParameterActionValidActionInstanceInvalidParameterType() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
+        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
         paramVariable.setName("param");
-        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = commonFactory.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = ExecutionFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue = executionFactory.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
         JarvisSession session = new JarvisSession("sessionID");
         // Register an integer in the context, there is no constructor to handle it
         session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture(1));
-        runtimePlatform.createRuntimeAction(actionInstance, session);
+        runtimePlatform.createRuntimeAction(actionInstance, session, executionContext);
     }
 
     @Test(expected = JarvisException.class)
@@ -348,17 +370,17 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         param2.setKey("param2");
         actionDefinition.getParameters().add(param2);
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        Variable paramVariable = ExecutionFactory.eINSTANCE.createVariable();
+        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
         paramVariable.setName("param");
-        VariableAccess variableAccess = ExecutionFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess = commonFactory.createVariableAccess();
         variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue1 = ExecutionFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue1 = executionFactory.createParameterValue();
         parameterValue1.setExpression(variableAccess);
-        Variable paramVariable2 = ExecutionFactory.eINSTANCE.createVariable();
+        VariableDeclaration paramVariable2 = commonFactory.createVariableDeclaration();
         paramVariable2.setName("param2");
-        VariableAccess variableAccess2 = ExecutionFactory.eINSTANCE.createVariableAccess();
+        VariableAccess variableAccess2 = commonFactory.createVariableAccess();
         variableAccess2.setReferredVariable(paramVariable2);
-        ParameterValue parameterValue2 = ExecutionFactory.eINSTANCE.createParameterValue();
+        ParameterValue parameterValue2 = executionFactory.createParameterValue();
         parameterValue2.setExpression(variableAccess2);
         actionInstance.getValues().add(parameterValue1);
         actionInstance.getValues().add(parameterValue2);
@@ -370,7 +392,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
                 (listParam));
         session.getRuntimeContexts().setContextValue("variables", 5, "param2", CompletableFuture.completedFuture
                 (listParam));
-        runtimePlatform.createRuntimeAction(actionInstance, session);
+        runtimePlatform.createRuntimeAction(actionInstance, session, executionContext);
     }
 
     @Test
@@ -402,7 +424,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     private ActionInstance createActionInstanceFor(ActionDefinition actionDefinition) {
-        ActionInstance instance = ExecutionFactory.eINSTANCE.createActionInstance();
+        ActionInstance instance = executionFactory.createActionInstance();
         instance.setAction(actionDefinition);
         runtimePlatform.enableAction(actionDefinition);
         return instance;

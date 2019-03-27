@@ -1,14 +1,18 @@
 package edu.uoc.som.jarvis.core.platform;
 
+import edu.uoc.som.jarvis.common.Expression;
 import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.core.interpreter.CommonInterpreter;
+import edu.uoc.som.jarvis.core.interpreter.ExecutionContext;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
 import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
 import edu.uoc.som.jarvis.core.server.JarvisServer;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.execution.*;
+import edu.uoc.som.jarvis.execution.ActionInstance;
+import edu.uoc.som.jarvis.execution.ParameterValue;
 import edu.uoc.som.jarvis.intent.EventInstance;
 import edu.uoc.som.jarvis.platform.ActionDefinition;
 import edu.uoc.som.jarvis.platform.EventProviderDefinition;
@@ -21,8 +25,6 @@ import org.apache.commons.configuration2.Configuration;
 
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -52,11 +54,12 @@ public abstract class RuntimePlatform {
     /**
      * The {@link Configuration} used to initialize this class.
      * <p>
-     * This {@link Configuration} is used by the {@link RuntimePlatform} to initialize the {@link RuntimeEventProvider}s and
+     * This {@link Configuration} is used by the {@link RuntimePlatform} to initialize the
+     * {@link RuntimeEventProvider}s and
      * {@link RuntimeAction}s.
      *
      * @see #startEventProvider(EventProviderDefinition)
-     * @see #createRuntimeAction(ActionInstance, JarvisSession)
+     * @see #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)
      */
     protected Configuration configuration;
 
@@ -67,7 +70,7 @@ public abstract class RuntimePlatform {
      *
      * @see #enableAction(ActionDefinition)
      * @see #disableAction(ActionDefinition)
-     * @see #createRuntimeAction(ActionInstance, JarvisSession)
+     * @see #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)
      */
     protected Map<String, Class<? extends RuntimeAction>> actionMap;
 
@@ -150,7 +153,8 @@ public abstract class RuntimePlatform {
      * This method also registers {@link WebhookEventProvider}s to the underlying {@link JarvisServer} (see
      * {@link JarvisServer#registerWebhookEventProvider(WebhookEventProvider)}).
      *
-     * @param eventProviderDefinition the {@link EventProviderDefinition} representing the {@link RuntimeEventProvider} to
+     * @param eventProviderDefinition the {@link EventProviderDefinition} representing the
+     * {@link RuntimeEventProvider} to
      *                                start
      * @throws NullPointerException if the provided {@code eventProviderDefinition} or {@code jarvisCore} is {@code
      *                              null}
@@ -167,7 +171,8 @@ public abstract class RuntimePlatform {
                 .getName();
         Class<? extends RuntimeEventProvider> eventProviderClass = Loader.loadClass(eventProviderQualifiedName,
                 RuntimeEventProvider.class);
-        RuntimeEventProvider runtimeEventProvider = Loader.constructRuntimeEventProvider(eventProviderClass, this, configuration);
+        RuntimeEventProvider runtimeEventProvider = Loader.constructRuntimeEventProvider(eventProviderClass, this,
+                configuration);
         if (runtimeEventProvider instanceof WebhookEventProvider) {
             /*
              * Register the WebhookEventProvider in the JarvisServer
@@ -195,7 +200,8 @@ public abstract class RuntimePlatform {
      * Retrieves and loads the {@link RuntimeAction} defined by the provided {@link ActionDefinition}.
      * <p>
      * This method loads the corresponding {@link RuntimeAction} based on jarvis' naming convention. The
-     * {@link RuntimeAction} must be located under the {@code actionDefinition} sub-package of the {@link RuntimePlatform}
+     * {@link RuntimeAction} must be located under the {@code actionDefinition} sub-package of the
+     * {@link RuntimePlatform}
      * concrete subclass package.
      *
      * @param actionDefinition the {@link ActionDefinition} representing the {@link RuntimeAction} to enable
@@ -228,10 +234,10 @@ public abstract class RuntimePlatform {
      * <p>
      * This method returns the {@link Class}es describing the {@link RuntimeAction}s associated to this platform. To
      * construct a new {@link RuntimeAction} from a {@link EventInstance} see
-     * {@link #createRuntimeAction(ActionInstance, JarvisSession)} .
+     * {@link #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)} .
      *
      * @return all the {@link RuntimeAction} {@link Class}es associated to this {@link RuntimePlatform}
-     * @see #createRuntimeAction(ActionInstance, JarvisSession)
+     * @see #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)
      */
     public final Collection<Class<? extends RuntimeAction>> getActions() {
         return actionMap.values();
@@ -241,19 +247,21 @@ public abstract class RuntimePlatform {
      * Creates a new {@link RuntimeAction} instance from the provided {@link ActionInstance}.
      * <p>
      * This methods attempts to construct a {@link RuntimeAction} defined by the provided {@code actionInstance} by
-     * matching the {@code eventInstance} variables to the {@link ActionDefinition}'s parameters, and reusing the provided
+     * matching the {@code eventInstance} variables to the {@link ActionDefinition}'s parameters, and reusing the
+     * provided
      * {@link ActionInstance#getValues()}.
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link RuntimeAction} to create
      * @param session        the {@link JarvisSession} associated to the action
+     * @param context        the execution context used to evaluate the action parameter values
      * @return a new {@link RuntimeAction} instance from the provided {@link ActionInstance}
      * @throws NullPointerException if the provided {@code actionInstance} or {@code session} is {@code null}
      * @throws JarvisException      if the provided {@link ActionInstance} does not match any {@link RuntimeAction},
      *                              or if an error occurred when building the {@link RuntimeAction}
-     * @see #getParameterValues(ActionInstance, RuntimeContexts)
+     * @see #getParameterValues(ActionInstance, RuntimeContexts, ExecutionContext)
      */
     public RuntimeAction createRuntimeAction(ActionInstance actionInstance, JarvisSession
-            session) {
+            session, ExecutionContext context) {
         checkNotNull(actionInstance, "Cannot construct a %s from the provided %s %s", RuntimeAction.class
                 .getSimpleName(), ActionInstance.class.getSimpleName(), actionInstance);
         checkNotNull(session, "Cannot construct a %s from the provided %s %s", RuntimeAction.class.getSimpleName(),
@@ -264,7 +272,7 @@ public abstract class RuntimePlatform {
             throw new JarvisException(MessageFormat.format("Cannot create the {0} {1}, the action is not " +
                     "loaded in the platform", RuntimeAction.class.getSimpleName(), actionDefinition.getName()));
         }
-        Object[] parameterValues = getParameterValues(actionInstance, session.getRuntimeContexts());
+        Object[] parameterValues = getParameterValues(actionInstance, session.getRuntimeContexts(), context);
         /*
          * Append the mandatory parameters to the parameter values.
          */
@@ -329,66 +337,45 @@ public abstract class RuntimePlatform {
      * {@link ActionInstance}'s {@link ParameterValue}s are retrieved from the provided {@code context}.
      * <p>
      * The retrieved values are used by the {@link RuntimePlatform} to instantiate concrete {@link RuntimeAction}s (see
-     * {@link #createRuntimeAction(ActionInstance, JarvisSession)}).
+     * {@link #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)}).
      *
-     * @param actionInstance the {@link ActionInstance} to match the parameters from
+     * @param actionInstance   the {@link ActionInstance} to match the parameters from
+     * @param context          the {@link RuntimeContexts} storing event contextual informations
+     * @param executionContext the {@link ExecutionContext} used to evaluate parameter's expressions
      * @return an array containing the concrete {@link ActionInstance}'s parameters
      * @throws JarvisException if one of the concrete value is not stored in the provided {@code context}, or if the
      *                         {@link ActionInstance}'s {@link ParameterValue}s do not match the describing
      *                         {@link ActionDefinition}'s {@link Parameter}s.
-     * @see #createRuntimeAction(ActionInstance, JarvisSession)
+     * @see #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)
      */
-    private Object[] getParameterValues(ActionInstance actionInstance, RuntimeContexts context) {
+    private Object[] getParameterValues(ActionInstance actionInstance, RuntimeContexts context,
+                                        ExecutionContext executionContext) {
         ActionDefinition actionDefinition = actionInstance.getAction();
         List<Parameter> actionParameters = actionDefinition.getParameters();
         List<ParameterValue> actionInstanceParameterValues = actionInstance.getValues();
         if ((actionParameters.size() == actionInstanceParameterValues.size())) {
-            /*
-             * Here some additional checks are needed (parameter types and order).
-             * See https://github.com/gdaniel/jarvis/issues/4.
-             */
             Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
                     .spliterator(), false).map(paramValue -> {
-                Expression paramExpression = paramValue.getExpression();
-                if (paramExpression instanceof VariableAccess) {
-                    String variableName = ((VariableAccess) paramExpression).getReferredVariable().getName();
-                    Future<Object> futureValue = (Future<Object>) context.getContextValue("variables", variableName);
-                    if (isNull(futureValue)) {
-                        /*
-                         * The context does not contain the value.
-                         */
-                        throw new JarvisException(MessageFormat.format("Cannot retrieve the context variable {0}" +
-                                ".{1}", "variables", variableName));
-                    }
-                    try {
-                        Object value = futureValue.get();
-                        if (value instanceof String) {
-                            /*
-                             * Fill potential context values if the variable is a String. This should only happen if
-                             * the associated RuntimeAction returns a value with explicit access to the context in it.
-                             */
-                            return context.fillContextValues((String) value);
-                        } else {
-                            return value;
+
+                        Expression paramExpression = paramValue.getExpression();
+                        try {
+                            Object paramExpValue = CommonInterpreter.getInstance().evaluate(paramExpression,
+                                    executionContext);
+                            if (paramExpValue instanceof String) {
+                                return context.fillContextValues((String) paramExpValue);
+                            } else {
+                                return paramExpValue;
+                            }
+                            // should be interpreter exception
+                        } catch (Exception e) {
+                            throw new JarvisException(e);
                         }
-                    } catch (InterruptedException | ExecutionException e) {
-                        throw new JarvisException(e);
                     }
-                } else if (paramExpression instanceof StringLiteral) {
-                    return context.fillContextValues(((StringLiteral) paramExpression).getValue());
-                } else {
-                    /*
-                     * Unknown Value type.
-                     */
-                    throw new JarvisException(MessageFormat.format("Unknown {0} expression type: {1}", ParameterValue
-                            .class.getSimpleName(), nonNull(paramExpression) ? paramExpression.getClass()
-                            .getSimpleName() : "null"));
-                }
-            }).toArray();
+            ).toArray();
             return actionInstanceParameterValuesArray;
         }
         String errorMessage = MessageFormat.format("The {0} action does not define the good amount of parameters: " +
-                "expected {1}, found {2}", actionDefinition.getName(), actionParameters.size(),
+                        "expected {1}, found {2}", actionDefinition.getName(), actionParameters.size(),
                 actionInstanceParameterValues.size());
         Log.error(errorMessage);
         throw new JarvisException(errorMessage);

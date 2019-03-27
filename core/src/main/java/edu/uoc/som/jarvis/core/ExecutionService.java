@@ -1,17 +1,12 @@
 package edu.uoc.som.jarvis.core;
 
-import edu.uoc.som.jarvis.core.platform.action.RuntimeActionResult;
-import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.ContextInstance;
-import edu.uoc.som.jarvis.intent.ContextParameterValue;
-import edu.uoc.som.jarvis.intent.EventDefinition;
-import edu.uoc.som.jarvis.intent.EventInstance;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import fr.inria.atlanmod.commons.log.Log;
+import edu.uoc.som.jarvis.common.VariableDeclaration;
+import edu.uoc.som.jarvis.core.interpreter.CommonInterpreter;
+import edu.uoc.som.jarvis.core.interpreter.ExecutionContext;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeActionResult;
+import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.execution.ActionInstance;
 import edu.uoc.som.jarvis.execution.ExecutionModel;
@@ -20,11 +15,11 @@ import edu.uoc.som.jarvis.intent.ContextInstance;
 import edu.uoc.som.jarvis.intent.ContextParameterValue;
 import edu.uoc.som.jarvis.intent.EventDefinition;
 import edu.uoc.som.jarvis.intent.EventInstance;
-import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
 import edu.uoc.som.jarvis.platform.PlatformDefinition;
+import fr.inria.atlanmod.commons.log.Log;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -86,8 +81,9 @@ public class ExecutionService {
      * ensuring that concurrent accesses of the model will not produce unexpected behaviors (see
      * <a href="https://www.eclipse.org/forums/index.php/t/1095731/">this post</a>)
      *
-     * @param executionModel   the {@link ExecutionModel} representing the intent-to-action bindings to use
-     * @param runtimePlatformRegistry the {@link RuntimePlatformRegistry} used to create the {@link RuntimeAction}s to execute
+     * @param executionModel          the {@link ExecutionModel} representing the intent-to-action bindings to use
+     * @param runtimePlatformRegistry the {@link RuntimePlatformRegistry} used to create the {@link RuntimeAction}s
+     *                                to execute
      * @throws NullPointerException if the provided {@code executionModel} or {@code runtimePlatformRegistry} is
      *                              {@code null}
      */
@@ -154,7 +150,7 @@ public class ExecutionService {
      * @param eventInstance the {@link EventInstance} to handle
      * @param session       the {@link JarvisSession} used to define and access context variables
      * @throws NullPointerException if the provided {@code eventInstance} or {@code session} is {@code null}
-     * @see #executeRuntimeAction(RuntimeAction, ActionInstance, JarvisSession)
+     * @see #executeExecutionRule(ExecutionRule, JarvisSession)
      */
     public void handleEventInstance(EventInstance eventInstance, JarvisSession session) {
         checkNotNull(eventInstance, "Cannot handle the %s %s", EventInstance.class.getSimpleName(), eventInstance);
@@ -168,13 +164,9 @@ public class ExecutionService {
                     session.getRuntimeContexts().setContextValue(value);
                 }
             }
-            List<ActionInstance> actionInstances = this.getActionsFromEvent(eventInstance);
-            if (actionInstances.isEmpty()) {
-                Log.warn("The intent {0} is not associated to any action", eventInstance.getDefinition().getName());
-            }
-            for (ActionInstance actionInstance : actionInstances) {
-                RuntimeAction action = getRuntimeActionFromActionInstance(actionInstance, session);
-                executeRuntimeAction(action, actionInstance, session);
+            List<ExecutionRule> executionRules = this.getExecutionRulesFromEvent(eventInstance);
+            for (ExecutionRule rule : executionRules) {
+                executeExecutionRule(rule, session);
             }
         }, executorService).exceptionally((throwable) -> {
             Log.error("An error occurred when running the actions associated to {0}: {1} {2}", eventInstance
@@ -184,7 +176,29 @@ public class ExecutionService {
     }
 
     /**
-     * Executes <b>synchronously</b> the provided {@code action} with the provided {@code session}.
+     * Executes <b>synchronously</b> the actions defined in the provided {@code executionRule}.
+     * <p>
+     * This method creates a new {@link ExecutionContext} used to evaluate all the expressions within the provided
+     * {@code executionRule}. This {@link ExecutionContext} ensures that scoping is preserved, and that expressions
+     * in the provided {@code executionRule} cannot access variables that are defined in another {@link ExecutionRule}.
+     *
+     * @param executionRule the {@link ExecutionRule} to execute
+     * @param session       the {@link JarvisSession} used to define and access the rule's context variables
+     * @see #executeRuntimeAction(RuntimeAction, ActionInstance, JarvisSession, ExecutionContext)
+     */
+    private void executeExecutionRule(ExecutionRule executionRule, JarvisSession session) {
+        ExecutionContext context = new ExecutionContext();
+        for (VariableDeclaration variable : executionRule.getVariables()) {
+            CommonInterpreter.getInstance().compute(variable, context);
+        }
+        for (ActionInstance actionInstance : executionRule.getActions()) {
+            RuntimeAction action = getRuntimeActionFromActionInstance(actionInstance, session, context);
+            executeRuntimeAction(action, actionInstance, session, context);
+        }
+    }
+
+    /**
+     * Executes the provided {@code action} with the provided {@code session}.
      * <p>
      * This method executes the provided {@link RuntimeAction} in the calling {@link Thread}, and will block the
      * execution until the action completes. This method is called sequentially by the
@@ -203,7 +217,8 @@ public class ExecutionService {
      *                       provided {@code action}
      * @throws NullPointerException if the provided {@code action} or {@code session} is {@code null}
      */
-    private void executeRuntimeAction(RuntimeAction action, ActionInstance actionInstance, JarvisSession session) {
+    private void executeRuntimeAction(RuntimeAction action, ActionInstance actionInstance, JarvisSession session,
+                                      ExecutionContext context) {
         checkNotNull(action, "Cannot execute the provided %s %s", RuntimeAction.class.getSimpleName(), action);
         checkNotNull(session, "Cannot execute the provided %s with the provided %s %s", RuntimeAction.class
                 .getSimpleName(), JarvisSession.class.getSimpleName(), session);
@@ -216,10 +231,11 @@ public class ExecutionService {
              * Retrieve the ActionInstances to execute when the computed ActionInstance returns an error and execute
              * them.
              */
-            for(ActionInstance onErrorActionInstance : actionInstance.getOnError()) {
+            for (ActionInstance onErrorActionInstance : actionInstance.getOnError()) {
                 Log.info("Executing fallback action {0}", onErrorActionInstance.getAction().getName());
-                RuntimeAction onErrorRuntimeAction = getRuntimeActionFromActionInstance(onErrorActionInstance, session);
-                executeRuntimeAction(onErrorRuntimeAction, onErrorActionInstance, session);
+                RuntimeAction onErrorRuntimeAction = getRuntimeActionFromActionInstance(onErrorActionInstance,
+                        session, context);
+                executeRuntimeAction(onErrorRuntimeAction, onErrorActionInstance, session, context);
             }
         } else {
             if (nonNull(action.getReturnVariable())) {
@@ -237,36 +253,39 @@ public class ExecutionService {
      * <p>
      * This method is used as a bridge between the {@link ActionInstance}s (from the execution model), and the
      * {@link RuntimeAction}s (from the internal Jarvis execution engine).
+     *
      * @param actionInstance the {@link ActionInstance} to construct a {@link RuntimeAction} from
-     * @param session the {@link JarvisSession} used to define and access context variables
+     * @param session        the {@link JarvisSession} used to define and access context variables
      * @return the constructed {@link RuntimeAction}
      */
-    private RuntimeAction getRuntimeActionFromActionInstance(ActionInstance actionInstance, JarvisSession session) {
+    private RuntimeAction getRuntimeActionFromActionInstance(ActionInstance actionInstance, JarvisSession session,
+                                                             ExecutionContext context) {
         RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform((PlatformDefinition)
                 actionInstance.getAction().eContainer());
-        return runtimePlatform.createRuntimeAction(actionInstance, session);
+        return runtimePlatform.createRuntimeAction(actionInstance, session, context);
     }
 
     /**
-     * Retrieves the {@link ActionInstance}s associated to the provided {@code eventInstance}.
+     * Retrieves the {@link ExecutionRule}s associated to the provided {@code eventInstance}.
      * <p>
-     * This class navigates the underlying {@link ExecutionModel} and retrieves the {@link ActionInstance}s
-     * associated to the provided {@code eventInstance}. These {@link ActionInstance}s are used by the core
-     * component to create the concrete {@link RuntimeAction} to execute.
+     * This method navigates the underlying {@link ExecutionModel} and retrieves all the {@link ExecutionRule}s that
+     * match the {@link EventDefinition} of the provided {@code eventInstance}. Note that {@link ExecutionRule}s may
+     * be returned in any order.
      *
-     * @param eventInstance the {@link EventInstance} to retrieve the {@link ActionInstance}s from
-     * @return a {@link List} containing the instantiated {@link ActionInstance}s associated to the provided {@code
-     * recognizedIntent}.
-     * @see RuntimePlatform#createRuntimeAction(ActionInstance, JarvisSession)
+     * @param eventInstance the {@link EventInstance} to retrieve the {@link ExecutionRule}s from
+     * @return a {@link List} containing the retrieved {@link ExecutionRule}s
+     *
+     * @see #executeExecutionRule(ExecutionRule, JarvisSession)
      */
-    private List<ActionInstance> getActionsFromEvent(EventInstance eventInstance) {
+    private List<ExecutionRule> getExecutionRulesFromEvent(EventInstance eventInstance) {
         EventDefinition eventDefinition = eventInstance.getDefinition();
+        List<ExecutionRule> result = new ArrayList<>();
         for (ExecutionRule rule : executionModel.getExecutionRules()) {
             if (rule.getEvent().getName().equals(eventDefinition.getName())) {
-                return rule.getActions();
+                result.add(rule);
             }
         }
-        return Collections.emptyList();
+        return result;
     }
 
     /**
