@@ -1,5 +1,7 @@
 package edu.uoc.som.jarvis.core.interpreter;
 
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,11 +16,21 @@ public class ExecutionContext {
      */
     private Map<String, Object> values;
 
+    private JarvisSession session;
+
     /**
      * Constructs an empty {@link ExecutionContext}.
      */
     public ExecutionContext() {
         this.values = new HashMap<>();
+    }
+
+    public void setSession(JarvisSession session) {
+        this.session = session;
+    }
+
+    public JarvisSession getSession() {
+        return this.session;
     }
 
     /**

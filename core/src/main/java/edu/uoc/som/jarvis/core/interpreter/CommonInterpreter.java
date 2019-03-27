@@ -190,6 +190,8 @@ public class CommonInterpreter {
         checkNotNull(e, "Cannot evaluate the provided %s %s", Expression.class.getSimpleName(), e);
         if (e instanceof VariableAccess) {
             return evaluate((VariableAccess) e, context);
+        } else if(e instanceof ContextAccess) {
+            return evaluate((ContextAccess)e, context);
         } else if (e instanceof Literal) {
             return evaluate((Literal) e, context);
         } else if (e instanceof OperationCall) {
@@ -210,6 +212,10 @@ public class CommonInterpreter {
      */
     public Object evaluate(VariableAccess v, ExecutionContext context) {
         return context.getValue(v.getReferredVariable().getName());
+    }
+
+    public Object evaluate(ContextAccess c, ExecutionContext context) {
+        return context.getSession().getRuntimeContexts().getContextVariables(c.getContextName());
     }
 
     /**

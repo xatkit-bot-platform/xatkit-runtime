@@ -44,6 +44,10 @@ class VariableAccess extends Expression {
     refers VariableDeclaration referredVariable
 }
 
+class ContextAccess extends Expression {
+    String contextName
+}
+
 abstract class Literal extends Expression {
     
 }

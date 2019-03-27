@@ -4,6 +4,7 @@ import edu.uoc.som.jarvis.common.CommonFactory;
 import edu.uoc.som.jarvis.common.CommonPackage;
 import edu.uoc.som.jarvis.common.Program;
 import edu.uoc.som.jarvis.core.interpreter.operation.OperationException;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -17,6 +18,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -188,6 +190,28 @@ public class CommonInterpreterTest {
         ExecutionContext context = new ExecutionContext();
         Object result = interpreter.compute(getProgram("string_variable_indexOf_two_arguments"), context);
         assertThat(result).as("result is 0").isEqualTo(0);
+    }
+
+    @Test
+    public void context_access() {
+        ExecutionContext context = new ExecutionContext();
+        JarvisSession session = new JarvisSession("sessionID");
+        session.getRuntimeContexts().setContextValue("test", 5, "var", "val");
+        context.setSession(session);
+        Object result = interpreter.compute(getProgram("context_access"), context);
+        assertThat(result).as("result is a RuntimeContexts instance").isInstanceOf(Map.class);
+        Map<String, Object> contextValues = (Map<String, Object>) result;
+        assertThat(contextValues.get("var")).as("result contains the correct value").isEqualTo("val");
+    }
+
+    @Test
+    public void context_access_get() {
+        ExecutionContext context = new ExecutionContext();
+        JarvisSession session = new JarvisSession("sessionID");
+        session.getRuntimeContexts().setContextValue("test", 5, "var", "val");
+        context.setSession(session);
+        Object result = interpreter.compute(getProgram("context_access_get"), context);
+        assertThat(result).as("correct context value result").isEqualTo("val");
     }
 
     private Resource getProgram(String fileName) {

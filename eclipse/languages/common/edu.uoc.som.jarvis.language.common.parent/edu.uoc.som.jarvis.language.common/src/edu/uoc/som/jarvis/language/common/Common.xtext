@@ -36,12 +36,20 @@ OperationCall returns Expression:
 ;
 
 PropertyAccess returns Expression:
-	(VariableAccess | Literal) ({PropertyAccess.source = current}  '.' feature=ID)*
+	(Access | Literal) ({PropertyAccess.source = current}  '.' feature=ID)*
+;
+
+Access returns Expression:
+	VariableAccess | ContextAccess
 ;
 
 // if this returns an Expression then the generated xcore doesn't contain VariableAccess
 VariableAccess:
 	referredVariable = [VariableDeclaration|ID]
+;
+
+ContextAccess:
+	{ContextAccess} 'context' '(' contextName=ID ')'
 ;
 
 // if this returns an Expression then the generated xcore doesn't contain Literal
