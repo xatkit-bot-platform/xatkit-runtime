@@ -20,7 +20,7 @@ VariableDeclaration:
 ;
 
 Expression:
-	Operation | OperationCall | Literal
+	Operation | OperationCall
 ;
 
 Operation:
@@ -36,7 +36,7 @@ OperationCall returns Expression:
 ;
 
 PropertyAccess returns Expression:
-	VariableAccess ({PropertyAccess.source = current}  '.' feature=ID)*
+	(VariableAccess | Literal) ({PropertyAccess.source = current}  '.' feature=ID)*
 ;
 
 // if this returns an Expression then the generated xcore doesn't contain VariableAccess
