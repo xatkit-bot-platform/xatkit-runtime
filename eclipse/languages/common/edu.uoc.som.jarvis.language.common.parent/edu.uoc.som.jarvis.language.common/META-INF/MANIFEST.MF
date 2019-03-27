@@ -15,7 +15,8 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.emf.common,
  org.eclipse.xtend.lib,
  org.antlr.runtime,
- edu.uoc.som.jarvis.common;bundle-version="1.0.1"
+ edu.uoc.som.jarvis.common;bundle-version="1.0.1",
+ org.eclipse.core.runtime;bundle-version="3.13.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: edu.uoc.som.jarvis.language.common.services,
  edu.uoc.som.jarvis.language.common.validation,
@@ -27,3 +28,4 @@ Export-Package: edu.uoc.som.jarvis.language.common.services,
  edu.uoc.som.jarvis.language.common.scoping,
  edu.uoc.som.jarvis.language.common.formatting2
 Import-Package: org.apache.log4j
+Bundle-Activator: edu.uoc.som.jarvis.language.common.Activator
