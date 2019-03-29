@@ -6,7 +6,10 @@ import org.apache.commons.lang3.ClassUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,7 +78,7 @@ public class ObjectOperation implements Operation {
      */
     private Method getMethod(Class<?> sourceClass, String methodName, Class<?>[] argTypes) throws NoSuchMethodException {
         if (argTypes.length == 0) {
-            return sourceClass.getMethod(methodName);
+            return findRootMethod(sourceClass.getMethod(methodName));
         } else {
             for (Method method : sourceClass.getMethods()) {
                 if (method.getName().equals(methodName) && method.getParameterCount() == argTypes.length) {
@@ -92,13 +95,76 @@ public class ObjectOperation implements Operation {
                         }
                     }
                     if (match) {
-                        return method;
+                        return findRootMethod(method);
                     }
                 }
             }
         }
         throw new NoSuchMethodException(MessageFormat.format("Cannot find method {0} for class {2}",
                 methodName, sourceClass.getSimpleName()));
+    }
+
+    /**
+     * Finds the root {@link Class} declaration for the given {@code method}.
+     *
+     * @param method the method for which to find the root declaration
+     * @return the root {@link Method}
+     */
+    public static Method findRootMethod(Method method) {
+        /*
+         * This method is reused from https://github.com/eclipse/atl/commit/d7e7716df7150d845d14a1349cab6b893717a1cb
+         */
+        if (method == null) {
+            return null;
+        }
+        final int methodModifiers = getRelevantModifiers(method);
+        Class<?> dc = method.getDeclaringClass();
+        java.util.Set<Class<?>> dis = new LinkedHashSet<Class<?>>(
+                Arrays.asList(dc.getInterfaces()));
+        while ((dc = dc.getSuperclass()) != null) {
+            try {
+                Method superMethod = dc.getDeclaredMethod(method.getName(), method.getParameterTypes());
+                if (getRelevantModifiers(superMethod) == methodModifiers) {
+                    method = superMethod;
+                } else {
+                    break;
+                }
+            } catch (SecurityException e) {
+            } catch (NoSuchMethodException e) {
+            }
+            dis.addAll(Arrays.asList(dc.getInterfaces()));
+        }
+        while (!dis.isEmpty()) {
+            java.util.Set<Class<?>> newDis = new LinkedHashSet<Class<?>>();
+            for (Class<?> di : dis) {
+                try {
+                    // Only replace by method declared in a super-interface
+                    if (di.isAssignableFrom(method.getDeclaringClass())) {
+                        method = di.getDeclaredMethod(method.getName(), method.getParameterTypes());
+                    }
+                } catch (SecurityException e) {
+                } catch (NoSuchMethodException e) {
+                }
+                newDis.addAll(Arrays.asList(di.getInterfaces()));
+            }
+            newDis.removeAll(dis);
+            dis = newDis;
+        }
+        return method;
+    }
+
+    /**
+     * Returns the relevant modifiers (visibility) for the given method.
+     *
+     * @param method the method for which to return the modifiers
+     * @return the relevant modifiers (visibility) for the given method
+     */
+    private static int getRelevantModifiers(final Method method) {
+        /*
+         * This method is reused from https://github.com/eclipse/atl/commit/d7e7716df7150d845d14a1349cab6b893717a1cb
+         */
+        final int methodModifiers = method.getModifiers();
+        return methodModifiers & (Modifier.PRIVATE + Modifier.PROTECTED + Modifier.PUBLIC);
     }
 
     /**
