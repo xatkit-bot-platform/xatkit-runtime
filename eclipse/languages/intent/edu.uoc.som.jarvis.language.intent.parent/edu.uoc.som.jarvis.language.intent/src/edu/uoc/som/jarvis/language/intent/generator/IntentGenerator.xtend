@@ -77,6 +77,7 @@ class IntentGenerator extends AbstractGenerator {
 			 * definition are updated with a placeholder an need to be added again to the IntentDefinition.
 			 */
 			val List<String> updatedTrainingSentences = new ArrayList
+			println(intentDefinition.trainingSentences.size)
 			intentDefinition.trainingSentences.forEach [ trainingSentence |
 				println(MessageFormat.format("Processing training sentence {0}", trainingSentence))
 				val Matcher matcher = inlineContextPattern.matcher(trainingSentence)
@@ -102,13 +103,13 @@ class IntentGenerator extends AbstractGenerator {
 				} else {
 					updatedTrainingSentences.add(trainingSentence)
 				}
-				/*
-				 * Clear the list before adding all the updated training sentences. This ensures that the training 
-				 * sentences containing inline context definitions are removed from the IntentDefinition.
-				 */
-				intentDefinition.trainingSentences.clear
-				intentDefinition.trainingSentences.addAll(updatedTrainingSentences)
 			]
+			/*
+			 * Clear the list before adding all the updated training sentences. This ensures that the training 
+			 * sentences containing inline context definitions are removed from the IntentDefinition.
+			 */
+			intentDefinition.trainingSentences.clear
+			intentDefinition.trainingSentences.addAll(updatedTrainingSentences)
 		]
 	}
 
