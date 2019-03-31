@@ -20,7 +20,7 @@ VariableDeclaration:
 ;
 
 Expression:
-	BinaryOperation
+	PlusOperation 
 ;
 
 /*Operation:
@@ -31,8 +31,18 @@ UnaryOperation:
 	'!' exp=Expression
 ;*/
 
-BinaryOperation returns Expression:
-	OperationCall ({OperationCall.source = current} name='+' args+=Expression)*
+IfExpression returns IfExpression:
+	'if' '(' condition=Expression ')' 
+PlusOperation returns Expression:
+	OrOperation ({OperationCall.source = current} name='+' args+=Expression)*
+;
+
+OrOperation returns Expression:
+	AndOperation({OperationCall.source = current} name='or' args+=Expression)*
+;
+
+AndOperation returns Expression:
+	OperationCall({OperationCall.source = current} name = 'and' args+=Expression)*
 ;
 
 OperationCall returns Expression:

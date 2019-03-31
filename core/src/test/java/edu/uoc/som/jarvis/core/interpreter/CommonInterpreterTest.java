@@ -238,6 +238,54 @@ public class CommonInterpreterTest {
         assertThat(result).as("valid boolean (false) result").isEqualTo(false);
     }
 
+    @Test
+    public void false_and_true() {
+        Object result = interpreter.compute(getProgram("false_and_true"));
+        assertThat(result).as("valid boolean (false) result").isEqualTo(false);
+    }
+
+    @Test
+    public void false_and_false() {
+        Object result = interpreter.compute(getProgram("false_and_false"));
+        assertThat(result).as("valid boolean (false) result").isEqualTo(false);
+    }
+
+    @Test
+    public void true_and_false() {
+        Object result = interpreter.compute(getProgram("true_and_false"));
+        assertThat(result).as("valid boolean (false) result").isEqualTo(false);
+    }
+
+    @Test
+    public void true_and_true() {
+        Object result = interpreter.compute(getProgram("true_and_true"));
+        assertThat(result).as("valid boolean (true) result").isEqualTo(true);
+    }
+
+    @Test
+    public void false_or_true() {
+        Object result = interpreter.compute(getProgram("false_or_true"));
+        assertThat(result).as("valid boolean (true) result").isEqualTo(true);
+    }
+
+    @Test
+    public void false_or_false() {
+        Object result = interpreter.compute(getProgram("false_or_false"));
+        assertThat(result).as("valid boolean (false) result").isEqualTo(false);
+    }
+
+    @Test
+    public void true_or_false() {
+        Object result = interpreter.compute(getProgram("true_or_false"));
+        assertThat(result).as("valid boolean (true) result").isEqualTo(true);
+    }
+
+    @Test
+    public void true_or_true() {
+        Object result = interpreter.compute(getProgram("true_or_true"));
+        assertThat(result).as("valid boolean (true) result").isEqualTo(true);
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case

@@ -29,6 +29,10 @@ public class ObjectOperationProvider implements OperationProvider {
     public Operation getOperation(OperationCall abstractOperation) {
         if(abstractOperation.getName().equals("+")) {
             return new AdditionOperation();
+        } else if(abstractOperation.getName().equals("or")) {
+            return new OrOperation();
+        } else if (abstractOperation.getName().equals("and")) {
+            return new AndOperation();
         } else {
             return new ObjectOperation(abstractOperation.getName());
         }
