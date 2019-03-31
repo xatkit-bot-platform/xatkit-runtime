@@ -29,7 +29,7 @@ public class AdditionOperation implements Operation {
      */
     @Override
     public Object invoke(Object source, List<Object> args) {
-        checkArgument(args.size() == 1, "Cannot compute + operation, no argument provided");
+        checkArgument(args.size() == 1, "Cannot compute + operation, expected 1 argument, found %s", args.size());
         if (source instanceof String) {
             /*
              * Perform a concatenation
