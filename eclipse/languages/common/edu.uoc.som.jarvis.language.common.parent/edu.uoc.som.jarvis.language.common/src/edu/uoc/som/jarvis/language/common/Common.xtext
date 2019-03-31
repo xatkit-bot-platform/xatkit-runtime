@@ -58,7 +58,7 @@ ContextAccess:
 
 // if this returns an Expression then the generated xcore doesn't contain Literal
 Literal:
-	StringLiteral | NumberLiteral
+	StringLiteral | NumberLiteral | BooleanLiteral
 ;
 
 StringLiteral:
@@ -68,3 +68,8 @@ StringLiteral:
 NumberLiteral:
 	value = INT
 ;
+
+BooleanLiteral:
+	{BooleanLiteral} (value?='true' | 'false')
+;
+

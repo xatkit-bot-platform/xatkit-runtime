@@ -60,6 +60,10 @@ class NumberLiteral extends Literal {
     int value
 }
 
+class BooleanLiteral extends Literal {
+    boolean value
+}
+
 class OperationCall extends Expression {
     String name
     contains Expression source

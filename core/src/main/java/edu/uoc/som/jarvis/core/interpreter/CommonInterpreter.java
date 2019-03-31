@@ -190,8 +190,8 @@ public class CommonInterpreter {
         checkNotNull(e, "Cannot evaluate the provided %s %s", Expression.class.getSimpleName(), e);
         if (e instanceof VariableAccess) {
             return evaluate((VariableAccess) e, context);
-        } else if(e instanceof ContextAccess) {
-            return evaluate((ContextAccess)e, context);
+        } else if (e instanceof ContextAccess) {
+            return evaluate((ContextAccess) e, context);
         } else if (e instanceof Literal) {
             return evaluate((Literal) e, context);
         } else if (e instanceof OperationCall) {
@@ -230,6 +230,8 @@ public class CommonInterpreter {
             return evaluate((StringLiteral) l, context);
         } else if (l instanceof NumberLiteral) {
             return evaluate((NumberLiteral) l, context);
+        } else if (l instanceof BooleanLiteral) {
+            return evaluate((BooleanLiteral) l, context);
         } else {
             throw new IllegalArgumentException(MessageFormat.format("Cannot compute the value of {0}, unknown literal" +
                     " type {1}", l, l.getClass().getSimpleName()));
@@ -256,6 +258,17 @@ public class CommonInterpreter {
      */
     public Integer evaluate(NumberLiteral l, ExecutionContext context) {
         return l.getValue();
+    }
+
+    /**
+     * Evaluates the provided {@link BooleanLiteral} {@link Expression}.
+     *
+     * @param l       the {@link BooleanLiteral} to evaluate
+     * @param context the {@link ExecutionContext} to use along the evaluation
+     * @return the {@link Boolean} value of the literal
+     */
+    public Boolean evaluate(BooleanLiteral l, ExecutionContext context) {
+        return l.isValue();
     }
 
     /**

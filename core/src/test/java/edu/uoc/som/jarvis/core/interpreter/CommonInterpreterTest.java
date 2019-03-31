@@ -226,6 +226,18 @@ public class CommonInterpreterTest {
         assertThat(result).as("valid sum").isEqualTo(6);
     }
 
+    @Test
+    public void boolean_true_literal() {
+        Object result = interpreter.compute(getProgram("boolean_true_literal"));
+        assertThat(result).as("valid boolean (true) result").isEqualTo(true);
+    }
+
+    @Test
+    public void boolean_false_literal() {
+        Object result = interpreter.compute(getProgram("boolean_false_literal"));
+        assertThat(result).as("valid boolean (false) result").isEqualTo(false);
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case
