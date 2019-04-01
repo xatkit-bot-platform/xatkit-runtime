@@ -3,7 +3,6 @@ package edu.uoc.som.jarvis.core.platform;
 import edu.uoc.som.jarvis.common.Expression;
 import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.core.interpreter.CommonInterpreter;
 import edu.uoc.som.jarvis.core.interpreter.ExecutionContext;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
@@ -359,7 +358,7 @@ public abstract class RuntimePlatform {
 
                         Expression paramExpression = paramValue.getExpression();
                         try {
-                            Object paramExpValue = CommonInterpreter.getInstance().evaluate(paramExpression,
+                            Object paramExpValue = jarvisCore.getExecutionService().evaluate(paramExpression,
                                     executionContext);
                             if (paramExpValue instanceof String) {
                                 return context.fillContextValues((String) paramExpValue);

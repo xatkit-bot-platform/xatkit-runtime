@@ -71,7 +71,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         ActionInstance onErrorActionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         onErrorActionInstance.setAction(testPlatformModel.getActionDefinition());
         errorActionInstance.getOnError().add(onErrorActionInstance);
-        notMatchedRule.getActions().add(errorActionInstance);
+        notMatchedRule.getInstructions().add(errorActionInstance);
 
         VALID_EXECUTION_MODEL.getExecutionRules().add(notMatchedRule);
 

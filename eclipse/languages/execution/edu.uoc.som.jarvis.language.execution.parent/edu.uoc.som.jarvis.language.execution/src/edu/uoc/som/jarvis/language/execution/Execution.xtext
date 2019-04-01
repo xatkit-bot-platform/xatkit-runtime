@@ -25,13 +25,14 @@ ExecutionModel returns ExecutionModel:
 ExecutionRule returns ExecutionRule:
 	{ExecutionRule}
 		'on intent' event=[intent::EventDefinition|ID] 'do'
-		(variables+=VariableDeclaration)*
-		actions+=ActionInstance (actions+=ActionInstance)*
+		instructions+=Instruction (instructions+=Instruction)*
 	;
 	
 ActionInstance returns ActionInstance:
-	((returnVariable=VariableAccess) '=')?
-	action=[platform::ActionDefinition|QualifiedName]
+	/*
+	 * 'action' keyword is required here to avoid unreachable parser rule.
+	 */
+	'action' action=[platform::ActionDefinition|QualifiedName]
 	('(' values+=ParameterValue (',' values+=ParameterValue)* ')')?
 	('on error do' '{' (onError+=ActionInstance)+ '}')?
 	
@@ -44,3 +45,8 @@ ParameterValue returns ParameterValue:
 
 QualifiedName returns ecore::EString:
 ID ('.'ID)*;
+
+@Override 
+Expression returns common::Expression:
+	super | ActionInstance
+;

@@ -1,6 +1,7 @@
 package edu.uoc.som.jarvis.core;
 
-import edu.uoc.som.jarvis.common.VariableDeclaration;
+import edu.uoc.som.jarvis.common.Expression;
+import edu.uoc.som.jarvis.common.Instruction;
 import edu.uoc.som.jarvis.core.interpreter.CommonInterpreter;
 import edu.uoc.som.jarvis.core.interpreter.ExecutionContext;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
@@ -26,7 +27,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static java.util.Objects.nonNull;
 
 /**
  * A service that handles {@link EventInstance}s and executes the corresponding {@link RuntimeAction}s defined in the
@@ -43,7 +43,7 @@ import static java.util.Objects.nonNull;
  * @see EventInstance
  * @see JarvisCore
  */
-public class ExecutionService {
+public class ExecutionService extends CommonInterpreter {
 
     /**
      * The {@link ExecutionModel} used to retrieve the {@link RuntimeAction}s to compute from the handled
@@ -190,13 +190,28 @@ public class ExecutionService {
     private void executeExecutionRule(ExecutionRule executionRule, JarvisSession session) {
         ExecutionContext context = new ExecutionContext();
         context.setSession(session);
-        for (VariableDeclaration variable : executionRule.getVariables()) {
-            CommonInterpreter.getInstance().compute(variable, context);
+        for(Instruction instruction : executionRule.getInstructions()) {
+            compute(instruction, context);
         }
-        for (ActionInstance actionInstance : executionRule.getActions()) {
-            RuntimeAction action = getRuntimeActionFromActionInstance(actionInstance, session, context);
-            executeRuntimeAction(action, actionInstance, session, context);
+    }
+
+    @Override
+    public Object evaluate(Expression e, ExecutionContext context) {
+        checkNotNull(e, "Cannot evaluate the provided %s %s", Expression.class.getSimpleName(), e);
+        if(e instanceof ActionInstance) {
+            return evaluate((ActionInstance) e, context);
+        } else {
+            return super.evaluate(e, context);
         }
+    }
+
+    public Object evaluate(ActionInstance a, ExecutionContext context) {
+        RuntimeAction runtimeAction = getRuntimeActionFromActionInstance(a, context.getSession(), context);
+        RuntimeActionResult result = executeRuntimeAction(runtimeAction, a, context.getSession(), context);
+        /*
+         * Unwrap to avoid complex interpreter rules, should be fixed
+         */
+        return result.getResult();
     }
 
     /**
@@ -219,7 +234,8 @@ public class ExecutionService {
      *                       provided {@code action}
      * @throws NullPointerException if the provided {@code action} or {@code session} is {@code null}
      */
-    private void executeRuntimeAction(RuntimeAction action, ActionInstance actionInstance, JarvisSession session,
+    private RuntimeActionResult executeRuntimeAction(RuntimeAction action, ActionInstance actionInstance,
+                                              JarvisSession session,
                                       ExecutionContext context) {
         checkNotNull(action, "Cannot execute the provided %s %s", RuntimeAction.class.getSimpleName(), action);
         checkNotNull(session, "Cannot execute the provided %s with the provided %s %s", RuntimeAction.class
@@ -233,20 +249,16 @@ public class ExecutionService {
              * Retrieve the ActionInstances to execute when the computed ActionInstance returns an error and execute
              * them.
              */
+            result = null;
             for (ActionInstance onErrorActionInstance : actionInstance.getOnError()) {
                 Log.info("Executing fallback action {0}", onErrorActionInstance.getAction().getName());
                 RuntimeAction onErrorRuntimeAction = getRuntimeActionFromActionInstance(onErrorActionInstance,
                         session, context);
-                executeRuntimeAction(onErrorRuntimeAction, onErrorActionInstance, session, context);
-            }
-        } else {
-            if (nonNull(action.getReturnVariable())) {
-                Log.info("Registering context variable {0} with value {1}", action.getReturnVariable(), result);
-                session.getRuntimeContexts().setContextValue("variables", 1, action.getReturnVariable(),
-                        result.getResult());
+                result = executeRuntimeAction(onErrorRuntimeAction, onErrorActionInstance, session, context);
             }
         }
         Log.info("Action {0} executed in {1} ms", action.getClass().getSimpleName(), result.getExecutionTime());
+        return result;
     }
 
     /**
