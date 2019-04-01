@@ -25,6 +25,7 @@
         <commons-beanutils.version>1.9.3</commons-beanutils.version>
         <httpcomponents.version>4.4.10</httpcomponents.version>
         <jcabi-github.version>0.41</jcabi-github.version>
+        <unirest.version>1.4.9</unirest.version>
     </properties>
 
     <repositories>
@@ -87,6 +88,11 @@
         </dependency>
 
         <!-- Utils -->
+
+        <dependency>
+            <groupId>com.mashape.unirest</groupId>
+            <artifactId>unirest-java</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>fr.inria.atlanmod.commons</groupId>
@@ -224,6 +230,12 @@
             </dependency>
 
             <!-- Utils -->
+
+            <dependency>
+                <groupId>com.mashape.unirest</groupId>
+                <artifactId>unirest-java</artifactId>
+                <version>${unirest.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.apache.commons</groupId>

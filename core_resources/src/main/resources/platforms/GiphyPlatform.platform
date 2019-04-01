@@ -1,0 +1,9 @@
+Platform GiphyPlatform 
+
+path "edu.uoc.som.jarvis.plugins.giphy.platform.GiphyPlatform"
+
+actions {
+	
+	GetGif(search)
+	
+}
