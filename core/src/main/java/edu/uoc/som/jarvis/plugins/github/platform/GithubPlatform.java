@@ -102,7 +102,7 @@ public class GithubPlatform extends RuntimePlatform {
             String password = configuration.getString(GITHUB_PASSWORD_KEY);
             checkArgument(nonNull(password) && !password.isEmpty(), "Cannot construct a %s from the " +
                             "provided username and password, please ensure that the jarvis configuration contains a " +
-                            "valid password for the username %s (configuration key: %s", this.getClass()
+                            "valid password for the username %s (configuration key: %s)", this.getClass()
                             .getSimpleName(),
                     username, GITHUB_PASSWORD_KEY);
             githubClient = new RtGithub(username, password);
