@@ -1,0 +1,2 @@
+def myVar = "Value"
+myVar.length()

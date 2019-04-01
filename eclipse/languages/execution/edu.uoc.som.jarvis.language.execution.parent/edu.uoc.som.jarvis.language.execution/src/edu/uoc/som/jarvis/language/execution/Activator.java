@@ -4,6 +4,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+import edu.uoc.som.jarvis.common.CommonPackage;
 import edu.uoc.som.jarvis.execution.ExecutionPackage;
 import edu.uoc.som.jarvis.intent.IntentPackage;
 import edu.uoc.som.jarvis.platform.PlatformPackage;
@@ -29,6 +30,7 @@ public class Activator implements BundleActivator {
 	@Override
 	public void start(BundleContext context) throws Exception {
 		System.out.println("Registering Jarvis Language EPackages");
+		EPackage.Registry.INSTANCE.put(CommonPackage.eNS_URI, CommonPackage.eINSTANCE);
 		EPackage.Registry.INSTANCE.put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
 		EPackage.Registry.INSTANCE.put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
 		EPackage.Registry.INSTANCE.put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);

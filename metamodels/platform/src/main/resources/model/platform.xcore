@@ -3,7 +3,7 @@
 package edu.uoc.som.jarvis.platform
 
 import edu.uoc.som.jarvis.intent.EventDefinition
-import edu.uoc.som.jarvis.intent.PlatformImportDeclaration
+import edu.uoc.som.jarvis.common.PlatformImportDeclaration
 import edu.uoc.som.jarvis.intent.Context
 
 class PlatformDefinition {

@@ -25,6 +25,7 @@
     </properties>
 
     <modules>
+    	<module>common/edu.uoc.som.jarvis.language.common.parent</module>
         <module>platform/edu.uoc.som.jarvis.language.platform.parent</module>
         <module>execution/edu.uoc.som.jarvis.language.execution.parent</module>
         <module>intent/edu.uoc.som.jarvis.language.intent.parent</module>

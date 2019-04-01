@@ -5,9 +5,9 @@ import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.FailedPreconditionException;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.dialogflow.v2.*;
 import com.google.cloud.dialogflow.v2.Context;
 import com.google.cloud.dialogflow.v2.EntityType;
+import com.google.cloud.dialogflow.v2.*;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
@@ -826,10 +826,17 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         List<Context> outContexts = createOutContexts(intentDefinition);
         List<Intent.Parameter> parameters = createParameters(intentDefinition.getOutContexts());
 
+        List<String> defaultAnswers = intentDefinition.getDefaultAnswers();
+        List<Intent.Message> messages = new ArrayList<>();
+        for(String defaultAnswer : defaultAnswers) {
+            messages.add(Intent.Message.newBuilder().setText(Intent.Message.Text.newBuilder().addText(defaultAnswer)).build());
+        }
+
         Intent.Builder builder = Intent.newBuilder().setDisplayName(adaptIntentDefinitionNameToDialogFlow
                 (intentDefinition.getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases)
                 .addAllInputContextNames(inContextNames)
-                .addAllOutputContexts(outContexts).addAllParameters(parameters);
+                .addAllOutputContexts(outContexts).addAllParameters(parameters)
+                .addAllMessages(messages);
 
         if (nonNull(intentDefinition.getFollows())) {
             Log.info("Registering intent {0} as a follow-up of {1}", intentDefinition.getName(), intentDefinition

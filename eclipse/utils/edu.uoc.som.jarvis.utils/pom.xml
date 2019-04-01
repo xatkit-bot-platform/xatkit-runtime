@@ -35,6 +35,12 @@
 		
 		<dependency>
 			<groupId>edu.uoc.som.jarvis</groupId>
+			<artifactId>common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>edu.uoc.som.jarvis</groupId>
 			<artifactId>platform</artifactId>
 			<version>${project.version}</version>
 		</dependency>

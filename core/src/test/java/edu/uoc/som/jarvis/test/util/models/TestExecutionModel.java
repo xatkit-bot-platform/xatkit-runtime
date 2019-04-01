@@ -25,7 +25,7 @@ public class TestExecutionModel {
         executionRule.setEvent(intentModel.getIntentDefinition());
         ruleActionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
         ruleActionInstance.setAction(platformModel.getActionDefinition());
-        executionRule.getActions().add(ruleActionInstance);
+        executionRule.getInstructions().add(ruleActionInstance);
         executionModel.getExecutionRules().add(executionRule);
     }
 

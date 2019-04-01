@@ -79,14 +79,14 @@ public class PrivateMessageListener extends ListenerAdapter {
             return;
         }
         MessageChannel channel = event.getChannel();
-        String channelId = channel.getId();
         Message message = event.getMessage();
         String content = message.getContentRaw();
         if (content.isEmpty()) {
             Log.trace("Skipping {0}, the message is empty");
             return;
         }
-        Log.info("Received message {0} from user {1} (id: {2})", content, author.getName(), author.getId());
+        Log.info("Received message {0} from user {1} (id: {2}, channel: {3})", content, author.getName(),
+                author.getId(), channel.getId());
         JarvisSession jarvisSession = discordIntentProvider.getRuntimePlatform().createSessionFromChannel(channel);
         /*
          * Call getRecognizedIntent before setting any context variable, the recognition triggers a decrement of all

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<?eclipse version="3.0"?>
+<plugin>
+	<extension point="org.eclipse.emf.ecore.generated_package">
+		<package 
+			uri = "http://www.uoc.edu/som/jarvis/language/common/Common"
+			class = "edu.uoc.som.jarvis.language.common.common.CommonPackage"
+			genModel = "model/generated/Common.genmodel" />
+	</extension>
+</plugin>

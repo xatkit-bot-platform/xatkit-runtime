@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ASCII"?>
+<common:Program xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:common="edu.uoc.som.jarvis.common">
+  <instructions xsi:type="common:VariableDeclaration" name="myVar">
+    <value xsi:type="common:StringLiteral" value="Value"/>
+  </instructions>
+  <instructions xsi:type="common:OperationCall" name="size">
+    <source xsi:type="common:VariableAccess" referredVariable="//@instructions.0"/>
+  </instructions>
+</common:Program>

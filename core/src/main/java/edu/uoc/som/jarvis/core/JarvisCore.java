@@ -1,5 +1,6 @@
 package edu.uoc.som.jarvis.core;
 
+import edu.uoc.som.jarvis.common.Instruction;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
@@ -39,10 +40,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.*;
 import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
@@ -336,7 +334,7 @@ public class JarvisCore {
         /*
          * Load the action platforms
          */
-        for (ActionInstance actionInstance : rule.getActions()) {
+        for (ActionInstance actionInstance : getActionInstancesFromRule(rule)) {
             ActionDefinition actionDefinition = actionInstance.getAction();
             /*
              * The Action is still a proxy, meaning that the proxy resolution failed.
@@ -353,6 +351,33 @@ public class JarvisCore {
             }
             runtimePlatform.enableAction(actionDefinition);
         }
+    }
+
+    /**
+     * Returns the {@link ActionInstance}s contained in the provided {@code rule}.
+     * <p>
+     * This method searches in the full AST of the provided {@code rule}, and returns any {@link ActionInstance}
+     * transitively contained in it.
+     *
+     * @param rule the {@link ExecutionRule} to to retrieve the {@link ActionInstance}s from
+     * @return a {@link List} of {@link ActionInstance} contained in the provided {@code rule}
+     */
+    private List<ActionInstance> getActionInstancesFromRule(ExecutionRule rule) {
+        List<ActionInstance> result = new ArrayList<>();
+        for (Instruction i : rule.getInstructions()) {
+            if (i instanceof ActionInstance) {
+                result.add((ActionInstance) i);
+            } else {
+                Iterator<EObject> iContents = i.eAllContents();
+                while (iContents.hasNext()) {
+                    EObject content = iContents.next();
+                    if (content instanceof ActionInstance) {
+                        result.add((ActionInstance) content);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     /**

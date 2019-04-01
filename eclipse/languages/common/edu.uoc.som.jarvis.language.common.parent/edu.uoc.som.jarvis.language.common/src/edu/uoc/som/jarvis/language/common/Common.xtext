@@ -1,0 +1,80 @@
+grammar edu.uoc.som.jarvis.language.common.Common with org.eclipse.xtext.common.Terminals
+
+import "edu.uoc.som.jarvis.common"
+
+Program:
+	(instructions += Instruction)*
+;
+
+Instruction:
+	VariableDeclaration | Expression | ImportDeclaration
+;
+
+ImportDeclaration returns ImportDeclaration:
+	{PlatformImportDeclaration} 'import platform' path=STRING ('as' alias=ID)?
+	| {LibraryImportDeclaration} 'import library' path=STRING ('as' alias=ID)?
+;
+
+VariableDeclaration:
+	'def' name=ID ('=' value=Expression)?
+;
+
+Expression:
+	PlusOperation 
+	| IfExpression
+;
+
+IfExpression returns IfExpression:
+	'if' '(' condition=Expression ')' 
+	'{' (thenInstructions+=Instruction)+ '}'
+	('else' '{' (elseInstructions+=Instruction)+ '}')?
+;
+
+PlusOperation returns Expression:
+	OrOperation ({OperationCall.source = current} name='+' args+=Expression)*
+;
+
+OrOperation returns Expression:
+	AndOperation({OperationCall.source = current} name='or' args+=Expression)*
+;
+
+AndOperation returns Expression:
+	OperationCall({OperationCall.source = current} name = 'and' args+=Expression)*
+;
+
+OperationCall returns Expression:
+	PropertyAccess ({OperationCall.source = current} '.' name=ID '(' (args+=Expression (',' args+=Expression)*)? ')')*
+;
+
+PropertyAccess returns Expression:
+	(Access | Literal) ({PropertyAccess.source = current}  '.' feature=ID)*
+;
+
+Access returns Expression:
+	VariableAccess | ContextAccess
+;
+
+VariableAccess:
+	referredVariable = [VariableDeclaration|ID]
+;
+
+ContextAccess:
+	'context' '(' contextName=ID ')'
+;
+
+Literal:
+	StringLiteral | NumberLiteral | BooleanLiteral
+;
+
+StringLiteral:
+	value = STRING
+;
+
+NumberLiteral:
+	value = INT
+;
+
+BooleanLiteral:
+	{BooleanLiteral} (value?='true' | 'false')
+;
+

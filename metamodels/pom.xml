@@ -25,6 +25,7 @@
     </properties>
 
     <modules>
+        <module>common</module>
         <module>execution</module>
         <module>platform</module>
         <module>intent</module>

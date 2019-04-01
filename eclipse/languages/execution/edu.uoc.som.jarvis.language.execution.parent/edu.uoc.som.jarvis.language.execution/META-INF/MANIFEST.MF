@@ -15,7 +15,8 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.core.runtime;bundle-version="3.13.0",
  edu.uoc.som.jarvis.execution;bundle-version="1.0.1",
  edu.uoc.som.jarvis.core_resources;bundle-version="1.0.1",
- edu.uoc.som.jarvis.utils;bundle-version="1.0.1"
+ edu.uoc.som.jarvis.utils;bundle-version="1.0.1",
+ edu.uoc.som.jarvis.language.common;bundle-version="1.0.1";visibility:=reexport
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: edu.uoc.som.jarvis.language.execution,
  edu.uoc.som.jarvis.language.execution.formatting2,

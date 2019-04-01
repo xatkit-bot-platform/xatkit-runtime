@@ -1,14 +1,9 @@
 package edu.uoc.som.jarvis.stubs;
 
 import edu.uoc.som.jarvis.core.JarvisCore;
+import edu.uoc.som.jarvis.core.interpreter.ExecutionContext;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.stubs.action.ErroringStubRuntimeAction;
-import edu.uoc.som.jarvis.stubs.action.StubRuntimeAction;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.execution.ActionInstance;
 import edu.uoc.som.jarvis.stubs.action.ErroringStubRuntimeAction;
@@ -42,7 +37,8 @@ public class StubRuntimePlatform extends RuntimePlatform {
     }
 
     @Override
-    public RuntimeAction createRuntimeAction(ActionInstance actionInstance, JarvisSession session) {
+    public RuntimeAction createRuntimeAction(ActionInstance actionInstance, JarvisSession session,
+                                             ExecutionContext context) {
         if(actionInstance.getAction().getName().equals("StubRuntimeAction")) {
             return runtimeAction;
         } else if(actionInstance.getAction().getName().equals("ErroringStubRuntimeAction")) {

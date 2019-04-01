@@ -34,6 +34,7 @@ Workflow {
 			fileExtensions = "platform"
 			referencedResource = "platform:/resource/edu.uoc.som.jarvis.platform/model/platform.xcore"
 			referencedResource = "platform:/resource/edu.uoc.som.jarvis.intent/model/intent.xcore"
+			referencedResource = "platform:/resource/edu.uoc.som.jarvis.common/model/common.xcore"
 			
 			fragment = ecore2xtext.Ecore2XtextValueConverterServiceFragment2 auto-inject {}
 

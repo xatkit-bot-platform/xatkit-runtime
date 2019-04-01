@@ -6,7 +6,11 @@ import edu.uoc.som.jarvis.platform.ActionDefinition
 import edu.uoc.som.jarvis.platform.EventProviderDefinition
 import edu.uoc.som.jarvis.intent.EventDefinition
 import edu.uoc.som.jarvis.platform.Parameter
-import edu.uoc.som.jarvis.intent.ImportDeclaration
+import edu.uoc.som.jarvis.common.ImportDeclaration
+import edu.uoc.som.jarvis.common.Instruction
+import edu.uoc.som.jarvis.common.Expression
+import edu.uoc.som.jarvis.common.VariableDeclaration
+import edu.uoc.som.jarvis.common.VariableAccess
 
 class ExecutionModel {
     refers EventProviderDefinition[] eventProviderDefinitions
@@ -16,55 +20,17 @@ class ExecutionModel {
 
 class ExecutionRule {
     refers EventDefinition event
-    contains ActionInstance[] actions
-    contains Variable[] variables
+    contains Instruction[] instructions
 }
 
-class ActionInstance {
+class ActionInstance extends Expression {
     refers ActionDefinition action
     contains ParameterValue[] values
     contains VariableAccess returnVariable
     contains ActionInstance[] onError
 }
 
-class Variable {
-    String name
-}
-
 class ParameterValue {
     refers Parameter parameter
     contains Expression expression
 }
-
-abstract class Expression {
-
-}
-
-abstract class Literal extends Expression {
-
-}
-
-class StringLiteral extends Literal {
-    String value
-}
-
-class VariableAccess extends Expression {
-    refers Variable referredVariable
-}
-
-
-
-
-
-
-//abstract class Value {
-//    refers Parameter parameter
-//}
-
-//class StringValue extends Value {
-//    String value
-//}
-
-//class VariableAccess extends Value {
-//    refers Variable referredVariable
-//}

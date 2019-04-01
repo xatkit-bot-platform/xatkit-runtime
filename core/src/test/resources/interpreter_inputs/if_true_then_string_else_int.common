@@ -1,0 +1,5 @@
+if(true) {
+	"Value"
+} else {
+	2
+}

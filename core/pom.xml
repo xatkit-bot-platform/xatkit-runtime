@@ -122,6 +122,12 @@
 
         <dependency>
             <groupId>edu.uoc.som.jarvis</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>edu.uoc.som.jarvis</groupId>
             <artifactId>execution</artifactId>
             <version>${project.version}</version>
         </dependency>
