@@ -286,6 +286,35 @@ public class CommonInterpreterTest {
         assertThat(result).as("valid boolean (true) result").isEqualTo(true);
     }
 
+    @Test
+    public void if_true_then_true_else_false() {
+        Object result = interpreter.compute(getProgram("if_true_then_true_else_false"));
+        assertThat(result).as("valid boolean (true) result").isEqualTo(true);
+    }
+
+    @Test
+    public void if_true_then_string_else_int() {
+        Object result = interpreter.compute(getProgram("if_true_then_string_else_int"));
+        assertThat(result).as("valid String result").isEqualTo("Value");
+    }
+
+    @Test
+    public void if_false_then_string_else_int() {
+        Object result = interpreter.compute(getProgram("if_false_then_string_else_int"));
+        assertThat(result).as("valid int result").isEqualTo(2);
+    }
+
+    @Test
+    public void nested_ifs() {
+        Object result = interpreter.compute(getProgram("nested_ifs"));
+        assertThat(result).as("valid String result").isEqualTo("Value2");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void if_string_then_string_else_int() {
+        interpreter.compute(getProgram("if_string_then_string_else_int"));
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case

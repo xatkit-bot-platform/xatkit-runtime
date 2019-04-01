@@ -40,6 +40,12 @@ class UnaryOperation extends Operation {
      contains Expression exp
 }
 
+class IfExpression extends Expression {
+    contains Expression condition
+    contains Instruction[] thenInstructions
+    contains Instruction[] elseInstructions
+}
+
 class VariableAccess extends Expression {
     refers VariableDeclaration referredVariable
 }

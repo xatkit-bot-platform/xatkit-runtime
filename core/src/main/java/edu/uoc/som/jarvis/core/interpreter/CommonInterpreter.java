@@ -123,17 +123,34 @@ public class CommonInterpreter {
      * @param context the {@link ExecutionContext} to use along the computation
      * @return the result of the computation
      * @throws NullPointerException if the provided {@code program} or {@code context} is {@code null}
+     * @see #compute(List, ExecutionContext)
      */
     public Object compute(Program program, ExecutionContext context) {
         checkNotNull(program, "Cannot compute the provided program %s", program);
         checkNotNull(context, "Cannot compute the program with the provided context %s", context);
+        return compute(program.getInstructions(), context);
+    }
+
+    /**
+     * Computes a list of {@link Instruction}s with the given {@code context}.
+     * <p>
+     * This method returns the evaluated value of the last instruction in the program.
+     *
+     * @param instructions the {@link List} of {@link Instruction}s to compute
+     * @param context      the {@link ExecutionContext} to use along the computation
+     * @return the result of the computation
+     * @throws NullPointerException if the provided {@code instructions} is {@code null}
+     */
+    public Object compute(List<Instruction> instructions, ExecutionContext context) {
+        checkNotNull(instructions, "Cannot compute the provided instruction list %s", instructions);
         Object result = null;
-        for (Instruction i : program.getInstructions()) {
+        for (Instruction i : instructions) {
             result = compute(i, context);
         }
         /*
-         * Computing an entire program only returns the evaluated value of its last Instruction. this may be improved
-         * by defining a custom result type that wraps additional information regarding the execution.
+         * Computing a list of instructions only returns the evaluated value of its last Instruction.
+         * this may be improved by defining a custom result type that wraps additional information regarding the
+         * execution.
          */
         return result;
     }
@@ -196,6 +213,8 @@ public class CommonInterpreter {
             return evaluate((Literal) e, context);
         } else if (e instanceof OperationCall) {
             return evaluate((OperationCall) e, context);
+        } else if (e instanceof IfExpression) {
+            return evaluate((IfExpression) e, context);
         } else {
             throw new IllegalArgumentException(MessageFormat.format("Cannot evaluate the expression {0}, unknown " +
                     "expression type {1}", e, e.getClass().getSimpleName()));
@@ -214,6 +233,14 @@ public class CommonInterpreter {
         return context.getValue(v.getReferredVariable().getName());
     }
 
+    /**
+     * Evaluates the provided {@link ContextAccess} {@link Expression} and returns its value from the provided {@code
+     * context}.
+     *
+     * @param c       the {@link ContextAccess} to evaluate
+     * @param context the {@link ExecutionContext} to use along the evaluation
+     * @return the value of the context variable associated to the provided {@link ContextAccess}
+     */
     public Object evaluate(ContextAccess c, ExecutionContext context) {
         return context.getSession().getRuntimeContexts().getContextVariables(c.getContextName());
     }
@@ -300,5 +327,32 @@ public class CommonInterpreter {
                 .map(arg -> evaluate(arg, context))
                 .collect(Collectors.toList());
         return operation.invoke(source, args);
+    }
+
+    /**
+     * Evaluates the provided {@link IfExpression}.
+     * <p>
+     * This method recursively evaluates the {@link IfExpression}'s condition, and computes the {@link Instruction}s
+     * in the corresponding condition's branch.
+     * <p>
+     * <b>Note:</b> the evaluated value of an {@link IfExpression} is the last value returned by it's
+     * {@link Instruction} list matching the if's condition.
+     *
+     * @param i       the {@link IfExpression} to evaluate
+     * @param context the {@link ExecutionContext} to use along the evaluation
+     * @return the if result
+     * @throws IllegalArgumentException if the evaluated condition is not a {@link Boolean} value
+     * @see #compute(List, ExecutionContext)
+     */
+    public Object evaluate(IfExpression i, ExecutionContext context) {
+        Object condition = evaluate(i.getCondition(), context);
+        checkArgument(condition instanceof Boolean, "Cannot evaluate if condition: %s (class=%s) is not a boolean " +
+                "value", condition, condition.getClass().getSimpleName());
+        Boolean boolCondition = (Boolean) condition;
+        if (boolCondition.booleanValue()) {
+            return compute(i.getThenInstructions(), context);
+        } else {
+            return compute(i.getElseInstructions(), context);
+        }
     }
 }
