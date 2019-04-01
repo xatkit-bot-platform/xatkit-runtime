@@ -171,6 +171,7 @@ public class ExecutionService {
         }, executorService).exceptionally((throwable) -> {
             Log.error("An error occurred when running the actions associated to {0}: {1} {2}", eventInstance
                     .getDefinition().getName(), throwable.getClass().getSimpleName(), throwable.getMessage());
+            Log.error(throwable);
             return null;
         });
     }
