@@ -68,6 +68,8 @@ public class PostMessage extends RuntimeMessageAction<SlackPlatform> {
                 .token(runtimePlatform.getSlackToken())
                 .channel(channel)
                 .text(message)
+                .unfurlLinks(true)
+                .unfurlMedia(true)
                 .build();
         try {
             ChatPostMessageResponse response = runtimePlatform.getSlack().methods().chatPostMessage(request);
