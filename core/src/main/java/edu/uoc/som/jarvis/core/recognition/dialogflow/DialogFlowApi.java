@@ -11,6 +11,7 @@ import com.google.cloud.dialogflow.v2.*;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
+import edu.uoc.som.jarvis.Jarvis;
 import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
 import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.JarvisException;
@@ -439,6 +440,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             InputStream credentialsInputStream;
             try {
                 File credentialsFile = new File(credentialsPath);
+                if(!credentialsFile.isAbsolute()) {
+                    String configurationFolderPath = configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
+                    credentialsFile = new File(configurationFolderPath + File.separator + credentialsPath);
+                }
                 if (credentialsFile.exists()) {
                     credentialsInputStream = new FileInputStream(credentialsFile);
                 } else {

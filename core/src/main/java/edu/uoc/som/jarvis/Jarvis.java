@@ -22,6 +22,11 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 public class Jarvis {
 
     /**
+     * The {@link org.apache.commons.configuration2.Configuration} key to store the configuration folder path.
+     */
+    public static String CONFIGURATION_FOLDER_PATH = "jarvis.core.configuration.path";
+
+    /**
      * The {@link JarvisCore} instance used to run the bot.
      */
     private static JarvisCore jarvisCore;
@@ -48,6 +53,7 @@ public class Jarvis {
         try {
             Configurations configs = new Configurations();
             PropertiesConfiguration configuration = configs.properties(propertiesFile);
+            configuration.addProperty(CONFIGURATION_FOLDER_PATH, propertiesFile.getParentFile().getAbsolutePath());
             jarvisCore = new JarvisCore(configuration);
         } catch (ConfigurationException e) {
             throw new JarvisException("Cannot load the configuration file", e);

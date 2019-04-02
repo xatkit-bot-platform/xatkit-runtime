@@ -1,5 +1,6 @@
 package edu.uoc.som.jarvis.core;
 
+import edu.uoc.som.jarvis.Jarvis;
 import edu.uoc.som.jarvis.common.Instruction;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
@@ -191,7 +192,7 @@ public class JarvisCore {
         try {
             this.configuration = configuration;
             initializeExecutionResourceSet();
-            ExecutionModel executionModel = getExecutionModel(configuration.getProperty(EXECUTION_MODEL_KEY));
+            ExecutionModel executionModel = getExecutionModel(configuration);
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
                     .getSimpleName(), ExecutionModel.class.getSimpleName());
             this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
@@ -390,7 +391,7 @@ public class JarvisCore {
      * This method supports loading of model path defined by {@link String}s and {@link URI}s. Support for additional
      * types is planned in the next releases.
      *
-     * @param property the {@link Object} representing the {@link ExecutionModel} to extract
+     * @param configuration the {@link Configuration} to retrieve the {@link ExecutionModel} from
      * @return the {@link ExecutionModel} from the provided {@code property}
      * @throws JarvisException      if the provided {@code property} type is not handled, if the
      *                              underlying {@link Resource} cannot be loaded or if it does not contain an
@@ -398,10 +399,12 @@ public class JarvisCore {
      *                              {@link ExecutionModel} is empty.
      * @throws NullPointerException if the provided {@code property} is {@code null}
      */
-    protected ExecutionModel getExecutionModel(Object property) {
+    protected ExecutionModel getExecutionModel(Configuration configuration) {
+        Object property = configuration.getProperty(EXECUTION_MODEL_KEY);
         checkNotNull(property, "Cannot retrieve the %s from the property %s, please ensure it is " +
                         "set in the %s property of the jarvis configuration", ExecutionModel.class.getSimpleName(),
                 property, EXECUTION_MODEL_KEY);
+        String basePath = configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
         if (property instanceof ExecutionModel) {
             return (ExecutionModel) property;
         } else {
@@ -418,10 +421,14 @@ public class JarvisCore {
                         "provided property {1}, the property type ({2}) is not supported", ExecutionModel.class
                         .getSimpleName(), property, property.getClass().getSimpleName()));
             }
+            if(uri.isRelative()) {
+                uri = URI.createFileURI(basePath + File.separator + uri);
+            }
             Resource executionModelResource;
             try {
                 executionModelResource = executionResourceSet.getResource(uri, true);
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new JarvisException(MessageFormat.format("Cannot load the {0} at the given location: {1}",
                         ExecutionModel.class.getSimpleName(), uri.toString()), e);
             }

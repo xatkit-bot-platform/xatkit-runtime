@@ -248,33 +248,35 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test(expected = JarvisException.class)
     public void getExecutionModelInvalidType() {
         jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(new Integer(2));
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration(new Integer(2)));
     }
 
     @Test(expected = JarvisException.class)
     public void getExecutionModelFromInvalidString() {
         jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel("/tmp/test.xmi");
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration("/tmp/test.xmi"));
     }
 
     @Test(expected = JarvisException.class)
     public void getExecutionModelFromInvalidURI() {
         jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(URI.createURI("/tmp/test.xmi"));
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration(URI.createURI(
+                "/tmp/test.xmi")));
     }
 
     @Test
     public void getExecutionModelFromValidInMemory() {
         jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(VALID_EXECUTION_MODEL);
+        ExecutionModel executionModel =
+                jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL));
         assertThat(executionModel).as("Valid ExecutionModel").isEqualTo(VALID_EXECUTION_MODEL);
     }
 
     @Test
     public void getExecutionModelFromValidString() {
         jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(VALID_EXECUTION_MODEL.eResource().getURI()
-                .toString());
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource().getURI()
+                .toString()));
         assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
          * Not enough, but comparing the entire content of the model is more complicated than it looks like.
@@ -286,14 +288,20 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void getExecutionModelFromValidURI() {
         jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(VALID_EXECUTION_MODEL.eResource
-                ().getURI());
+        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource
+                ().getURI()));
         assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
          * Not enough, but comparing the entire content of the model is more complicated than it looks like.
          */
         assertThat(executionModel.getExecutionRules()).as("Valid ExecutionRule size").hasSize
                 (VALID_EXECUTION_MODEL.getExecutionRules().size());
+    }
+
+    private Configuration buildExecutionModelConfiguration(Object value) {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, value);
+        return configuration;
     }
 
     @Test(expected = JarvisException.class)
