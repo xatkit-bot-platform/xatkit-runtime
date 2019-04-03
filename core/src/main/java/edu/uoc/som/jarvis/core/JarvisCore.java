@@ -410,7 +410,15 @@ public class JarvisCore {
         } else {
             URI uri;
             if (property instanceof String) {
-                uri = URI.createURI((String) property);
+                File executionModelFile = new File((String) property);
+                /*
+                 * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
+                 */
+                if(executionModelFile.isAbsolute() || ((String)property).charAt(0) == '/') {
+                    uri = URI.createFileURI((String) property);
+                } else {
+                    uri = URI.createFileURI(basePath + File.separator + (String)property);
+                }
             } else if (property instanceof URI) {
                 uri = (URI) property;
             } else {
@@ -420,9 +428,6 @@ public class JarvisCore {
                 throw new JarvisException(MessageFormat.format("Cannot retrieve the {0} from the " +
                         "provided property {1}, the property type ({2}) is not supported", ExecutionModel.class
                         .getSimpleName(), property, property.getClass().getSimpleName()));
-            }
-            if(uri.isRelative()) {
-                uri = URI.createFileURI(basePath + File.separator + uri);
             }
             Resource executionModelResource;
             try {

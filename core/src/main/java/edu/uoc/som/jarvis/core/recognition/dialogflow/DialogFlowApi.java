@@ -462,7 +462,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             InputStream credentialsInputStream;
             try {
                 File credentialsFile = new File(credentialsPath);
-                if (!credentialsFile.isAbsolute()) {
+                /*
+                 * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
+                 */
+                if (!credentialsFile.isAbsolute() && !(credentialsPath.charAt(0) == '/')) {
                     String configurationFolderPath = configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
                     credentialsFile = new File(configurationFolderPath + File.separator + credentialsPath);
                 }
