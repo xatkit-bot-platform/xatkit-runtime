@@ -4,6 +4,6 @@ import platform "SlackPlatform"
 use provider SlackPlatform.SlackIntentProvider
 
 on intent HowAreYou do
-	SlackPlatform.Reply(message : "Hi! I am fine and you?")
+	action SlackPlatform.Reply(message : "Hi! I am fine and you?")
 	
 	

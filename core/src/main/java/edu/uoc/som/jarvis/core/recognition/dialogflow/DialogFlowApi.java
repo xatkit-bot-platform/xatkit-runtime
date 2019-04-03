@@ -77,6 +77,15 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     public static String DEFAULT_LANGUAGE_CODE = "en-US";
 
     /**
+     * The {@link Configuration} key to store whether to clean the {@link #registeredIntents} and
+     * {@link #registeredEntityTypes} when initializing the {@link DialogFlowApi}.
+     * <p>
+     * This property is disabled by default. Enabling it allows to easily re-deploy chatbots under development, but
+     * complete agent cleaning should not be done on production-ready bots (re-training such bots may take a long time).
+     */
+    public static String CLEAN_AGENT_ON_STARTUP_KEY = "jarvis.dialogflow.clean_on_startup";
+
+    /**
      * The {@link Configuration} key to store whether to initialize the {@link #registeredIntents} {@link Map} with
      * the {@link Intent}s already stored in the DialogFlow project.
      * <p>
@@ -157,6 +166,17 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #LANGUAGE_CODE_KEY
      */
     private String languageCode;
+
+    /**
+     * A flag allowing the {@link DialogFlowApi} to perform a complete clean of the agent before its initialization.
+     * <p>
+     * This option is set to {@code false} by default. Setting it to {@code true} allows to easily re-deploy bots
+     * under development, but should not be used in production-ready bots (re-training the agent may take a while to
+     * complete).
+     *
+     * @see #CLEAN_AGENT_ON_STARTUP_KEY
+     */
+    private boolean cleanAgentOnStartup;
 
     /**
      * A flag allowing the {@link DialogFlowApi} to load previously registered {@link Intent} from the DialogFlow agent.
@@ -347,6 +367,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         this.projectName = ProjectName.of(projectId);
         this.intentFactory = IntentFactory.eINSTANCE;
         this.entityMapper = new DialogFlowEntityMapper();
+        this.cleanAgent();
         this.importRegisteredIntents();
         this.importRegisteredEntities();
 
@@ -365,6 +386,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             Log.warn("No language code provided, using the default one ({0})", DEFAULT_LANGUAGE_CODE);
             languageCode = DEFAULT_LANGUAGE_CODE;
         }
+        this.cleanAgentOnStartup = configuration.getBoolean(CLEAN_AGENT_ON_STARTUP_KEY, false);
         this.enableIntentLoader = configuration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
         this.enableEntityLoader = configuration.getBoolean(ENABLE_ENTITY_LOADING_KEY, true);
         this.enableContextMerge = configuration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
@@ -440,7 +462,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             InputStream credentialsInputStream;
             try {
                 File credentialsFile = new File(credentialsPath);
-                if(!credentialsFile.isAbsolute()) {
+                if (!credentialsFile.isAbsolute()) {
                     String configurationFolderPath = configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
                     credentialsFile = new File(configurationFolderPath + File.separator + credentialsPath);
                 }
@@ -465,6 +487,29 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     }
 
     /**
+     * Deletes all the {@link Intent}s and {@link EntityType}s from the DialogFlow agent.
+     * <p>
+     * Agent cleaning is enabled by setting the property {@link #CLEAN_AGENT_ON_STARTUP_KEY} in the jarvis
+     * configuration file, and allows to easily re-deploy bots under development. Production-ready agents should not
+     * be cleaned on startup: re-training the ML engine can take a while.
+     */
+    private void cleanAgent() {
+        if(cleanAgentOnStartup) {
+            Log.info("Cleaning agent DialogFlow agent");
+            List<Intent> registeredIntents = getRegisteredIntents();
+            for (Intent intent : registeredIntents) {
+                if(!intent.getDisplayName().equals(DEFAULT_FALLBACK_INTENT.getName())) {
+                    intentsClient.deleteIntent(intent.getName());
+                }
+            }
+            List<EntityType> registeredEntityTypes = getRegisteredEntityTypes();
+            for (EntityType entityType : registeredEntityTypes) {
+                entityTypesClient.deleteEntityType(entityType.getName());
+            }
+        }
+    }
+
+    /**
      * Imports the intents registered in the DialogFlow project.
      * <p>
      * Intents import can be disabled to reduce the number of queries sent to the DialogFlow API by setting the
@@ -473,6 +518,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private void importRegisteredIntents() {
         this.registeredIntents = new HashMap<>();
+        if(cleanAgentOnStartup) {
+            Log.info("Skipping intent import, the agent has been cleaned on startup");
+            return;
+        }
         if (enableIntentLoader) {
             Log.info("Loading Intents previously registered in the DialogFlow project {0}", projectName
                     .getProject());
@@ -494,6 +543,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private void importRegisteredEntities() {
         this.registeredEntityTypes = new HashMap<>();
+        if(cleanAgentOnStartup) {
+            Log.info("Skipping entity types import, the agent has been cleaned on startup");
+            return;
+        }
         if (enableEntityLoader) {
             Log.info("Loading Entities previously registered in the DialogFlow project {0}", projectName.getProject());
             for (EntityType entityType : getRegisteredEntityTypes()) {
@@ -833,7 +886,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
 
         List<String> defaultAnswers = intentDefinition.getDefaultAnswers();
         List<Intent.Message> messages = new ArrayList<>();
-        for(String defaultAnswer : defaultAnswers) {
+        for (String defaultAnswer : defaultAnswers) {
             messages.add(Intent.Message.newBuilder().setText(Intent.Message.Text.newBuilder().addText(defaultAnswer)).build());
         }
 

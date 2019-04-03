@@ -1,2 +1,3 @@
 **/*.xmi
 **/*.json
+**/*-private.properties
