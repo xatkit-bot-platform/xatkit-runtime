@@ -1,0 +1,65 @@
+Library TutorialIntent
+
+intent Hello {
+	inputs {
+		"Hi"
+		"Hello"
+		"Salut!"
+	}
+	
+}
+
+intent OpenIssue {
+	inputs {
+		"I want to open an issue"
+		"I have an issue"
+		"Open issue"
+	}
+}
+
+intent OpenPullRequest {
+	inputs {
+		"I want to open a pull request"
+		"Pull request"
+	}
+}
+
+intent SpecifyRepository follows OpenIssue {
+	inputs {
+		"Repository MyRepo"
+		"(Repository:repoName=@any)"
+	}
+	creates context Repository {
+		sets parameter repoName from fragment "MyRepo" (entity any)
+	}
+}
+
+intent SpecifyOwner follows SpecifyRepository {
+	inputs {
+		"(Repository:repoOwner=@any)"
+	}
+}
+
+intent SpecifyClass follows SpecifyOwner {
+	inputs {
+		"Class MyClass"
+		"(Class:className=@any)"
+	}
+	creates context Class {
+		sets parameter className from fragment "MyClass" (entity any)
+	}
+}
+
+intent Title follows SpecifyClass {
+	inputs {
+		"(Issue:title=@any)"
+	}
+}
+
+intent IssueContent follows Title {
+	inputs {
+		"(Issue:content=@any)"
+	}
+}
+
+
