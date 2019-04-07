@@ -53,7 +53,12 @@ public class Jarvis {
         try {
             Configurations configs = new Configurations();
             PropertiesConfiguration configuration = configs.properties(propertiesFile);
-            configuration.addProperty(CONFIGURATION_FOLDER_PATH, propertiesFile.getParentFile().getAbsolutePath());
+            /*
+             * Need to call getAbsoluteFile() in case the provided path only contains the file name, otherwise
+             * getParentFile() returns null (see #202)
+             */
+            configuration.addProperty(CONFIGURATION_FOLDER_PATH,
+                    propertiesFile.getAbsoluteFile().getParentFile().getAbsolutePath());
             jarvisCore = new JarvisCore(configuration);
         } catch (ConfigurationException e) {
             throw new JarvisException("Cannot load the configuration file", e);
