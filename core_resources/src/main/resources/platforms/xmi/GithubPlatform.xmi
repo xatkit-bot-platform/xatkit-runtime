@@ -6806,4 +6806,13 @@
     <parameters key="issueTitle"/>
     <parameters key="issueContent"/>
   </actions>
+  <actions name="GetIssue">
+    <parameters key="user"/>
+    <parameters key="repository"/>
+    <parameters key="issueNumber"/>
+  </actions>
+  <actions name="CommentIssue">
+    <parameters key="issue"/>
+    <parameters key="comment"/>
+  </actions>
 </platform:PlatformDefinition>

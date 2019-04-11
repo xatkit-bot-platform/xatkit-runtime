@@ -6776,4 +6776,6 @@ providers {
 
 actions {
 	OpenIssue(user, repository, issueTitle, issueContent)
+	GetIssue(user, repository, issueNumber)
+	CommentIssue(issue, comment)
 }
