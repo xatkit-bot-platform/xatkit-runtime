@@ -209,6 +209,8 @@ public class CommonInterpreter {
             return evaluate((VariableAccess) e, context);
         } else if (e instanceof ContextAccess) {
             return evaluate((ContextAccess) e, context);
+        } else if (e instanceof SessionAccess) {
+            return evaluate((SessionAccess) e, context);
         } else if (e instanceof Literal) {
             return evaluate((Literal) e, context);
         } else if (e instanceof OperationCall) {
@@ -243,6 +245,18 @@ public class CommonInterpreter {
      */
     public Object evaluate(ContextAccess c, ExecutionContext context) {
         return context.getSession().getRuntimeContexts().getContextVariables(c.getContextName());
+    }
+
+    /**
+     * Evaluates the provided {@link SessionAccess} {@link Expression} and returns the corresponding
+     * {@link edu.uoc.som.jarvis.core.session.JarvisSession}.
+     *
+     * @param s       the {@link SessionAccess} to evaluate
+     * @param context the {@link ExecutionContext} to use along the evaluation
+     * @return the {@link edu.uoc.som.jarvis.core.session.JarvisSession} associated to the provided {@code context}
+     */
+    public Object evaluate(SessionAccess s, ExecutionContext context) {
+        return context.getSession();
     }
 
     /**

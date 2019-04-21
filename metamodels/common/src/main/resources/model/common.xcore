@@ -54,6 +54,10 @@ class ContextAccess extends Expression {
     String contextName
 }
 
+class SessionAccess extends Expression {
+
+}
+
 abstract class Literal extends Expression {
     
 }

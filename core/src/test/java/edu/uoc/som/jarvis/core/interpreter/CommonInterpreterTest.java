@@ -315,6 +315,49 @@ public class CommonInterpreterTest {
         interpreter.compute(getProgram("if_string_then_string_else_int"));
     }
 
+    @Test
+    public void session() {
+        ExecutionContext context = new ExecutionContext();
+        JarvisSession session = new JarvisSession("sessionID");
+        context.setSession(session);
+        Object result = interpreter.compute(getProgram("session"), context);
+        assertThat(result).as("valid JarvisSession result").isInstanceOf(JarvisSession.class);
+        JarvisSession sessionResult = (JarvisSession) result;
+        assertThat(sessionResult.getSessionId()).as("valid session ID").isEqualTo(session.getSessionId());
+    }
+
+    @Test
+    public void session_get() {
+        ExecutionContext context = new ExecutionContext();
+        JarvisSession session = new JarvisSession("sessionID");
+        session.store("test", "value");
+        context.setSession(session);
+        Object result = interpreter.compute(getProgram("session_get"), context);
+        assertThat(result).as("valid String result").isInstanceOf(String.class);
+        assertThat(result).as("valid String value").isEqualTo("value");
+    }
+
+    @Test
+    public void session_store() {
+        ExecutionContext context = new ExecutionContext();
+        JarvisSession session = new JarvisSession("sessionID");
+        context.setSession(session);
+        Object result = interpreter.compute(getProgram("session_store"), context);
+        assertThat(result).as("null result").isNull();
+        assertThat(session.get("test")).as("valid session value").isEqualTo("value");
+    }
+
+    @Test
+    public void session_store_get() {
+        ExecutionContext context = new ExecutionContext();
+        JarvisSession session = new JarvisSession("sessionID");
+        context.setSession(session);
+        Object result = interpreter.compute(getProgram("session_store_get"), context);
+        assertThat(result).as("valid String result").isInstanceOf(String.class);
+        assertThat(result).as("valid String value").isEqualTo("value");
+        assertThat(session.get("test")).as("valid session value").isEqualTo("value");
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case
