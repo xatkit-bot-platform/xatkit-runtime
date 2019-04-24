@@ -5,7 +5,8 @@ import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.plugins.slack.JarvisSlackUtils;
+import edu.uoc.som.jarvis.plugins.chat.platform.ChatPlatform;
+import edu.uoc.som.jarvis.plugins.slack.SlackUtils;
 import edu.uoc.som.jarvis.plugins.slack.platform.action.PostMessage;
 import org.apache.commons.configuration2.Configuration;
 
@@ -25,7 +26,7 @@ import static java.util.Objects.nonNull;
  * This class is part of jarvis' core platform, and can be used in an execution model by importing the
  * <i>SlackPlatform</i> package.
  */
-public class SlackPlatform extends RuntimePlatform {
+public class SlackPlatform extends ChatPlatform {
 
     /**
      * The {@link String} representing the Slack bot API token.
@@ -59,10 +60,10 @@ public class SlackPlatform extends RuntimePlatform {
      */
     public SlackPlatform(JarvisCore jarvisCore, Configuration configuration) {
         super(jarvisCore, configuration);
-        slackToken = configuration.getString(JarvisSlackUtils.SLACK_TOKEN_KEY);
+        slackToken = configuration.getString(SlackUtils.SLACK_TOKEN_KEY);
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackPlatform from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
-                "associated to the key %s", slackToken, JarvisSlackUtils.SLACK_TOKEN_KEY);
+                "associated to the key %s", slackToken, SlackUtils.SLACK_TOKEN_KEY);
         slack = new Slack();
     }
 

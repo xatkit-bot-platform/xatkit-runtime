@@ -2,6 +2,7 @@ package edu.uoc.som.jarvis.plugins.discord;
 
 import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.plugins.chat.ChatUtils;
 import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 import edu.uoc.som.jarvis.plugins.discord.platform.io.DiscordIntentProvider;
 import fr.inria.atlanmod.commons.log.Log;
@@ -19,7 +20,7 @@ import static java.util.Objects.nonNull;
  * This class defines the jarvis configuration key to store the Discord bot token, as well as an utility method
  * to retrieve an existing instance of the {@link JDA} client, in order to avoid multiple client instantiations.
  */
-public class JarvisDiscordUtils {
+public class DiscordUtils implements ChatUtils {
 
     /**
      * The {@link org.apache.commons.configuration2.Configuration} key to store the Discord bot token.
@@ -33,16 +34,6 @@ public class JarvisDiscordUtils {
      * The {@link RuntimeContexts} key used to store discord-related information.
      */
     public static String DISCORD_CONTEXT_KEY = "discord";
-
-    /**
-     * The {@link RuntimeContexts} variable key used to store discord channel information.
-     */
-    public static String DISCORD_CHANNEL_CONTEXT_KEY = "channel";
-
-    /**
-     * The {@link RuntimeContexts} variable key used to store discord username information.
-     */
-    public static String DISCORD_USERNAME_CONTEXT_KEY = "username";
 
     /**
      * The reusable {@link JDA} client.

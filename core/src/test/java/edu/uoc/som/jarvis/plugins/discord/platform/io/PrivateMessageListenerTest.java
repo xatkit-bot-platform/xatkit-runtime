@@ -4,7 +4,7 @@ import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.intent.EventDefinition;
 import edu.uoc.som.jarvis.intent.IntentFactory;
-import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
+import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
 import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 import edu.uoc.som.jarvis.stubs.StubJarvisCore;
 import edu.uoc.som.jarvis.stubs.discord.StubMessage;
@@ -43,7 +43,7 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
+        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
         discordPlatform = new DiscordPlatform(stubJarvisCore, configuration);
         discordIntentProvider = createValidDiscordInputProvider();
     }
@@ -111,16 +111,16 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
                 (VALID_EVENT_DEFINITION.getName());
         JarvisSession session = stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_ID);
         assertThat(session).as("Not null session").isNotNull();
-        Map<String, Object> discordContext = session.getRuntimeContexts().getContextVariables(JarvisDiscordUtils
+        Map<String, Object> discordContext = session.getRuntimeContexts().getContextVariables(DiscordUtils
                 .DISCORD_CONTEXT_KEY);
         assertThat(discordContext).as("Not null discord context").isNotNull();
         softly.assertThat(discordContext).as("Not empty discord context").isNotEmpty();
-        Object contextChannel = discordContext.get(JarvisDiscordUtils.DISCORD_CHANNEL_CONTEXT_KEY);
+        Object contextChannel = discordContext.get(DiscordUtils.CHAT_CHANNEL_CONTEXT_KEY);
         assertThat(contextChannel).as("Not null channel context variable").isNotNull();
         softly.assertThat(contextChannel).as("Channel context variable is a String").isInstanceOf(String.class);
         softly.assertThat(contextChannel).as("Valid channel context variable").isEqualTo(StubPrivateChannel
                 .PRIVATE_CHANNEL_ID);
-        Object contextUsername = discordContext.get(JarvisDiscordUtils.DISCORD_USERNAME_CONTEXT_KEY);
+        Object contextUsername = discordContext.get(DiscordUtils.CHAT_USERNAME_CONTEXT_KEY);
         assertThat(contextUsername).as("Not null username context variable").isNotNull();
         softly.assertThat(contextUsername).as("Username context variable is a String").isInstanceOf(String.class);
         softly.assertThat(contextUsername).as("Valid username context variable").isEqualTo(StubMessage
@@ -129,7 +129,7 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     private DiscordIntentProvider createValidDiscordInputProvider() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
+        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
         return new DiscordIntentProvider(discordPlatform, configuration);
     }
 

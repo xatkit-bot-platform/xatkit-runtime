@@ -18,7 +18,9 @@ import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
 import edu.uoc.som.jarvis.core.platform.io.RuntimeIntentProvider;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.intent.RecognizedIntent;
-import edu.uoc.som.jarvis.plugins.slack.JarvisSlackUtils;
+import edu.uoc.som.jarvis.plugins.chat.ChatUtils;
+import edu.uoc.som.jarvis.plugins.chat.platform.io.ChatIntentProvider;
+import edu.uoc.som.jarvis.plugins.slack.SlackUtils;
 import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
@@ -39,13 +41,13 @@ import static java.util.Objects.nonNull;
  * only captures direct messages sent to the Slack bot associated to this class.
  * <p>
  * Instances of this class must be configured with a {@link Configuration} instance holding the Slack bot API token
- * in the property {@link JarvisSlackUtils#SLACK_TOKEN_KEY}. This token is used to authenticate the bot and receive
+ * in the property {@link SlackUtils#SLACK_TOKEN_KEY}. This token is used to authenticate the bot and receive
  * messages through the RTM API.
  *
- * @see JarvisSlackUtils
+ * @see SlackUtils
  * @see RuntimeEventProvider
  */
-public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
+public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
 
     /**
      * The default username returned by {@link #getUsernameFromUserId(String)}.
@@ -115,17 +117,17 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
     public SlackIntentProvider(SlackPlatform runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
         checkNotNull(configuration, "Cannot construct a SlackIntentProvider from a null configuration");
-        this.slackToken = configuration.getString(JarvisSlackUtils.SLACK_TOKEN_KEY);
+        this.slackToken = configuration.getString(SlackUtils.SLACK_TOKEN_KEY);
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackIntentProvider from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
-                "associated to the key %s", slackToken, JarvisSlackUtils.SLACK_TOKEN_KEY);
+                "associated to the key %s", slackToken, SlackUtils.SLACK_TOKEN_KEY);
         this.slack = new Slack();
         this.botId = getSelfId();
         try {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
             String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the " +
-                    "bot API token is valid and stored in jarvis configuration with the key {0}", JarvisSlackUtils.SLACK_TOKEN_KEY);
+                    "bot API token is valid and stored in jarvis configuration with the key {0}", SlackUtils.SLACK_TOKEN_KEY);
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
         }
@@ -247,10 +249,10 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
                  * The message has a type, this should always be true
                  */
                 Log.info("received {0}", json);
-                if (json.get("type").getAsString().equals(JarvisSlackUtils.HELLO_TYPE)) {
+                if (json.get("type").getAsString().equals(SlackUtils.HELLO_TYPE)) {
                     Log.info("Slack listener connected");
                 }
-                if (json.get("type").getAsString().equals(JarvisSlackUtils.MESSAGE_TYPE)) {
+                if (json.get("type").getAsString().equals(SlackUtils.MESSAGE_TYPE)) {
                     /*
                      * The message hasn't been sent by a bot
                      */
@@ -286,14 +288,21 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
                                          * received, and may cause consistency issues when using multiple
                                          * IntentProviders.
                                          */
-                                        session.getRuntimeContexts().setContextValue(JarvisSlackUtils
-                                                .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
-                                                .SLACK_CHANNEL_CONTEXT_KEY, channel);
-                                        session.getRuntimeContexts().setContextValue(JarvisSlackUtils
-                                                .SLACK_CONTEXT_KEY, 1, JarvisSlackUtils
-                                                .SLACK_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
-                                        jarvisCore.getExecutionService().handleEventInstance
-                                                (recognizedIntent, session);
+                                        session.getRuntimeContexts().setContextValue(SlackUtils
+                                                .SLACK_CONTEXT_KEY, 1, SlackUtils
+                                                .CHAT_CHANNEL_CONTEXT_KEY, channel);
+                                        session.getRuntimeContexts().setContextValue(SlackUtils
+                                                .SLACK_CONTEXT_KEY, 1, SlackUtils
+                                                .CHAT_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
+                                        /*
+                                         * Copy the variables in the chat context (this context is inherited from the
+                                          * Chat platform)
+                                         */
+                                        session.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
+                                                ChatUtils.CHAT_CHANNEL_CONTEXT_KEY, channel);
+                                        session.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
+                                                ChatUtils.CHAT_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
+                                        SlackIntentProvider.this.sendEventInstance(recognizedIntent, session);
                                     } else {
                                         Log.warn("Received an empty message, skipping it");
                                     }
@@ -311,7 +320,7 @@ public class SlackIntentProvider extends RuntimeIntentProvider<SlackPlatform> {
                         Log.warn("Skipping {0}, the message does not contain a \"channel\" field", json);
                     }
                 } else {
-                    Log.trace("Skipping {0}, the message type is not \"{1}\"", json, JarvisSlackUtils.MESSAGE_TYPE);
+                    Log.trace("Skipping {0}, the message type is not \"{1}\"", json, SlackUtils.MESSAGE_TYPE);
                 }
             } else {
                 Log.error("The message does not define a \"type\" field, skipping it");

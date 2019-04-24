@@ -4,7 +4,8 @@ import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
+import edu.uoc.som.jarvis.plugins.chat.platform.ChatPlatform;
+import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
 import edu.uoc.som.jarvis.plugins.discord.platform.action.PostMessage;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.MessageChannel;
@@ -27,7 +28,7 @@ import static java.util.Objects.nonNull;
  * This class is part of jarvis' core platforms, and can be used in an execution model by importing the
  * <i>DiscordPlatform</i> package.
  */
-public class DiscordPlatform extends RuntimePlatform {
+public class DiscordPlatform extends ChatPlatform {
 
     /**
      * The {@link JDA} client managing the Discord connection.
@@ -36,7 +37,7 @@ public class DiscordPlatform extends RuntimePlatform {
      * constructor parameter, and is used to authenticate the bot and post messages through the Discord API.
      *
      * @see #DiscordPlatform(JarvisCore, Configuration)
-     * @see JarvisDiscordUtils
+     * @see DiscordUtils
      */
     private JDA jdaClient;
 
@@ -53,15 +54,15 @@ public class DiscordPlatform extends RuntimePlatform {
      * @param configuration the {@link Configuration} used to retrieve the Discord bot token
      * @throws NullPointerException     if the provided {@code jarvisCore} or {@link Configuration} is {@code null}
      * @throws IllegalArgumentException if the provided Discord bot token is {@code null} or empty
-     * @see JarvisDiscordUtils
+     * @see DiscordUtils
      */
     public DiscordPlatform(JarvisCore jarvisCore, Configuration configuration) {
         super(jarvisCore, configuration);
-        String discordToken = configuration.getString(JarvisDiscordUtils.DISCORD_TOKEN_KEY);
+        String discordToken = configuration.getString(DiscordUtils.DISCORD_TOKEN_KEY);
         checkArgument(nonNull(discordToken) && !discordToken.isEmpty(), "Cannot construct a DiscordPlatform from the " +
                 "provided token %s, please ensure that the jarvis configuration contains a valid Discord bot API " +
-                "token associated to the key %s", discordToken, JarvisDiscordUtils.DISCORD_TOKEN_KEY);
-        jdaClient = JarvisDiscordUtils.getJDA(discordToken);
+                "token associated to the key %s", discordToken, DiscordUtils.DISCORD_TOKEN_KEY);
+        jdaClient = DiscordUtils.getJDA(discordToken);
     }
 
     /**

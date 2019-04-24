@@ -81,7 +81,7 @@ public class GithubWebhookEventProvider extends JsonWebhookEventProvider<GithubP
     protected void handleParsedContent(JsonElement parsedContent, Header[] headers) {
         EventInstance eventInstance = matcher.match(headers, parsedContent);
         JarvisSession jarvisSession = this.jarvisCore.getOrCreateJarvisSession("github");
-        this.jarvisCore.getExecutionService().handleEventInstance(eventInstance, jarvisSession);
+        this.sendEventInstance(eventInstance, jarvisSession);
     }
 
     @Override

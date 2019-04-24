@@ -25,4 +25,6 @@ public class ChatProvider extends SlackIntentProvider {
     public ChatProvider(SlackPlatform runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
     }
+
+
 }

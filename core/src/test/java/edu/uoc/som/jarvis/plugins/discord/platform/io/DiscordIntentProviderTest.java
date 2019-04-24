@@ -1,7 +1,7 @@
 package edu.uoc.som.jarvis.plugins.discord.platform.io;
 
 import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
+import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
 import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 import edu.uoc.som.jarvis.stubs.StubJarvisCore;
 import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
@@ -30,7 +30,7 @@ public class DiscordIntentProviderTest extends AbstractJarvisTest {
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
+        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
         discordPlatform = new DiscordPlatform(stubJarvisCore, configuration);
     }
 
@@ -69,7 +69,7 @@ public class DiscordIntentProviderTest extends AbstractJarvisTest {
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisDiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
+        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
         discordIntentProvider = new DiscordIntentProvider(discordPlatform, configuration);
         assertThat(discordIntentProvider.getJdaClient()).as("Not null JDA client").isNotNull();
         List<Object> listeners = discordIntentProvider.getJdaClient().getRegisteredListeners();

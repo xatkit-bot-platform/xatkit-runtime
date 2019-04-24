@@ -1,12 +1,10 @@
 package edu.uoc.som.jarvis.core.platform.io;
 
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.RecognizedIntent;
 import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.session.JarvisSession;
+import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.intent.RecognizedIntent;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 

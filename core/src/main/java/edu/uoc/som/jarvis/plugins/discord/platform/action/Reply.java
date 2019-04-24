@@ -3,14 +3,9 @@ package edu.uoc.som.jarvis.plugins.discord.platform.action;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
+import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
 import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 import fr.inria.atlanmod.commons.log.Log;
-import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
-import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -35,7 +30,7 @@ public class Reply extends PostMessage {
      * Returns the channel associated to the user input.
      * <p>
      * This method searches in the provided {@link RuntimeContexts} for the values stored with the key
-     * {@link JarvisDiscordUtils#DISCORD_CONTEXT_KEY}.{@link JarvisDiscordUtils#DISCORD_CHANNEL_CONTEXT_KEY}. Note
+     * {@link DiscordUtils#DISCORD_CONTEXT_KEY}.{@link DiscordUtils#CHAT_CHANNEL_CONTEXT_KEY}. Note
      * that if the provided {@link RuntimeContexts} does not contain the requested value a {@link NullPointerException}
      * is thrown.
      *
@@ -44,11 +39,11 @@ public class Reply extends PostMessage {
      * @throws NullPointerException     if the provided {@code context} is {@code null}, or if it does not contain the
      *                                  channel information
      * @throws IllegalArgumentException if the retrieved channel is not a {@link String}
-     * @see JarvisDiscordUtils
+     * @see DiscordUtils
      */
     private static String getChannel(RuntimeContexts context) {
-        Object channelValue = context.getContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, JarvisDiscordUtils
-                .DISCORD_CHANNEL_CONTEXT_KEY);
+        Object channelValue = context.getContextValue(DiscordUtils.DISCORD_CONTEXT_KEY, DiscordUtils
+                .CHAT_CHANNEL_CONTEXT_KEY);
         checkNotNull(channelValue, "Cannot retrieve the Discord channel from the context");
         checkArgument(channelValue instanceof String, "Invalid Discord channel type, expected %s, found %s", String
                 .class.getSimpleName(), channelValue.getClass().getSimpleName());

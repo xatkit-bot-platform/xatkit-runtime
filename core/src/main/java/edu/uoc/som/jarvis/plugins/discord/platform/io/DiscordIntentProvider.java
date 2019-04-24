@@ -1,7 +1,8 @@
 package edu.uoc.som.jarvis.plugins.discord.platform.io;
 
 import edu.uoc.som.jarvis.core.platform.io.RuntimeIntentProvider;
-import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
+import edu.uoc.som.jarvis.plugins.chat.platform.io.ChatIntentProvider;
+import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
 import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
 import fr.inria.atlanmod.commons.log.Log;
 import net.dv8tion.jda.core.JDA;
@@ -19,13 +20,13 @@ import static java.util.Objects.nonNull;
  * sent to the Discord bot associated to this class.
  * <p>
  * Instances of this class must be configured with a {@link Configuration} instance holding the Discord bot API token
- * in the property {@link JarvisDiscordUtils#DISCORD_TOKEN_KEY}. This token is used to authenticate the bot and
+ * in the property {@link DiscordUtils#DISCORD_TOKEN_KEY}. This token is used to authenticate the bot and
  * receive messages through the JDA client.
  *
- * @see JarvisDiscordUtils
+ * @see DiscordUtils
  * @see RuntimeIntentProvider
  */
-public class DiscordIntentProvider extends RuntimeIntentProvider<DiscordPlatform> {
+public class DiscordIntentProvider extends ChatIntentProvider<DiscordPlatform> {
 
     /**
      * The {@link String} representing the Discord bot API token.
@@ -56,17 +57,17 @@ public class DiscordIntentProvider extends RuntimeIntentProvider<DiscordPlatform
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code configuration} is {@code
      *                                  null}
      * @throws IllegalArgumentException if the provided Discord bot token is {@code null} or empty
-     * @see JarvisDiscordUtils
+     * @see DiscordUtils
      * @see PrivateMessageListener
      */
     public DiscordIntentProvider(DiscordPlatform runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
         checkNotNull(configuration, "Cannot construct a DiscordIntentProvider from a null configuration");
-        this.discordToken = configuration.getString(JarvisDiscordUtils.DISCORD_TOKEN_KEY);
+        this.discordToken = configuration.getString(DiscordUtils.DISCORD_TOKEN_KEY);
         checkArgument(nonNull(discordToken) && !discordToken.isEmpty(), "Cannot construct a DiscordIntentProvider " +
                 "from the provided token %s, please ensure that the jarvis configuration contains a valid Discord bot" +
-                "API token associated to the key %s", discordToken, JarvisDiscordUtils.DISCORD_TOKEN_KEY);
-        jdaClient = JarvisDiscordUtils.getJDA(discordToken);
+                "API token associated to the key %s", discordToken, DiscordUtils.DISCORD_TOKEN_KEY);
+        jdaClient = DiscordUtils.getJDA(discordToken);
         Log.info("Starting to listen jarvis Discord direct messages");
         jdaClient.addEventListener(new PrivateMessageListener(jarvisCore, this));
     }

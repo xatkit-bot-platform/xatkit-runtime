@@ -3,7 +3,8 @@ package edu.uoc.som.jarvis.plugins.discord.platform.io;
 import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.intent.RecognizedIntent;
-import edu.uoc.som.jarvis.plugins.discord.JarvisDiscordUtils;
+import edu.uoc.som.jarvis.plugins.chat.ChatUtils;
+import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
@@ -36,7 +37,7 @@ public class PrivateMessageListener extends ListenerAdapter {
      * Constructs a new {@link PrivateMessageListener} from the provided {@code jarvisCore} and {@code
      * discordIntentProvider}.
      *
-     * @param jarvisCore           the {@link JarvisCore} instance used to handled received messages
+     * @param jarvisCore            the {@link JarvisCore} instance used to handled received messages
      * @param discordIntentProvider the {@link DiscordIntentProvider} managing this listener
      * @throws NullPointerException if the provided {@code jarvisCore} is {@code null}
      */
@@ -97,10 +98,18 @@ public class PrivateMessageListener extends ListenerAdapter {
          * The discord-related values are stored in the local context with a lifespan count of 1: they are reset
          * every time a message is received, and may cause consistency issues when using multiple IntentProviders.
          */
-        jarvisSession.getRuntimeContexts().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
-                .DISCORD_CHANNEL_CONTEXT_KEY, channel.getId());
-        jarvisSession.getRuntimeContexts().setContextValue(JarvisDiscordUtils.DISCORD_CONTEXT_KEY, 1, JarvisDiscordUtils
-                .DISCORD_USERNAME_CONTEXT_KEY, author.getName());
-        jarvisCore.getExecutionService().handleEventInstance(recognizedIntent, jarvisSession);
+        jarvisSession.getRuntimeContexts().setContextValue(DiscordUtils.DISCORD_CONTEXT_KEY, 1, DiscordUtils
+                .CHAT_CHANNEL_CONTEXT_KEY, channel.getId());
+        jarvisSession.getRuntimeContexts().setContextValue(DiscordUtils.DISCORD_CONTEXT_KEY, 1, DiscordUtils
+                .CHAT_USERNAME_CONTEXT_KEY, author.getName());
+        /*
+         * Copy the variables in the chat context (this context is inherited from the
+         * Chat platform)
+         */
+        jarvisSession.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
+                ChatUtils.CHAT_CHANNEL_CONTEXT_KEY, channel.getId());
+        jarvisSession.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
+                ChatUtils.CHAT_USERNAME_CONTEXT_KEY, author.getName());
+        this.discordIntentProvider.sendEventInstance(recognizedIntent, jarvisSession);
     }
 }

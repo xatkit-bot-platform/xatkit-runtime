@@ -1,8 +1,8 @@
 package edu.uoc.som.jarvis.plugins.slack;
 
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
+import edu.uoc.som.jarvis.plugins.chat.ChatUtils;
 import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
 import edu.uoc.som.jarvis.plugins.slack.platform.io.SlackIntentProvider;
 import org.apache.commons.configuration2.Configuration;
@@ -13,7 +13,7 @@ import org.apache.commons.configuration2.Configuration;
  * This class defines the jarvis configuration key to store the Slack bot API token, as well as a set of API response
  * types that are used internally to check connection and filter incoming events.
  */
-public interface JarvisSlackUtils {
+public interface SlackUtils extends ChatUtils {
 
     /**
      * The {@link Configuration} key to store the Slack bot API token.
@@ -38,13 +38,4 @@ public interface JarvisSlackUtils {
      */
     String SLACK_CONTEXT_KEY = "slack";
 
-    /**
-     * The {@link RuntimeContexts} variable key used to store slack channel information.
-     */
-    String SLACK_CHANNEL_CONTEXT_KEY = "channel";
-
-    /**
-     * The {@link RuntimeContexts} variable key used to store slack username information.
-     */
-    String SLACK_USERNAME_CONTEXT_KEY = "username";
 }

@@ -4,7 +4,7 @@ import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.intent.EventDefinition;
 import edu.uoc.som.jarvis.intent.IntentFactory;
-import edu.uoc.som.jarvis.plugins.slack.JarvisSlackUtils;
+import edu.uoc.som.jarvis.plugins.slack.SlackUtils;
 import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
 import edu.uoc.som.jarvis.stubs.StubJarvisCore;
 import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
@@ -41,7 +41,7 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
     public void setUp() {
         stubJarvisCore = new StubJarvisCore();
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisSlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
+        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
         slackPlatform = new SlackPlatform(stubJarvisCore, configuration);
     }
 
@@ -79,7 +79,7 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisSlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
+        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
         slackIntentProvider = new SlackIntentProvider(slackPlatform, configuration);
         assertThat(slackIntentProvider.getRtmClient()).as("Not null RTM client").isNotNull();
     }
@@ -96,14 +96,14 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
                 (VALID_EVENT_DEFINITION.getName());
         JarvisSession session = stubJarvisCore.getJarvisSession(SLACK_CHANNEL);
         assertThat(session).as("Not null session").isNotNull();
-        Map<String, Object> slackContext = session.getRuntimeContexts().getContextVariables(JarvisSlackUtils.SLACK_CONTEXT_KEY);
+        Map<String, Object> slackContext = session.getRuntimeContexts().getContextVariables(SlackUtils.SLACK_CONTEXT_KEY);
         assertThat(slackContext).as("Not null slack context").isNotNull();
         softly.assertThat(slackContext).as("Not empty slack context").isNotEmpty();
-        Object contextChannel = slackContext.get(JarvisSlackUtils.SLACK_CHANNEL_CONTEXT_KEY);
+        Object contextChannel = slackContext.get(SlackUtils.CHAT_CHANNEL_CONTEXT_KEY);
         assertThat(contextChannel).as("Not null channel context variable").isNotNull();
         softly.assertThat(contextChannel).as("Channel context variable is a String").isInstanceOf(String.class);
         softly.assertThat(contextChannel).as("Valid channel context variable").isEqualTo(SLACK_CHANNEL);
-        Object contextUsername = slackContext.get(JarvisSlackUtils.SLACK_USERNAME_CONTEXT_KEY);
+        Object contextUsername = slackContext.get(SlackUtils.CHAT_USERNAME_CONTEXT_KEY);
         assertThat(contextUsername).as("Not null username context variable").isNotNull();
         softly.assertThat(contextUsername).as("Username context variable is a String").isInstanceOf(String.class);
         softly.assertThat(contextUsername).as("Valid context username variable").isEqualTo("gwendal");
@@ -151,7 +151,7 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
 
     private SlackIntentProvider getValidSlackInputProvider() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisSlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
+        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
         return new SlackIntentProvider(slackPlatform, configuration);
     }
 
