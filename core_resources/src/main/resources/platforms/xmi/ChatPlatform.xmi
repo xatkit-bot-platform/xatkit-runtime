@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="ASCII"?>
 <platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:platform="edu.uoc.som.jarvis.platform" name="ChatPlatform" abstract="true">
-  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="ChatProvider"/>
+  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="ChatProvider">
+    <outContexts name="chat" lifeSpan="1">
+      <parameters name="channel"/>
+      <parameters name="username"/>
+    </outContexts>
+  </eventProviderDefinitions>
   <actions name="PostMessage">
     <parameters key="message"/>
     <parameters key="channel"/>

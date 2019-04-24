@@ -1,7 +1,12 @@
 Abstract Platform ChatPlatform
 
 providers {
-	input ChatProvider
+	input ChatProvider {
+		creates context chat with lifespan 1 {
+			sets parameter channel
+			sets parameter username
+		}
+	}
 }
 
 actions {
