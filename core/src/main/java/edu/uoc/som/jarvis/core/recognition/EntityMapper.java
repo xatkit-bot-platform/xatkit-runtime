@@ -78,17 +78,75 @@ public class EntityMapper {
      */
     public void addEntityMapping(EntityType abstractEntityType, String concreteEntity) {
         checkNotNull(abstractEntityType, "Cannot register a mapping for the abstract entity %s please provide a " +
-                "non-null " +
-                "%s", abstractEntityType, EntityType.class.getSimpleName());
-        checkNotNull(concreteEntity, "Cannot register a mapping for the concrete entity %s, please provide a " +
-                "non-null String", concreteEntity);
+                "non-null %s", abstractEntityType, EntityType.class.getSimpleName());
+        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a " +
+                "non-null String", concreteEntity, EntityType.class.getSimpleName(), abstractEntityType);
         String abstractEntityLiteral = abstractEntityType.getLiteral();
-        if (this.entities.containsKey(abstractEntityLiteral)) {
-            Log.warn("{0} already contains a mapping for {1} ({2}), overriding it with the given value {3}", this
-                    .getClass().getSimpleName(), abstractEntityLiteral, this.entities.get
-                    (abstractEntityLiteral), concreteEntity);
+        addMapping(abstractEntityLiteral, concreteEntity);
+    }
+
+    /**
+     * Adds a new mapping between the provided {@code entityDefinition} and the given {@code concreteEntity}.
+     * <p>
+     * The stored mapping can be accessed by calling {@link #getMappingFor(EntityDefinition)} with {@code
+     * entityDefinition} as parameter.
+     *
+     * @param entityDefinition the {@link EntityDefinition} to map
+     * @param concreteEntity   the mapped value associated to the provided {@code entityDefinition}
+     * @throws NullPointerException if the provided {@code entityDefinition} or {@code concreteEntity} is {@code null}
+     * @see #getMappingFor(EntityDefinition)
+     */
+    public void addEntityMapping(EntityDefinition entityDefinition, String concreteEntity) {
+        checkNotNull(entityDefinition, "Cannot register a mapping for the provided %s (%s) please provide a non-null " +
+                "%s", EntityDefinition.class.getSimpleName(), entityDefinition, EntityDefinition.class.getSimpleName());
+        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a non-null " +
+                "mapping", concreteEntity, EntityDefinition.class.getSimpleName(), entityDefinition.getName());
+        if (entityDefinition instanceof BaseEntityDefinition) {
+            this.addEntityMapping(((BaseEntityDefinition) entityDefinition).getEntityType(), concreteEntity);
+        } else if (entityDefinition instanceof CustomEntityDefinition) {
+            this.addCustomEntityMapping((CustomEntityDefinition) entityDefinition, concreteEntity);
         }
-        this.entities.put(abstractEntityLiteral, concreteEntity);
+    }
+
+    /**
+     * Adds a new mapping between the provided {@code entityDefinition} and the given {@code concreteEntity}.
+     * <p>
+     * The stored mapping can be accessed by calling {@link #getMappingFor(EntityDefinition)} with {@code
+     * entityDefinition} as parameter.
+     *
+     * @param entityDefinition the {@link CustomEntityDefinition} to map
+     * @param concreteEntity   the mapped value associated to the provided {@code entityDefinition}
+     * @throws NullPointerException if the provided {@code entityDefinition} or {@code concreteEntity} is {@code null}
+     * @see #getMappingFor(EntityDefinition)
+     */
+    public void addCustomEntityMapping(CustomEntityDefinition entityDefinition, String concreteEntity) {
+        checkNotNull(entityDefinition, "Cannot register a mapping for the provided %s (%s) please provide a non-null " +
+                        "%s", CustomEntityDefinition.class.getSimpleName(), entityDefinition,
+                CustomEntityDefinition.class.getSimpleName());
+        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a non-null " +
+                "mapping", concreteEntity, EntityDefinition.class.getSimpleName(), entityDefinition.getName());
+        addMapping(entityDefinition.getName(), concreteEntity);
+    }
+
+    /**
+     * Registers the provided mapping.
+     * <p>
+     * This method logs a warning message if another mapping is already registered for the provided {@code key}.
+     *
+     * @param key   the name of the mapped entity
+     * @param value the mapped value associated to the provided {@code entityName}
+     * @throws NullPointerException if the provided {@code key} or {@code value} is {@code null}
+     */
+    private void addMapping(String key, String value) {
+        checkNotNull(key, "Cannot register a mapping for the provided key %s", key);
+        checkNotNull(value, "Cannot register a mapping with the provided value %s", value);
+        String existingMapping = this.entities.get(key);
+        if (nonNull(existingMapping)) {
+            Log.warn("{0} already contains a mapping for {1} ({2}), overriding it with the given value {3}", this
+                    .getClass().getSimpleName(), key, this.entities.get
+                    (key), value);
+        }
+        this.entities.put(key, value);
     }
 
     /**
@@ -189,18 +247,15 @@ public class EntityMapper {
     /**
      * Returns the {@link String} representing the entity mapped from the provided {@code customEntityDefinition}.
      * <p>
-     * <b>Note:</b> this class does not support {@link CustomEntityDefinition} mapping and this method throws a
-     * {@link JarvisException}. Since these entities are defined dynamically there is no facilities to map them in a
-     * static way. Concrete {@link EntityMapper}s tailored to a given intent recognition platform can override this
-     * method to implement this dynamic mapping.
+     * <b>Note:</b> this method looks for a registered mapping associated to the provided {@code
+     * customEntityDefinition}'s name. Concrete {@link EntityMapper}s tailored to a given intent recognition platform
+     * can override this method to compute advanced mapping for {@link CustomEntityDefinition}s.
      *
      * @param customEntityDefinition the {@link CustomEntityDefinition} to retrieve the concrete entity
      *                               {@link String} from
      * @return the mapped concrete entity {@link String}
-     * @throws JarvisException when called
      */
     protected String getMappingForCustomEntity(CustomEntityDefinition customEntityDefinition) {
-        throw new JarvisException(MessageFormat.format("{0} does not support {1} mapping", this.getClass()
-                .getSimpleName(), customEntityDefinition.getClass().getSimpleName()));
+        return this.entities.get(customEntityDefinition.getName());
     }
 }

@@ -5,6 +5,8 @@ import edu.uoc.som.jarvis.intent.CustomEntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityDefinition;
 import edu.uoc.som.jarvis.intent.EntityType;
 
+import java.text.MessageFormat;
+
 import static edu.uoc.som.jarvis.intent.EntityType.*;
 
 /**
@@ -138,7 +140,32 @@ public class DialogFlowEntityMapper extends EntityMapper {
     }
 
     /**
+     * This method is disabled for {@link DialogFlowEntityMapper}.
+     * <p>
+     * DialogFlow entities are registered independently from the intents. This two-step process allows to reference
+     * entities with their names, and do not require to store any mapping information in the
+     * {@link DialogFlowEntityMapper}.
+     *
+     * @param entityDefinition the {@link CustomEntityDefinition} to map
+     * @param concreteEntity   the mapped value associated to the provided {@code entityDefinition}
+     */
+    @Override
+    public void addCustomEntityMapping(CustomEntityDefinition entityDefinition, String concreteEntity) {
+        /*
+         * Supporting this would imply to populate the DialogFlowEntityMapper when loading an existing agent. There
+         * is no need for such feature for now.
+         */
+        throw new UnsupportedOperationException(MessageFormat.format("{0} does not allow to register custom entity " +
+                "mappings, use getMappingFor(EntityDefinition) to get DialogFlow-compatible mapping of {1}",
+                this.getClass().getSimpleName(), CustomEntityDefinition.class.getSimpleName()));
+    }
+
+    /**
      * Maps the provided {@code customEntityDefinition} to its DialogFlow implementation.
+     * <p>
+     * DialogFlow entities are registered independently from the intents. This two-step process allows to reference
+     * entities with their names, and do not require to store any mapping information in the
+     * {@link DialogFlowEntityMapper}.
      *
      * @param customEntityDefinition the {@link CustomEntityDefinition} to retrieve the concrete entity
      *                               {@link String} from

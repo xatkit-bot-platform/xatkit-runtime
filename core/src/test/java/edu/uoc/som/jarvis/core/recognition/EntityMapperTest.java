@@ -2,10 +2,7 @@ package edu.uoc.som.jarvis.core.recognition;
 
 import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.intent.BaseEntityDefinition;
-import edu.uoc.som.jarvis.intent.EntityDefinition;
-import edu.uoc.som.jarvis.intent.EntityType;
-import edu.uoc.som.jarvis.intent.IntentFactory;
+import edu.uoc.som.jarvis.intent.*;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.util.EList;
@@ -30,6 +27,8 @@ public class EntityMapperTest extends AbstractJarvisTest {
 
     private static EntityDefinition VALID_ENTITY;
 
+    private static CustomEntityDefinition VALID_CUSTOM_ENTITY_DEFINITION;
+
     private static String CONCRETE_VALUE = "concrete";
 
     private static String FALLBACK_VALUE = "fallback";
@@ -38,6 +37,8 @@ public class EntityMapperTest extends AbstractJarvisTest {
     public static void setUpBeforeClass() {
         VALID_ENTITY_TYPE = EntityType.get(VALID_ENTITY_STRING);
         VALID_ENTITY = IntentFactory.eINSTANCE.createBaseEntityDefinition();
+        VALID_CUSTOM_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createMappingEntityDefinition();
+        VALID_CUSTOM_ENTITY_DEFINITION.setName("custom");
         ((BaseEntityDefinition) VALID_ENTITY).setEntityType(VALID_ENTITY_TYPE);
     }
 
@@ -54,7 +55,7 @@ public class EntityMapperTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void addEntityMappingNullAbstractEntity() {
-        mapper.addEntityMapping(null, CONCRETE_VALUE);
+        mapper.addEntityMapping((EntityType)null, CONCRETE_VALUE);
     }
 
     @Test(expected = NullPointerException.class)
@@ -68,6 +69,14 @@ public class EntityMapperTest extends AbstractJarvisTest {
         assertThat(mapper.entities).as("Mapping contains an entry for the abstract entity").containsKey(VALID_ENTITY_STRING);
         assertThat(mapper.entities.get(VALID_ENTITY_STRING)).as("Mapping contains the provided concrete value mapped to the " +
                 "abstract entity").isEqualTo(CONCRETE_VALUE);
+    }
+
+    @Test
+    public void addCustomEntityMappingValid() {
+        mapper.addEntityMapping(VALID_CUSTOM_ENTITY_DEFINITION, CONCRETE_VALUE);
+        assertThat(mapper.entities).as("Mapping contains an entry for the custom entity definition").containsKeys(VALID_CUSTOM_ENTITY_DEFINITION.getName());
+        assertThat(mapper.entities.get(VALID_CUSTOM_ENTITY_DEFINITION.getName())).as("Mapping contains the provided " +
+                "concrete value mapped to the custom entity definition").isEqualTo(CONCRETE_VALUE);
     }
 
     @Test(expected = NullPointerException.class)
@@ -281,5 +290,17 @@ public class EntityMapperTest extends AbstractJarvisTest {
         assertThat(concrete).as("Mapped value is fallback").isEqualTo(FALLBACK_VALUE);
     }
 
+    @Test
+    public void getEntityMappingForRegisteredCustomEntityDefinition() {
+        mapper.addCustomEntityMapping(VALID_CUSTOM_ENTITY_DEFINITION, CONCRETE_VALUE);
+        String concrete = mapper.getMappingFor(VALID_CUSTOM_ENTITY_DEFINITION);
+        assertThat(concrete).as("Correct mapped value").isEqualTo(CONCRETE_VALUE);
+    }
+
+    @Test
+    public void getEntityMappingForNotRegisteredCustomEntityDefinition() {
+        String concrete = mapper.getMappingFor(VALID_CUSTOM_ENTITY_DEFINITION);
+        assertThat(concrete).as("Mapped value is null").isNull();
+    }
 
 }
