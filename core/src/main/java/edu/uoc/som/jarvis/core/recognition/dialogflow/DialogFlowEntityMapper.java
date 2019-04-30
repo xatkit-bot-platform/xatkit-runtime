@@ -10,7 +10,7 @@ import java.text.MessageFormat;
 import static edu.uoc.som.jarvis.intent.EntityType.*;
 
 /**
- * An {@link EntityMapper} initializes with DialogFlow's system entities.
+ * An {@link EntityMapper} initialized with DialogFlow's system entities.
  * <p>
  * This class provides a mapping of {@link EntityType}s to DialogFlow's system entities. Mapped entities can be
  * accessed by calling {@link #getMappingFor(EntityDefinition)}.
