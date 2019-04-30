@@ -6,6 +6,7 @@ import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import edu.uoc.som.jarvis.intent.*;
+import edu.uoc.som.jarvis.test.util.ElementFactory;
 import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
 import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
 import fr.inria.atlanmod.commons.log.Log;
@@ -113,42 +114,9 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.getTrainingSentences().add("test intent definition");
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.getOutContexts().add(VALID_OUT_CONTEXT);
 
-        VALID_MAPPING_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createMappingEntityDefinition();
-        VALID_MAPPING_ENTITY_DEFINITION.setName("Class");
-        MappingEntityDefinitionEntry entry1 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
-        entry1.setReferenceValue("Person");
-        entry1.getSynonyms().add("People");
-        entry1.getSynonyms().add("Fellow");
-        MappingEntityDefinitionEntry entry2 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
-        entry2.setReferenceValue("Order");
-        entry2.getSynonyms().add("Command");
-        VALID_MAPPING_ENTITY_DEFINITION.getEntries().add(entry1);
-        VALID_MAPPING_ENTITY_DEFINITION.getEntries().add(entry2);
+        VALID_MAPPING_ENTITY_DEFINITION = ElementFactory.testMappingEntityDefinition();
 
-        VALID_COMPOSITE_ENTITY_DEFINITION = IntentFactory.eINSTANCE.createCompositeEntityDefinition();
-        VALID_COMPOSITE_ENTITY_DEFINITION.setName("Composite");
-
-        // Creates the entry "this is a @Class:Class @sys.age:age
-        CompositeEntityDefinitionEntry compositeEntry1 = IntentFactory.eINSTANCE.createCompositeEntityDefinitionEntry();
-        LiteralTextFragment literalTextFragment1 = IntentFactory.eINSTANCE.createLiteralTextFragment();
-        literalTextFragment1.setValue("this is a ");
-        EntityTextFragment entityTextFragment1 = IntentFactory.eINSTANCE.createEntityTextFragment();
-        EntityDefinitionReference entityTextFragment1Reference = IntentFactory.eINSTANCE
-                .createCustomEntityDefinitionReference();
-        ((CustomEntityDefinitionReference) entityTextFragment1Reference).setCustomEntity
-                (VALID_MAPPING_ENTITY_DEFINITION);
-        entityTextFragment1.setEntityReference(entityTextFragment1Reference);
-        EntityTextFragment entityTextFragment2 = IntentFactory.eINSTANCE.createEntityTextFragment();
-        EntityDefinitionReference entityTextFragment2Reference = IntentFactory.eINSTANCE
-                .createBaseEntityDefinitionReference();
-        BaseEntityDefinition baseEntityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
-        baseEntityDefinition.setEntityType(EntityType.AGE);
-        ((BaseEntityDefinitionReference) entityTextFragment2Reference).setBaseEntity(baseEntityDefinition);
-        entityTextFragment2.setEntityReference(entityTextFragment2Reference);
-        compositeEntry1.getFragments().add(literalTextFragment1);
-        compositeEntry1.getFragments().add(entityTextFragment1);
-        compositeEntry1.getFragments().add(entityTextFragment2);
-        VALID_COMPOSITE_ENTITY_DEFINITION.getEntries().add(compositeEntry1);
+        VALID_COMPOSITE_ENTITY_DEFINITION = ElementFactory.testCompositeEntityDefinition();
     }
 
     @After
@@ -1070,7 +1038,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
          * any specification on the order of the returned context. This test should be refactored to ensure that the
          * two contexts are defined without taking into account the order.
          */
-        ContextInstance contextInstance2 = recognizedIntent.getOutContextInstances().get(0);
+        ContextInstance contextInstance2 = recognizedIntent.getOutContextInstance("Context2");
         assertThat(contextInstance2).as("Not null out context instance 2").isNotNull();
         assertThat(contextInstance2.getDefinition()).as("Not null out context instance 2 definition").isNotNull();
         softly.assertThat(contextInstance2.getDefinition().getName()).as("Valid out context instance 2 definition")
@@ -1083,7 +1051,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
                 (contextParameter2.getName());
         softly.assertThat(value2.getValue()).as("Valid ContextParameterValue 2").isEqualTo("steak");
 
-        ContextInstance contextInstance1 = recognizedIntent.getOutContextInstances().get(1);
+        ContextInstance contextInstance1 = recognizedIntent.getOutContextInstance("Context1");
         assertThat(contextInstance1).as("Not null out context instance 1").isNotNull();
         assertThat(contextInstance1.getDefinition()).as("Not null out context instance 1 definition").isNotNull();
         softly.assertThat(contextInstance1.getDefinition().getName()).as("Valid out context instance 1 definition")
