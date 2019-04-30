@@ -358,12 +358,9 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         String parentTrainingSentence = "test parent";
         registeredIntentDefinition.setName(parentIntentName);
         registeredIntentDefinition.getTrainingSentences().add(parentTrainingSentence);
-        IntentDefinition followUpIntent = IntentFactory.eINSTANCE.createIntentDefinition();
-        String followUpIntentName = "TestRegisterFollowUp";
-        String followUpTrainingSentence = "test followUp";
-        followUpIntent.setName(followUpIntentName);
-        followUpIntent.getTrainingSentences().add(followUpTrainingSentence);
-        followUpIntent.setFollows(registeredIntentDefinition);
+        IntentDefinition followUpIntent = ElementFactory.createFollowUpIntent(registeredIntentDefinition);
+        String followUpIntentName = followUpIntent.getName();
+        String followUpTrainingSentence = followUpIntent.getTrainingSentences().get(0);
         api.registerIntentDefinition(followUpIntent);
         List<Intent> registeredIntents = api.getRegisteredIntentsFullView();
         assertThat(registeredIntents).as("Registered Intent list is not null").isNotNull();
@@ -580,13 +577,12 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @Test
     public void createInContextNamesIntentDefinitionWithFollowsSet() {
-        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        IntentDefinition parentIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        parentIntentDefinition.setName("parent");
+        IntentDefinition intentDefinition = ElementFactory.createFollowUpIntent(parentIntentDefinition);
         Context inContext1 = IntentFactory.eINSTANCE.createContext();
         inContext1.setName("InContext1");
         intentDefinition.getInContexts().add(inContext1);
-        IntentDefinition parentIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        parentIntentDefinition.setName("parent");
-        intentDefinition.setFollows(parentIntentDefinition);
         api = getValidDialogFlowApi();
         List<String> inContextNames = api.createInContextNames(intentDefinition);
         assertThat(inContextNames).as("Not null in context names list").isNotNull();
@@ -599,9 +595,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void createInContextNamesIntentDefinitionWithFollowsSetNullParentName() {
-        IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         IntentDefinition parentIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        intentDefinition.setFollows(parentIntentDefinition);
+        IntentDefinition intentDefinition = ElementFactory.createFollowUpIntent(parentIntentDefinition);
         api = getValidDialogFlowApi();
         api.createInContextNames(intentDefinition);
     }
@@ -652,9 +647,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         inContext1.setName("OutContext1");
         inContext1.setLifeSpan(3);
         intentDefinition.getOutContexts().add(inContext1);
-        IntentDefinition childIntentDeclaration = IntentFactory.eINSTANCE.createIntentDefinition();
-        childIntentDeclaration.setName("child");
-        intentDefinition.getFollowedBy().add(childIntentDeclaration);
+        ElementFactory.createFollowUpIntent(intentDefinition);
         api = getValidDialogFlowApi();
         List<com.google.cloud.dialogflow.v2.Context> contexts = api.createOutContexts(intentDefinition);
         assertThat(contexts).as("Not null context list").isNotNull();
@@ -671,8 +664,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test(expected = IllegalArgumentException.class)
     public void createOutContextsIntentDefinitionWithFollowedBySetNullParentName() {
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        IntentDefinition childIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        intentDefinition.getFollowedBy().add(childIntentDefinition);
+        ElementFactory.createFollowUpIntent(intentDefinition);
         api = getValidDialogFlowApi();
         api.createOutContexts(intentDefinition);
     }

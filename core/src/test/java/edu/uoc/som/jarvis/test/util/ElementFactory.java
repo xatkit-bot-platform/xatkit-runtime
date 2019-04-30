@@ -132,4 +132,20 @@ public class ElementFactory {
         composite.getEntries().add(compositeEntry1);
         return composite;
     }
+
+    /**
+     * Creates a new {@link IntentDefinition} following the provided {@code parentIntentDefinition}.
+     * <p>
+     * This method modifies the provided {@code parentIntentDefinition} and sets the created {@link IntentDefinition}
+     * in its {@code followedBy} list.
+     * @param parentIntentDefinition the {@link IntentDefinition} to create a follow-up intent for
+     * @return the created {@link IntentDefinition}
+     */
+    public static IntentDefinition createFollowUpIntent(IntentDefinition parentIntentDefinition) {
+        IntentDefinition followUpIntent = IntentFactory.eINSTANCE.createIntentDefinition();
+        followUpIntent.setName("TestRegisteredFollowUp");
+        followUpIntent.getTrainingSentences().add("test followUp");
+        followUpIntent.setFollows(parentIntentDefinition);
+        return followUpIntent;
+    }
 }
