@@ -220,7 +220,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         jarvisCore = new JarvisCore(buildConfiguration(executionModel));
         checkJarvisCore(jarvisCore, executionModel);
-        Assertions.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server WebhookEventProvider" +
+        Assertions.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server " +
+                "WebhookEventProvider" +
                 " collection is not empty").isNotEmpty();
         Assertions.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
                 "registered WebhookEventProvider").isInstanceOf(StubJsonWebhookEventProvider.class);
@@ -231,18 +232,19 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, ExecutionFactory.eINSTANCE.createExecutionModel());
         jarvisCore = new JarvisCore(configuration);
-        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses DefaultIntentRecognitionProvider")
+        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses " +
+                "DefaultIntentRecognitionProvider")
                 .isInstanceOf(DefaultIntentRecognitionProvider.class);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void constructDefaultIntentRecognitionProviderIntentDefinitionInExecutionModel() {
-        /*
-         * This test should fail: the DefaultIntentRecognitionProvider does not allow to register IntentDefinitions.
-         */
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
         jarvisCore = new JarvisCore(configuration);
+        assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses " +
+                "DefaultIntentRecognitionProvider")
+                .isInstanceOf(DefaultIntentRecognitionProvider.class);
     }
 
     @Test(expected = JarvisException.class)
@@ -275,8 +277,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void getExecutionModelFromValidString() {
         jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource().getURI()
-                .toString()));
+        ExecutionModel executionModel =
+                jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource().getURI()
+                        .toString()));
         assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
          * Not enough, but comparing the entire content of the model is more complicated than it looks like.
@@ -288,8 +291,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void getExecutionModelFromValidURI() {
         jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource
-                ().getURI()));
+        ExecutionModel executionModel =
+                jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource
+                        ().getURI()));
         assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
          * Not enough, but comparing the entire content of the model is more complicated than it looks like.
@@ -364,7 +368,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * a NullPointerException in the following assertions.
          */
         Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
-        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a DialogFlowApi " +
+        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a " +
+                "DialogFlowApi " +
                 "instance").isInstanceOf(DialogFlowApi.class);
         DialogFlowApi dialogFlowApi = (DialogFlowApi) jarvisCore.getIntentRecognitionProvider();
         softly.assertThat(dialogFlowApi.getProjectId()).as("Valid DialogFlowAPI project ID").isEqualTo
