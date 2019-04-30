@@ -2,8 +2,8 @@ package edu.uoc.som.jarvis.core.session;
 
 import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.JarvisException;
+import edu.uoc.som.jarvis.intent.ContextInstance;
+import edu.uoc.som.jarvis.intent.IntentFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
@@ -47,6 +47,46 @@ public class RuntimeContextsTest extends AbstractJarvisTest {
     public void constructValidContext() {
         context = new RuntimeContexts();
         checkRuntimeContext(context);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void setContextNullContext() {
+        context = new RuntimeContexts();
+        context.setContext(null, 5);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void setContextZeroLifespanCount() {
+        context = new RuntimeContexts();
+        context.setContext("context", 0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void setContextNegativeLifespanCount() {
+        context = new RuntimeContexts();
+        context.setContext("context", -2);
+    }
+
+    @Test
+    public void setContextValidContext() {
+        context = new RuntimeContexts();
+        context.setContext("context", 5);
+        assertThat(context.getContextMap()).as("Context map contains the context").containsKeys("context");
+        assertThat(context.getContextMap().get("context")).as("Context map values is empty").isEmpty();
+        checkLifespanMap(context, "context", 5);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void setContextNullContextInstance() {
+        context = new RuntimeContexts();
+        context.setContext(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void setContextContextInstanceNullDefinition() {
+        context = new RuntimeContexts();
+        ContextInstance instance = IntentFactory.eINSTANCE.createContextInstance();
+        context.setContext(instance);
     }
 
     @Test(expected = NullPointerException.class)
@@ -117,7 +157,7 @@ public class RuntimeContextsTest extends AbstractJarvisTest {
     public void getContextVariablesNotSetContext() {
         context = new RuntimeContexts();
         Map<String, Object> contextVariables = context.getContextVariables("context");
-        assertThat(contextVariables).as("Empty context variables").isEmpty();
+        assertThat(contextVariables).as("Null context variables map").isNull();
     }
 
     @Test
@@ -344,7 +384,7 @@ public class RuntimeContextsTest extends AbstractJarvisTest {
         context2.setContextValue("context3", 5, "key3", "value3");
         // Add a value in the merged context
         context2.setContextValue("context2", 5, "newKey", "newValue");
-        assertThat(context.getContextVariables("context3")).as("New context not merged").isEmpty();
+        assertThat(context.getContextVariables("context3")).as("New context not merged").isNull();
         assertThat(context.getContextValue("context2", "newKey")).as("New value not merged").isNull();
     }
 

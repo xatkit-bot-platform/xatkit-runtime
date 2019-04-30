@@ -160,6 +160,12 @@ public class ExecutionService extends CommonInterpreter {
              * Register the returned context values
              */
             for (ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
+                /*
+                 * Register the context first: this allows to register context without parameters (e.g. follow-up
+                 * contexts).
+                 */
+                session.getRuntimeContexts().setContext(contextInstance.getDefinition().getName(),
+                        contextInstance.getLifespanCount());
                 for (ContextParameterValue value : contextInstance.getValues()) {
                     session.getRuntimeContexts().setContextValue(value);
                 }

@@ -4,6 +4,7 @@ import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
 import edu.uoc.som.jarvis.intent.Context;
+import edu.uoc.som.jarvis.intent.ContextInstance;
 import edu.uoc.som.jarvis.intent.ContextParameterValue;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -131,43 +132,64 @@ public class RuntimeContexts {
     }
 
     /**
-     * Stores the provided {@code value} in the given {@code context} with the provided {@code key} and {@code
-     * lifespanCount}.
+     * Sets the context associated to the provided {@code contextInstance}.
+     * <p>
+     * This method retrieves the name of the context to set from the provided {@link ContextInstance} by navigating
+     * its {@code definition} reference. Note that passing a {@code contextInstance} without definition to this
+     * method will throw an {@link IllegalArgumentException}.
+     * <p>
+     * This method is used as syntactic sugar to register {@link ContextInstance}s, see
+     * {@link #setContext(String, int)} to register a context from {@link String} values.
+     *
+     * @param contextInstance the {@link ContextInstance} to set
+     * @return the {@link Map} containing the variables of the set context
+     * @throws NullPointerException     if the provided {@code contextInstance} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code contextInstance}'s {@code definition} is not set
+     */
+    public Map<String, Object> setContext(ContextInstance contextInstance) {
+        checkNotNull(contextInstance, "Cannot set the context from the provided %s %s", ContextInstance.class,
+                contextInstance);
+        checkArgument(nonNull(contextInstance.getDefinition()), "Cannot set the context from the provided %s %s, the " +
+                        "provided %s does not have a definition", ContextInstance.class.getSimpleName(),
+                contextInstance, ContextInstance.class.getSimpleName());
+        String contextName = contextInstance.getDefinition().getName();
+        int lifespanCount = contextInstance.getLifespanCount();
+        return this.setContext(contextName, lifespanCount);
+    }
+
+    /**
+     * Sets the provided {@code context} with the given {@code lifespanCount}.
      * <p>
      * <b>Note:</b> the context lifespan count is only updated if {@code lifespanCount > #getContextLifespanCount
      * (context)}. Context lifespan counts can only be decremented by calling {@link #decrementLifespanCounts()}.
      * This architecture ensures the global lifespan count consistency among context variables.
      * <p>
      * As an example, calling setContextValue("slack", 5, "username", "myUsername") sets the variable
-     * <i>username</i> with the value <i>myUsername</i> in the <i>slack</i> context, and sets its lifespan count to
-     * {@code 5}.
+     * <i>username</i> with the value <i>myUsername</i> in the <i>slack</i> context, and sets its lifespan
+     * count to {@code 5}.
      * <p>
      * To retrieve all the variables of a given sub-context see {@link #getContextVariables(String)}.
      *
-     * @param context       the sub-context to store the value in
+     * @param context       the name of the context to set
      * @param lifespanCount the lifespan count of the context to set
-     * @param key           the sub-context key associated to the value
-     * @param value         the value to store
-     * @throws NullPointerException     if the provided {@code context} or {@code key} is {@code null}
+     * @return the {@link Map} containing the variables of the set context
+     * @throws NullPointerException     if the provided {@code context} is {@code null}
      * @throws IllegalArgumentException if the provided {@code lifespanCount <= 0}
-     * @see #getContextVariables(String)
-     * @see #getContextValue(String, String)
-     * @see #getContextLifespanCount(String)
+     * @see #setContext(ContextInstance)
+     * @see #setContextValue(ContextParameterValue)
+     * @see #setContextValue(String, int, String, Object)
      * @see #decrementLifespanCounts()
      */
-    public void setContextValue(String context, int lifespanCount, String key, Object value) {
-        checkNotNull(context, "Cannot set the context value from the provided context %s", context);
-        checkNotNull(key, "Cannot set the context vaule value from the provided key %s", key);
+    public Map<String, Object> setContext(String context, int lifespanCount) {
+        checkNotNull(context, "Cannot set the provided context %s", context);
         checkArgument(lifespanCount > 0, "Cannot set the context lifespan count to %s, the lifespan count should be " +
                 "strictly greater than 0", lifespanCount);
-        Log.info("Setting context variable {0}.{1} to {2}", context, key, value);
+        Map<String, Object> contextMap;
         if (contexts.containsKey(context)) {
-            Map<String, Object> contextValues = contexts.get(context);
-            contextValues.put(key, value);
+            contextMap = contexts.get(context);
         } else {
-            Map<String, Object> contextValues = new HashMap<>();
-            contextValues.put(key, value);
-            contexts.put(context, contextValues);
+            contextMap = new HashMap<>();
+            this.contexts.put(context, contextMap);
         }
         if (lifespanCounts.containsKey(context)) {
             int currentLifespan = lifespanCounts.get(context);
@@ -193,6 +215,42 @@ public class RuntimeContexts {
             Log.info("Setting context {0} lifespanCount to {1}", context, lifespanCount);
             lifespanCounts.put(context, lifespanCount);
         }
+        return contextMap;
+    }
+
+    /**
+     * Stores the provided {@code value} in the given {@code context} with the provided {@code key} and {@code
+     * lifespanCount}.
+     * <p>
+     * <b>Note:</b> the context lifespan count is only updated if {@code lifespanCount > #getContextLifespanCount
+     * (context)}. Context lifespan counts can only be decremented by calling {@link #decrementLifespanCounts()}.
+     * This architecture ensures the global lifespan count consistency among context variables.
+     * <p>
+     * As an example, calling setContextValue("slack", 5, "username", "myUsername") sets the variable
+     * <i>username</i> with the value <i>myUsername</i> in the <i>slack</i> context, and sets its lifespan count to
+     * {@code 5}.
+     * <p>
+     * To retrieve all the variables of a given sub-context see {@link #getContextVariables(String)}.
+     *
+     * @param context       the name of the context to set
+     * @param lifespanCount the lifespan count of the context to set
+     * @param key           the sub-context key associated to the value
+     * @param value         the value to store
+     * @throws NullPointerException     if the provided {@code context} or {@code key} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code lifespanCount <= 0}
+     * @see #getContextVariables(String)
+     * @see #getContextValue(String, String)
+     * @see #getContextLifespanCount(String)
+     * @see #decrementLifespanCounts()
+     */
+    public void setContextValue(String context, int lifespanCount, String key, Object value) {
+        checkNotNull(context, "Cannot set the context value from the provided context %s", context);
+        checkNotNull(key, "Cannot set the context vaule value from the provided key %s", key);
+        checkArgument(lifespanCount > 0, "Cannot set the context lifespan count to %s, the lifespan count should be " +
+                "strictly greater than 0", lifespanCount);
+        Log.info("Setting context variable {0}.{1} to {2}", context, key, value);
+        Map<String, Object> contextMap = setContext(context, lifespanCount);
+        contextMap.put(key, value);
     }
 
     /**
@@ -200,7 +258,8 @@ public class RuntimeContexts {
      * <p>
      * This method extracts the context name and parameter key from the provided {@link ContextParameterValue}, by
      * navigating its {@link edu.uoc.som.jarvis.intent.ContextParameter} and {@link Context} references. This method is
-     * used as syntactic sugar to register {@link ContextParameterValue}s received from {@link RuntimeEventProvider}s, see
+     * used as syntactic sugar to register {@link ContextParameterValue}s received from {@link RuntimeEventProvider}
+     * s, see
      * {@link #setContextValue(String, int, String, Object)} to register a context value from {@link String} values.
      *
      * @param contextParameterValue the {@link ContextParameterValue} to store in the context.
@@ -233,7 +292,8 @@ public class RuntimeContexts {
         if (contexts.containsKey(context)) {
             return Collections.unmodifiableMap(contexts.get(context));
         } else {
-            return Collections.emptyMap();
+            return null;
+//            return Collections.emptyMap();
         }
     }
 
