@@ -114,9 +114,9 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.getTrainingSentences().add("test intent definition");
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT.getOutContexts().add(VALID_OUT_CONTEXT);
 
-        VALID_MAPPING_ENTITY_DEFINITION = ElementFactory.testMappingEntityDefinition();
+        VALID_MAPPING_ENTITY_DEFINITION = ElementFactory.createMappingEntityDefinition();
 
-        VALID_COMPOSITE_ENTITY_DEFINITION = ElementFactory.testCompositeEntityDefinition();
+        VALID_COMPOSITE_ENTITY_DEFINITION = ElementFactory.createCompositeEntityDefinition();
     }
 
     @After

@@ -62,7 +62,7 @@ public class ElementFactory {
      *
      * @return the created {@link IntentDefinition}
      */
-    public static IntentDefinition testIntentDefinitionNoOutContext() {
+    public static IntentDefinition createIntentDefinitionNoOutContext() {
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         intentDefinition.setName("TestIntentDefinitionNoOutContext");
         intentDefinition.getTrainingSentences().add("this is a test");
@@ -77,7 +77,7 @@ public class ElementFactory {
      *
      * @return the created {@link MappingEntityDefinition}
      */
-    public static MappingEntityDefinition testMappingEntityDefinition() {
+    public static MappingEntityDefinition createMappingEntityDefinition() {
         MappingEntityDefinition entityDefinition = IntentFactory.eINSTANCE.createMappingEntityDefinition();
         entityDefinition.setName("Class");
         MappingEntityDefinitionEntry entry1 = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
@@ -97,14 +97,14 @@ public class ElementFactory {
      * <p>
      * The created {@link CompositeEntityDefinition} is named {@code Composite}, and is initialized with the
      * following entry: {@code @Class with @age}, where {@code @Class} is an instance of the mapping returned by
-     * {@link #testMappingEntityDefinition()}, and {@code @age} is a system {@link EntityType}.
+     * {@link #createMappingEntityDefinition()}, and {@code @age} is a system {@link EntityType}.
      * <p>
      * Note that the referenced {@link MappingEntityDefinition} is not accessible through this method.
      *
      * @return the created {@link CompositeEntityDefinition}
      */
-    public static CompositeEntityDefinition testCompositeEntityDefinition() {
-        MappingEntityDefinition mappingEntityDefinition = testMappingEntityDefinition();
+    public static CompositeEntityDefinition createCompositeEntityDefinition() {
+        MappingEntityDefinition mappingEntityDefinition = createMappingEntityDefinition();
 
         CompositeEntityDefinition composite = IntentFactory.eINSTANCE.createCompositeEntityDefinition();
         composite.setName("Composite");
