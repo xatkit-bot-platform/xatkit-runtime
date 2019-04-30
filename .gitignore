@@ -45,3 +45,6 @@ credentials
 
 # Demonstration Projects
 jarvisdemo
+
+# BotTest class
+**/BotTest.java
