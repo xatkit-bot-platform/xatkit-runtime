@@ -1,9 +1,9 @@
 package edu.uoc.som.jarvis.core.server;
 
 import com.google.gson.*;
+import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
-import edu.uoc.som.jarvis.core.JarvisException;
 import org.apache.http.*;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
@@ -27,6 +27,21 @@ import static java.util.Objects.nonNull;
  * Handles the input requests and notifies the {@link WebhookEventProvider}s.
  */
 class HttpHandler implements HttpRequestHandler {
+
+    /**
+     * The HTTP header used to specify the CORS attribute.
+     * <p>
+     * This header is not defined in the {@link HttpHeaders} class.
+     */
+    private static String CORS_HEADER = "Access-Control-Allow-Origin";
+
+    /**
+     * The value of the CORS HTTP header.
+     * <p>
+     * The CORS attribute accept all queries by default, this is required to allow in-browser calls to the Jarvis
+     * server.
+     */
+    private static String CORS_VALUE = "*";
 
     /**
      * The {@link JarvisServer} managing this handler.
@@ -132,7 +147,7 @@ class HttpHandler implements HttpRequestHandler {
                         try {
                             JsonElement jsonElement = parser.parse(content);
                             Log.info("Query content: \n {0}", gson.toJson(jsonElement));
-                        } catch(JsonSyntaxException e) {
+                        } catch (JsonSyntaxException e) {
                             Log.error(e, "Cannot parse the {0} content {1}", ContentType.APPLICATION_JSON.getMimeType
                                     (), content);
                         }
@@ -146,6 +161,7 @@ class HttpHandler implements HttpRequestHandler {
                 throw new JarvisException("An error occurred when handling the request content", e);
             }
         }
+        response.setHeader(CORS_HEADER, CORS_VALUE);
         response.setStatusCode(HttpStatus.SC_OK);
     }
 
