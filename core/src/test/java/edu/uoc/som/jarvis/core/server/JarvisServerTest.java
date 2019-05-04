@@ -1,5 +1,8 @@
 package edu.uoc.som.jarvis.core.server;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.stubs.EmptyRuntimePlatform;
@@ -10,13 +13,28 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.Collections;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JarvisServerTest extends AbstractJarvisTest {
+
+    /**
+     * A valid {@link JsonRestHandler} used to test handler registration.
+     * <p>
+     * This handler returns a {@link JsonObject} with a field {@code called} set to {@code true}.
+     */
+    private static JsonRestHandler VALID_REST_HANDLER;
+
+    /**
+     * The test URI used to register {@link JsonRestHandler}s.
+     */
+    private static String VALID_REST_URI = "/test";
 
     private JarvisServer server;
 
@@ -30,6 +48,15 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     private StubJarvisCore stubJarvisCore;
 
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        VALID_REST_HANDLER = (headers, params, content) -> {
+            JsonObject result = new JsonObject();
+            result.add("called", new JsonPrimitive(true));
+            return result;
+        };
+    }
+
     @After
     public void tearDown() {
         if (nonNull(server) && server.isStarted()) {
@@ -38,7 +65,7 @@ public class JarvisServerTest extends AbstractJarvisTest {
         if (nonNull(stubJarvisCore)) {
             stubJarvisCore.shutdown();
         }
-        if(nonNull(server2) && server2.isStarted()) {
+        if (nonNull(server2) && server2.isStarted()) {
             server2.stop();
         }
     }
@@ -159,6 +186,102 @@ public class JarvisServerTest extends AbstractJarvisTest {
                 "event").isFalse();
     }
 
+    @Test(expected = NullPointerException.class)
+    public void registerRestEndpointNullUri() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(null, VALID_REST_HANDLER);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void registerRestEndpointNullHandler() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void registerRestEndpointNotRootUri() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint("test", VALID_REST_HANDLER);
+    }
+
+    @Test
+    public void registerRestEndpoint() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        /*
+         * Don't test the method to access the endpoint, they have their own test methods. Here we only check that
+         * the method doesn't throw an exception.
+         */
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void isRestEndpointNullUri() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.isRestEndpoint(null);
+    }
+
+    @Test
+    public void isRestEndpointRegisteredUri() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        boolean result = this.server.isRestEndpoint(VALID_REST_URI);
+        assertThat(result).as("Provided URI is a rest endpoint").isTrue();
+    }
+
+    @Test
+    public void isRestEndpointNotRegisteredUri() {
+        this.server = getValidJarvisServer();
+        boolean result = this.server.isRestEndpoint(VALID_REST_URI);
+        assertThat(result).as("Provided URI is not a rest endpoint").isFalse();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void notifyRestHandlerNullUri() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.notifyRestHandler(null, Collections.emptyList(), Collections.emptyList(), new JsonObject());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void notifyRestHandlerNullHeaders() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.notifyRestHandler(VALID_REST_URI, null, Collections.emptyList(), new JsonObject());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void notifyRestHandlerNullParams() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(), null, new JsonObject());
+    }
+
+    @Test
+    public void notifyRestHandlerNullJsonObject() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        JsonElement result = this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(),
+                Collections.emptyList(),
+                null);
+        checkRestHandlerResult(result);
+    }
+
+    @Test
+    public void notifyRestHandler() {
+        this.server = getValidJarvisServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        JsonElement result = this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(),
+                Collections.emptyList(), new JsonObject());
+        checkRestHandlerResult(result);
+    }
+
+    @Test(expected = JarvisException.class)
+    public void notifyRestHandlerNotRegisteredUri() {
+        this.server = getValidJarvisServer();
+        this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(), Collections.emptyList(), null);
+    }
+
     /**
      * Returns a valid {@link JarvisServer} instance listening to port {@code 1234}.
      * <p>
@@ -197,5 +320,12 @@ public class JarvisServerTest extends AbstractJarvisTest {
         /*
          * Do not check the HttpServer port, it returns -1 until the server is started.
          */
+    }
+
+    private void checkRestHandlerResult(JsonElement result) {
+        assertThat(result).as("Result is not null").isNotNull();
+        assertThat(result).as("Result is a JsonObject").isInstanceOf(JsonObject.class);
+        JsonObject resultObject = (JsonObject) result;
+        assertThat(resultObject.get("called").getAsBoolean()).as("Result contains the handler value").isTrue();
     }
 }

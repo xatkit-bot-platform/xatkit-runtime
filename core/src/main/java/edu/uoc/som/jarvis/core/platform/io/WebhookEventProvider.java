@@ -1,9 +1,12 @@
 package edu.uoc.som.jarvis.core.platform.io;
 
-import fr.inria.atlanmod.commons.log.Log;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
+
+import java.util.Collections;
+import java.util.List;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
@@ -41,11 +44,24 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link WebhookEventProvider}
-     * @param configuration    the {@link Configuration} used to initialize the {@link WebhookEventProvider}
+     * @param configuration   the {@link Configuration} used to initialize the {@link WebhookEventProvider}
      * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
     public WebhookEventProvider(T runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
+    }
+
+    /**
+     * Returns the {@code Access-Control-Allow-Headers} HTTP header values that must be set by the server when
+     * calling this provider.
+     * <p>
+     * This method is used to ensure that cross-origin requests are accepted by client applications. Note that this
+     * headers can be empty if this provider is not intended to be accessed in the browser.
+     *
+     * @return the HTTP headers to set
+     */
+    public List<String> getAccessControlAllowHeaders() {
+        return Collections.emptyList();
     }
 
     /**
