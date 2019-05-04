@@ -74,6 +74,16 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     private static String REGEXP_GROUP_NAME_DELIMITER = "0000";
 
     /**
+     * The {@link Pattern} matching all the reserved RegExp characters.
+     * <p>
+     * This {@link Pattern} is used to escape the RegExp characters that are contained in the training sentences and
+     * entities.
+     *
+     * @see #escapeRegExpReservedCharacters(String)
+     */
+    private static Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
+
+    /**
      * The application's {@link Configuration}.
      * <p>
      * This {@link Configuration} is used to customize the created {@link JarvisSession}s.
@@ -154,7 +164,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
             MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) entityDefinition;
             List<String> entityValues = new ArrayList<>();
             for (MappingEntityDefinitionEntry entry : mappingEntityDefinition.getEntries()) {
-                entityValues.add(entry.getReferenceValue());
+                entityValues.add(escapeRegExpReservedCharacters(entry.getReferenceValue()));
                 /*
                  * Note: this method does not take into account synonyms
                  */
@@ -170,7 +180,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
                 sb.append("(");
                 for (TextFragment fragment : entry.getFragments()) {
                     if (fragment instanceof LiteralTextFragment) {
-                        sb.append(((LiteralTextFragment) fragment).getValue());
+                        sb.append(escapeRegExpReservedCharacters(((LiteralTextFragment) fragment).getValue()));
                     } else if (fragment instanceof EntityTextFragment) {
                         EntityDefinition fragmentEntity =
                                 ((EntityTextFragment) fragment).getEntityReference().getReferredEntity();
@@ -241,6 +251,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     private List<Pattern> createPatterns(IntentDefinition intentDefinition) {
         List<Pattern> patterns = new ArrayList<>();
         for (String trainingSentence : intentDefinition.getTrainingSentences()) {
+            trainingSentence = escapeRegExpReservedCharacters(trainingSentence);
             if (intentDefinition.getOutContexts().isEmpty()) {
                 patterns.add(Pattern.compile("^" + trainingSentence + "$"));
             } else {
@@ -260,6 +271,16 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
             }
         }
         return patterns;
+    }
+
+    /**
+     * Escapes the RegExp special characters from the provided {@link String}.
+     *
+     * @param from the {@link String} to replace the RegExp special characters of
+     * @return a new {@link String} with the RegExp special characters escaped
+     */
+    private String escapeRegExpReservedCharacters(String from) {
+        return SPECIAL_REGEX_CHARS.matcher(from).replaceAll("\\\\$0");
     }
 
     /**
