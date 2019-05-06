@@ -43,6 +43,8 @@ public abstract class ChatIntentProvider<T extends ChatPlatform> extends Runtime
     public void sendEventInstance(EventInstance eventInstance, JarvisSession session) {
         Map<String, Object> contextVariables =
                 session.getRuntimeContexts().getContextVariables(ChatUtils.CHAT_CONTEXT_KEY);
+        checkState(nonNull(contextVariables), "Intent provider %s did not define the context %s",
+                this.getClass().getSimpleName(), ChatUtils.CHAT_CONTEXT_KEY);
         checkState(nonNull(contextVariables.get(ChatUtils.CHAT_CHANNEL_CONTEXT_KEY)), "Intent provider %s did not " +
                         "define the context variable %s.%s", this.getClass().getSimpleName(),
                 ChatUtils.CHAT_CONTEXT_KEY,
