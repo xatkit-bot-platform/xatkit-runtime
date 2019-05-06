@@ -117,6 +117,7 @@ public class JarvisServer {
                 .setListenerPort(port)
                 .setServerInfo("Jarvis/1.1")
                 .setSocketConfig(socketConfig)
+                .setExceptionLogger(e -> Log.error(e))
                 .registerHandler("*", new HttpHandler(this))
                 .create();
     }
