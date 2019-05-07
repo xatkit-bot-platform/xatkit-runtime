@@ -52,6 +52,8 @@ public abstract class ChatIntentProvider<T extends ChatPlatform> extends Runtime
         checkState(nonNull(contextVariables.get(ChatUtils.CHAT_USERNAME_CONTEXT_KEY)), "Intent provider %s did not " +
                         "define the context variable %s.%s", this.getClass().getSimpleName(),
                 ChatUtils.CHAT_USERNAME_CONTEXT_KEY);
+        checkState(nonNull(contextVariables.get(ChatUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY)), "Intent provider %s did not" +
+                " define the context variable %s.%s", this.getClass().getSimpleName());
         super.sendEventInstance(eventInstance, session);
     }
 }

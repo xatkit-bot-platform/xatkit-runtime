@@ -4,6 +4,7 @@
     <outContexts name="chat" lifeSpan="1">
       <parameters name="channel"/>
       <parameters name="username"/>
+      <parameters name="rawMessage"/>
     </outContexts>
   </eventProviderDefinitions>
   <actions name="PostMessage">

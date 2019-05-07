@@ -102,6 +102,8 @@ public class PrivateMessageListener extends ListenerAdapter {
                 .CHAT_CHANNEL_CONTEXT_KEY, channel.getId());
         jarvisSession.getRuntimeContexts().setContextValue(DiscordUtils.DISCORD_CONTEXT_KEY, 1, DiscordUtils
                 .CHAT_USERNAME_CONTEXT_KEY, author.getName());
+        jarvisSession.getRuntimeContexts().setContextValue(DiscordUtils.DISCORD_CONTEXT_KEY, 1,
+                DiscordUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY, content);
         /*
          * Copy the variables in the chat context (this context is inherited from the
          * Chat platform)
@@ -110,6 +112,8 @@ public class PrivateMessageListener extends ListenerAdapter {
                 ChatUtils.CHAT_CHANNEL_CONTEXT_KEY, channel.getId());
         jarvisSession.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
                 ChatUtils.CHAT_USERNAME_CONTEXT_KEY, author.getName());
+        jarvisSession.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
+                ChatUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY, content);
         this.discordIntentProvider.sendEventInstance(recognizedIntent, jarvisSession);
     }
 }

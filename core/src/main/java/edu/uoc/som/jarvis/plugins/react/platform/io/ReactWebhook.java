@@ -61,13 +61,15 @@ class ReactWebhook extends JsonWebhookEventProvider<ReactPlatform> {
             String channel = content.get("channel").getAsString();
             JsonElement message = content.get("message");
             if (nonNull(message)) {
+                String textMessage = message.getAsString();
                 JarvisSession session = runtimePlatform.createSessionFromChannel(channel);
-                RecognizedIntent recognizedIntent = baseProvider.getRecognizedIntent(message.getAsString(),
-                        session);
+                RecognizedIntent recognizedIntent = baseProvider.getRecognizedIntent(textMessage, session);
                 session.getRuntimeContexts().setContextValue(ReactUtils.REACT_CONTEXT_KEY, 1,
                         ReactUtils.CHAT_USERNAME_CONTEXT_KEY, username);
                 session.getRuntimeContexts().setContextValue(ReactUtils.REACT_CONTEXT_KEY, 1,
                         ReactUtils.CHAT_CHANNEL_CONTEXT_KEY, channel);
+                session.getRuntimeContexts().setContextValue(ReactUtils.REACT_CONTEXT_KEY, 1,
+                        ReactUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY, textMessage);
                 /*
                  * This provider extends ChatIntentProvider, and must set chat-related context values.
                  */
@@ -75,6 +77,8 @@ class ReactWebhook extends JsonWebhookEventProvider<ReactPlatform> {
                         ChatUtils.CHAT_USERNAME_CONTEXT_KEY, username);
                 session.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
                         ChatUtils.CHAT_CHANNEL_CONTEXT_KEY, channel);
+                session.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
+                        ChatUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY, textMessage);
                 /*
                  * Use the base provider sendEventInstance method to ensure that the chat context are checked.
                  */

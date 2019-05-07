@@ -294,6 +294,8 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
                                         session.getRuntimeContexts().setContextValue(SlackUtils
                                                 .SLACK_CONTEXT_KEY, 1, SlackUtils
                                                 .CHAT_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
+                                        session.getRuntimeContexts().setContextValue(SlackUtils.SLACK_CONTEXT_KEY, 1,
+                                                SlackUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY, text);
                                         /*
                                          * Copy the variables in the chat context (this context is inherited from the
                                           * Chat platform)
@@ -302,6 +304,8 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
                                                 ChatUtils.CHAT_CHANNEL_CONTEXT_KEY, channel);
                                         session.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
                                                 ChatUtils.CHAT_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
+                                        session.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
+                                                ChatUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY, text);
                                         SlackIntentProvider.this.sendEventInstance(recognizedIntent, session);
                                     } else {
                                         Log.warn("Received an empty message, skipping it");

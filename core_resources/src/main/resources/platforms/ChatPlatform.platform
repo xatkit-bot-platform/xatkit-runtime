@@ -5,6 +5,7 @@ providers {
 		creates context chat with lifespan 1 {
 			sets parameter channel
 			sets parameter username
+			sets parameter rawMessage
 		}
 	}
 }

@@ -19,4 +19,10 @@ public interface ChatUtils {
      * The {@link edu.uoc.som.jarvis.core.session.RuntimeContexts} variable key used to store chat username information.
      */
     String CHAT_USERNAME_CONTEXT_KEY = "username";
+
+    /**
+     * The {@link edu.uoc.som.jarvis.core.session.RuntimeContexts} variable key used to store chat raw message
+     * information.
+     */
+    String CHAT_RAW_MESSAGE_CONTEXT_KEY = "rawMessage";
 }
