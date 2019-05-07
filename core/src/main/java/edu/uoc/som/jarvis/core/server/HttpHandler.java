@@ -127,6 +127,8 @@ class HttpHandler implements HttpRequestHandler {
             Log.info("Query parameter: {0} = {1}", parameter.getName(), parameter.getValue());
         }
 
+        Log.info("Request type {0}", request.getClass().getSimpleName());
+
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
             Header[] headers = request.getAllHeaders();
@@ -174,23 +176,26 @@ class HttpHandler implements HttpRequestHandler {
                         Log.info("No parser for the provided content type {0}, returning the raw content: \n {1}",
                                 contentType, content);
                     }
+                }
 
-                    // WARNING: this is probably wrong: the target can probably contain also the parameters. If this is
-                    // true we need to build a new URI(target) and retrieve the raw query
-                    if (this.jarvisServer.isRestEndpoint(target)) {
-                        JsonElement jsonContent = parser.parse(content);
-                        JsonElement result = jarvisServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
-                                jsonContent);
-                        if (nonNull(result)) {
-                            HttpEntity jsonEntity = createHttpEntityFromJsonElement(result);
-                            response.setEntity(jsonEntity);
-                        } else {
-                            Log.warn("Cannot embed the provided json element {0}", result);
-                        }
-                        response.setHeader("Access-Control-Allow-Headers", "content-type");
-                    } else {
-                        this.jarvisServer.notifyWebhookEventProviders(contentType,content, headers);
+                // WARNING: this is probably wrong: the target can probably contain also the parameters. If this is
+                // true we need to build a new URI(target) and retrieve the raw query
+                if (this.jarvisServer.isRestEndpoint(target)) {
+                    JsonElement jsonContent = null;
+                    if(!content.isEmpty()) {
+                        jsonContent = parser.parse(content);
                     }
+                    JsonElement result = jarvisServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
+                            jsonContent);
+                    if (nonNull(result)) {
+                        HttpEntity jsonEntity = createHttpEntityFromJsonElement(result);
+                        response.setEntity(jsonEntity);
+                    } else {
+                        Log.warn("Cannot embed the provided json element {0}", result);
+                    }
+                    response.setHeader("Access-Control-Allow-Headers", "content-type");
+                } else {
+                    this.jarvisServer.notifyWebhookEventProviders(contentType,content, headers);
                 }
             } catch (IOException e) {
                 throw new JarvisException("An error occurred when handling the request content", e);
