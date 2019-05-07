@@ -1,5 +1,6 @@
 package edu.uoc.som.jarvis.plugins.react.platform;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import edu.uoc.som.jarvis.core.JarvisCore;
@@ -9,9 +10,12 @@ import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * A {@link ChatPlatform} class that interacts with the
@@ -39,15 +43,28 @@ public class ReactPlatform extends ChatPlatform {
     /**
      * The {@link Map} containing the pending messages that can be queried by the jarvis-react application.
      */
-    private Map<String, String> storedMessages;
+    private Map<String, Queue<String>> storedMessages;
 
     /**
      * Constructs a new {@link ReactPlatform} from the provided {@link JarvisCore} and {@link Configuration}.
      * <p>
-     * This constructor initializes the underlying REST endpoint at {@code /react/getAnswer}, allowing to retrieve
-     * the last answer associated to a channel.
+     * This constructor initializes the underlying REST endpoint at {@code /react/getAnswers}, allowing to retrieve
+     * the stored answers associated to a channel. The stored message are returned as a {@code json} object with the
+     * following structure:
+     * <pre>
+     * {@code
+     * {
+     *  messages: [
+     *      {value: 'Message 1'},
+     *      {value: 'Message 2"}
+     *  ]
+     * }
+     * }
+     * </pre>
+     * Note that client applications can iterate the {@code messages} array to display the messages in the same order
+     * they have been produced.
      * <p>
-     * A REST request on {@code /rest/getAnswer} must contain a JSON object with a {@code channel} field containing
+     * A REST request on {@code /rest/getAnswers} must contain a JSON object with a {@code channel} field containing
      * the channel to retrieve the answer for.
      *
      * @param jarvisCore    the {@link JarvisCore} instance associated to this runtimePlatform
@@ -58,50 +75,63 @@ public class ReactPlatform extends ChatPlatform {
         super(jarvisCore, configuration);
         this.storedMessages = new HashMap<>();
         /*
-         * Register the REST endpoint at /react/getAnswer. Note that the received request must contain a JSON object
+         * Register the REST endpoint at /react/getAnswers. Note that the received request must contain a JSON object
          * defining the channel field.
          */
-        this.getJarvisCore().getJarvisServer().registerRestEndpoint("/react/getAnswer",
-                ((headers, param, content) -> {
+        this.getJarvisCore().getJarvisServer().registerRestEndpoint("/react/getAnswers",
+                (headers, param, content) -> {
                     JsonObject contentObject = content.getAsJsonObject();
                     String channel = contentObject.get("channel").getAsString();
+                    Queue<String> messageQueue = this.getMessagesFor(channel);
+                    if (isNull(messageQueue)) {
+                        Log.info("No messages awaiting for {0}", channel);
+                        return null;
+                    }
                     JsonObject result = new JsonObject();
-                    String lastMessage = this.getLastMessageFor(channel);
-                    if (isNull(lastMessage)) {
-                        Log.warn("No message awaiting for channel {1}", channel);
-                    } else {
-                        result.add("value", new JsonPrimitive(lastMessage));
+                    JsonArray array = new JsonArray();
+                    result.add("messages", array);
+                    String message = messageQueue.poll();
+                    /*
+                     * Use a while loop here, Queue#iterator() does not guarantees the order of the elements.
+                     */
+                    while (nonNull(message)) {
+                        JsonObject messageObject = new JsonObject();
+                        messageObject.add("value", new JsonPrimitive(message));
+                        array.add(messageObject);
+                        message = messageQueue.poll();
                     }
                     return result;
-                }));
+                });
     }
 
     /**
      * Stores the provided {@code message} for the given {@code channel}.
      * <p>
-     * The stored message can be accessed by jarvis-react through the {@code /react/getAnswer} endpoint.
+     * The stored message can be accessed by jarvis-react through the {@code /react/getAnswers} endpoint.
      *
      * @param channel the channel associated to the message to store
      * @param message the message to store
      */
     public void storeMessage(String channel, String message) {
-        this.storedMessages.put(channel, message);
+        Queue<String> messageQueue = this.storedMessages.get(channel);
+        if (isNull(messageQueue)) {
+            messageQueue = new LinkedList<>();
+            this.storedMessages.put(channel, messageQueue);
+        }
+        messageQueue.add(message);
     }
 
     /**
-     * Returns the last message stored for the provided {@code channel}.
+     * Returns the messages stored for the provided {@code channel}.
      * <p>
-     * This method removes the returned message from the message queue, meaning that calling again this method will
-     * return a different result or {@code null}. Storing returned messages is the responsibility of client
-     * applications.
+     * This method returns a {@link Queue} containing the stored messages. Note that calling {@link Queue#poll()} on
+     * the returned object will remove the message.
      *
-     * @param channel the channel to retrieve the message for
-     * @return the last message stored for the provided {@code channel}
+     * @param channel the channel to retrieve the messages for
+     * @return a {@link Queue} containing the messages stored for the provided {@code channel}
      */
-    public String getLastMessageFor(String channel) {
-        String result = this.storedMessages.get(channel);
-        this.storedMessages.remove(channel);
-        return result;
+    public Queue<String> getMessagesFor(String channel) {
+        return this.storedMessages.get(channel);
     }
 
     /**
