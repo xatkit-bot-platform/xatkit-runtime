@@ -235,6 +235,16 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
     }
 
     @Test
+    public void getIntentValidIntentDefinitionWithReservedRegExpCharacters() {
+        IntentDefinition intentDefinition = ElementFactory.createIntentDefinitionNoOutContext();
+        intentDefinition.getTrainingSentences().add("$test");
+        provider.registerIntentDefinition(intentDefinition);
+        RecognizedIntent recognizedIntent = provider.getIntent("$test", new JarvisSession("sessionID"));
+        assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
+        assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(intentDefinition);
+    }
+
+    @Test
     public void getIntentAndFollowUp() {
         IntentDefinition parentIntent = ElementFactory.createIntentDefinitionNoOutContext();
         IntentDefinition childIntent = ElementFactory.createFollowUpIntent(parentIntent);
