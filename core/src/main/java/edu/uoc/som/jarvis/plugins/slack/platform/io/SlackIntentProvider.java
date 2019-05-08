@@ -32,6 +32,7 @@ import java.text.MessageFormat;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -109,7 +110,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
      * the default constructor will throw an {@link IllegalArgumentException} when looking for the Slack bot API token.
      *
      * @param runtimePlatform the {@link SlackPlatform} containing this {@link SlackIntentProvider}
-     * @param configuration    the {@link Configuration} used to retrieve the Slack bot API token
+     * @param configuration   the {@link Configuration} used to retrieve the Slack bot API token
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code configuration} is {@code
      *                                  null}
      * @throws IllegalArgumentException if the provided Slack bot API token is {@code null} or empty
@@ -127,7 +128,8 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
             String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the " +
-                    "bot API token is valid and stored in jarvis configuration with the key {0}", SlackUtils.SLACK_TOKEN_KEY);
+                    "bot API token is valid and stored in jarvis configuration with the key {0}",
+                    SlackUtils.SLACK_TOKEN_KEY);
             Log.error(errorMessage);
             throw new JarvisException(errorMessage, e);
         }
@@ -165,6 +167,10 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
     /**
      * Returns the Slack username associated to the provided {@code userId}.
      * <p>
+     * This method returns the <i>display name</i> associated to the provided {@code userId} if it is set in the user
+     * profile. If the user profile does not contain a non-empty display name this method returns the <i>real
+     * name</i> associated to the provided {@code userId}.
+     * <p>
      * This method returns {@link #DEFAULT_USERNAME} if the Slack API is not reachable or if the provided {@code
      * userId} does not match any known user.
      *
@@ -172,7 +178,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
      * @return the Slack username associated to the provided {@code userId}
      */
     private String getUsernameFromUserId(String userId) {
-        Log.info("Retrieving username for {0}", userId);
+        Log.info("Retrieving username for user ID {0}", userId);
         String username = DEFAULT_USERNAME;
         UsersInfoRequest usersInfoRequest = UsersInfoRequest.builder()
                 .token(slackToken)
@@ -182,8 +188,15 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
             UsersInfoResponse response = slack.methods().usersInfo(usersInfoRequest);
             User user = response.getUser();
             if (nonNull(user)) {
-                username = response.getUser().getProfile().getDisplayName();
-                Log.info("Found username {0}", username);
+                User.Profile profile = response.getUser().getProfile();
+                /*
+                 * Use the display name if it exists, otherwise use the real name that should always be set.
+                 */
+                username = profile.getDisplayName();
+                if (isNull(username) || username.isEmpty()) {
+                    username = profile.getRealName();
+                }
+                Log.info("Found username \"{0}\"", username);
             } else {
                 Log.error("Cannot retrieve the username for {0}, returning the default username {1}", userId,
                         DEFAULT_USERNAME);
@@ -298,7 +311,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
                                                 SlackUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY, text);
                                         /*
                                          * Copy the variables in the chat context (this context is inherited from the
-                                          * Chat platform)
+                                         * Chat platform)
                                          */
                                         session.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
                                                 ChatUtils.CHAT_CHANNEL_CONTEXT_KEY, channel);
