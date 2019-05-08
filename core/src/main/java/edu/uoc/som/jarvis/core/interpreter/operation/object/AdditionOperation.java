@@ -4,6 +4,7 @@ import edu.uoc.som.jarvis.core.interpreter.operation.Operation;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Objects;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 
@@ -34,7 +35,7 @@ public class AdditionOperation implements Operation {
             /*
              * Perform a concatenation
              */
-            return ((String) source).concat(args.get(0).toString());
+            return ((String) source).concat(Objects.toString(args.get(0)));
         } else if (source instanceof Integer) {
             return (Integer) source + (Integer) args.get(0);
         } else {
