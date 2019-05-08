@@ -57,6 +57,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Utils -->
+        <!-- Required by xcore lambdas -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <!-- Tests -->
 
         <dependency>
