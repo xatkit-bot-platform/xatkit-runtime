@@ -414,10 +414,10 @@ public class JarvisCore {
                 /*
                  * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
                  */
-                if(executionModelFile.isAbsolute() || ((String)property).charAt(0) == '/') {
+                if (executionModelFile.isAbsolute() || ((String) property).charAt(0) == '/') {
                     uri = URI.createFileURI((String) property);
                 } else {
-                    uri = URI.createFileURI(basePath + File.separator + (String)property);
+                    uri = URI.createFileURI(basePath + File.separator + (String) property);
                 }
             } else if (property instanceof URI) {
                 uri = (URI) property;
@@ -656,6 +656,9 @@ public class JarvisCore {
      * of the loaded {@link Resource} is an instance of the provided {@code topLevelElementType} in order to prevent
      * invalid {@link Resource} loading.
      * <p>
+     * Note that the provided {@code path} can be either absolute or relative. Relative paths are resolved against
+     * the configuration location.
+     * <p>
      * The provided {@code pathmapURI} allows to load custom {@link Resource}s independently of their concrete
      * location. This allows to load custom {@link Resource}s from {@link ExecutionModel} designed in a different
      * environment.
@@ -671,18 +674,22 @@ public class JarvisCore {
          * The provided path is handled as a File path. Loading custom resources from external jars is left for a
          * future release.
          */
+        String baseConfigurationPath = this.configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
         File resourceFile = new File(path);
-        if (resourceFile.exists() && resourceFile.isFile()) {
-            URI resourceFileURI = URI.createFileURI(resourceFile.getAbsolutePath());
-            executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
-            Resource resource = executionResourceSet.getResource(resourceFileURI, true);
-            T topLevelElement = (T) resource.getContents().get(0);
-            Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
-            Log.debug("\tPath: {0}", resourceFile.toString());
+        URI resourceFileURI;
+        /*
+         * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
+         */
+        if (resourceFile.isAbsolute() || path.charAt(0) == '/') {
+            resourceFileURI = URI.createFileURI(resourceFile.getAbsolutePath());
         } else {
-            throw new JarvisException(MessageFormat.format("Cannot load the custom {0}, the provided path {1} is " +
-                    "not a valid file", topLevelElementType.getSimpleName(), path));
+            resourceFileURI = URI.createFileURI(baseConfigurationPath + File.separator + path);
         }
+        executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
+        Resource resource = executionResourceSet.getResource(resourceFileURI, true);
+        T topLevelElement = (T) resource.getContents().get(0);
+        Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
+        Log.debug("\tPath: {0}", resourceFile.toString());
     }
 
     /**
