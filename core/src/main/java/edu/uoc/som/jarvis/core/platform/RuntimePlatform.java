@@ -29,7 +29,6 @@ import java.util.stream.StreamSupport;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 /**
  * The concrete implementation of a {@link PlatformDefinition}.
@@ -291,9 +290,6 @@ public abstract class RuntimePlatform {
         } catch (NoSuchMethodException e) {
             throw new JarvisException(MessageFormat.format("Cannot find a {0} constructor for the provided parameter " +
                     "types ({1})", runtimeActionClass.getSimpleName(), printClassArray(fullParameters)), e);
-        }
-        if (nonNull(actionInstance.getReturnVariable())) {
-            runtimeAction.setReturnVariable(actionInstance.getReturnVariable().getReferredVariable().getName());
         }
         runtimeAction.init();
         return runtimeAction;

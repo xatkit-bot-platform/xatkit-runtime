@@ -26,7 +26,6 @@ class ExecutionRule {
 class ActionInstance extends Expression {
     refers ActionDefinition action
     contains ParameterValue[] values
-    contains VariableAccess returnVariable
     contains ActionInstance[] onError
 }
 

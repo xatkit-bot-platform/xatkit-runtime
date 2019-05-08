@@ -230,20 +230,6 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
                 .class);
     }
 
-    @Test
-    public void createRuntimeActionValidActionInstanceWithReturnType() {
-        ActionDefinition actionDefinition = getNoParameterActionDefinition();
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        VariableDeclaration returnVariable = commonFactory.createVariableDeclaration();
-        returnVariable.setName("return");
-        VariableAccess returnVariableAccess = commonFactory.createVariableAccess();
-        returnVariableAccess.setReferredVariable(returnVariable);
-        actionInstance.setReturnVariable(returnVariableAccess);
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("session"), executionContext);
-        assertThat(runtimeAction.getReturnVariable()).as("Valid return variable name").isEqualTo(returnVariable
-                .getName());
-    }
-
     @Test(expected = JarvisException.class)
     public void createRuntimeActionTooManyParametersInAction() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();

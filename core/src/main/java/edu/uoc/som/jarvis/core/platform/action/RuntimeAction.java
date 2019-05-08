@@ -3,7 +3,6 @@ package edu.uoc.som.jarvis.core.platform.action;
 import edu.uoc.som.jarvis.core.ExecutionService;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.EventInstance;
 import edu.uoc.som.jarvis.intent.RecognizedIntent;
 import edu.uoc.som.jarvis.platform.ActionDefinition;
 
@@ -42,18 +41,6 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
     protected JarvisSession session;
 
     /**
-     * The name of the variable to use to store the result of the {@link #call()} method.
-     * <p>
-     * The value of this attribute is used by
-     * {@link ExecutionService#handleEventInstance(EventInstance, JarvisSession)} to store
-     * the result of each {@link RuntimeAction} in the variable defined in the provided execution model.
-     *
-     * @see ExecutionService#handleEventInstance(EventInstance, JarvisSession)
-     * @see #getReturnVariable()
-     */
-    protected String returnVariable;
-
-    /**
      * Constructs a new {@link RuntimeAction} with the provided {@code runtimePlatform} and {@code session}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this action
@@ -77,23 +64,6 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
      */
     public void init() {
 
-    }
-
-    public final void setReturnVariable(String variableName) {
-        this.returnVariable = variableName;
-    }
-
-    /**
-     * Return the name of the variable to use to store the result of the {@link #call()} method.
-     * <p>
-     * This method is used by {@link ExecutionService#handleEventInstance(EventInstance, JarvisSession)}  to
-     * store the result of each {@link RuntimeAction} in the variable defined in the provided execution model.
-     *
-     * @return the name of the variable to use to store the result of the {@link #call()} method
-     * @see ExecutionService#handleEventInstance(EventInstance, JarvisSession)
-     */
-    public final String getReturnVariable() {
-        return returnVariable;
     }
 
     /**
