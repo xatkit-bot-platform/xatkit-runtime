@@ -676,20 +676,23 @@ public class JarvisCore {
          */
         String baseConfigurationPath = this.configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
         File resourceFile = new File(path);
-        URI resourceFileURI;
         /*
          * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
          */
-        if (resourceFile.isAbsolute() || path.charAt(0) == '/') {
-            resourceFileURI = URI.createFileURI(resourceFile.getAbsolutePath());
-        } else {
-            resourceFileURI = URI.createFileURI(baseConfigurationPath + File.separator + path);
+        if(!resourceFile.isAbsolute() || path.charAt(0) != '/') {
+            resourceFile = new File(baseConfigurationPath + File.separator + path);
         }
-        executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
-        Resource resource = executionResourceSet.getResource(resourceFileURI, true);
-        T topLevelElement = (T) resource.getContents().get(0);
-        Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
-        Log.debug("\tPath: {0}", resourceFile.toString());
+        if(resourceFile.exists() && resourceFile.isFile()) {
+            URI resourceFileURI = URI.createFileURI(resourceFile.getAbsolutePath());
+            executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
+            Resource resource = executionResourceSet.getResource(resourceFileURI, true);
+            T topLevelElement = (T) resource.getContents().get(0);
+            Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
+            Log.debug("\tPath: {0}", resourceFile.toString());
+        } else {
+            throw new JarvisException(MessageFormat.format("Cannot load the custom {0}, the provided path {1} is not " +
+                    "a valid file", topLevelElementType.getSimpleName(), path));
+        }
     }
 
     /**
