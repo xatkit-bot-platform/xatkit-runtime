@@ -33,7 +33,7 @@ public class AdditionOperation implements Operation {
         checkArgument(args.size() == 1, "Cannot compute + operation, expected 1 argument, found %s", args.size());
         if (source instanceof String) {
             /*
-             * Perform a concatenation
+             * Perform a concatenation (use Objects.toString to avoid NPEs)
              */
             return ((String) source).concat(Objects.toString(args.get(0)));
         } else if (source instanceof Integer) {
