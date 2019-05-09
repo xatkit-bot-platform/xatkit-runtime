@@ -364,6 +364,12 @@ public class CommonInterpreterTest {
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
+    @Test
+    public void string_literal_nonNull() {
+        Object result = interpreter.compute(getProgram("string_literal_nonNull"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case
