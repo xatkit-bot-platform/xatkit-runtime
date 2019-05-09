@@ -220,10 +220,21 @@ public class CommonInterpreterTest {
         assertThat(result).as("valid concat result").isEqualTo("anothervalue");
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void string_literal_minus_string_literal() {
+        interpreter.compute(getProgram("string_literal_-_string_literal"));
+    }
+
     @Test
     public void number_literal_plus_number_literal() {
         Object result = interpreter.compute(getProgram("number_literal_+_number_literal"));
         assertThat(result).as("valid sum").isEqualTo(6);
+    }
+
+    @Test
+    public void number_literal_minus_number_literal() {
+        Object result = interpreter.compute(getProgram("number_literal_-_number_literal"));
+        assertThat(result).as("valid substraction").isEqualTo(2);
     }
 
     @Test

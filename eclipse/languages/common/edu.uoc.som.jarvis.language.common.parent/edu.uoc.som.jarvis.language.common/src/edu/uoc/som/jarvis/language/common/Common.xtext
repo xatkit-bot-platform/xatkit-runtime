@@ -31,7 +31,11 @@ IfExpression returns IfExpression:
 ;
 
 PlusOperation returns Expression:
-	OrOperation ({OperationCall.source = current} name='+' args+=Expression)*
+	MinusOperation ({OperationCall.source = current} name='+' args+=Expression)*
+;
+
+MinusOperation returns Expression:
+	OrOperation ({OperationCall.source = current} name='-' args+=Expression)*
 ;
 
 OrOperation returns Expression:
