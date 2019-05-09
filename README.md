@@ -43,7 +43,7 @@ Jarvis relies on *intent recognition providers* to translate user inputs into *i
 
 Jarvis provides a set of pre-packaged *platforms* that can be used in your execution models to compute *actions* and/or receive user *intents* (you don't know what is a Jarvis platform? You can have a look at [this section](Platform) to have an overview of the framework!).
 
-The table below shows the current platforms embedded with the framework, whether they define a *provider*, as well as their development status. Note that each platform has a specific issue label on our [issue tracker](https://github.com/SOM-Research/jarvis/issues), use them if you have a question related to a specific platform!
+The table below shows the current platforms embedded with the framework, whether they define a *provider*, as well as their development status. Note that each platform has a specific issue label on our [issue tracker](https://github.com/jarvis-bot-platform/jarvis/issues), use them if you have a question related to a specific platform!
 
 | Platform                                       | Provider           | Status            |
 | ---------------------------------------------- | ------------------ | ----------------- |
