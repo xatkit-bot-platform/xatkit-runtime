@@ -33,6 +33,8 @@ public class ObjectOperationProvider implements OperationProvider {
             return new OrOperation();
         } else if (abstractOperation.getName().equals("and")) {
             return new AndOperation();
+        } else if (abstractOperation.getName().equals("isNull")) {
+            return new IsNullOperation();
         } else {
             return new ObjectOperation(abstractOperation.getName());
         }

@@ -358,6 +358,12 @@ public class CommonInterpreterTest {
         assertThat(session.get("test")).as("valid session value").isEqualTo("value");
     }
 
+    @Test
+    public void string_literal_isNull() {
+        Object result = interpreter.compute(getProgram("string_literal_isNull"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case
