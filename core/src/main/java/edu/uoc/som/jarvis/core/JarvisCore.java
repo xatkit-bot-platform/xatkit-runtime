@@ -679,7 +679,7 @@ public class JarvisCore {
         /*
          * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
          */
-        if(!resourceFile.isAbsolute() || path.charAt(0) != '/') {
+        if(!resourceFile.isAbsolute() && path.charAt(0) != '/') {
             resourceFile = new File(baseConfigurationPath + File.separator + path);
         }
         if(resourceFile.exists() && resourceFile.isFile()) {
