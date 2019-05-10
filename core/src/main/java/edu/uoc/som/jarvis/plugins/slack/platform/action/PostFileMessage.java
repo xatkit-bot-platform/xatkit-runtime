@@ -3,13 +3,11 @@ package edu.uoc.som.jarvis.plugins.slack.platform.action;
 import com.github.seratch.jslack.api.methods.SlackApiException;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest;
 import com.github.seratch.jslack.api.methods.response.files.FilesUploadResponse;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
-import fr.inria.atlanmod.commons.log.Log;
 import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
+import fr.inria.atlanmod.commons.log.Log;
 
 import java.io.File;
 import java.io.IOException;
