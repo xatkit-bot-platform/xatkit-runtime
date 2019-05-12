@@ -51,7 +51,15 @@ LesserOperation returns Expression:
 ;
 
 LesserOrEqualOperation returns Expression:
-	OrOperation({OperationCall.source = current} name='<=' args+=Expression)*
+	NotEqualOperation({OperationCall.source = current} name='<=' args+=Expression)*
+;
+
+NotEqualOperation returns Expression:
+	EqualOperation({OperationCall.source = current} name='!=' args+=Expression)*
+;
+
+EqualOperation returns Expression:
+	OrOperation({OperationCall.source = current} name='==' args+=Expression)*
 ;
 
 OrOperation returns Expression:

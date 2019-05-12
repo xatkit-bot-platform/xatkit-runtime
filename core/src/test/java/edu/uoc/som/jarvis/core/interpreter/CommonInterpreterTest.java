@@ -481,6 +481,78 @@ public class CommonInterpreterTest {
         interpreter.compute(getProgram("string_literal_leq_number_literal"));
     }
 
+    @Test
+    public void number_literal_equals_number_literal_true() {
+        Object result = interpreter.compute(getProgram("number_literal_equals_number_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void number_literal_equals_number_literal_false() {
+        Object result = interpreter.compute(getProgram("number_literal_equals_number_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void string_literal_equals_string_literal_true() {
+        Object result = interpreter.compute(getProgram("string_literal_equals_string_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void string_literal_equals_string_literal_false() {
+        Object result = interpreter.compute(getProgram("string_literal_equals_string_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void number_literal_equals_string_literal() {
+        Object result = interpreter.compute(getProgram("number_literal_equals_string_literal"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void string_literal_equals_number_literal() {
+        Object result = interpreter.compute(getProgram("string_literal_equals_number_literal"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void number_literal_not_equals_number_literal_true() {
+        Object result = interpreter.compute(getProgram("number_literal_not_equals_number_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void number_literal_not_equals_number_literal_false() {
+        Object result = interpreter.compute(getProgram("number_literal_not_equals_number_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void string_literal_not_equals_string_literal_true() {
+        Object result = interpreter.compute(getProgram("string_literal_not_equals_string_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void string_literal_not_equals_string_literal_false() {
+        Object result = interpreter.compute(getProgram("string_literal_not_equals_string_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void number_literal_not_equals_string_literal() {
+        Object result = interpreter.compute(getProgram("number_literal_not_equals_string_literal"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void string_literal_not_equals_number_literal() {
+        Object result = interpreter.compute(getProgram("string_literal_not_equals_number_literal"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case

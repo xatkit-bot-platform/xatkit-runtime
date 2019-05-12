@@ -43,6 +43,10 @@ public class ObjectOperationProvider implements OperationProvider {
             return new LesserOperation();
         } else if(abstractOperation.getName().equals("<=")) {
             return new LesserOrEqualOperation();
+        } else if(abstractOperation.getName().equals("==")) {
+            return new EqualsOperation();
+        } else if(abstractOperation.getName().equals("!=")) {
+            return new NotEqualOperation();
         } else if (abstractOperation.getName().equals("isNull")) {
             return new IsNullOperation();
         } else if (abstractOperation.getName().equals("nonNull")) {
