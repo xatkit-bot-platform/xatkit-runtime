@@ -35,6 +35,14 @@ public class ObjectOperationProvider implements OperationProvider {
             return new OrOperation();
         } else if (abstractOperation.getName().equals("and")) {
             return new AndOperation();
+        } else if (abstractOperation.getName().equals(">")) {
+            return new GreaterOperation();
+        } else if(abstractOperation.getName().equals(">=")) {
+            return new GreaterOrEqualOperation();
+        } else if(abstractOperation.getName().equals("<")) {
+            return new LesserOperation();
+        } else if(abstractOperation.getName().equals("<=")) {
+            return new LesserOrEqualOperation();
         } else if (abstractOperation.getName().equals("isNull")) {
             return new IsNullOperation();
         } else if (abstractOperation.getName().equals("nonNull")) {

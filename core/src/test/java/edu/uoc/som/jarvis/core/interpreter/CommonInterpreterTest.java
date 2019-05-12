@@ -381,6 +381,106 @@ public class CommonInterpreterTest {
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
+    @Test
+    public void number_literal_greater_number_literal_true() {
+        Object result = interpreter.compute(getProgram("number_literal_greater_number_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void number_literal_greater_number_literal_false() {
+        Object result = interpreter.compute(getProgram("number_literal_greater_number_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void number_literal_greater_string_literal() {
+        interpreter.compute(getProgram("number_literal_greater_string_literal"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void string_literal_greater_number_literal() {
+        interpreter.compute(getProgram("string_literal_greater_number_literal"));
+    }
+
+    @Test
+    public void number_literal_geq_number_literal_true() {
+        Object result = interpreter.compute(getProgram("number_literal_geq_number_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void number_literal_geq_number_literal_false() {
+        Object result = interpreter.compute(getProgram("number_literal_geq_number_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void number_literal_geq_number_literal_equals() {
+        Object result = interpreter.compute(getProgram("number_literal_geq_number_literal_equals"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void number_literal_geq_string_literal() {
+        interpreter.compute(getProgram("number_literal_geq_string_literal"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void string_literal_geq_number_literal() {
+        interpreter.compute(getProgram("string_literal_geq_number_literal"));
+    }
+
+    @Test
+    public void number_literal_lesser_number_literal_true() {
+        Object result = interpreter.compute(getProgram("number_literal_lesser_number_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void number_literal_lesser_number_literal_false() {
+        Object result = interpreter.compute(getProgram("number_literal_lesser_number_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void number_literal_lesser_string_literal() {
+        interpreter.compute(getProgram("number_literal_lesser_string_literal"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void string_literal_lesser_number_literal() {
+        interpreter.compute(getProgram("string_literal_lesser_number_literal"));
+    }
+
+    @Test
+    public void number_literal_leq_number_literal_true() {
+        Object result = interpreter.compute(getProgram("number_literal_leq_number_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void number_literal_leq_number_literal_false() {
+        Object result = interpreter.compute(getProgram("number_literal_leq_number_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void number_literal_leq_number_literal_equals() {
+        Object result = interpreter.compute(getProgram("number_literal_leq_number_literal_equals"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void number_literal_leq_string_literal() {
+        interpreter.compute(getProgram("number_literal_leq_string_literal"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void string_literal_leq_number_literal() {
+        interpreter.compute(getProgram("string_literal_leq_number_literal"));
+    }
+
     private Resource getProgram(String fileName) {
         /*
          * Clear the previously loaded resources, just in case

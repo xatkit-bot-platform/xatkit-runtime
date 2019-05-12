@@ -35,7 +35,23 @@ PlusOperation returns Expression:
 ;
 
 MinusOperation returns Expression:
-	OrOperation ({OperationCall.source = current} name='-' args+=Expression)*
+	GreaterOperation({OperationCall.source = current} name='-' args+=Expression)*
+;
+
+GreaterOperation returns Expression:
+	GreaterOrEqualOperation({OperationCall.source = current} name='>' args+=Expression)*
+;
+
+GreaterOrEqualOperation returns Expression:
+	LesserOperation({OperationCall.source = current} name='>=' args+=Expression)*
+;
+
+LesserOperation returns Expression:
+	LesserOrEqualOperation({OperationCall.source = current} name='<' args+=Expression)*
+;
+
+LesserOrEqualOperation returns Expression:
+	OrOperation({OperationCall.source = current} name='<=' args+=Expression)*
 ;
 
 OrOperation returns Expression:
