@@ -25,7 +25,7 @@ public class Jarvis {
     public static String CONFIGURATION_FOLDER_PATH = "jarvis.core.configuration.path";
 
     private static String CHECK_TUTORIAL_SENTENCE = "You can check our online tutorial to learn how to setup a bot " +
-            "using Jarvis here: https://github.com/SOM-Research/jarvis/wiki/Deploying-chatbots";
+            "using Jarvis here: https://github.com/jarvis-bot-platform/jarvis/wiki/Deploying-chatbots";
 
     /**
      * The {@link JarvisCore} instance used to run the bot.
