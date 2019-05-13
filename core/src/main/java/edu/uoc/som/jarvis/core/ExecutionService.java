@@ -184,6 +184,12 @@ public class ExecutionService extends CommonInterpreter {
         }, executorService).exceptionally((throwable) -> {
             Log.error("An error occurred when running the actions associated to the event {0}. Check the logs for " +
                     "additional information", eventInstance.getDefinition().getName());
+            /*
+             * Print the stack trace even if it may have been printed before (e.g. in executeRuntimeAction): some
+             * unexpected error may occur out of the executeRuntimeAction control flow (for example the creation of
+             * the RuntimeAction itself).
+             */
+            printStackTrace(throwable);
             return null;
         });
     }
