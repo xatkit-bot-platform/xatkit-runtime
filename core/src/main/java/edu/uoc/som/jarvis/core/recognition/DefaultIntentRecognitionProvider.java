@@ -1,14 +1,12 @@
 package edu.uoc.som.jarvis.core.recognition;
 
 import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import edu.uoc.som.jarvis.intent.*;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -501,11 +499,12 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
                     matchedValue = matcher.group(groupName);
                 } catch (IllegalArgumentException e) {
                     /*
-                     * The group with the name Context:Parameter does not exist (an error occurred when registering
-                     * the IntentDefinition).
+                     * The group with the name Context:Parameter does not exist (this can be the case if the intent
+                     * contains multiple inputs setting different parameters).
                      */
-                    throw new JarvisException(MessageFormat.format("An error occurred when matching the input " +
-                            "\"{0}\", see attached exception", matcher.group()), e);
+                    Log.warn("Cannot set the value of the context parameter {0}.{1}, the parameter hasn't been " +
+                            "matched from the provided input \"\"", context.getName(), contextParameter.getName());
+                    continue;
                 }
                 ContextParameterValue contextParameterValue = createContextParameterValue(contextParameter,
                         matchedValue);
