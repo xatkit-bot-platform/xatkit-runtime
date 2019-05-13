@@ -20,6 +20,8 @@ import edu.uoc.som.jarvis.platform.PlatformDefinition;
 import fr.inria.atlanmod.commons.log.Log;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -180,9 +182,8 @@ public class ExecutionService extends CommonInterpreter {
                 executeExecutionRule(rule, session);
             }
         }, executorService).exceptionally((throwable) -> {
-            Log.error("An error occurred when running the actions associated to {0}: {1} {2}", eventInstance
-                    .getDefinition().getName(), throwable.getClass().getSimpleName(), throwable.getMessage());
-            Log.error(throwable);
+            Log.error("An error occurred when running the actions associated to the event {0}. Check the logs for " +
+                    "additional information", eventInstance.getDefinition().getName());
             return null;
         });
     }
@@ -201,7 +202,7 @@ public class ExecutionService extends CommonInterpreter {
     private void executeExecutionRule(ExecutionRule executionRule, JarvisSession session) {
         ExecutionContext context = new ExecutionContext();
         context.setSession(session);
-        for(Instruction instruction : executionRule.getInstructions()) {
+        for (Instruction instruction : executionRule.getInstructions()) {
             compute(instruction, context);
         }
     }
@@ -209,7 +210,7 @@ public class ExecutionService extends CommonInterpreter {
     @Override
     public Object evaluate(Expression e, ExecutionContext context) {
         checkNotNull(e, "Cannot evaluate the provided %s %s", Expression.class.getSimpleName(), e);
-        if(e instanceof ActionInstance) {
+        if (e instanceof ActionInstance) {
             return evaluate((ActionInstance) e, context);
         } else {
             return super.evaluate(e, context);
@@ -246,16 +247,15 @@ public class ExecutionService extends CommonInterpreter {
      * @throws NullPointerException if the provided {@code action} or {@code session} is {@code null}
      */
     private RuntimeActionResult executeRuntimeAction(RuntimeAction action, ActionInstance actionInstance,
-                                              JarvisSession session,
-                                      ExecutionContext context) {
+                                                     JarvisSession session,
+                                                     ExecutionContext context) {
         checkNotNull(action, "Cannot execute the provided %s %s", RuntimeAction.class.getSimpleName(), action);
         checkNotNull(session, "Cannot execute the provided %s with the provided %s %s", RuntimeAction.class
                 .getSimpleName(), JarvisSession.class.getSimpleName(), session);
         RuntimeActionResult result = action.call();
         if (result.isError()) {
-            Log.error("An error occurred when executing the action {0}: {1} {2}", action.getClass().getSimpleName
-                    (), result.getThrownException().getClass().getSimpleName(), result.getThrownException()
-                    .getMessage());
+            Log.error("An error occurred when executing the action {0}", action.getClass().getSimpleName());
+            printStackTrace(result.getThrownException());
             /*
              * Retrieve the ActionInstances to execute when the computed ActionInstance returns an error and execute
              * them.
@@ -270,6 +270,18 @@ public class ExecutionService extends CommonInterpreter {
         }
         Log.info("Action {0} executed in {1} ms", action.getClass().getSimpleName(), result.getExecutionTime());
         return result;
+    }
+
+    /**
+     * Prints the stack trace associated to the provided {@link Throwable}.
+     *
+     * @param e the {@link Throwable} to print the stack trace of
+     */
+    private void printStackTrace(Throwable e) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintWriter printWriter = new PrintWriter(baos, true);
+        e.printStackTrace(printWriter);
+        Log.error("{0}", baos.toString());
     }
 
     /**
@@ -299,7 +311,6 @@ public class ExecutionService extends CommonInterpreter {
      *
      * @param eventInstance the {@link EventInstance} to retrieve the {@link ExecutionRule}s from
      * @return a {@link List} containing the retrieved {@link ExecutionRule}s
-     *
      * @see #executeExecutionRule(ExecutionRule, JarvisSession)
      */
     private List<ExecutionRule> getExecutionRulesFromEvent(EventInstance eventInstance) {
