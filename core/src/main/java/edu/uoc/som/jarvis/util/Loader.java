@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -301,7 +302,7 @@ public class Loader {
             if (o instanceof String) {
                 return "\"" + o.toString() + "\"";
             } else {
-                return o.toString();
+                return Objects.toString(o);
             }
         }).collect(Collectors.toList());
         return String.join(",", toStringList);
