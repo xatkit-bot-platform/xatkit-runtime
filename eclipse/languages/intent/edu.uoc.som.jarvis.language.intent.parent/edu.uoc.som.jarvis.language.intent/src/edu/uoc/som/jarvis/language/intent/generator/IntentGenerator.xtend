@@ -28,6 +28,7 @@ import edu.uoc.som.jarvis.intent.CustomEntityDefinitionReference
 import edu.uoc.som.jarvis.intent.MappingEntityDefinition
 import edu.uoc.som.jarvis.intent.EntityDefinitionReference
 import edu.uoc.som.jarvis.intent.EntityDefinition
+import edu.uoc.som.jarvis.utils.ImportRegistry
 
 /**
  * Generates code from your model files on save.
@@ -48,6 +49,7 @@ class IntentGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val uri = resource.URI
+		val Library library = resource.contents.get(0) as Library
 		var rr = resource.resourceSet.createResource(uri.trimFileExtension.appendFileExtension("xmi"))
 		/*
 		 * Clear the content of the resource, the output resource is created each time save is called, and may already 
@@ -57,6 +59,11 @@ class IntentGenerator extends AbstractGenerator {
 		rr.contents.addAll(resource.contents)
 		buildContextsFromInlineDefinitions(rr)
 		rr.save(Collections.emptyMap())
+		/*
+		 * Update the imports associated to this library (this allows to use the latest version of a library under 
+		 * development in an execution model)
+		 */
+		ImportRegistry.instance.updateImport(library)
 	}
 
 	/**

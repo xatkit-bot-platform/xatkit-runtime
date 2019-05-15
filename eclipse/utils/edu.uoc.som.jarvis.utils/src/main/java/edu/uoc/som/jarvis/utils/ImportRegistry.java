@@ -21,7 +21,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
@@ -46,10 +50,27 @@ import edu.uoc.som.jarvis.intent.Library;
 import edu.uoc.som.jarvis.platform.PlatformDefinition;
 import edu.uoc.som.jarvis.platform.PlatformPackage;
 
+/**
+ * A registry managing Platform and Library imports.
+ * <p>
+ * This class provides utility methods to load EMF {@link Resource}s from imports. Imports can point to workspace files,
+ * absolute files on the file system, as well as files stored in imported {@code jars}.
+ * <p>
+ * This class also loads the {@link Platform} and {@link Library} models stored in the <i>core component</i> allowing to
+ * use unqualified imports in execution models such as {@code import "CorePlatform"}.
+ */
 public class ImportRegistry {
 
+	/**
+	 * The singleton {@link ImportRegistry} instance.
+	 */
 	private static ImportRegistry INSTANCE;
 
+	/**
+	 * Returns the singleton {@link ImportRegistry} instance.
+	 * 
+	 * @return the singleton {@link ImportRegistry} instance
+	 */
 	public static ImportRegistry getInstance() {
 		if (isNull(INSTANCE)) {
 			INSTANCE = new ImportRegistry();
@@ -57,26 +78,206 @@ public class ImportRegistry {
 		return INSTANCE;
 	}
 
+	/**
+	 * Tracks the number of files loaded by the registry.
+	 * <p>
+	 * This field is used for debugging purposes.
+	 */
+	private static int FILE_LOADED_COUNT = 0;
+
+	/**
+	 * Increments and prints the {@link #FILE_LOADED_COUNT} value.
+	 * <p>
+	 * This method is used for debugging purposes.
+	 * <p>
+	 */
+	private static void incrementLoadCalls() {
+		FILE_LOADED_COUNT++;
+		// TODO replace the System.out.println call by a log
+		System.out.println("#File loaded " + FILE_LOADED_COUNT);
+	}
+
+	/**
+	 * The {@link ResourceSet} used to load imported {@link Resource}s.
+	 * <p>
+	 * All the imported {@link Resource}s are stored in the same {@link ResourceSet} to allow proxy resolution between
+	 * models (this is typically the case when an execution model imports a Platform and uses its actions).
+	 */
 	private ResourceSet rSet;
 
-	private Map<String, PlatformDefinition> platforms;
+	/**
+	 * Caches the loaded {@link Platform} instances.
+	 * 
+	 * @see #getImport(ImportDeclaration)
+	 * @see ImportEntry
+	 */
+	private ConcurrentHashMap<ImportEntry, PlatformDefinition> platforms;
 
-	private Map<String, Library> libraries;
+	/**
+	 * Caches the loaded {@link Library} instances.
+	 * 
+	 * @see #getImport(ImportDeclaration)
+	 * @see ImportEntry
+	 */
+	private ConcurrentHashMap<ImportEntry, Library> libraries;
 
+	/**
+	 * Constructs a new {@link ImportRegistry}.
+	 * <p>
+	 * This method is private, use {@link #getInstance()} to retrieve the singleton instance of this class.
+	 */
 	private ImportRegistry() {
 		this.rSet = new ResourceSetImpl();
 		this.rSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
 		this.rSet.getPackageRegistry().put(ExecutionPackage.eINSTANCE.getNsURI(), ExecutionPackage.eINSTANCE);
 		this.rSet.getPackageRegistry().put(PlatformPackage.eINSTANCE.getNsURI(), PlatformPackage.eINSTANCE);
 		this.rSet.getPackageRegistry().put(IntentPackage.eINSTANCE.getNsURI(), IntentPackage.eINSTANCE);
+		/*
+		 * Load the core Platforms and Library in the constructor, they should not be reloaded later.
+		 */
 		loadJarvisCore();
 		ExecutionPackage.eINSTANCE.eClass();
 		PlatformPackage.eINSTANCE.eClass();
 		IntentPackage.eINSTANCE.eClass();
-		this.platforms = new HashMap<>();
-		this.libraries = new HashMap<>();
+		this.platforms = new ConcurrentHashMap<>();
+		this.libraries = new ConcurrentHashMap<>();
 	}
 
+	/**
+	 * Updates the {@link Library} cache with the provided {@code library}.
+	 * <p>
+	 * This method ensures that the imports referring to the provided {@code library} are always associated to the
+	 * latest version of the {@link Library}. This is for example the case when updating an intent library along with an
+	 * execution model.
+	 * <p>
+	 * This method is typically called by the <i>intent language</i> generator once the {@code .xmi} model associated to
+	 * the provided {@code library} has been created.
+	 * 
+	 * @param library the {@link Library} to update the imports for
+	 * @see #updateImport(PlatformDefinition)
+	 */
+	public void updateImport(Library library) {
+		for (Entry<ImportEntry, Library> librariesEntry : libraries.entrySet()) {
+			Library storedLibrary = librariesEntry.getValue();
+			if (library.getName().equals(storedLibrary.getName())) {
+				System.out.println("Updating library entry for " + library.getName());
+				librariesEntry.setValue(library);
+			}
+		}
+	}
+
+	/**
+	 * Updates the {@link Platform} cache with the provided {@code platform}.
+	 * <p>
+	 * This method ensures that the imports referring to the provided {@code platform} are always associated to the
+	 * latest version of the {@link Platform}. This is for example the case when updating a platform along with an
+	 * execution model.
+	 * <p>
+	 * This method is typically called by the <i>platform language</i> generator once the {@code .xmi} model associated
+	 * to the provided {@code platform} has been created.
+	 * 
+	 * @param platform the {@link Platform} to update the imports for
+	 * @see #updateImport(Library)
+	 */
+	public void updateImport(PlatformDefinition platform) {
+		for (Entry<ImportEntry, PlatformDefinition> platformsEntry : platforms.entrySet()) {
+			PlatformDefinition storedPlatform = platformsEntry.getValue();
+			if (platform.getName().equals(storedPlatform.getName())) {
+				System.out.println("Updating platform entry for " + platform.getName());
+				platformsEntry.setValue(platform);
+			}
+		}
+	}
+
+	/**
+	 * Retrieves the {@link Resource} associated to the provided {@code importDeclaration}.
+	 * <p>
+	 * This method checks whether the provided {@code importDeclaration} is already cached and returns it. If it is not
+	 * the case the registry attempts to load the {@link Resource} corresponding to the provided {@code import} and
+	 * caches it.
+	 * 
+	 * @param importDeclaration the {@link ImportDeclaration} to retrieve the {@link Resource} from
+	 * @return the retrieved {@link Resource} if it exists, {@code null} otherwise
+	 * 
+	 * @see #getImport(ImportDeclaration)
+	 * @see #loadImport(ImportDeclaration)
+	 */
+	public Resource getOrLoadImport(ImportDeclaration importDeclaration) {
+		Resource resource = this.getImport(importDeclaration);
+		if (resource == null) {
+			System.out.println("The import " + importDeclaration.getPath()
+					+ " wasn't found in the cache, loading the corresponding resource");
+			resource = this.loadImport(importDeclaration);
+		}
+		/*
+		 * If the resource is null this means that an error occurred when loading the import (e.g. the file doesn't
+		 * exist, or the resource contains invalid content)
+		 */
+		return resource;
+	}
+
+	/**
+	 * Returns the {@link PlatformDefinition}s imported by the provided {@code platform}.
+	 * 
+	 * @param platform the {@link PlatformDefinition} to retrieve the imported platforms of
+	 * @return the {@link PlatformDefinition}s imported by the provided {@code platform}
+	 */
+	public Collection<PlatformDefinition> getImportedPlatforms(PlatformDefinition platform) {
+		this.refreshRegisteredImports(platform.getImports());
+		return this.platforms.values();
+	}
+
+	/**
+	 * Returns the {@link PlatformDefinition}s imported by the provided {@code executionModel}
+	 * 
+	 * @param executionModel the {@link ExecutionModel} to retrieve the imported platforms of
+	 * @return the {@link PlatformDefinition}s imported by the provided {@code executionModel}
+	 */
+	public Collection<PlatformDefinition> getImportedPlatforms(ExecutionModel executionModel) {
+		this.refreshRegisteredImports(executionModel.getImports());
+		return this.platforms.values();
+	}
+
+	/**
+	 * Returns the {@link PlatformDefinition} imported by the provided {@code model} with the given
+	 * {@code platformName}.
+	 * 
+	 * @param model the {@link ExecutionModel} to retrieve the imported {@link PlatformDefinition} from
+	 * @param platformName the name of the {@link PlatformDefinition} to retrieve
+	 * @return the imported {@link PlatformDefinition}, or {@code null} if there is no imported
+	 *         {@link PlatformDefinition} matching the provided {@code platformName}
+	 */
+	public PlatformDefinition getImportedPlatform(ExecutionModel model, String platformName) {
+		Optional<PlatformDefinition> result = this.getImportedPlatforms(model).stream()
+				.filter(p -> p.getName().equals(platformName)).findFirst();
+		if (result.isPresent()) {
+			return result.get();
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns the {@link Library} instances imported by the provided {@code executionModel}
+	 * 
+	 * @param executionModel the {@link ExecutionModel} to retrieve the imported libraries of
+	 * @return the {@link Library} instances imported by the provided {@code executionModel}
+	 */
+	public Collection<Library> getImportedLibraries(ExecutionModel executionModel) {
+		this.refreshRegisteredImports(executionModel.getImports());
+		return this.libraries.values();
+	}
+
+	/**
+	 * Loads the core {@link Platform}s and {@link Library} instances.
+	 * <p>
+	 * The {@link Platform}s and {@link Library} instances are retrieved from the {@code jarvis.jar} file in the
+	 * classpath. Note that this method should only be called once: the classpath is not supposed to change during the
+	 * execution.
+	 * 
+	 * @see #loadJarvisCorePlatforms()
+	 * @see #loadJarvisCoreLibraries()
+	 */
 	private void loadJarvisCore() {
 		try {
 			loadJarvisCorePlatforms();
@@ -92,65 +293,85 @@ public class ImportRegistry {
 		}
 	}
 
-	public Collection<Resource> loadImports(Collection<? extends ImportDeclaration> imports) {
-		/*
-		 * Clear the loaded platforms and libraries, we are reloading them all
-		 */
-		this.rSet.getResources().clear();
-		/*
-		 * Not efficient, the core platforms and libraries cannot be updated, we should load them only once (see #186)
-		 */
-		loadJarvisCore();
-		this.platforms.clear();
-		this.libraries.clear();
+	/**
+	 * Refreshes the {@link ImportRegistry} with the provided {@code newImports}.
+	 * <p>
+	 * This method ensures that the registry does not contain imports that are not used anymore, and that all the
+	 * provided imports correspond to loadable EMF {@link Resource}s.
+	 * <p>
+	 * Note that this method can be called by different editors containing different sets of imports. Removing unused
+	 * imports also ensures that imports are not shared between editors.
+	 * 
+	 * @param newImports the new {@link ImportDeclaration} to register
+	 * @return the {@link Resource}s loaded from the provided {@code newImports}.
+	 * 
+	 * @see #removeUnusedImports(Collection)
+	 */
+	private Collection<Resource> refreshRegisteredImports(Collection<? extends ImportDeclaration> newImports) {
+		removeUnusedImports(newImports);
 		List<Resource> resources = new ArrayList<>();
-		for (ImportDeclaration importDeclaration : imports) {
-			resources.add(loadImport(importDeclaration));
+		for (ImportDeclaration importDeclaration : newImports) {
+			resources.add(getOrLoadImport(importDeclaration));
 		}
 		return resources;
 	}
 
-	public Collection<PlatformDefinition> getImportedPlatforms(PlatformDefinition platform) {
-		/*
-		 * Reload all the platforms in case the imports have changes.
-		 */
-		this.loadImports(platform.getImports());
-		return this.platforms.values();
-	}
-
 	/**
-	 * Returns the {@link PlatformDefinition} imported by the provided {@code model} with the given
-	 * {@code platformName}.
+	 * Removes the registered {@link ImportDeclaration} that are not part of the provided {@code imports}.
+	 * <p>
+	 * This method ensure that deleted imports in the editors are reflected in the registry.
+	 * <p>
+	 * Note that this method can be called by different editors containing different sets of imports. Removing unused
+	 * imports also ensures that imports are not shared between editors.
 	 * 
-	 * @param model        the {@link ExecutionModel} to retrieve the imported {@link PlatformDefinition} from
-	 * @param platformName the name of the {@link PlatformDefinition} to retrieve
-	 * @return the imported {@link PlatformDefinition}, or {@code null} if there is no imported
-	 *         {@link PlatformDefinition} matching the provided {@code platformName}
+	 * @param imports the {@link ImportDeclaration} to keep in the registry
 	 */
-	public PlatformDefinition getImportedPlatform(ExecutionModel model, String platformName) {
-		Optional<PlatformDefinition> result = this.getImportedPlatforms(model).stream()
-				.filter(p -> p.getName().equals(platformName)).findFirst();
-		if (result.isPresent()) {
-			return result.get();
-		} else {
-			return null;
+	private void removeUnusedImports(Collection<? extends ImportDeclaration> imports) {
+		List<ImportEntry> entries = imports.stream().map(i -> ImportEntry.from(i)).collect(Collectors.toList());
+		for (ImportEntry importEntry : platforms.keySet()) {
+			if (!entries.contains(importEntry)) {
+				System.out.println("Removing " + importEntry.getPath() + " (alias = " + importEntry.getAlias() + ")");
+				platforms.remove(importEntry);
+			}
+		}
+
+		for (ImportEntry importEntry : libraries.keySet()) {
+			if (!entries.contains(importEntry)) {
+				System.out.println("Removing " + importEntry.getPath() + " (alias = " + importEntry.getAlias() + ")");
+				libraries.remove(importEntry);
+			}
 		}
 	}
 
-	public Collection<PlatformDefinition> getImportedPlatforms(ExecutionModel model) {
-		/*
-		 * Reload all the platforms in case the imports have changed.
-		 */
-		this.loadImports(model.getImports());
-		return this.platforms.values();
-	}
-
-	public Collection<Library> getImportedLibraries(ExecutionModel model) {
-		/*
-		 * Reload all the libraries in case the imports have changed.
-		 */
-		this.loadImports(model.getImports());
-		return this.libraries.values();
+	/**
+	 * Retrieves the cached {@link Resource} associated to the provided {@code importDeclaration}.
+	 * 
+	 * @param importDeclaration the {@link ImportDeclaration} to retrieve the {@link Resource} from
+	 * @return the retrieved {@link Resource} if it exists, {@code null} otherwise
+	 * 
+	 * @see #getOrLoadImport(ImportDeclaration)
+	 */
+	private Resource getImport(ImportDeclaration importDeclaration) {
+		if (importDeclaration instanceof LibraryImportDeclaration) {
+			Library library = this.libraries.get(ImportEntry.from(importDeclaration));
+			if (nonNull(library)) {
+				return library.eResource();
+			} else {
+				System.out.println("Cannot find the library " + importDeclaration.getPath());
+				return null;
+			}
+		} else if (importDeclaration instanceof PlatformImportDeclaration) {
+			PlatformDefinition platform = this.platforms.get(ImportEntry.from(importDeclaration));
+			if (nonNull(platform)) {
+				return platform.eResource();
+			} else {
+				System.out.println("Cannot find the platform " + importDeclaration.getPath());
+				return null;
+			}
+		} else {
+			throw new IllegalArgumentException(MessageFormat.format("Unknown {0} type {1}",
+					ImportDeclaration.class.getSimpleName(), importDeclaration.getClass().getSimpleName()));
+		}
 	}
 
 	/**
@@ -162,7 +383,8 @@ public class ImportRegistry {
 	 * @param importDeclaration the {@link ImportDeclaration} to load
 	 * @return the loaded {@link Resource}, or {@code null} if the {@link ImportRegistry} was not able to load it
 	 */
-	public Resource loadImport(ImportDeclaration importDeclaration) {
+	private Resource loadImport(ImportDeclaration importDeclaration) {
+		incrementLoadCalls();
 		String path = importDeclaration.getPath();
 		String alias = importDeclaration.getAlias();
 		System.out.println(MessageFormat.format("Loading import from path {0}", path));
@@ -233,7 +455,8 @@ public class ImportRegistry {
 					 * Check the last segment, the URI may contained either CUSTOM_PLATFORM_PATHMAP or
 					 * CUSTOM_LIBRARY_PATHMAP if it was previously registered as a Platform/Library
 					 */
-					if (registeredResource.getURI().lastSegment().equals(alias)) {
+					if (nonNull(registeredResource.getURI().lastSegment())
+							&& registeredResource.getURI().lastSegment().equals(alias)) {
 						System.out.println(MessageFormat.format("Unregistering resource {0} from the ResourceSet",
 								importResourceAliasURI));
 						registeredResources.remove();
@@ -287,12 +510,12 @@ public class ImportRegistry {
 			if (e instanceof PlatformDefinition) {
 				PlatformDefinition platformDefinition = (PlatformDefinition) e;
 				if (importDeclaration instanceof PlatformImportDeclaration) {
-					if (this.platforms.containsKey((platformDefinition.getName()))) {
+					if (this.platforms.containsKey(ImportEntry.from(importDeclaration))) {
 						System.out.println(MessageFormat.format("The platform {0} is already loaded, erasing it",
 								platformDefinition.getName()));
 					}
 					System.out.println(MessageFormat.format("Registering platform {0}", platformDefinition.getName()));
-					this.platforms.put(platformDefinition.getName(), platformDefinition);
+					this.platforms.put(ImportEntry.from(importDeclaration), platformDefinition);
 				} else {
 					System.out
 							.println(MessageFormat.format("Trying to load a {0} using a {1}, please use a {2} instead",
@@ -303,12 +526,12 @@ public class ImportRegistry {
 			} else if (e instanceof Library) {
 				Library library = (Library) e;
 				if (importDeclaration instanceof LibraryImportDeclaration) {
-					if (this.libraries.containsKey(library.getName())) {
+					if (this.libraries.containsKey(ImportEntry.from(importDeclaration))) {
 						System.out.println(MessageFormat.format("The library {0} is already loaded, erasing it",
 								library.getName()));
 					}
 					System.out.println(MessageFormat.format("Registering library {0}", library.getName()));
-					this.libraries.put(library.getName(), library);
+					this.libraries.put(ImportEntry.from(importDeclaration), library);
 				} else {
 					System.out
 							.println(MessageFormat.format("Trying to load a {0} using a {1}, please use a {2} instead",
@@ -328,7 +551,84 @@ public class ImportRegistry {
 		return resource;
 	}
 
-	private Path getPath(String bundleName, String resourceLocation) throws IOException, URISyntaxException {
+	/**
+	 * Loads the core {@link Library} instances.
+	 * <p>
+	 * These {@link Library} instances are retrieved from the {@code jarvis.jar} file in the classpath.
+	 * 
+	 * @throws IOException if the registry cannot find one of the core {@link Library} files
+	 * @throws URISyntaxException if an error occurred when building one of the {@link Library}'s {@link URI}s
+	 * 
+	 * @see #getCoreResourcesPath(String)
+	 */
+	private void loadJarvisCoreLibraries() throws IOException, URISyntaxException {
+		incrementLoadCalls();
+		Path libraryPath = getCoreResourcesPath("libraries/xmi/");
+		System.out.println(MessageFormat.format("Crawling libraries in {0}", libraryPath));
+		Files.walk(libraryPath, 1).filter(filePath -> !Files.isDirectory(filePath)).forEach(modelPath -> {
+			try {
+				InputStream is = Files.newInputStream(modelPath);
+				rSet.getURIConverter().getURIMap().put(
+						URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + modelPath.getFileName()),
+						URI.createURI(modelPath.getFileName().toString()));
+				Resource modelResource = this.rSet.createResource(
+						URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + modelPath.getFileName().toString()));
+				modelResource.load(is, Collections.emptyMap());
+				System.out.println(MessageFormat.format("Library resource {0} loaded (uri={1})",
+						modelPath.getFileName(), modelResource.getURI()));
+				is.close();
+			} catch (IOException e) {
+				// TODO check why this exception cannot be thrown back to the caller (probably some lambda shenanigans)
+				System.out.println(MessageFormat.format("An error occurred when loading the library resource {0}",
+						modelPath.getFileName()));
+			}
+		});
+	}
+
+	/**
+	 * Loads the core {@link Platform}s.
+	 * <p>
+	 * These {@link Platform}s are retrieved from the {@code jarvis.jar} file in the classpath.
+	 * 
+	 * @throws IOException if the registry cannot find one of the core {@link Platform} files
+	 * @throws URISyntaxException if an error occurred when building one of the {@link Platform}'s {@link URI}s
+	 * 
+	 * @see #getCoreResourcesPath(String)
+	 */
+	private void loadJarvisCorePlatforms() throws IOException, URISyntaxException {
+		incrementLoadCalls();
+		Path platformPath = getCoreResourcesPath("platforms/xmi/");
+		System.out.println(MessageFormat.format("Crawling platforms in {0}", platformPath));
+		Files.walk(platformPath, 1).filter(filePath -> !Files.isDirectory(filePath)).forEach(modelPath -> {
+			try {
+				InputStream is = Files.newInputStream(modelPath);
+				rSet.getURIConverter().getURIMap().put(
+						URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + modelPath.getFileName()),
+						URI.createURI(modelPath.getFileName().toString()));
+				Resource modelResource = this.rSet.createResource(
+						URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + modelPath.getFileName().toString()));
+				modelResource.load(is, Collections.emptyMap());
+				System.out.println(MessageFormat.format("Platform resource {0} loaded (uri={1})",
+						modelPath.getFileName(), modelResource.getURI()));
+				is.close();
+			} catch (IOException e) {
+				// TODO check why this exception cannot be thrown back to the caller (probably some lambda shenanigans)
+				System.out.println(MessageFormat.format("An error occurred when loading the platform resource {0}",
+						modelPath.getFileName()));
+			}
+		});
+	}
+
+	/**
+	 * Creates a valid {@link Path} for the provided {@code resourceLocation} within the {@code core_resources} bundle.
+	 * 
+	 * @param resourceLocation the location of the resource within the {@code core_resources} OSGI bundle
+	 * @return a valid {@link Path} for the provided {@code resourceLocation} within the {@code core_resources} bundle
+	 * @throws IOException if an error occurred when loading the resource at the provided location
+	 * @throws URISyntaxException if an error occurred when building the URI associated to the resource location
+	 */
+	private Path getCoreResourcesPath(String resourceLocation) throws IOException, URISyntaxException {
+		String bundleName = "edu.uoc.som.jarvis.core_resources";
 		Bundle bundle = org.eclipse.core.runtime.Platform.getBundle(bundleName);
 		if (isNull(bundle)) {
 			throw new RuntimeException(MessageFormat.format("Cannot find the bundle {0}", bundleName));
@@ -375,48 +675,105 @@ public class ImportRegistry {
 		return Paths.get(resolvedPlatformFolderURI);
 	}
 
-	public void loadJarvisCorePlatforms() throws IOException, URISyntaxException {
-		Path platformPath = getPath("edu.uoc.som.jarvis.core_resources", "platforms/xmi/");
-		System.out.println(MessageFormat.format("Crawling platforms in {0}", platformPath));
-		Files.walk(platformPath, 1).filter(filePath -> !Files.isDirectory(filePath)).forEach(modelPath -> {
-			try {
-				InputStream is = Files.newInputStream(modelPath);
-				rSet.getURIConverter().getURIMap().put(
-						URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + modelPath.getFileName()),
-						URI.createURI(modelPath.getFileName().toString()));
-				Resource modelResource = this.rSet.createResource(
-						URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + modelPath.getFileName().toString()));
-				modelResource.load(is, Collections.emptyMap());
-				System.out.println(MessageFormat.format("Platform resource {0} loaded (uri={1})",
-						modelPath.getFileName(), modelResource.getURI()));
-				is.close();
-			} catch (IOException e) {
-				System.out.println(MessageFormat.format("An error occurred when loading the platform resource {0}",
-						modelPath.getFileName()));
-			}
-		});
-	}
+	/**
+	 * A {@link Map} entry used to uniquely identify imported {@link Platform} and {@link Library} instances.
+	 * <p>
+	 * {@link ImportDeclaration} instance cannot be used as {@link Map} entries because they do not provide a
+	 * field-based implementation of {@code equals}, and multiple instances of the same import can be created from the
+	 * same editor. Overriding {@link EObject#equals(Object)} is considered as a bad practice since some of the core
+	 * components of the EMF framework rely on object equality (see
+	 * <a href="https://www.eclipse.org/forums/index.php/t/663829/">this link</a> for more information).
+	 * <p>
+	 * Note that there is no public constructor for this class. {@link ImportEntry} instances can be created using the
+	 * {{@link #from(ImportDeclaration)} method.
+	 * 
+	 * @see ImportDeclaration
+	 */
+	private static class ImportEntry {
 
-	public void loadJarvisCoreLibraries() throws IOException, URISyntaxException {
-		Path libraryPath = getPath("edu.uoc.som.jarvis.core_resources", "libraries/xmi/");
-		System.out.println(MessageFormat.format("Crawling libraries in {0}", libraryPath));
-		Files.walk(libraryPath, 1).filter(filePath -> !Files.isDirectory(filePath)).forEach(modelPath -> {
-			try {
-				InputStream is = Files.newInputStream(modelPath);
-				rSet.getURIConverter().getURIMap().put(
-						URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + modelPath.getFileName()),
-						URI.createURI(modelPath.getFileName().toString()));
-				Resource modelResource = this.rSet.createResource(
-						URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + modelPath.getFileName().toString()));
-				modelResource.load(is, Collections.emptyMap());
-				System.out.println(MessageFormat.format("Library resource {0} loaded (uri={1})",
-						modelPath.getFileName(), modelResource.getURI()));
-				is.close();
-			} catch (IOException e) {
-				System.out.println(MessageFormat.format("An error occurred when loading the library resource {0}",
-						modelPath.getFileName()));
+		/**
+		 * Creates an {@link ImportEntry} from the provided {@code importDeclaration}.
+		 * 
+		 * @param importDeclaration the {@link ImportDeclaration} to create an entry from
+		 * @return the created {@link ImportEntry}
+		 */
+		public static ImportEntry from(ImportDeclaration importDeclaration) {
+			return new ImportEntry(importDeclaration.getPath(), importDeclaration.getAlias());
+		}
+
+		/**
+		 * The path of the {@link ImportDeclaration} used to create the entry.
+		 */
+		private String path;
+
+		/**
+		 * The alias of the {@link ImportDeclaration} used to create the entry.
+		 */
+		private String alias;
+
+		/**
+		 * Constructs an {@link ImportEntry} with the provided {@code path} and {@code alias}.
+		 * <p>
+		 * This method is private, use {@link #from(ImportDeclaration)} to create {@link ImportEntry} instances from
+		 * {@link ImportDeclaration}s.
+		 * 
+		 * @param path the path of the {@link ImportDeclaration} used to create the entry
+		 * @param alias the alias of the {@link ImportDeclaration} used to create the entry
+		 * 
+		 * @see #from(ImportDeclaration)
+		 */
+		private ImportEntry(String path, String alias) {
+			this.path = path;
+			this.alias = alias;
+		}
+
+		/**
+		 * Returns the path of the entry.
+		 * 
+		 * @return the path of the entry
+		 */
+		public String getPath() {
+			return this.path;
+		}
+
+		/**
+		 * Returns the alias of the entry.
+		 * 
+		 * @return the alias of the entry
+		 */
+		public String getAlias() {
+			return this.alias;
+		}
+
+		/**
+		 * Returns whether the {@link ImportEntry} and the provided {@code obj} are equal.
+		 * <p>
+		 * This method checks whether the {@code path} and {@code alias} values of the objects are equal. This allows to
+		 * compare different {@link ImportEntry} instances representing the same {@link ImportDeclaration}.
+		 * 
+		 * @return {@code true} if the provided {@code obj} is equal to the {@link ImportEntry}, {@code false} otherwise
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof ImportEntry) {
+				ImportEntry otherEntry = (ImportEntry) obj;
+				/*
+				 * Use Objects.equals, the path or the alias can be null
+				 */
+				return Objects.equals(this.path, otherEntry.path) && Objects.equals(this.alias, otherEntry.alias);
+			} else {
+				return super.equals(obj);
 			}
-		});
+		}
+
+		@Override
+		public int hashCode() {
+			/*
+			 * Use Objects.hashCode, the path or the alias can be null
+			 */
+			return Objects.hashCode(this.path) + Objects.hashCode(this.alias);
+		}
+
 	}
 
 }

@@ -16,6 +16,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
 import static java.util.Objects.nonNull
+import edu.uoc.som.jarvis.utils.ImportRegistry
 
 /**
  * Generates code from your model files on save.
@@ -23,9 +24,10 @@ import static java.util.Objects.nonNull
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class PlatformGenerator extends AbstractGenerator {
-	
+
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val uri = resource.URI
+		val PlatformDefinition platform = resource.contents.get(0) as PlatformDefinition
 		var rr = resource.resourceSet.createResource(uri.trimFileExtension.appendFileExtension("xmi"))
 		/*
 		 * Clear the content of the resource, the output resource is created each time save is called, and may already 
@@ -35,39 +37,45 @@ class PlatformGenerator extends AbstractGenerator {
 		rr.contents.addAll(resource.contents)
 		handlePlatformExtension(rr)
 		rr.save(Collections.emptyMap())
+		/*
+		 * Update the imports associated to this platform (this allows to use the latest version of a platform under 
+		 * development in an execution model)
+		 */
+		ImportRegistry.instance.updateImport(platform)
 	}
-	
+
 	def void handlePlatformExtension(Resource resource) {
 		var PlatformDefinition platform = resource.contents.get(0) as PlatformDefinition
 		if(nonNull(platform.extends)) {
-			for(ActionDefinition parentAction : platform.extends.actions) {
+			for (ActionDefinition parentAction : platform.extends.actions) {
 				platform.actions.add(deepCopy(parentAction))
 			}
-			for(EventProviderDefinition parentEventProvider : platform.extends.eventProviderDefinitions) {
+			for (EventProviderDefinition parentEventProvider : platform.extends.eventProviderDefinitions) {
 				platform.eventProviderDefinitions.add(deepCopy(parentEventProvider))
 			}
 		}
 	}
-	
+
 	private def EventProviderDefinition deepCopy(EventProviderDefinition from) {
 		if(from instanceof InputProviderDefinition) {
-			var InputProviderDefinition inputProviderDefinition = PlatformFactory.eINSTANCE.createInputProviderDefinition
+			var InputProviderDefinition inputProviderDefinition = PlatformFactory.eINSTANCE.
+				createInputProviderDefinition
 			inputProviderDefinition.name = from.name
 			return inputProviderDefinition
 		} else {
 			throw new RuntimeException("Inheritance of EventProviders is not supported for now")
 		}
 	}
-	
+
 	private def ActionDefinition deepCopy(ActionDefinition from) {
 		var ActionDefinition actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition
 		actionDefinition.name = from.name
-		for(Parameter p : from.parameters) {
+		for (Parameter p : from.parameters) {
 			actionDefinition.parameters.add(deepCopy(p))
 		}
 		return actionDefinition
 	}
-	
+
 	private def Parameter deepCopy(Parameter from) {
 		var Parameter parameter = PlatformFactory.eINSTANCE.createParameter
 		parameter.key = from.key
