@@ -5,7 +5,6 @@ import static java.util.Objects.nonNull;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,7 +21,6 @@ import edu.uoc.som.jarvis.execution.ExecutionPackage;
 import edu.uoc.som.jarvis.execution.ExecutionRule;
 import edu.uoc.som.jarvis.execution.ParameterValue;
 import edu.uoc.som.jarvis.intent.EventDefinition;
-import edu.uoc.som.jarvis.intent.Library;
 import edu.uoc.som.jarvis.platform.ActionDefinition;
 import edu.uoc.som.jarvis.platform.EventProviderDefinition;
 import edu.uoc.som.jarvis.platform.Parameter;
@@ -79,12 +77,12 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 			/*
 			 * Trying to retrieve an Event from a loaded Library
 			 */
-			EventDefinition foundEvent = getEventDefinitionFromImportedLibraries(executionModel, node.getText());
+			EventDefinition foundEvent = ExecutionUtils.getEventDefinitionFromImportedLibraries(executionModel, node.getText());
 			if (isNull(foundEvent)) {
 				/*
 				 * Cannot retrieve the Event from a loaded Library, trying to retrieve it from a loaded Platform
 				 */
-				foundEvent = getEventDefinitionFromImportedPlatforms(executionModel, node.getText());
+				foundEvent = ExecutionUtils.getEventDefinitionFromImportedPlatforms(executionModel, node.getText());
 			}
 			if (nonNull(foundEvent)) {
 				return Arrays.asList(foundEvent);
@@ -104,7 +102,7 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 			/*
 			 * Trying to retrieve an Action from a loaded platform
 			 */
-			ExecutionModel executionModel = getContainingExecutionModel(context);
+			ExecutionModel executionModel = ExecutionUtils.getContainingExecutionModel(context);
 			QualifiedName qualifiedName = getQualifiedName(node.getText());
 			if (nonNull(qualifiedName)) {
 				String platformName = qualifiedName.getQualifier();
@@ -209,56 +207,6 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 		} else {
 			return super.getLinkedObjects(context, ref, node);
 		}
-	}
-
-	/**
-	 * Returns the {@link ExecutionModel} containing the provided {@code actionInstance}.
-	 * <p>
-	 * This method returns the first {@link ExecutionModel} instance in the provided {@code actionInstance}'s
-	 * {@code eContainer} hierarchy. This method handles nested {@link ActionInstance}s (e.g. {@code onError}
-	 * {@link ActionInstance}).
-	 * 
-	 * @param actionInstance the {@link ActionInstance} to retrieve the containing {@link ExecutionModel} from
-	 * @return the containing {@link ExecutionModel} if it exists, {@code null} otherwise
-	 */
-	private ExecutionModel getContainingExecutionModel(ActionInstance actionInstance) {
-		EObject currentObject = actionInstance;
-		while (nonNull(currentObject)) {
-			currentObject = currentObject.eContainer();
-			if (currentObject instanceof ExecutionModel) {
-				return (ExecutionModel) currentObject;
-			}
-		}
-		return null;
-	}
-
-	private EventDefinition getEventDefinitionFromImportedLibraries(ExecutionModel executionModel,
-			String eventDefinitionName) {
-		Collection<Library> libraries = ImportRegistry.getInstance().getImportedLibraries(executionModel);
-		for (Library library : libraries) {
-			for (EventDefinition eventDefinition : library.getEventDefinitions()) {
-				if (eventDefinition.getName().equals(eventDefinitionName)) {
-					return eventDefinition;
-				}
-			}
-		}
-		return null;
-	}
-
-	private EventDefinition getEventDefinitionFromImportedPlatforms(ExecutionModel executionModel,
-			String eventDefinitionName) {
-		Collection<PlatformDefinition> platformDefinitions = ImportRegistry.getInstance()
-				.getImportedPlatforms(executionModel);
-		for (PlatformDefinition platformDefinition : platformDefinitions) {
-			for (EventProviderDefinition eventProviderDefinition : platformDefinition.getEventProviderDefinitions()) {
-				for (EventDefinition eventDefinition : eventProviderDefinition.getEventDefinitions()) {
-					if (eventDefinition.getName().equals(eventDefinitionName)) {
-						return eventDefinition;
-					}
-				}
-			}
-		}
-		return null;
 	}
 
 	private QualifiedName getQualifiedName(String from) {
