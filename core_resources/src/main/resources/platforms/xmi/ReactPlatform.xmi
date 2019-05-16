@@ -8,7 +8,13 @@
       <parameters name="rawMessage"/>
     </outContexts>
   </eventProviderDefinitions>
-  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="ChatProvider"/>
+  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="ChatProvider">
+    <outContexts name="chat" lifeSpan="1">
+      <parameters name="channel"/>
+      <parameters name="username"/>
+      <parameters name="rawMessage"/>
+    </outContexts>
+  </eventProviderDefinitions>
   <actions name="Reply">
     <parameters key="message"/>
   </actions>

@@ -3,12 +3,13 @@
  */
 package edu.uoc.som.jarvis.language.platform.generator
 
+import edu.uoc.som.jarvis.intent.Context
 import edu.uoc.som.jarvis.platform.ActionDefinition
 import edu.uoc.som.jarvis.platform.EventProviderDefinition
 import edu.uoc.som.jarvis.platform.InputProviderDefinition
-import edu.uoc.som.jarvis.platform.Parameter
 import edu.uoc.som.jarvis.platform.PlatformDefinition
 import edu.uoc.som.jarvis.platform.PlatformFactory
+import edu.uoc.som.jarvis.utils.ImportRegistry
 import java.util.Collections
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -16,7 +17,9 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
 import static java.util.Objects.nonNull
-import edu.uoc.som.jarvis.utils.ImportRegistry
+import edu.uoc.som.jarvis.intent.IntentFactory
+import edu.uoc.som.jarvis.intent.ContextParameter
+import edu.uoc.som.jarvis.platform.Parameter
 
 /**
  * Generates code from your model files on save.
@@ -61,6 +64,10 @@ class PlatformGenerator extends AbstractGenerator {
 			var InputProviderDefinition inputProviderDefinition = PlatformFactory.eINSTANCE.
 				createInputProviderDefinition
 			inputProviderDefinition.name = from.name
+			for(Context outContext : from.outContexts) {
+				inputProviderDefinition.outContexts.add(deepCopy(outContext))
+			}
+			// here, we don't copy the out contexts
 			return inputProviderDefinition
 		} else {
 			throw new RuntimeException("Inheritance of EventProviders is not supported for now")
@@ -75,10 +82,27 @@ class PlatformGenerator extends AbstractGenerator {
 		}
 		return actionDefinition
 	}
+	
+	private def Context deepCopy(Context from) {
+		var Context context = IntentFactory.eINSTANCE.createContext
+		context.name = from.name
+		context.lifeSpan = from.lifeSpan
+		for(ContextParameter contextParameter : from.parameters) {
+			context.parameters.add(deepCopy(contextParameter))
+		}
+		return context
+	}
 
 	private def Parameter deepCopy(Parameter from) {
 		var Parameter parameter = PlatformFactory.eINSTANCE.createParameter
 		parameter.key = from.key
 		return parameter
+	}
+	
+	private def ContextParameter deepCopy(ContextParameter from) {
+		var ContextParameter contextParameter = IntentFactory.eINSTANCE.createContextParameter
+		contextParameter.name = from.name
+		// TODO handle the other references
+		return contextParameter
 	}
 }
