@@ -11,17 +11,20 @@ import edu.uoc.som.jarvis.execution.ExecutionModel
 import edu.uoc.som.jarvis.execution.ExecutionPackage
 import edu.uoc.som.jarvis.execution.ActionInstance
 import edu.uoc.som.jarvis.utils.ImportRegistry
+import edu.uoc.som.jarvis.common.ContextAccess
+import edu.uoc.som.jarvis.language.execution.ExecutionUtils
+import edu.uoc.som.jarvis.common.CommonPackage
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class ExecutionValidator extends AbstractExecutionValidator {
-	
+
 	@Check
 	def checkExecutionModelValidImports(ExecutionModel model) {
-		model.imports.forEach[i | 
+		model.imports.forEach [ i |
 			println("Checking import " + i)
 			var Resource platformResource = ImportRegistry.getInstance.getOrLoadImport(i)
 			if(isNull(platformResource)) {
@@ -29,16 +32,32 @@ class ExecutionValidator extends AbstractExecutionValidator {
 			}
 		]
 	}
-	
+
 	@Check
 	def checkValidActionInstance(ActionInstance actionInstance) {
 		val actionParameters = actionInstance.action.parameters;
-		val actionInstanceParameters = actionInstance.values.map[v | v.parameter]
-		for(Parameter p : actionParameters) {
+		val actionInstanceParameters = actionInstance.values.map[v|v.parameter]
+		for (Parameter p : actionParameters) {
 			if(!actionInstanceParameters.contains(p)) {
 				println('The parameter ' + p.key + ' is not set in the action instance')
-				error('The parameter ' + p.key + ' is not set in the action instance', ExecutionPackage.Literals.ACTION_INSTANCE__VALUES)
+				error('The parameter ' + p.key + ' is not set in the action instance',
+					ExecutionPackage.Literals.ACTION_INSTANCE__VALUES)
 			}
+		}
+	}
+
+	@Check
+	def checkValidContextAccess(ContextAccess contextAccess) {
+		val ExecutionModel executionModel = ExecutionUtils.getContainingExecutionModel(contextAccess)
+		var boolean found = ExecutionUtils.getEventDefinitionsFromImports(executionModel).
+			flatMap[outContexts.map[name]].toSet.contains(contextAccess.contextName) ||
+			ExecutionUtils.getEventProviderDefinitionsFromImportedPlatforms(executionModel).flatMap [
+				outContexts.map[name]
+			].toSet.contains(contextAccess.contextName)
+		if(!found) {
+			println("The context " + contextAccess.contextName + " is undefined")
+			error("The context " + contextAccess.contextName + " is undefined",
+				CommonPackage.Literals.CONTEXT_ACCESS__CONTEXT_NAME)
 		}
 	}
 }
