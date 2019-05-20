@@ -14,6 +14,10 @@ import edu.uoc.som.jarvis.utils.ImportRegistry
 import edu.uoc.som.jarvis.common.ContextAccess
 import edu.uoc.som.jarvis.language.execution.ExecutionUtils
 import edu.uoc.som.jarvis.common.CommonPackage
+import edu.uoc.som.jarvis.common.OperationCall
+import java.util.Collection
+import edu.uoc.som.jarvis.intent.Context
+import edu.uoc.som.jarvis.common.StringLiteral
 
 /**
  * This class contains custom validation rules. 
@@ -27,7 +31,7 @@ class ExecutionValidator extends AbstractExecutionValidator {
 		model.imports.forEach [ i |
 			println("Checking import " + i)
 			var Resource platformResource = ImportRegistry.getInstance.getOrLoadImport(i)
-			if(isNull(platformResource)) {
+			if (isNull(platformResource)) {
 				error('Platform ' + i + "does not exist", ExecutionPackage.Literals.EXECUTION_MODEL__IMPORTS)
 			}
 		]
@@ -38,7 +42,7 @@ class ExecutionValidator extends AbstractExecutionValidator {
 		val actionParameters = actionInstance.action.parameters;
 		val actionInstanceParameters = actionInstance.values.map[v|v.parameter]
 		for (Parameter p : actionParameters) {
-			if(!actionInstanceParameters.contains(p)) {
+			if (!actionInstanceParameters.contains(p)) {
 				println('The parameter ' + p.key + ' is not set in the action instance')
 				error('The parameter ' + p.key + ' is not set in the action instance',
 					ExecutionPackage.Literals.ACTION_INSTANCE__VALUES)
@@ -49,15 +53,37 @@ class ExecutionValidator extends AbstractExecutionValidator {
 	@Check
 	def checkValidContextAccess(ContextAccess contextAccess) {
 		val ExecutionModel executionModel = ExecutionUtils.getContainingExecutionModel(contextAccess)
-		var boolean found = ExecutionUtils.getEventDefinitionsFromImports(executionModel).
-			map[outContexts.map[name]].flatten.toSet.contains(contextAccess.contextName) ||
-			ExecutionUtils.getEventProviderDefinitionsFromImportedPlatforms(executionModel).map[
-				outContexts.map[name]
-			].flatten.toSet.contains(contextAccess.contextName)
-		if(!found) {
+		var boolean found = ExecutionUtils.getOutContextsFromImports(executionModel).map[name].toSet.contains(
+			contextAccess.contextName)
+		if (!found) {
 			println("The context " + contextAccess.contextName + " is undefined")
 			error("The context " + contextAccess.contextName + " is undefined",
 				CommonPackage.Literals.CONTEXT_ACCESS__CONTEXT_NAME)
+		}
+	}
+
+	@Check
+	def checkValidContextParameterAccess(OperationCall operationCall) {
+		if (operationCall.source instanceof ContextAccess && operationCall.name.equals("get")) {
+			if (operationCall.args.size == 1) {
+				if (operationCall.args.get(0) instanceof StringLiteral) {
+					val ContextAccess contextAccess = operationCall.source as ContextAccess
+					val String arg = (operationCall.args.get(0) as StringLiteral).value
+					val ExecutionModel executionModel = ExecutionUtils.getContainingExecutionModel(operationCall)
+					var boolean found = ExecutionUtils.getOutContextsFromImports(executionModel).filter [
+						name.equals(contextAccess.contextName)
+					].map [parameters.map[name]].flatten.toSet.contains(arg)
+					if (!found) {
+						error("Parameter " + arg + " is not defined in context " + contextAccess.contextName,
+							CommonPackage.Literals.OPERATION_CALL__ARGS)
+					}
+				} else {
+					// do nothing, it may be a variable holding a name
+				}
+			} else {
+				error("The method get on a stored context accepts a single element of type String",
+					CommonPackage.Literals.OPERATION_CALL__ARGS)
+			}
 		}
 	}
 }
