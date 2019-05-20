@@ -50,10 +50,10 @@ class ExecutionValidator extends AbstractExecutionValidator {
 	def checkValidContextAccess(ContextAccess contextAccess) {
 		val ExecutionModel executionModel = ExecutionUtils.getContainingExecutionModel(contextAccess)
 		var boolean found = ExecutionUtils.getEventDefinitionsFromImports(executionModel).
-			flatMap[outContexts.map[name]].toSet.contains(contextAccess.contextName) ||
-			ExecutionUtils.getEventProviderDefinitionsFromImportedPlatforms(executionModel).flatMap [
+			map[outContexts.map[name]].flatten.toSet.contains(contextAccess.contextName) ||
+			ExecutionUtils.getEventProviderDefinitionsFromImportedPlatforms(executionModel).map[
 				outContexts.map[name]
-			].toSet.contains(contextAccess.contextName)
+			].flatten.toSet.contains(contextAccess.contextName)
 		if(!found) {
 			println("The context " + contextAccess.contextName + " is undefined")
 			error("The context " + contextAccess.contextName + " is undefined",
