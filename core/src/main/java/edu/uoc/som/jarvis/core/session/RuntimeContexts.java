@@ -390,18 +390,21 @@ public class RuntimeContexts {
     public void merge(RuntimeContexts other) {
         checkNotNull(other, "Cannot merge the provided %s %s", RuntimeContexts.class.getSimpleName(), other);
         other.getContextMap().forEach((k, v) -> {
-            if (this.contexts.containsKey(k)) {
-                Log.warn("Overriding existing context {0}", k);
-            }
             Map<String, Object> variableMap = new HashMap<>();
-            v.forEach((k1, v1) -> {
+            if (this.contexts.containsKey(k)) {
+                Log.warn("Overriding existing context: {0}", k);
                 /*
-                 * v1 is not cloned here, so concrete values are shared between the contexts. This may be an
-                 * issue if some actions update existing context variables. In this case we'll need to implement
-                 * a deep copy of the variables themselves. (see #129)
+                 * Add all the variables that are already stored in the context, they may be overridden by variables
+                 * from {@code other}.
                  */
-                variableMap.put(k1, v1);
-            });
+                variableMap.putAll(this.contexts.get(k));
+            }
+            /*
+             * v1 is not cloned here, so concrete values are shared between the contexts. This may be an
+             * issue if some actions update existing context variables. In this case we'll need to implement
+             * a deep copy of the variables themselves. (see #129)
+             */
+            variableMap.putAll(v);
             this.contexts.put(k, variableMap);
             /*
              * Merge the lifespan counts in the current context.

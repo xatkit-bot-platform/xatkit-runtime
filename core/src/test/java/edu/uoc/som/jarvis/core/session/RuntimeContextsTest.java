@@ -329,13 +329,27 @@ public class RuntimeContextsTest extends AbstractJarvisTest {
         context.merge(null);
     }
 
-    @Test(expected = JarvisException.class)
-    public void mergeDuplicatedContext() {
+    @Test
+    public void mergeDuplicatedContextNoVariableOverridden() {
         context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         RuntimeContexts context2 = new RuntimeContexts();
-        context2.setContextValue("context", 5, "key2", "value2");
+        context2.setContextValue("context", 4, "key2", "value2");
         context.merge(context2);
+        assertThat(context.getContextValue("context", "key")).as("Previous key value").isEqualTo("value");
+        assertThat(context.getContextValue("context", "key2")).as("New key value").isEqualTo("value2");
+        assertThat(context.getContextLifespanCount("context")).as("Context lifespan has been overridden").isEqualTo(4);
+    }
+
+    @Test
+    public void mergeDuplicatedContextVariableOverridden() {
+        context = new RuntimeContexts();
+        context.setContextValue("context", 5, "key", "value");
+        RuntimeContexts context2 = new RuntimeContexts();
+        context2.setContextValue("context", 4, "key", "value2");
+        context.merge(context2);
+        assertThat(context.getContextValue("context", "key")).as("Key value has been overriden").isEqualTo("value2");
+        assertThat(context.getContextLifespanCount("context")).as("Context lifespan has been overridden").isEqualTo(4);
     }
 
     @Test
