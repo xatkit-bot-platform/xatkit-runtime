@@ -391,24 +391,22 @@ public class RuntimeContexts {
         checkNotNull(other, "Cannot merge the provided %s %s", RuntimeContexts.class.getSimpleName(), other);
         other.getContextMap().forEach((k, v) -> {
             if (this.contexts.containsKey(k)) {
-                throw new JarvisException(MessageFormat.format("Cannot merge the provided {0}, duplicated value for " +
-                        "context {1}", RuntimeContexts.class.getSimpleName(), k));
-            } else {
-                Map<String, Object> variableMap = new HashMap<>();
-                v.forEach((k1, v1) -> {
-                    /*
-                     * v1 is not cloned here, so concrete values are shared between the contexts. This may be an
-                     * issue if some actions update existing context variables. In this case we'll need to implement
-                     * a deep copy of the variables themselves. (see #129)
-                     */
-                    variableMap.put(k1, v1);
-                });
-                this.contexts.put(k, variableMap);
-                /*
-                 * Merge the lifespan counts in the current context.
-                 */
-                this.lifespanCounts.put(k, other.getContextLifespanCount(k));
+                Log.warn("Overriding existing context {0}", k);
             }
+            Map<String, Object> variableMap = new HashMap<>();
+            v.forEach((k1, v1) -> {
+                /*
+                 * v1 is not cloned here, so concrete values are shared between the contexts. This may be an
+                 * issue if some actions update existing context variables. In this case we'll need to implement
+                 * a deep copy of the variables themselves. (see #129)
+                 */
+                variableMap.put(k1, v1);
+            });
+            this.contexts.put(k, variableMap);
+            /*
+             * Merge the lifespan counts in the current context.
+             */
+            this.lifespanCounts.put(k, other.getContextLifespanCount(k));
         });
     }
 
