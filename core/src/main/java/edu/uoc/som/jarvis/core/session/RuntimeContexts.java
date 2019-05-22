@@ -192,7 +192,7 @@ public class RuntimeContexts {
         }
         if (lifespanCounts.containsKey(context)) {
             int currentLifespan = lifespanCounts.get(context);
-            if (currentLifespan < lifespanCount) {
+            if (currentLifespan <= lifespanCount) {
                 /*
                  * The provided lifespanCount is greater than the stored one, this means that we are dealing with a
                  * new context (i.e. a new Intent recognized from the IntentRecognitionProvider or a new Event
