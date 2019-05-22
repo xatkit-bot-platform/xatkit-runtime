@@ -21,8 +21,6 @@ public class RuntimeMessageActionTest {
 
     private static String MESSAGE = "test message";
 
-    private static String MESSAGE_WITH_VARIABLE = "test {$Test.key}";
-
     private static JarvisCore JARVIS_CORE;
 
     private static RuntimePlatform RUNTIME_PLATFORM;
@@ -70,13 +68,6 @@ public class RuntimeMessageActionTest {
     public void constructValidRuntimeMessageAction() {
         RuntimeMessageAction action = new StubRuntimeMessageAction(RUNTIME_PLATFORM, session, MESSAGE);
         assertThat(action.getMessage()).as("Valid message").isEqualTo(MESSAGE);
-    }
-
-    @Test
-    public void constructValidRuntimeMessageActionMessageWithVariable() {
-        session.getRuntimeContexts().setContextValue("Test", 5, "key", "value");
-        RuntimeMessageAction action = new StubRuntimeMessageAction(RUNTIME_PLATFORM, session, MESSAGE_WITH_VARIABLE);
-        assertThat(action.getMessage()).as("Action message variable has been replaced").isEqualTo("test value");
     }
 
     @Test

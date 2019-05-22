@@ -15,9 +15,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -429,84 +428,5 @@ public class RuntimeContexts {
      */
     public Map<String, Integer> getLifespanCountsMap() {
         return Collections.unmodifiableMap(lifespanCounts);
-    }
-
-    /**
-     * Replace declared variables from {@code message} by their context values.
-     * <p>
-     * This method searches for variable patterns in the provided {@code message} and retrieves the corresponding
-     * values from the context. Variables accessing a context value should be declared following this template:
-     * {@code {$contextName.variableName}}.
-     * <p>
-     * If a variable cannot be replaced the variable pattern is left unchanged.
-     *
-     * @param message the message to replace the variables from
-     * @return the provided {@code message} with its declared variables replaced by their context values.
-     * @throws JarvisException if an error occurred when retrieving a value from a previous action
-     */
-    public String fillContextValues(String message) {
-        checkNotNull(message, "Cannot fill the context values of the null message");
-        Log.info("Filling context values for message {0}", message);
-        String outMessage = message;
-        Matcher m = Pattern.compile("\\{\\$[^\\s\\}]+\\}").matcher(message);
-        while (m.find()) {
-            String group = m.group();
-            Log.info("Found context variable {0}", group);
-            /*
-             * Cannot be empty.
-             */
-            String filteredGroup = group.substring(2);
-            String[] splitGroup = filteredGroup.split("\\.");
-            if (splitGroup.length == 2) {
-                Log.info("Looking for context \"{0}\"", splitGroup[0]);
-                Map<String, Object> variables = this.getContextVariables(splitGroup[0]);
-                if (nonNull(variables)) {
-                    String variableIdentifier = splitGroup[1].substring(0, splitGroup[1].length() - 1);
-                    Object value = variables.get(variableIdentifier);
-                    Log.info("Looking for variable \"{0}\"", variableIdentifier);
-                    if (nonNull(value)) {
-                        String printedValue = null;
-                        if (value instanceof Future) {
-                            try {
-                                printedValue = ((Future) value).get(variableTimeout, TimeUnit.SECONDS).toString();
-                                Log.info("Found value {0} for {1}.{2}", printedValue, splitGroup[0],
-                                        variableIdentifier);
-                            } catch (InterruptedException | ExecutionException e) {
-                                String errorMessage = MessageFormat.format("An error occurred when retrieving the " +
-                                        "value of the variable {0}", variableIdentifier);
-                                Log.error(errorMessage);
-                                throw new JarvisException(e);
-                            } catch (TimeoutException e) {
-                                /*
-                                 * The Future takes too long to compute, return a placeholder (see https://github
-                                 * .com/gdaniel/jarvis/wiki/Troubleshooting#my-bot-sends-task-takes-too-long-to
-                                 * -compute-messages).
-                                 */
-                                Log.error("The value for {0}.{1} took too long to complete, stopping it and returning" +
-                                        " a placeholder", splitGroup[0], variableIdentifier);
-                                ((Future) value).cancel(true);
-                                printedValue = "<Task took too long to complete>";
-                            } catch (CancellationException e) {
-                                Log.error("Cannot retrieve the value for {0}.{1}: the task has been cancelled, " +
-                                        "returning a placeholder", splitGroup[0], variableIdentifier);
-                                printedValue = "<Task has been cancelled>";
-                            }
-                        } else {
-                            printedValue = value.toString();
-                            Log.info("found value {0} for {1}.{2}", printedValue, splitGroup[0],
-                                    variableIdentifier);
-                        }
-                        outMessage = outMessage.replace(group, printedValue);
-                    } else {
-                        Log.error("The context variable {0} is null", group);
-                    }
-                } else {
-                    Log.error("The context variable {0} does not exist", group);
-                }
-            } else {
-                Log.error("Invalid context variable access: {0}", group);
-            }
-        }
-        return outMessage;
     }
 }

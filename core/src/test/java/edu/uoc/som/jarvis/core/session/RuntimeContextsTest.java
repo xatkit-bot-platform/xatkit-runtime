@@ -8,15 +8,9 @@ import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
 
-import java.text.MessageFormat;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RuntimeContextsTest extends AbstractJarvisTest {
 
@@ -405,153 +399,6 @@ public class RuntimeContextsTest extends AbstractJarvisTest {
     /*
      * We do not test updates on context values themselves, because they are not cloned (see #129)
      */
-
-    @Test(expected = NullPointerException.class)
-    public void fillContextValuesNullMessage() {
-        context = new RuntimeContexts();
-        context.fillContextValues(null);
-    }
-
-    @Test
-    public void fillContextValuesEmptyMessage() {
-        context = new RuntimeContexts();
-        String result = context.fillContextValues("");
-        assertThat(result).as("Empty result").isEmpty();
-    }
-
-    @Test
-    public void fillContextValuesNotSetContext() {
-        context = new RuntimeContexts();
-        String result = context.fillContextValues("{$context.test}");
-        assertThat(result).as("Not replaced variable").isEqualTo("{$context.test}");
-    }
-
-    @Test
-    public void fillContextValuesSetContextNotSetKey() {
-        context = new RuntimeContexts();
-        context.setContextValue("context", 5, "key", "value");
-        String result = context.fillContextValues("{$context.test}");
-        assertThat(result).as("Not replaced variable").isEqualTo("{$context.test}");
-    }
-
-    @Test
-    public void fillContextValuesSetContextSetKey() {
-        context = new RuntimeContexts();
-        context.setContextValue("context", 5, "key", "value");
-        String result = context.fillContextValues("{$context.key}");
-        assertThat(result).as("Replaced variable").isEqualTo("value");
-    }
-
-    @Test
-    public void fillContextValuesSetContextSetKeyLongMessage() {
-        context = new RuntimeContexts();
-        context.setContextValue("context", 5, "key", "value");
-        String result = context.fillContextValues("This is a {$context.key} test");
-        assertThat(result).as("Replaced variable").isEqualTo("This is a value test");
-    }
-
-    @Test
-    public void fillContextValuesSetContextSetKeyFuture() {
-        context = new RuntimeContexts();
-        Future<String> f = CompletableFuture.completedFuture("value");
-        context.setContextValue("context", 5, "key", f);
-        String result = context.fillContextValues("This is a {$context.key} test");
-        assertThat(result).as("Replaced future variable").isEqualTo("This is a value test");
-    }
-
-    @Test
-    public void fillContextValuesSetContextSetKeyFutureNotString() {
-        context = new RuntimeContexts();
-        Future<Integer> f = CompletableFuture.completedFuture(1);
-        context.setContextValue("context", 5, "key", f);
-        String result = context.fillContextValues("This is a {$context.key} test");
-        assertThat(result).as("Replaced future non String variable").isEqualTo("This is a 1 test");
-    }
-
-    @Test
-    public void fillContextValuesTwoValuesSetUnset() {
-        context = new RuntimeContexts();
-        context.setContextValue("context", 5, "key", "value");
-        String result = context.fillContextValues("This is a {$context.key} test from {$context.test}");
-        assertThat(result).as("First variable replaced / second variable ignored").isEqualTo("This is a value test " +
-                "from {$context.test}");
-    }
-
-    @Test
-    public void fillContextValuesTwoValuesSet() {
-        context = new RuntimeContexts();
-        context.setContextValue("context", 5, "key", "value");
-        context.setContextValue("context", 5, "test", "testValue");
-        String result = context.fillContextValues("This is a {$context.key} test from {$context.test}");
-        assertThat(result).as("Replaced variables").isEqualTo("This is a value test from testValue");
-    }
-
-    @Test
-    public void fillContextValuesNoSpace() {
-        context = new RuntimeContexts();
-        context.setContextValue("context", 5, "key1", "value1");
-        context.setContextValue("context", 5, "key2", "value2");
-        String result = context.fillContextValues("{$context.key1}{$context.key2}");
-        assertThat(result).as("Replaced variables").isEqualTo("value1value2");
-    }
-
-    @Test
-    public void fillContextValuesTwoFutureValuesSet() {
-        context = new RuntimeContexts();
-        Future<String> valueFuture = CompletableFuture.completedFuture("value");
-        Future<String> testValueFuture = CompletableFuture.completedFuture("testValue");
-        context.setContextValue("context", 5, "key", valueFuture);
-        context.setContextValue("context", 5, "test", testValueFuture);
-        String result = context.fillContextValues("This is a {$context.key} test from {$context.test}");
-        assertThat(result).as("Replaced future variables").isEqualTo("This is a value test from testValue");
-    }
-
-    @Test
-    public void fillContextValueSlowFuture() {
-        context = new RuntimeContexts();
-        Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
-            synchronized (this) {
-                try {
-                    wait(10000);
-                    return false;
-                } catch (InterruptedException e) {
-                    return true;
-                }
-            }
-        });
-        context.setContextValue("context", 5, "key", future);
-        String result = context.fillContextValues("This is a boolean value: {$context.key}");
-        assertThatThrownBy(() -> future.get()).as("Future.get() throws an exception").isInstanceOf
-                (CancellationException.class);
-        assertThat(result).as("Not replaced future variable").isEqualTo("This is a boolean value: <Task took too long" +
-                " to complete>");
-    }
-
-    @Test
-    public void fillContextValueSlowFutureCustomVariableTimeout() throws InterruptedException, ExecutionException {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 5);
-        context = new RuntimeContexts(configuration);
-        Future<Boolean> future = CompletableFuture.supplyAsync(() -> {
-            synchronized (this) {
-                try {
-                    wait(4000);
-                    return false;
-                } catch (InterruptedException e) {
-                    return true;
-                }
-            }
-        });
-        context.setContextValue("context", 5, "key", future);
-        String result = context.fillContextValues("This is a boolean value: {$context.key}");
-        /*
-         * This should not throw an exception: the task should not be cancelled according to the provided variable
-         * timeout value.
-         */
-        Boolean futureValue = future.get();
-        assertThat(result).as("Replaced future variable").isEqualTo(MessageFormat.format("This is a boolean value: " +
-                "{0}", futureValue));
-    }
 
     private void checkRuntimeContext(RuntimeContexts context) {
         assertThat(context.getContextMap()).as("Not null context map").isNotNull();

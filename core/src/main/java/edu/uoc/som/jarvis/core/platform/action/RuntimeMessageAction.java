@@ -75,7 +75,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
         super(runtimePlatform, session);
         checkArgument(nonNull(rawMessage) && !rawMessage.isEmpty(), "Cannot construct a %s action with the provided " +
                 "message %s, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
-        this.message = session.getRuntimeContexts().fillContextValues(rawMessage);
+        this.message = rawMessage;
     }
 
     /**

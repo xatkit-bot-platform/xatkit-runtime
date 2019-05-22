@@ -354,15 +354,8 @@ public abstract class RuntimePlatform {
 
                         Expression paramExpression = paramValue.getExpression();
                         try {
-                            Object paramExpValue = jarvisCore.getExecutionService().evaluate(paramExpression,
-                                    executionContext);
-                            if (paramExpValue instanceof String) {
-                                return context.fillContextValues((String) paramExpValue);
-                            } else {
-                                return paramExpValue;
-                            }
-                            // should be interpreter exception
-                        } catch (Exception e) {
+                            return jarvisCore.getExecutionService().evaluate(paramExpression, executionContext);
+                        } catch(Exception e) {
                             throw new JarvisException(e);
                         }
                     }
