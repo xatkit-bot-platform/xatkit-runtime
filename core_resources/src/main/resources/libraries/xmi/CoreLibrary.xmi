@@ -3,4 +3,10 @@
   <eventDefinitions xsi:type="intent:IntentDefinition" name="Default_Fallback_Intent">
     <trainingSentences></trainingSentences>
   </eventDefinitions>
+  <eventDefinitions xsi:type="intent:IntentDefinition" name="Help">
+    <trainingSentences>Help</trainingSentences>
+    <trainingSentences>help</trainingSentences>
+    <trainingSentences>I need some help</trainingSentences>
+    <trainingSentences>I need some assistance</trainingSentences>
+  </eventDefinitions>
 </intent:Library>
