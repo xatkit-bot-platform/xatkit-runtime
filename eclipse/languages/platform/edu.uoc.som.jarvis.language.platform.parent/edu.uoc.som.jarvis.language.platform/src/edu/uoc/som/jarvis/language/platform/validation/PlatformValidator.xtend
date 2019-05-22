@@ -3,11 +3,14 @@
  */
 package edu.uoc.som.jarvis.language.platform.validation
 
-import org.eclipse.xtext.validation.Check
+import edu.uoc.som.jarvis.common.CommonPackage
+import edu.uoc.som.jarvis.common.ImportDeclaration
 import edu.uoc.som.jarvis.platform.PlatformDefinition
-import org.eclipse.emf.ecore.resource.Resource
-import edu.uoc.som.jarvis.utils.ImportRegistry
 import edu.uoc.som.jarvis.platform.PlatformPackage
+import edu.uoc.som.jarvis.utils.ImportRegistry
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.validation.Check
+
 import static java.util.Objects.isNull
 import static java.util.Objects.nonNull
 
@@ -19,12 +22,19 @@ import static java.util.Objects.nonNull
 class PlatformValidator extends AbstractPlatformValidator {
 
 	@Check
-	def checkPlatformValidImports(PlatformDefinition platform) {
-		platform.imports.forEach [ i |
-			println("Checking import " + i)
-			var Resource platformResource = ImportRegistry.getInstance.getOrLoadImport(i)
-			if (isNull(platformResource)) {
-				error('Platform ' + i + " does not exist", PlatformPackage.Literals.PLATFORM_DEFINITION__IMPORTS)
+	def checkImportDefinition(ImportDeclaration i) {
+		val Resource importedResource = ImportRegistry.getInstance.getOrLoadImport(i)
+		if(isNull(importedResource)) {
+			error("Cannot resolve the import " + i.path, CommonPackage.Literals.IMPORT_DECLARATION__PATH)
+		}
+	}
+	
+	@Check
+	def checkDuplicatedAliases(ImportDeclaration i) {
+		val PlatformDefinition platformDefinition = i.eContainer as PlatformDefinition
+		platformDefinition.imports.forEach[platformDefinitionImport | 
+			if(!platformDefinitionImport.path.equals(i.path) && platformDefinitionImport.alias.equals(i.alias)) {
+				error("Duplicated alias " + i.alias, CommonPackage.Literals.IMPORT_DECLARATION__ALIAS)
 			}
 		]
 	}

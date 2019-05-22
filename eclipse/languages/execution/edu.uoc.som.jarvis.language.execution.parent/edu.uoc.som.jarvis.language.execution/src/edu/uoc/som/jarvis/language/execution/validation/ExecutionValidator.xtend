@@ -17,6 +17,7 @@ import edu.uoc.som.jarvis.common.CommonPackage
 import edu.uoc.som.jarvis.common.OperationCall
 import java.util.Collection
 import edu.uoc.som.jarvis.intent.Context
+import edu.uoc.som.jarvis.common.ImportDeclaration
 import edu.uoc.som.jarvis.common.StringLiteral
 
 /**
@@ -27,12 +28,19 @@ import edu.uoc.som.jarvis.common.StringLiteral
 class ExecutionValidator extends AbstractExecutionValidator {
 
 	@Check
-	def checkExecutionModelValidImports(ExecutionModel model) {
-		model.imports.forEach [ i |
-			println("Checking import " + i)
-			var Resource platformResource = ImportRegistry.getInstance.getOrLoadImport(i)
-			if (isNull(platformResource)) {
-				error('Platform ' + i + "does not exist", ExecutionPackage.Literals.EXECUTION_MODEL__IMPORTS)
+	def checkImportDefinition(ImportDeclaration i) {
+		val Resource importedResource = ImportRegistry.getInstance.getOrLoadImport(i)
+		if(isNull(importedResource)) {
+			error("Cannot resolve the import " + i.path, CommonPackage.Literals.IMPORT_DECLARATION__PATH)
+		}
+	}
+	
+	@Check
+	def checkDuplicatedAliases(ImportDeclaration i) {
+		val ExecutionModel executionModel = ExecutionUtils.getContainingExecutionModel(i)
+		executionModel.imports.forEach[executionModelImport | 
+			if(!executionModelImport.path.equals(i.path) && executionModelImport.alias.equals(i.alias)) {
+				error("Duplicated alias " + i.alias, CommonPackage.Literals.IMPORT_DECLARATION__ALIAS)
 			}
 		]
 	}
