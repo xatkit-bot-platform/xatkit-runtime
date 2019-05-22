@@ -441,6 +441,12 @@ public class ImportRegistry {
 							importDeclaration.eClass().getName()));
 					return null;
 				}
+
+				/*
+				 * Remove the existing alias if there is one, this allows to update the name of the alias.
+				 */
+				removeAliasForURI(importResourceURI);
+
 				rSet.getURIConverter().getURIMap().put(importResourceAliasURI, importResourceFileURI);
 				Iterator<Resource> registeredResources = rSet.getResources().iterator();
 				/*
@@ -473,13 +479,7 @@ public class ImportRegistry {
 				 * If there is an alias we need to remove the URIMap entry previously associated to the base URI. This
 				 * allows to update aliases and remove them.
 				 */
-				Iterator<Map.Entry<URI, URI>> uriMapEntries = rSet.getURIConverter().getURIMap().entrySet().iterator();
-				while (uriMapEntries.hasNext()) {
-					Map.Entry<URI, URI> uriMapEntry = uriMapEntries.next();
-					if (uriMapEntry.getValue().equals(importResourceURI)) {
-						uriMapEntries.remove();
-					}
-				}
+				removeAliasForURI(importResourceURI);
 			}
 			resource = rSet.getResource(importResourceURI, false);
 			if (isNull(resource)) {
@@ -549,6 +549,25 @@ public class ImportRegistry {
 			}
 		}
 		return resource;
+	}
+
+	/**
+	 * Removes the alias associated to the provided {@code uri}.
+	 * <p>
+	 * This method looks at the {@link ResourceSet}'s URI map for entries containing the {@code uri} as a value and
+	 * remove them. Note that the comparison must be performed on the value since the registered alias for the provided
+	 * {@code uri} is not known.
+	 * 
+	 * @param uri the {@link URI} to remove the alias for
+	 */
+	private void removeAliasForURI(URI uri) {
+		Iterator<Map.Entry<URI, URI>> uriMapEntries = rSet.getURIConverter().getURIMap().entrySet().iterator();
+		while (uriMapEntries.hasNext()) {
+			Map.Entry<URI, URI> uriMapEntry = uriMapEntries.next();
+			if (uriMapEntry.getValue().equals(uri)) {
+				uriMapEntries.remove();
+			}
+		}
 	}
 
 	/**
