@@ -59,10 +59,12 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				String eventProviderName = qualifiedName.getLocalName();
 				PlatformDefinition platformDefinition = ImportRegistry.getInstance()
 						.getImportedPlatform((ExecutionModel) context, platformName);
-				EventProviderDefinition eventProviderDefinition = platformDefinition
-						.getEventProviderDefinition(eventProviderName);
-				if (nonNull(eventProviderDefinition)) {
-					return Arrays.asList(eventProviderDefinition);
+				if(nonNull(platformDefinition)) {
+					EventProviderDefinition eventProviderDefinition = platformDefinition
+							.getEventProviderDefinition(eventProviderName);
+					if (nonNull(eventProviderDefinition)) {
+						return Arrays.asList(eventProviderDefinition);
+					}
 				}
 			}
 			return Collections.emptyList();
@@ -109,13 +111,15 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				String actionName = qualifiedName.getLocalName();
 				PlatformDefinition platformDefinition = ImportRegistry.getInstance().getImportedPlatform(executionModel,
 						platformName);
-				/*
-				 * Get the first one here, if there are multiple ActionDefinitions with the same name it will be rebound
-				 * when setting its parameters.
-				 */
-				ActionDefinition actionDefinition = platformDefinition.getActions(actionName).get(0);
-				if (nonNull(actionDefinition)) {
-					return Arrays.asList(actionDefinition);
+				if(nonNull(platformDefinition)) {
+					/*
+					 * Get the first one here, if there are multiple ActionDefinitions with the same name it will be rebound
+					 * when setting its parameters.
+					 */
+					ActionDefinition actionDefinition = platformDefinition.getActions(actionName).get(0);
+					if (nonNull(actionDefinition)) {
+						return Arrays.asList(actionDefinition);
+					}
 				}
 			}
 			return Collections.emptyList();
