@@ -14,6 +14,7 @@ import org.apache.http.impl.bootstrap.ServerBootstrap;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.BindException;
+import java.net.SocketTimeoutException;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -117,7 +118,17 @@ public class JarvisServer {
                 .setListenerPort(port)
                 .setServerInfo("Jarvis/1.1")
                 .setSocketConfig(socketConfig)
-                .setExceptionLogger(e -> Log.error(e))
+                .setExceptionLogger(e -> {
+                    if(e instanceof SocketTimeoutException) {
+                        /*
+                         * SocketTimeoutExceptions are thrown after each query, we can log them as debug to avoid
+                         * polluting the application log.
+                         */
+                        Log.debug(e);
+                    } else {
+                        Log.error(e);
+                    }
+                })
                 .registerHandler("*", new HttpHandler(this))
                 .create();
     }
@@ -202,6 +213,7 @@ public class JarvisServer {
         checkNotNull(handler, "Cannot register the provided %s %s (uri=%s)", JsonRestHandler.class.getSimpleName(),
                 handler, uri);
         this.restEndpoints.put(uri, handler);
+        Log.info("Registered REST handler {0} at URI {1}", handler.getClass().getSimpleName(), uri);
     }
 
     /**
