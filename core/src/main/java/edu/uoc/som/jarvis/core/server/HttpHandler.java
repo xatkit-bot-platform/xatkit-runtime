@@ -13,10 +13,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -228,8 +225,12 @@ class HttpHandler implements HttpRequestHandler {
                 JsonElement.class.getSimpleName(), element);
         String rawJson = gson.toJson(element);
         BasicHttpEntity entity = new BasicHttpEntity();
-        entity.setContent(new ByteArrayInputStream(rawJson.getBytes(Charset.forName("UTF-8"))));
-        entity.setContentLength(rawJson.length());
+        byte[] jsonBytes = rawJson.getBytes(Charset.forName("UTF-8"));
+        entity.setContent(new ByteArrayInputStream(jsonBytes));
+        /*
+         * Use the size of the byte array, it may be longer than the size of the string for special characters.
+         */
+        entity.setContentLength(jsonBytes.length);
         entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
         entity.setContentEncoding(HTTP.UTF_8);
         return entity;
