@@ -45,3 +45,6 @@ credentials
 
 # Demonstration Projects
 jarvisdemo
+
+# Generated data/ folder
+data/

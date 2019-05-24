@@ -17,12 +17,14 @@ import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.JarvisException;
 import edu.uoc.som.jarvis.core.recognition.EntityMapper;
 import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.recognition.RecognitionMonitor;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import edu.uoc.som.jarvis.core.session.RuntimeContexts;
 import edu.uoc.som.jarvis.intent.*;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
@@ -319,6 +321,29 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     private Map<String, EntityType> registeredEntityTypes;
 
     /**
+     * The {@link RecognitionMonitor} used to track intent matching information.
+     */
+    @Nullable
+    private RecognitionMonitor recognitionMonitor;
+
+    /**
+     * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
+     * <p>
+     * This constructor is a placeholder for {@link #DialogFlowApi(JarvisCore, Configuration, RecognitionMonitor)}
+     * with a {@code null} {@link RecognitionMonitor}.
+     *
+     * @param jarvisCore    the {@link JarvisCore} instance managing the {@link DialogFlowApi}
+     * @param configuration the {@link Configuration} holding the DialogFlow project ID and language code
+     * @throws NullPointerException if the provided {@code jarvisCore}, {@code configuration} or one of the
+     *                              mandatory {@code configuration} value is {@code null}.
+     * @throws DialogFlowException  if the client failed to start a new session
+     * @see #DialogFlowApi(JarvisCore, Configuration, RecognitionMonitor)
+     */
+    public DialogFlowApi(JarvisCore jarvisCore, Configuration configuration) {
+        this(jarvisCore, configuration, null);
+    }
+
+    /**
      * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following keys:
@@ -344,8 +369,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * option for a bot implementation that manipulates local {@link JarvisSession}s may generate consistency issues
      * and unexpected behaviors (such as unmatched intents and context value overwriting).
      *
-     * @param jarvisCore    the {@link JarvisCore} instance managing the {@link DialogFlowApi}
-     * @param configuration the {@link Configuration} holding the DialogFlow project ID and language code
+     * @param jarvisCore         the {@link JarvisCore} instance managing the {@link DialogFlowApi}
+     * @param configuration      the {@link Configuration} holding the DialogFlow project ID and language code
+     * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent matching information
      * @throws NullPointerException if the provided {@code jarvisCore}, {@code configuration} or one of the mandatory
      *                              {@code configuration} value is {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
@@ -355,7 +381,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #ENABLE_INTENT_LOADING_KEY
      * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
-    public DialogFlowApi(JarvisCore jarvisCore, Configuration configuration) {
+    public DialogFlowApi(JarvisCore jarvisCore, Configuration configuration,
+                         @Nullable RecognitionMonitor recognitionMonitor) {
         checkNotNull(jarvisCore, "Cannot construct a DialogFlow API instance with a null JarvisCore instance");
         checkNotNull(configuration, "Cannot construct a DialogFlow API instance from a configuration");
         Log.info("Starting DialogFlow Client");
@@ -370,6 +397,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         this.cleanAgent();
         this.importRegisteredIntents();
         this.importRegisteredEntities();
+        this.recognitionMonitor = recognitionMonitor;
 
     }
 
@@ -497,11 +525,11 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * be cleaned on startup: re-training the ML engine can take a while.
      */
     private void cleanAgent() {
-        if(cleanAgentOnStartup) {
+        if (cleanAgentOnStartup) {
             Log.info("Cleaning agent DialogFlow agent");
             List<Intent> registeredIntents = getRegisteredIntents();
             for (Intent intent : registeredIntents) {
-                if(!intent.getDisplayName().equals(DEFAULT_FALLBACK_INTENT.getName())) {
+                if (!intent.getDisplayName().equals(DEFAULT_FALLBACK_INTENT.getName())) {
                     intentsClient.deleteIntent(intent.getName());
                 }
             }
@@ -521,7 +549,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private void importRegisteredIntents() {
         this.registeredIntents = new HashMap<>();
-        if(cleanAgentOnStartup) {
+        if (cleanAgentOnStartup) {
             Log.info("Skipping intent import, the agent has been cleaned on startup");
             return;
         }
@@ -546,7 +574,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private void importRegisteredEntities() {
         this.registeredEntityTypes = new HashMap<>();
-        if(cleanAgentOnStartup) {
+        if (cleanAgentOnStartup) {
             Log.info("Skipping entity types import, the agent has been cleaned on startup");
             return;
         }
@@ -1407,7 +1435,18 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 "Detected Intent: {1} (confidence: {2})\n" +
                 "Fulfillment Text: {3}", queryResult.getQueryText(), queryResult.getIntent()
                 .getDisplayName(), queryResult.getIntentDetectionConfidence(), queryResult.getFulfillmentText());
-        return convertDialogFlowIntentToRecognizedIntent(queryResult);
+        RecognizedIntent recognizedIntent = convertDialogFlowIntentToRecognizedIntent(queryResult);
+        if (nonNull(recognitionMonitor)) {
+            if (recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT)) {
+                recognitionMonitor.registerUnmatchedInput(input);
+            } else {
+                /*
+                 * We can safely cast here, RecognizedIntents always have an IntentDefinition as their definition.
+                 */
+                recognitionMonitor.registerMatchedInput(input, (IntentDefinition) recognizedIntent.getDefinition());
+            }
+        }
+        return recognizedIntent;
     }
 
     /**
@@ -1521,6 +1560,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         this.intentsClient.shutdownNow();
         this.contextsClient.shutdownNow();
         this.agentsClient.shutdownNow();
+        this.recognitionMonitor.shutdown();
     }
 
     /**

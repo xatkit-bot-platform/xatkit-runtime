@@ -195,17 +195,17 @@ public class JarvisCore {
             ExecutionModel executionModel = getExecutionModel(configuration);
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
                     .getSimpleName(), ExecutionModel.class.getSimpleName());
+            /*
+             * Start the server before creating the IntentRecognitionProvider, we need a valid JarvisServer instance
+             * to register the analytics REST endpoints (this is also required to start the EventProviderDefinition).
+             */
+            this.jarvisServer = new JarvisServer(configuration);
             this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                     configuration);
             this.sessions = new HashMap<>();
             this.runtimePlatformRegistry = new RuntimePlatformRegistry();
             this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry);
             this.eventDefinitionRegistry = new EventDefinitionRegistry();
-            /*
-             * Start the server before processing the EventProviderDefinitions, we need to have a valid JarvisServer
-             * instance to call JarvisServer#registerWebhookEventProvider
-             */
-            this.jarvisServer = new JarvisServer(configuration);
             this.loadExecutionModel(executionModel);
             jarvisServer.start();
             Log.info("Jarvis bot started");

@@ -7,6 +7,7 @@ import edu.uoc.som.jarvis.intent.*;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -113,12 +114,35 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      */
     protected Map<IntentDefinition, List<Pattern>> intentPatterns;
 
+    @Nullable
+    private RecognitionMonitor recognitionMonitor;
+
+    /**
+     * Constructs a {@link DefaultIntentRecognitionProvider} with the provided {@link Configuration}.
+     * <p>
+     * This constructor is a placeholder for
+     * {@link #DefaultIntentRecognitionProvider(Configuration, RecognitionMonitor)} with a {@code null}
+     * {@link RecognitionMonitor}.
+     *
+     * @param configuration the {@link Configuration} the {@link Configuration} used to customize the created
+     *                      {@link JarvisSession}s
+     * @throws NullPointerException if the provided {@code configuration} is {@code null}
+     * @see #DefaultIntentRecognitionProvider(Configuration, RecognitionMonitor)
+     */
+    public DefaultIntentRecognitionProvider(Configuration configuration) {
+        this(configuration, null);
+    }
+
     /**
      * Constructs a {@link DefaultIntentRecognitionProvider} with the provided {@code configuration}.
      *
      * @param configuration the {@link Configuration} used to customize the created {@link JarvisSession}s
+     *                      * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent
+     *                      matching information
+     * @throws NullPointerException if the provided {@code configuration} is {@code null}
      */
-    public DefaultIntentRecognitionProvider(Configuration configuration) {
+    public DefaultIntentRecognitionProvider(Configuration configuration,
+                                            @Nullable RecognitionMonitor recognitionMonitor) {
         checkNotNull(configuration, "Cannot create a %s with the provided %s %s", this.getClass().getSimpleName(),
                 Configuration.class.getSimpleName(), configuration);
         Log.info("Starting {0}", this.getClass().getSimpleName());
@@ -126,6 +150,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
         this.isShutdown = false;
         this.entityMapper = new DefaultEntityMapper();
         this.intentPatterns = new HashMap<>();
+        this.recognitionMonitor = recognitionMonitor;
     }
 
     /**
@@ -362,6 +387,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     public void shutdown() {
         this.intentPatterns = null;
         this.isShutdown = true;
+        this.recognitionMonitor.shutdown();
     }
 
     /**
@@ -416,6 +442,9 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
                     /*
                      * Return the first one we find, no need to iterate the rest of the map
                      */
+                    if (nonNull(this.recognitionMonitor)) {
+                        this.recognitionMonitor.registerMatchedInput(input, intentDefinition);
+                    }
                     return recognizedIntent;
                 }
             }
@@ -424,6 +453,9 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
          * Can't find an intent matching the provided input, return the default fallback intent
          */
         recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
+        if (nonNull(recognitionMonitor)) {
+            this.recognitionMonitor.registerUnmatchedInput(input);
+        }
         return recognizedIntent;
     }
 
