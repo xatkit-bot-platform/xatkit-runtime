@@ -384,6 +384,15 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * {@inheritDoc}
      */
     @Override
+    @Nullable
+    public RecognitionMonitor getRecognitionMonitor() {
+        return recognitionMonitor;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void shutdown() {
         this.intentPatterns = null;
         this.isShutdown = true;

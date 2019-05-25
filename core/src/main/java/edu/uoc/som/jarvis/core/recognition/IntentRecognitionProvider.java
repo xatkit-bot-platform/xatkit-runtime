@@ -5,6 +5,8 @@ import edu.uoc.som.jarvis.intent.EntityDefinition;
 import edu.uoc.som.jarvis.intent.IntentDefinition;
 import edu.uoc.som.jarvis.intent.RecognizedIntent;
 
+import javax.annotation.Nullable;
+
 /**
  * A unified wrapper for concrete intent recognition providers.
  * <p>
@@ -108,4 +110,11 @@ public interface IntentRecognitionProvider {
      * @return the {@link RecognizedIntent} extracted from the provided {@code input} and {@code session}
      */
     RecognizedIntent getIntent(String input, JarvisSession session);
+
+    /**
+     * Returns the {@link RecognitionMonitor} associated to this intent recognition provider.
+     *
+     * @return the {@link RecognitionMonitor}, or {@code null} if analytics monitoring is disabled.
+     */
+    @Nullable RecognitionMonitor getRecognitionMonitor();
 }

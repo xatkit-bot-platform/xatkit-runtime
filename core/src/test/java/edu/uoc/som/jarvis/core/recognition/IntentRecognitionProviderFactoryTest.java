@@ -51,6 +51,17 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
                 (stubJarvisCore, configuration);
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DialogFlowApi").isInstanceOf(DialogFlowApi.class);
+        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNotNull();
+    }
+
+    @Test
+    public void getIntentRecognitionProviderDialogFlowPropertiesDisabledAnalytics() {
+        Configuration configuration = DialogFlowApiTest.buildConfiguration();
+        configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubJarvisCore, configuration);
+        assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
+        assertThat(provider).as("IntentRecognitionProvider is a DialogFlowApi").isInstanceOf(DialogFlowApi.class);
+        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is null").isNull();
     }
 
     @Test
@@ -64,5 +75,14 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DefaultIntentRecognitionProvider").isInstanceOf
                 (DefaultIntentRecognitionProvider.class);
+        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNotNull();
+    }
+
+    @Test
+    public void getIntentRecognitionProviderEmptyConfigurationDisableAnalytics() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubJarvisCore, configuration);
+        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is null").isNull();
     }
 }
