@@ -5,17 +5,20 @@ import edu.uoc.som.jarvis.core.JarvisCore;
 import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
 import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
 import edu.uoc.som.jarvis.stubs.StubJarvisCore;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
 
     private static JarvisCore stubJarvisCore = new StubJarvisCore();
+
+    private IntentRecognitionProvider provider;
 
     @AfterClass
     public static void tearDownAfterClass() {
@@ -24,20 +27,27 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
         }
     }
 
+    @After
+    public void tearDown() {
+        if(nonNull(provider) && !provider.isShutdown()) {
+            provider.shutdown();
+        }
+    }
+
     @Test(expected = NullPointerException.class)
     public void getIntentRecognitionProviderNullJarvisCore() {
-        IntentRecognitionProviderFactory.getIntentRecognitionProvider(null, new BaseConfiguration());
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(null, new BaseConfiguration());
     }
 
     @Test(expected = NullPointerException.class)
     public void getIntentRecognitionProviderNullConfiguration() {
-        IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubJarvisCore, null);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubJarvisCore, null);
     }
 
     @Test
     public void getIntentRecognitionProviderDialogFlowProperties() {
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
-        IntentRecognitionProvider provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
                 (stubJarvisCore, configuration);
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DialogFlowApi").isInstanceOf(DialogFlowApi.class);
@@ -49,7 +59,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
          * The factory should return a DefaultIntentRecognitionProvider if the provided configuration does not
          * contain any IntentRecognitionProvider property.
          */
-        IntentRecognitionProvider provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
                 (stubJarvisCore, new BaseConfiguration());
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DefaultIntentRecognitionProvider").isInstanceOf

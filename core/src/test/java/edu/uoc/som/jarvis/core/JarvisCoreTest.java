@@ -2,6 +2,7 @@ package edu.uoc.som.jarvis.core;
 
 import edu.uoc.som.jarvis.AbstractJarvisTest;
 import edu.uoc.som.jarvis.core.recognition.DefaultIntentRecognitionProvider;
+import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProviderFactory;
 import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
 import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
@@ -80,6 +81,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     public static Configuration buildConfiguration(Object executionModel) {
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, executionModel);
+        configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
         return configuration;
     }
 
