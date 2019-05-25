@@ -1560,7 +1560,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         this.intentsClient.shutdownNow();
         this.contextsClient.shutdownNow();
         this.agentsClient.shutdownNow();
-        this.recognitionMonitor.shutdown();
+        if(nonNull(this.recognitionMonitor)) {
+            this.recognitionMonitor.shutdown();
+        }
     }
 
     /**

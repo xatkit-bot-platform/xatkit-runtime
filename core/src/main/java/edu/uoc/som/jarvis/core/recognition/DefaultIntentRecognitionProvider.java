@@ -387,7 +387,9 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     public void shutdown() {
         this.intentPatterns = null;
         this.isShutdown = true;
-        this.recognitionMonitor.shutdown();
+        if(nonNull(this.recognitionMonitor)) {
+            this.recognitionMonitor.shutdown();
+        }
     }
 
     /**
