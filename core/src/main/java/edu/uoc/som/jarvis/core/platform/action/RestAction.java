@@ -12,7 +12,6 @@ import com.mashape.unirest.request.HttpRequestWithBody;
 import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
 import edu.uoc.som.jarvis.core.session.JarvisSession;
 import fr.inria.atlanmod.commons.log.Log;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import javax.annotation.Nullable;
 import java.io.InputStream;
@@ -142,7 +141,7 @@ public abstract class RestAction<T extends RuntimePlatform> extends RuntimeActio
                 }
                 break;
             default:
-                throw new InvalidStateException(MessageFormat.format("{0} was initialized with the invalid method {1}",
+                throw new IllegalStateException(MessageFormat.format("{0} was initialized with the invalid method {1}",
                         this.getClass().getSimpleName(), this.method.name()));
         }
         HttpResponse<InputStream> response = request.asBinary();
