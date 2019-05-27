@@ -37,6 +37,19 @@ import static java.util.Objects.isNull;
 public class RecognitionMonitor {
 
     /**
+     * The path of the folder containing the analytics data.
+     */
+    static final String ANALYTICS_DB_FOLDER = "data" + File.pathSeparator + "analytics";
+
+    /**
+     * The path of the analytics database.
+     * <p>
+     * This database is located in the {@link #ANALYTICS_DB_FOLDER}, and represents the concrete database storing the
+     * analytics results.
+     */
+    static final String ANALYTICS_DB_FILE = ANALYTICS_DB_FOLDER + File.pathSeparator + "analytics.db";
+
+    /**
      * The {@link List} of inputs that haven't been matched to any intent.
      */
     private List<String> unmatchedInputs;
@@ -83,9 +96,9 @@ public class RecognitionMonitor {
      */
     public RecognitionMonitor(JarvisServer jarvisServer) {
         Log.info("Starting intent recognition monitoring");
-        File analyticsDb = new File("data/analytics");
-        analyticsDb.mkdirs();
-        db = DBMaker.fileDB(new File("data/analytics/analytics.db")).make();
+        File analyticsDbFolder = new File(ANALYTICS_DB_FOLDER);
+        analyticsDbFolder.mkdirs();
+        db = DBMaker.fileDB(new File(ANALYTICS_DB_FILE)).make();
         this.unmatchedInputs = db.indexTreeList("unmatched_inputs", Serializer.STRING).createOrOpen();
         this.matchedIntents = (Map<String, MatchedIntentInfos>) db.hashMap("matched_intents").createOrOpen();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
