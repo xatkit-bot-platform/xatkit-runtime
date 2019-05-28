@@ -35,13 +35,13 @@ There are several benefits in using this modular architecture to specify chatbot
 
 You are now ready to start using Jarvis and [create your first chatbot](https://github.com/jarvis-bot-platform/jarvis/wiki/Getting-Started)! You can also have a look at the [installation instructions](https://github.com/jarvis-bot-platform/jarvis/wiki/Installation) to get setup the Jarvis modeling environment. 
 
-# Custom Intent Recognition Providers
+# Intent Recognition Providers
 
 Jarvis relies on *intent recognition providers* to translate user inputs into *intents* that can be used by the runtime component to trigger actions. Note that the runtime itself embeds a [DialogFlow](https://github.com/SOM-Research/jarvis/wiki/DialogFlow) connector that can be used out of the box to match user intents, but the engine's architecture is generic and can be extended to support new alternatives such as IBM Watson Assistant or Amazon Lex.
 
 # Packaged Platforms
 
-Jarvis provides a set of pre-packaged *platforms* that can be used in your execution models to compute *actions* and/or receive user *intents* (you don't know what is a Jarvis platform? You can have a look at [this section](Platform) to have an overview of the framework!).
+Jarvis provides a set of pre-packaged *platforms* that can be used in your execution models to compute *actions* and/or receive user *intents*. Some platforms are currently provided as part of the Jarvis core but you can find additional ones in the Jarvis organization.
 
 The table below shows the current platforms embedded with the framework, whether they define a *provider*, as well as their development status. Note that each platform has a specific issue label on our [issue tracker](https://github.com/jarvis-bot-platform/jarvis/issues), use them if you have a question related to a specific platform!
 
@@ -54,4 +54,4 @@ The table below shows the current platforms embedded with the framework, whether
 | [Log](https://github.com/SOM-Research/jarvis/wiki/LogPlatform)                | no                 | Supported         |
 | [Slack](https://github.com/SOM-Research/jarvis/wiki/SlackPlatform)               | yes (intents)      | Supported         |
 
-[*] The *Generic_Chat* platform provides a special *EventProvider* that is set at runtime using the Jarvis configuration. More information on this platform available [here](https://github.com/jarvis-bot-platform/jarvis/wiki/Generic_ChatPlatform.md).
+[*] The *Generic_Chat* platform provides a special *EventProvider* that is set at runtime using the Jarvis configuration.
