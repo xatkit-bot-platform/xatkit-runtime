@@ -51,7 +51,7 @@ public class ObjectOperation implements Operation {
              * Create the array in the toArray() call allows to return typed array.
              */
             Class<?>[] argTypes = args.stream()
-                    .map(p -> p.getClass())
+                    .map(p -> p == null ? null : p.getClass())
                     .toArray(size -> new Class<?>[size]);
             Method method = getMethod(source.getClass(), methodName, argTypes);
             return method.invoke(source, args.toArray());
