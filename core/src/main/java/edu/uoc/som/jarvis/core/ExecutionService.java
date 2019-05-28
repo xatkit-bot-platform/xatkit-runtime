@@ -266,7 +266,6 @@ public class ExecutionService extends CommonInterpreter {
              * Retrieve the ActionInstances to execute when the computed ActionInstance returns an error and execute
              * them.
              */
-            result = null;
             for (ActionInstance onErrorActionInstance : actionInstance.getOnError()) {
                 Log.info("Executing fallback action {0}", onErrorActionInstance.getAction().getName());
                 RuntimeAction onErrorRuntimeAction = getRuntimeActionFromActionInstance(onErrorActionInstance,
