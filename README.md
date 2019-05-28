@@ -21,7 +21,7 @@ The figure below shows the overview of the Xatkit framework. A (chat)bot designe
 - **Platform Package** to specify the possible actions available in the potential target platforms, including those existing only on specific environments, e.g. posting a message on a Slack channel, opening an issue on Github, etc.
 - **Execution Package** to bind user intentions to actions as part of the chatbot behavior definition, e.g. sending a welcome message to the user when he *intents* to initiate the conversation.
 
-![Xatkit Overview](https://raw.githubusercontent.com/wiki/SOM-Research/jarvis/img/overview.png)
+![Xatkit Overview](https://raw.githubusercontent.com/wiki/SOM-Research/jarvis/img/xatkit-overview.png)
 
 These models are complemented with a *Deployment Configuration* file, that specifies the *intent recognition provider* platform to use (e.g. [DialogFlow](https://dialogflow.com/), [IBM Watson Assistant](https://www.ibm.com/watson/ai-assistant/), or [Amazon Lex](https://aws.amazon.com/lex/)), platform-specific configuration (e.g. Slack credentials), as well as custom execution properties.
 
