@@ -33,7 +33,7 @@ There are several benefits in using this modular architecture to specify chatbot
 - Each sub-language is totally independent of the concrete *intent recognition provider*, and Jarvis allows to define messaging actions that are independent of the targeted messaging platforms (more information [here](Generic_ChatPlatform), easing the maintenance and evolution of the chatbot.
 - The **Jarvis Runtime** architecture can be easily extended to support new platform connections and computable actions.  Learn more on custom platform and actions definition [here]().
 
-You are now ready to start using Jarvis and [create your first chatbot](https://github.com/SOM-Research/jarvis/wiki/Getting-Started)! You can also have a look at the [installation instructions](https://github.com/SOM-Research/jarvis/wiki/Installation) to get setup the Jarvis modeling environment. 
+You are now ready to start using Jarvis and [create your first chatbot](https://github.com/jarvis-bot-platform/jarvis/wiki/Getting-Started)! You can also have a look at the [installation instructions](https://github.com/jarvis-bot-platform/jarvis/wiki/Installation) to get setup the Jarvis modeling environment. 
 
 # Custom Intent Recognition Providers
 
@@ -54,4 +54,4 @@ The table below shows the current platforms embedded with the framework, whether
 | [Log](https://github.com/SOM-Research/jarvis/wiki/LogPlatform)                | no                 | Supported         |
 | [Slack](https://github.com/SOM-Research/jarvis/wiki/SlackPlatform)               | yes (intents)      | Supported         |
 
-[*] The *Generic_Chat* platform provides a special *EventProvider* that is set at runtime using the Jarvis configuration. More information on this platform available [here](https://github.com/SOM-Research/jarvis/wiki/Generic_ChatPlatform.md).
+[*] The *Generic_Chat* platform provides a special *EventProvider* that is set at runtime using the Jarvis configuration. More information on this platform available [here](https://github.com/jarvis-bot-platform/jarvis/wiki/Generic_ChatPlatform.md).
