@@ -39,7 +39,7 @@ public class RecognitionMonitor {
     /**
      * The path of the folder containing the analytics data.
      */
-    static final String ANALYTICS_DB_FOLDER = "data" + File.pathSeparator + "analytics";
+    static final String ANALYTICS_DB_FOLDER = "data" + File.separator + "analytics";
 
     /**
      * The path of the analytics database.
@@ -47,7 +47,7 @@ public class RecognitionMonitor {
      * This database is located in the {@link #ANALYTICS_DB_FOLDER}, and represents the concrete database storing the
      * analytics results.
      */
-    static final String ANALYTICS_DB_FILE = ANALYTICS_DB_FOLDER + File.pathSeparator + "analytics.db";
+    static final String ANALYTICS_DB_FILE = ANALYTICS_DB_FOLDER + File.separator + "analytics.db";
 
     /**
      * The {@link List} of inputs that haven't been matched to any intent.
