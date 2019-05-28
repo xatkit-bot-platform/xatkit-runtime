@@ -1,4 +1,4 @@
-jarvis
+jarvis - The easiest way to build complex digital assistants
 ======
 [![License Badge](https://img.shields.io/badge/license-EPL%202.0-brightgreen.svg)](https://opensource.org/licenses/EPL-2.0)
 [![Build Status](https://travis-ci.com/jarvis-bot-platform/jarvis.svg?branch=master)](https://travis-ci.com/jarvis-bot-platform/jarvis)
@@ -11,11 +11,11 @@ jarvis
 
 Jarvis is a generic bot platform that embeds a dedicated **chatbot-specific modeling language** to specify user intentions and received events, and bind them to computable actions. The modeled chatbot definition is handled by the **Jarvis Runtime Engine**, which automatically manages its deployment and execution.
 
-Spend more time on your conversation design, and let the framework manage the tedious work of deploying the chatbot application, connecting to the targeted platforms, and extract information from user inputs!
+Spend more time on your conversation design, and let the framework manage the tedious work of deploying the chatbot / digital assistant application, connecting to the targeted platforms, and extract information from user inputs!
 
 # Overview
 
-The figure below shows the overview of the Jarvis framework. A chatbot designer specifies the chatbot under construction using the **Jarvis Modeling Language**, that defines three packages:
+The figure below shows the overview of the Jarvis framework. A (chat)bot designer specifies the chatbot under construction using the **Jarvis Modeling Language**, that defines three packages:
 
 - **Intent Package** to describe the user intentions using training sentences, contextual information extraction, and matching conditions ([learn more]()).
 - **Platform Package** to specify the possible actions available in the potential target platforms, including those existing only on specific environments, e.g. posting a message on a Slack channel, opening an issue on Github, etc ([learn more]()).
