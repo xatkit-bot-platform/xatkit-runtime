@@ -17,9 +17,9 @@ Spend more time on your conversation design, and let the framework manage the te
 
 The figure below shows the overview of the Xatkit framework. A (chat)bot designer specifies the chatbot under construction using the **Xatkit Modeling Language**, that defines three packages:
 
-- **Intent Package** to describe the user intentions using training sentences, contextual information extraction, and matching conditions ([learn more]()).
-- **Platform Package** to specify the possible actions available in the potential target platforms, including those existing only on specific environments, e.g. posting a message on a Slack channel, opening an issue on Github, etc ([learn more]()).
-- **Execution Package** to bind user intentions to actions as part of the chatbot behavior definition, e.g. sending a welcome message to the user when he *intents* to initiate the conversation ([learn more]()).
+- **Intent Package** to describe the user intentions using training sentences, contextual information extraction, and matching conditions.
+- **Platform Package** to specify the possible actions available in the potential target platforms, including those existing only on specific environments, e.g. posting a message on a Slack channel, opening an issue on Github, etc.
+- **Execution Package** to bind user intentions to actions as part of the chatbot behavior definition, e.g. sending a welcome message to the user when he *intents* to initiate the conversation.
 
 ![Xatkit Overview](https://raw.githubusercontent.com/wiki/SOM-Research/jarvis/img/overview.png)
 
