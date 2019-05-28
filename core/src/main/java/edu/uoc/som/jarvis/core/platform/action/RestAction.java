@@ -3,6 +3,7 @@ package edu.uoc.som.jarvis.core.platform.action;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.mashape.unirest.http.Headers;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
@@ -14,8 +15,9 @@ import edu.uoc.som.jarvis.core.session.JarvisSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 import javax.annotation.Nullable;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Map;
 
@@ -146,8 +148,35 @@ public abstract class RestAction<T extends RuntimePlatform> extends RuntimeActio
         }
         HttpResponse<InputStream> response = request.asBinary();
         JsonParser jsonParser = new JsonParser();
-        JsonElement jsonElement = jsonParser.parse(new InputStreamReader(response.getBody()));
+        JsonElement jsonElement = null;
+        String responseBodyString = getBodyString(response.getBody());
+        try {
+            jsonElement = jsonParser.parse(responseBodyString);
+        } catch (JsonSyntaxException e) {
+            Log.error("Cannot parse the response body \"{0}\"", responseBodyString);
+        }
         return this.handleResponse(response.getHeaders(), response.getStatus(), jsonElement);
+    }
+
+    /**
+     * Extracts the {@link String} contained in the provided {@code is}.
+     *
+     * @param is the {@link InputStream} to extract the {@link String} from
+     * @return the extracted {@link String}
+     */
+    private String getBodyString(InputStream is) {
+        StringBuilder sb = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader(is,
+                Charset.forName(StandardCharsets.UTF_8.name())))) {
+            int c = 0;
+            while ((c = reader.read()) != -1) {
+                sb.append((char) c);
+            }
+        } catch (IOException e) {
+            Log.error("Cannot extract the {0} of the provided {1}", String.class.getSimpleName(),
+                    InputStream.class.getSimpleName());
+        }
+        return sb.toString();
     }
 
     /**
