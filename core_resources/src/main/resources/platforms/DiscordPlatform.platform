@@ -2,7 +2,7 @@ import platform "ChatPlatform"
 
 Platform DiscordPlatform extends ChatPlatform
 
-path "edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform"
+path "DiscordPlatform"
 
 providers {
 	input DiscordIntentProvider {

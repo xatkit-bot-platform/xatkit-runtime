@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>edu.uoc.som.jarvis</groupId>
-        <artifactId>jarvis</artifactId>
+        <groupId>com.xatkit</groupId>
+        <artifactId>xatkit</artifactId>
         <version>1.0.1-SNAPSHOT</version>
     </parent>
 
@@ -14,7 +14,7 @@
 
     <packaging>jar</packaging>
 
-    <name>jarvis core infrastructure</name>
+    <name>Xatkit core infrastructure</name>
 
     <properties>
         <dialogflow.version>0.53.0-alpha</dialogflow.version>
@@ -132,34 +132,34 @@
             <artifactId>mapdb</artifactId>
         </dependency>
 
-        <!-- jarvis Internal -->
+        <!-- Xatkit Internal -->
 
         <dependency>
-            <groupId>edu.uoc.som.jarvis</groupId>
+            <groupId>com.xatkit</groupId>
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>edu.uoc.som.jarvis</groupId>
+            <groupId>com.xatkit</groupId>
             <artifactId>execution</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>edu.uoc.som.jarvis</groupId>
+            <groupId>com.xatkit</groupId>
             <artifactId>platform</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>edu.uoc.som.jarvis</groupId>
+            <groupId>com.xatkit</groupId>
             <artifactId>intent</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>edu.uoc.som.jarvis</groupId>
+            <groupId>com.xatkit</groupId>
             <artifactId>core_resources</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -290,10 +290,10 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>edu.uoc.som.jarvis.Jarvis</mainClass>
+                            <mainClass>com.xatkit.Xatkit</mainClass>
                         </manifest>
                     </archive>
-                    <finalName>jarvis-nodep</finalName>
+                    <finalName>xatkit-nodep</finalName>
                 </configuration>
             </plugin>
 

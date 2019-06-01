@@ -1,16 +1,16 @@
-@Ecore(nsURI="edu.uoc.som.jarvis.execution")
+@Ecore(nsURI="com.xatkit.execution")
 @GenModel(modelDirectory="/execution/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
-package edu.uoc.som.jarvis.execution
+package com.xatkit.execution
 
-import edu.uoc.som.jarvis.platform.ActionDefinition
-import edu.uoc.som.jarvis.platform.EventProviderDefinition
-import edu.uoc.som.jarvis.intent.EventDefinition
-import edu.uoc.som.jarvis.platform.Parameter
-import edu.uoc.som.jarvis.common.ImportDeclaration
-import edu.uoc.som.jarvis.common.Instruction
-import edu.uoc.som.jarvis.common.Expression
-import edu.uoc.som.jarvis.common.VariableDeclaration
-import edu.uoc.som.jarvis.common.VariableAccess
+import com.xatkit.platform.ActionDefinition
+import com.xatkit.platform.EventProviderDefinition
+import com.xatkit.intent.EventDefinition
+import com.xatkit.platform.Parameter
+import com.xatkit.common.ImportDeclaration
+import com.xatkit.common.Instruction
+import com.xatkit.common.Expression
+import com.xatkit.common.VariableDeclaration
+import com.xatkit.common.VariableAccess
 
 class ExecutionModel {
     refers EventProviderDefinition[] eventProviderDefinitions

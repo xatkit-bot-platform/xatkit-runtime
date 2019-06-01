@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>jarvis</artifactId>
-        <groupId>edu.uoc.som.jarvis</groupId>
+        <groupId>com.xatkit</groupId>
+        <artifactId>xatkit</artifactId>
         <version>1.0.1-SNAPSHOT</version>
     </parent>
 
@@ -14,7 +14,7 @@
 
     <packaging>bundle</packaging>
 
-    <name>Jarvis core resource descriptors</name>
+    <name>Xatkit core resource descriptors</name>
 
     <build>
         <plugins>
@@ -26,7 +26,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.core_resources</Bundle-SymbolicName>
                         <Export-Package>
-                            edu.uoc.som.jarvis.core_resources.*
+                            com.xatkit.core_resources.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;

@@ -1,6 +1,6 @@
-@Ecore(nsURI="edu.uoc.som.jarvis.common")
+@Ecore(nsURI="com.xatkit.common")
 @GenModel(modelDirectory="/common/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
-package edu.uoc.som.jarvis.common
+package com.xatkit.common
 
 class Program {
     contains Instruction[] instructions

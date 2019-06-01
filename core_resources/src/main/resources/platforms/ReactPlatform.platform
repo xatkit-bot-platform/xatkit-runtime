@@ -2,7 +2,7 @@ import platform "ChatPlatform"
 
 Platform ReactPlatform extends ChatPlatform
 
-path "edu.uoc.som.jarvis.plugins.react.platform.ReactPlatform"
+path "ReactPlatform"
 
 providers {
 	input ReactIntentProvider {
