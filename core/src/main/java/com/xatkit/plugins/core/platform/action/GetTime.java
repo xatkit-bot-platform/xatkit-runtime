@@ -1,7 +1,7 @@
 package com.xatkit.plugins.core.platform.action;
 
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.core.platform.CorePlatform;
 
 import java.text.SimpleDateFormat;
@@ -21,10 +21,10 @@ public class GetTime extends RuntimeAction<CorePlatform> {
      * Constructs a new {@link GetTime} action from the provided {@code runtimePlatform} and {@code session}.
      *
      * @param runtimePlatform the {@link CorePlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
      */
-    public GetTime(CorePlatform runtimePlatform, JarvisSession session) {
+    public GetTime(CorePlatform runtimePlatform, XatkitSession session) {
         super(runtimePlatform, session);
     }
 

@@ -1,14 +1,14 @@
 package com.xatkit.core.platform;
 
 import com.xatkit.common.Expression;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.interpreter.ExecutionContext;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.platform.io.WebhookEventProvider;
-import com.xatkit.core.server.JarvisServer;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.server.XatkitServer;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.execution.ActionInstance;
 import com.xatkit.execution.ParameterValue;
@@ -45,9 +45,9 @@ import static java.util.Objects.isNull;
 public abstract class RuntimePlatform {
 
     /**
-     * The {@link JarvisCore} instance containing this platform.
+     * The {@link XatkitCore} instance containing this platform.
      */
-    protected JarvisCore jarvisCore;
+    protected XatkitCore xatkitCore;
 
     /**
      * The {@link Configuration} used to initialize this class.
@@ -57,7 +57,7 @@ public abstract class RuntimePlatform {
      * {@link RuntimeAction}s.
      *
      * @see #startEventProvider(EventProviderDefinition)
-     * @see #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)
+     * @see #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)
      */
     protected Configuration configuration;
 
@@ -68,7 +68,7 @@ public abstract class RuntimePlatform {
      *
      * @see #enableAction(ActionDefinition)
      * @see #disableAction(ActionDefinition)
-     * @see #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)
+     * @see #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)
      */
     protected Map<String, Class<? extends RuntimeAction>> actionMap;
 
@@ -85,39 +85,39 @@ public abstract class RuntimePlatform {
 
 
     /**
-     * Constructs a new {@link RuntimePlatform} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link RuntimePlatform} from the provided {@link XatkitCore} and {@link Configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
      * {@link RuntimePlatform}s. Subclasses implementing this constructor typically need additional parameters to be
      * initialized, that can be provided in the {@code configuration}.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance associated to this platform
+     * @param xatkitCore    the {@link XatkitCore} instance associated to this platform
      * @param configuration the {@link Configuration} used to initialize the {@link RuntimePlatform}
-     * @throws NullPointerException if the provided {@code jarvisCore} or {@code configuration} is {@code null}
-     * @see #RuntimePlatform(JarvisCore)
+     * @throws NullPointerException if the provided {@code xatkitCore} or {@code configuration} is {@code null}
+     * @see #RuntimePlatform(XatkitCore)
      */
-    public RuntimePlatform(JarvisCore jarvisCore, Configuration configuration) {
-        checkNotNull(jarvisCore, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
-                JarvisCore.class.getSimpleName(), jarvisCore);
+    public RuntimePlatform(XatkitCore xatkitCore, Configuration configuration) {
+        checkNotNull(xatkitCore, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
+                XatkitCore.class.getSimpleName(), xatkitCore);
         checkNotNull(configuration, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
                 Configuration.class.getSimpleName(), configuration);
-        this.jarvisCore = jarvisCore;
+        this.xatkitCore = xatkitCore;
         this.configuration = configuration;
         this.actionMap = new HashMap<>();
         this.eventProviderMap = new HashMap<>();
     }
 
     /**
-     * Constructs a new {@link RuntimePlatform} from the provided {@link JarvisCore}.
+     * Constructs a new {@link RuntimePlatform} from the provided {@link XatkitCore}.
      * <p>
      * <b>Note</b>: this constructor should be used by {@link RuntimePlatform}s that do not require additional
-     * parameters to be initialized. In that case see {@link #RuntimePlatform(JarvisCore, Configuration)}.
+     * parameters to be initialized. In that case see {@link #RuntimePlatform(XatkitCore, Configuration)}.
      *
-     * @throws NullPointerException if the provided {@code jarvisCore} is {@code null}
-     * @see #RuntimePlatform(JarvisCore, Configuration)
+     * @throws NullPointerException if the provided {@code xatkitCore} is {@code null}
+     * @see #RuntimePlatform(XatkitCore, Configuration)
      */
-    public RuntimePlatform(JarvisCore jarvisCore) {
-        this(jarvisCore, new BaseConfiguration());
+    public RuntimePlatform(XatkitCore xatkitCore) {
+        this(xatkitCore, new BaseConfiguration());
     }
 
     /**
@@ -134,12 +134,12 @@ public abstract class RuntimePlatform {
     }
 
     /**
-     * Returns the {@link JarvisCore} instance associated to this platform.
+     * Returns the {@link XatkitCore} instance associated to this platform.
      *
-     * @return the {@link JarvisCore} instance associated to this platform
+     * @return the {@link XatkitCore} instance associated to this platform
      */
-    public final JarvisCore getJarvisCore() {
-        return this.jarvisCore;
+    public final XatkitCore getXatkitCore() {
+        return this.xatkitCore;
     }
 
     /**
@@ -148,22 +148,22 @@ public abstract class RuntimePlatform {
      * This method dynamically loads the {@link RuntimeEventProvider} corresponding to the provided {@code
      * eventProviderDefinition}, and starts it in a dedicated {@link Thread}.
      * <p>
-     * This method also registers {@link WebhookEventProvider}s to the underlying {@link JarvisServer} (see
-     * {@link JarvisServer#registerWebhookEventProvider(WebhookEventProvider)}).
+     * This method also registers {@link WebhookEventProvider}s to the underlying {@link XatkitServer} (see
+     * {@link XatkitServer#registerWebhookEventProvider(WebhookEventProvider)}).
      *
      * @param eventProviderDefinition the {@link EventProviderDefinition} representing the
      * {@link RuntimeEventProvider} to
      *                                start
-     * @throws NullPointerException if the provided {@code eventProviderDefinition} or {@code jarvisCore} is {@code
+     * @throws NullPointerException if the provided {@code eventProviderDefinition} or {@code xatkitCore} is {@code
      *                              null}
      * @see RuntimeEventProvider#run()
-     * @see JarvisServer#registerWebhookEventProvider(WebhookEventProvider)
+     * @see XatkitServer#registerWebhookEventProvider(WebhookEventProvider)
      */
     public final void startEventProvider(EventProviderDefinition eventProviderDefinition) {
         checkNotNull(eventProviderDefinition, "Cannot start the provided %s %s", EventProviderDefinition.class
                 .getSimpleName(), eventProviderDefinition);
-        checkNotNull(jarvisCore, "Cannot start the provided %s with the given %s %s", eventProviderDefinition
-                .getClass().getSimpleName(), JarvisCore.class.getSimpleName(), jarvisCore);
+        checkNotNull(xatkitCore, "Cannot start the provided %s with the given %s %s", eventProviderDefinition
+                .getClass().getSimpleName(), XatkitCore.class.getSimpleName(), xatkitCore);
         Log.info("Starting {0}", eventProviderDefinition.getName());
         String eventProviderQualifiedName = this.getClass().getPackage().getName() + ".io." + eventProviderDefinition
                 .getName();
@@ -173,10 +173,10 @@ public abstract class RuntimePlatform {
                 configuration);
         if (runtimeEventProvider instanceof WebhookEventProvider) {
             /*
-             * Register the WebhookEventProvider in the JarvisServer
+             * Register the WebhookEventProvider in the XatkitServer
              */
-            Log.info("Registering {0} in the {1}", runtimeEventProvider, JarvisServer.class.getSimpleName());
-            jarvisCore.getJarvisServer().registerWebhookEventProvider((WebhookEventProvider) runtimeEventProvider);
+            Log.info("Registering {0} in the {1}", runtimeEventProvider, XatkitServer.class.getSimpleName());
+            xatkitCore.getXatkitServer().registerWebhookEventProvider((WebhookEventProvider) runtimeEventProvider);
         }
         Log.info("Starting RuntimeEventProvider {0}", eventProviderClass.getSimpleName());
         EventProviderThread eventProviderThread = new EventProviderThread(runtimeEventProvider);
@@ -232,10 +232,10 @@ public abstract class RuntimePlatform {
      * <p>
      * This method returns the {@link Class}es describing the {@link RuntimeAction}s associated to this platform. To
      * construct a new {@link RuntimeAction} from a {@link EventInstance} see
-     * {@link #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)} .
+     * {@link #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)} .
      *
      * @return all the {@link RuntimeAction} {@link Class}es associated to this {@link RuntimePlatform}
-     * @see #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)
+     * @see #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)
      */
     public final Collection<Class<? extends RuntimeAction>> getActions() {
         return actionMap.values();
@@ -250,24 +250,24 @@ public abstract class RuntimePlatform {
      * {@link ActionInstance#getValues()}.
      *
      * @param actionInstance the {@link ActionInstance} representing the {@link RuntimeAction} to create
-     * @param session        the {@link JarvisSession} associated to the action
+     * @param session        the {@link XatkitSession} associated to the action
      * @param context        the execution context used to evaluate the action parameter values
      * @return a new {@link RuntimeAction} instance from the provided {@link ActionInstance}
      * @throws NullPointerException if the provided {@code actionInstance} or {@code session} is {@code null}
-     * @throws JarvisException      if the provided {@link ActionInstance} does not match any {@link RuntimeAction},
+     * @throws XatkitException      if the provided {@link ActionInstance} does not match any {@link RuntimeAction},
      *                              or if an error occurred when building the {@link RuntimeAction}
      * @see #getParameterValues(ActionInstance, RuntimeContexts, ExecutionContext)
      */
-    public RuntimeAction createRuntimeAction(ActionInstance actionInstance, JarvisSession
+    public RuntimeAction createRuntimeAction(ActionInstance actionInstance, XatkitSession
             session, ExecutionContext context) {
         checkNotNull(actionInstance, "Cannot construct a %s from the provided %s %s", RuntimeAction.class
                 .getSimpleName(), ActionInstance.class.getSimpleName(), actionInstance);
         checkNotNull(session, "Cannot construct a %s from the provided %s %s", RuntimeAction.class.getSimpleName(),
-                JarvisSession.class.getSimpleName(), session);
+                XatkitSession.class.getSimpleName(), session);
         ActionDefinition actionDefinition = actionInstance.getAction();
         Class<? extends RuntimeAction> runtimeActionClass = actionMap.get(actionDefinition.getName());
         if (isNull(runtimeActionClass)) {
-            throw new JarvisException(MessageFormat.format("Cannot create the {0} {1}, the action is not " +
+            throw new XatkitException(MessageFormat.format("Cannot create the {0} {1}, the action is not " +
                     "loaded in the platform", RuntimeAction.class.getSimpleName(), actionDefinition.getName()));
         }
         Object[] parameterValues = getParameterValues(actionInstance, session.getRuntimeContexts(), context);
@@ -288,7 +288,7 @@ public abstract class RuntimePlatform {
              */
             runtimeAction = Loader.construct(runtimeActionClass, fullParameters);
         } catch (NoSuchMethodException e) {
-            throw new JarvisException(MessageFormat.format("Cannot find a {0} constructor for the provided parameter " +
+            throw new XatkitException(MessageFormat.format("Cannot find a {0} constructor for the provided parameter " +
                     "types ({1})", runtimeActionClass.getSimpleName(), printClassArray(fullParameters)), e);
         }
         runtimeAction.init();
@@ -332,16 +332,16 @@ public abstract class RuntimePlatform {
      * {@link ActionInstance}'s {@link ParameterValue}s are retrieved from the provided {@code context}.
      * <p>
      * The retrieved values are used by the {@link RuntimePlatform} to instantiate concrete {@link RuntimeAction}s (see
-     * {@link #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)}).
+     * {@link #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)}).
      *
      * @param actionInstance   the {@link ActionInstance} to match the parameters from
      * @param context          the {@link RuntimeContexts} storing event contextual informations
      * @param executionContext the {@link ExecutionContext} used to evaluate parameter's expressions
      * @return an array containing the concrete {@link ActionInstance}'s parameters
-     * @throws JarvisException if one of the concrete value is not stored in the provided {@code context}, or if the
+     * @throws XatkitException if one of the concrete value is not stored in the provided {@code context}, or if the
      *                         {@link ActionInstance}'s {@link ParameterValue}s do not match the describing
      *                         {@link ActionDefinition}'s {@link Parameter}s.
-     * @see #createRuntimeAction(ActionInstance, JarvisSession, ExecutionContext)
+     * @see #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)
      */
     private Object[] getParameterValues(ActionInstance actionInstance, RuntimeContexts context,
                                         ExecutionContext executionContext) {
@@ -354,9 +354,9 @@ public abstract class RuntimePlatform {
 
                         Expression paramExpression = paramValue.getExpression();
                         try {
-                            return jarvisCore.getExecutionService().evaluate(paramExpression, executionContext);
+                            return xatkitCore.getExecutionService().evaluate(paramExpression, executionContext);
                         } catch(Exception e) {
-                            throw new JarvisException(e);
+                            throw new XatkitException(e);
                         }
                     }
             ).toArray();
@@ -366,7 +366,7 @@ public abstract class RuntimePlatform {
                         "expected {1}, found {2}", actionDefinition.getName(), actionParameters.size(),
                 actionInstanceParameterValues.size());
         Log.error(errorMessage);
-        throw new JarvisException(errorMessage);
+        throw new XatkitException(errorMessage);
     }
 
     /**

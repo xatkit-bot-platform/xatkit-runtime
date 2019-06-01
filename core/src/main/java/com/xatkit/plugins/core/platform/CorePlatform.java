@@ -1,8 +1,8 @@
 package com.xatkit.plugins.core.platform;
 
+import com.xatkit.core.XatkitCore;
 import com.xatkit.plugins.core.platform.action.GetDate;
 import com.xatkit.plugins.core.platform.action.GetTime;
-import com.xatkit.core.JarvisCore;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.RuntimePlatform;
 
@@ -24,12 +24,12 @@ import com.xatkit.core.platform.RuntimePlatform;
 public class CorePlatform extends RuntimePlatform {
 
     /**
-     * Constructs a new {@link CorePlatform} from the provided {@link JarvisCore}.
+     * Constructs a new {@link CorePlatform} from the provided {@link XatkitCore}.
      *
-     * @param jarvisCore the {@link JarvisCore} instance associated to this runtimePlatform
-     * @throws NullPointerException if the provided {@code jarvisCore} is {@code null}
+     * @param xatkitCore the {@link XatkitCore} instance associated to this runtimePlatform
+     * @throws NullPointerException if the provided {@code xatkitCore} is {@code null}
      */
-    public CorePlatform(JarvisCore jarvisCore) {
-        super(jarvisCore);
+    public CorePlatform(XatkitCore xatkitCore) {
+        super(xatkitCore);
     }
 }

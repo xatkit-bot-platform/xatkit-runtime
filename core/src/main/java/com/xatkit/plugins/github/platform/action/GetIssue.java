@@ -4,9 +4,9 @@ import com.jcabi.github.Coordinates;
 import com.jcabi.github.Issue;
 import com.jcabi.github.Repo;
 import com.xatkit.plugins.github.platform.GithubPlatform;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 import java.io.IOException;
@@ -46,7 +46,7 @@ public class GetIssue extends RuntimeAction<GithubPlatform> {
      * {@code repository}, and {@code issueNumber}.
      *
      * @param runtimePlatform the {@link GithubPlatform} containing this action
-     * @param session         the {@link JarvisSession} associated to this action
+     * @param session         the {@link XatkitSession} associated to this action
      * @param user            the Github user managing the repository to retrieve the issue from
      * @param repository      the Github repository to retrieve the issue from
      * @param issueNumber     the number of the issue to retrieve
@@ -54,7 +54,7 @@ public class GetIssue extends RuntimeAction<GithubPlatform> {
      *                                  repository}, or {@code issueNumber} is {@code null}
      * @throws IllegalArgumentException if the provided {@code issueNumber} is not lesser of equal to {@code 0}
      */
-    public GetIssue(GithubPlatform runtimePlatform, JarvisSession session, String user, String repository, String
+    public GetIssue(GithubPlatform runtimePlatform, XatkitSession session, String user, String repository, String
             issueNumber) {
         super(runtimePlatform, session);
         checkNotNull(user, "Cannot construct a %s action with the provided Github user %s", this.getClass()
@@ -74,11 +74,11 @@ public class GetIssue extends RuntimeAction<GithubPlatform> {
      * Retrieve the issue on the given {@code repository} with the provided {@code issueNumber}.
      * <p>
      * This method relies on the containing {@link GithubPlatform} to access the Github API, and will throw a
-     * {@link JarvisException} if the Xatkit {@link org.apache.commons.configuration2.Configuration} does not define
+     * {@link XatkitException} if the Xatkit {@link org.apache.commons.configuration2.Configuration} does not define
      * valid Github authentication credentials.
      *
      * @return the retrieved {@link Issue}
-     * @throws JarvisException if the {@link GithubPlatform} does not hold a valid Github API client (i.e. if the
+     * @throws XatkitException if the {@link GithubPlatform} does not hold a valid Github API client (i.e. if the
      *                         Xatkit {@link org.apache.commons.configuration2.Configuration} does not define valid
      *                         Github authentication credentials)
      * @see GithubPlatform#getGithubClient()

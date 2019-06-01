@@ -1,7 +1,7 @@
 package com.xatkit.core.recognition;
 
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.JarvisException;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.XatkitException;
 import com.xatkit.intent.*;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.Notification;
@@ -17,7 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class EntityMapperTest extends AbstractJarvisTest {
+public class EntityMapperTest extends AbstractXatkitTest {
 
     private EntityMapper mapper;
 
@@ -147,7 +147,7 @@ public class EntityMapperTest extends AbstractJarvisTest {
      * No test for null EntityType, null enums are set with their default value in Ecore.
      */
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void getEntityMappingForNotBaseEntityDefinition() {
         EntityDefinition entityDefinition = new EntityDefinition() {
             @Override

@@ -1,10 +1,10 @@
 package com.xatkit.plugins.log.platform;
 
+import com.xatkit.core.XatkitCore;
 import com.xatkit.plugins.log.platform.action.LogAction;
 import com.xatkit.plugins.log.platform.action.LogError;
 import com.xatkit.plugins.log.platform.action.LogInfo;
 import com.xatkit.plugins.log.platform.action.LogWarning;
-import com.xatkit.core.JarvisCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 
@@ -27,13 +27,13 @@ import org.apache.commons.configuration2.Configuration;
 public class LogPlatform extends RuntimePlatform {
 
     /**
-     * Constructs a new {@link LogPlatform} instance from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link LogPlatform} instance from the provided {@link XatkitCore} and {@link Configuration}.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance associated to this runtimePlatform
+     * @param xatkitCore    the {@link XatkitCore} instance associated to this runtimePlatform
      * @param configuration the {@link Configuration} used to initialize the {@link LogPlatform}
-     * @throws NullPointerException if the provided {@code jarvisCore} or {@code configuration} is {@code null}
+     * @throws NullPointerException if the provided {@code xatkitCore} or {@code configuration} is {@code null}
      */
-    public LogPlatform(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public LogPlatform(XatkitCore xatkitCore, Configuration configuration) {
+        super(xatkitCore, configuration);
     }
 }

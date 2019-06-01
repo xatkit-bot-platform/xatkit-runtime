@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition;
 
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
  * A unified wrapper for concrete intent recognition providers.
  * <p>
  * This interface provides utility methods to connect to a given intent recognition provider, register and delete
- * {@link IntentDefinition}s, create {@link JarvisSession}s, and compute the {@link RecognizedIntent} from a given
+ * {@link IntentDefinition}s, create {@link XatkitSession}s, and compute the {@link RecognizedIntent} from a given
  * input text.
  */
 public interface IntentRecognitionProvider {
@@ -77,12 +77,12 @@ public interface IntentRecognitionProvider {
     void trainMLEngine();
 
     /**
-     * Creates a new {@link JarvisSession} from the provided {@code sessionId}.
+     * Creates a new {@link XatkitSession} from the provided {@code sessionId}.
      *
      * @param sessionId the identifier to create a session from
-     * @return a new {@link JarvisSession} for the provided {@code sessionId}
+     * @return a new {@link XatkitSession} for the provided {@code sessionId}
      */
-    JarvisSession createSession(String sessionId);
+    XatkitSession createSession(String sessionId);
 
     /**
      * Shuts down the intent recognition provider client and invalidates the remaining sessions.
@@ -106,10 +106,10 @@ public interface IntentRecognitionProvider {
      * context-based intents.
      *
      * @param input   the {@link String} representing the textual input to process and extract the intent from
-     * @param session the {@link JarvisSession} used to access context information
+     * @param session the {@link XatkitSession} used to access context information
      * @return the {@link RecognizedIntent} extracted from the provided {@code input} and {@code session}
      */
-    RecognizedIntent getIntent(String input, JarvisSession session);
+    RecognizedIntent getIntent(String input, XatkitSession session);
 
     /**
      * Returns the {@link RecognitionMonitor} associated to this intent recognition provider.

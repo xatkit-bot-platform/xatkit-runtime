@@ -1,9 +1,9 @@
 package com.xatkit.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.intent.*;
 import com.xatkit.test.util.ElementFactory;
@@ -23,11 +23,11 @@ import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class DialogFlowApiTest extends AbstractJarvisTest {
+public class DialogFlowApiTest extends AbstractXatkitTest {
 
-    public static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
+    public static String VALID_PROJECT_ID = VariableLoaderHelper.getXatkitDialogFlowProject();
 
-    public static String VALID_LANGUAGE_CODE = VariableLoaderHelper.getJarvisDialogFlowLanguage();
+    public static String VALID_LANGUAGE_CODE = VariableLoaderHelper.getXatkitDialogFlowLanguage();
 
     protected static String SAMPLE_INPUT = "hello";
 
@@ -70,11 +70,11 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     private List<EntityDefinition> registeredEntityDefinitions = new ArrayList<>();
 
     // not tested here, only instantiated to enable IntentDefinition registration and Platform retrieval
-    protected static JarvisCore jarvisCore;
+    protected static XatkitCore xatkitCore;
 
     public static Configuration buildConfiguration() {
-        return buildConfiguration(VariableLoaderHelper.getJarvisDialogFlowProject(), VariableLoaderHelper
-                .getJarvisDialogFlowLanguage());
+        return buildConfiguration(VariableLoaderHelper.getXatkitDialogFlowProject(), VariableLoaderHelper
+                .getXatkitDialogFlowLanguage());
     }
 
     private static Configuration buildConfiguration(String projectId, String languageCode) {
@@ -82,7 +82,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         configuration.addProperty(DialogFlowApi.PROJECT_ID_KEY, projectId);
         configuration.addProperty(DialogFlowApi.LANGUAGE_CODE_KEY, languageCode);
         configuration.addProperty(DialogFlowApi.GOOGLE_CREDENTIALS_PATH_KEY, VariableLoaderHelper
-                .getJarvisDialogflowCredentialsPath());
+                .getXatkitDialogflowCredentialsPath());
         /*
          * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
          */
@@ -99,8 +99,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     public static void setUpBeforeClass() {
         TestExecutionModel testExecutionModel = new TestExecutionModel();
         Configuration configuration = buildConfiguration();
-        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, testExecutionModel.getExecutionModel());
-        jarvisCore = new JarvisCore(configuration);
+        configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, testExecutionModel.getExecutionModel());
+        xatkitCore = new XatkitCore(configuration);
         VALID_OUT_CONTEXT = IntentFactory.eINSTANCE.createContext();
         VALID_OUT_CONTEXT.setName("ValidContext");
         ContextParameter contextParameter = IntentFactory.eINSTANCE.createContextParameter();
@@ -123,7 +123,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     public void tearDown() {
         if (nonNull(registeredIntentDefinition)) {
             api.deleteIntentDefinition(registeredIntentDefinition);
-            jarvisCore.getEventDefinitionRegistry().unregisterEventDefinition(registeredIntentDefinition);
+            xatkitCore.getEventDefinitionRegistry().unregisterEventDefinition(registeredIntentDefinition);
         }
         /*
          * Reset the variable value to null to avoid unnecessary deletion calls.
@@ -162,19 +162,19 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        jarvisCore.shutdown();
+        xatkitCore.shutdown();
     }
 
     @Rule
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
 
     private DialogFlowApi getValidDialogFlowApi() {
-        api = new DialogFlowApi(jarvisCore, buildConfiguration());
+        api = new DialogFlowApi(xatkitCore, buildConfiguration());
         return api;
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructNullJarvisCore() {
+    public void constructNullXatkitCore() {
         api = new DialogFlowApi(null, buildConfiguration());
     }
 
@@ -185,13 +185,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @Test
     public void constructNullLanguageCode() {
-        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, null));
+        api = new DialogFlowApi(xatkitCore, buildConfiguration(VALID_PROJECT_ID, null));
         assertThat(api.getLanguageCode()).as("Default language code").isEqualTo(DialogFlowApi.DEFAULT_LANGUAGE_CODE);
     }
 
     @Test
     public void constructValid() {
-        api = new DialogFlowApi(jarvisCore, buildConfiguration());
+        api = new DialogFlowApi(xatkitCore, buildConfiguration());
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
         softly.assertThat(api.isShutdown()).as("Not shutdown").isFalse();
@@ -199,7 +199,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @Test
     public void constructDefaultLanguageCode() {
-        api = new DialogFlowApi(jarvisCore, buildConfiguration(VALID_PROJECT_ID, null));
+        api = new DialogFlowApi(xatkitCore, buildConfiguration(VALID_PROJECT_ID, null));
         softly.assertThat(VALID_PROJECT_ID).as("Valid project ID").isEqualTo(api.getProjectId());
         softly.assertThat(VALID_LANGUAGE_CODE).as("Valid language code").isEqualTo(api.getLanguageCode());
     }
@@ -404,7 +404,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         String intentName = "TestAlreadyDefined";
         registeredIntentDefinition.setName(intentName);
         registeredIntentDefinition.getTrainingSentences().add("test");
-        registeredIntentDefinition.getTrainingSentences().add("test jarvis");
+        registeredIntentDefinition.getTrainingSentences().add("test xatkit");
         api.registerIntentDefinition(registeredIntentDefinition);
         api.registerIntentDefinition(registeredIntentDefinition);
     }
@@ -775,7 +775,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void createSessionValidApi() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession("sessionID");
+        XatkitSession session = api.createSession("sessionID");
         checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
     }
 
@@ -783,8 +783,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     public void createSessionWithContextProperty() {
         Configuration configuration = buildConfiguration();
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
-        api = new DialogFlowApi(jarvisCore, configuration);
-        JarvisSession session = api.createSession("sessionID");
+        api = new DialogFlowApi(xatkitCore, configuration);
+        XatkitSession session = api.createSession("sessionID");
         checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
         softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable " +
                 "timeout")
@@ -800,7 +800,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void mergeLocalSessionInDialogFlowEmptySession() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        XatkitSession session = api.createSession(UUID.randomUUID().toString());
         RecognizedIntent recognizedIntent = api.getIntent("Hello", session);
         assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context list").isEmpty();
     }
@@ -808,7 +808,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void mergeLocalSessionInDialogFlowNotEmptySessionNotExistingOutContext() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        XatkitSession session = api.createSession(UUID.randomUUID().toString());
         session.getRuntimeContexts().setContextValue("context", 5, "key", "value");
         RecognizedIntent recognizedIntent = api.getIntent("Hello", session);
         assertThat(recognizedIntent.getOutContextInstances()).as("Empty out context list").isEmpty();
@@ -817,13 +817,13 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void mergeLocalSessionInDialogFlowNotEmptySessionExistingOutContext() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        XatkitSession session = api.createSession(UUID.randomUUID().toString());
         registeredIntentDefinition = VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT;
         /*
          * Do not register it in DialogFlow, we are just testing that the value has been set, no need to waste time
          * accessing the remote API.
          */
-        jarvisCore.getEventDefinitionRegistry().registerEventDefinition(registeredIntentDefinition);
+        xatkitCore.getEventDefinitionRegistry().registerEventDefinition(registeredIntentDefinition);
         String validContextName = VALID_OUT_CONTEXT.getName();
         String validParameterName = VALID_OUT_CONTEXT.getParameters().get(0).getName();
         session.getRuntimeContexts().setContextValue(validContextName, 5, validParameterName, "test");
@@ -858,7 +858,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void shutdown() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession("sessionID");
+        XatkitSession session = api.createSession("sessionID");
         api.shutdown();
         softly.assertThat(api.isShutdown()).as("DialogFlow API is shutdown").isTrue();
         assertThatExceptionOfType(DialogFlowException.class).isThrownBy(() -> api.getIntent("test", session))
@@ -871,7 +871,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test
     public void getIntentValidSession() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession("sessionID");
+        XatkitSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
         IntentDefinition intentDefinition = (IntentDefinition) intent.getDefinition();
         assertThat(intent).as("Null Intent").isNotNull();
@@ -881,8 +881,8 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
 
     @Test(expected = DialogFlowException.class)
     public void getIntentInvalidSession() {
-        api = new DialogFlowApi(jarvisCore, buildConfiguration("test", null));
-        JarvisSession session = api.createSession("sessionID");
+        api = new DialogFlowApi(xatkitCore, buildConfiguration("test", null));
+        XatkitSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(SAMPLE_INPUT, session);
     }
 
@@ -895,21 +895,21 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
     @Test(expected = NullPointerException.class)
     public void getIntentNullText() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession("sessionID");
+        XatkitSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent(null, session);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getIntentEmptyText() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession("sessionID");
+        XatkitSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent("", session);
     }
 
     @Test
     public void getIntentUnknownText() {
         api = getValidDialogFlowApi();
-        JarvisSession session = api.createSession("sessionID");
+        XatkitSession session = api.createSession("sessionID");
         RecognizedIntent intent = api.getIntent("azerty", session);
         assertThat(intent.getDefinition()).as("IntentDefinition is not null").isNotNull();
         assertThat(intent.getDefinition().getName()).as("IntentDefinition is the Default Fallback Intent").isEqualTo
@@ -940,14 +940,14 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
             Log.warn("The intent {0} is already registered", intentDefinition.getName());
         }
         api.trainMLEngine();
-        jarvisCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
+        xatkitCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
         /*
          * Setting this variable will delete the intent after execution. This should be done to ensure that the
          * intents are well created, but it causes intent propagation issues on the DialogFlow side (see
          * https://productforums.google.com/forum/m/#!category-topic/dialogflow/type-troubleshooting/UDokzc7mOcY)
          */
 //        registeredIntentDefinition = intentDefinition;
-        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        XatkitSession session = api.createSession(UUID.randomUUID().toString());
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
@@ -1010,14 +1010,14 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
             Log.warn("The intent {0} is already registered", intentDefinition.getName());
         }
         api.trainMLEngine();
-        jarvisCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
+        xatkitCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
         /*
          * Setting this variable will delete the intent after execution. This should be done to ensure that the
          * intents are well created, but it causes intent propagation issues on the DialogFlow side (see
          * https://productforums.google.com/forum/m/#!category-topic/dialogflow/type-troubleshooting/UDokzc7mOcY)
          */
 //        registeredIntentDefinition = intentDefinition;
-        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        XatkitSession session = api.createSession(UUID.randomUUID().toString());
         RecognizedIntent recognizedIntent = api.getIntent(trainingSentence, session);
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
@@ -1086,16 +1086,16 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
             Log.warn("The intent {0} is already registered", intentDefinition.getName());
         }
         api.trainMLEngine();
-        jarvisCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
+        xatkitCore.getEventDefinitionRegistry().registerEventDefinition(intentDefinition);
         /*
          * Setting this variable will delete the intent after execution. This should be done to ensure that the
          * intents are well created, but it causes intent propagation issues on the DialogFlow side (see
          * https://productforums.google.com/forum/m/#!category-topic/dialogflow/type-troubleshooting/UDokzc7mOcY)
          */
 //        registeredIntentDefinition = intentDefinition;
-        JarvisSession session = api.createSession(UUID.randomUUID().toString());
+        XatkitSession session = api.createSession(UUID.randomUUID().toString());
         /*
-         * Set the input context in the JarvisSession's local context. If the intent is matched the local session has
+         * Set the input context in the XatkitSession's local context. If the intent is matched the local session has
          * been successfully merged in the Dialogflow one.
          */
         session.getRuntimeContexts().setContextValue(inContextName, 5, "testKey", "testValue");
@@ -1124,7 +1124,7 @@ public class DialogFlowApiTest extends AbstractJarvisTest {
         return sb.toString();
     }
 
-    private void checkDialogFlowSession(JarvisSession session, String expectedProjectId, String expectedSessionId) {
+    private void checkDialogFlowSession(XatkitSession session, String expectedProjectId, String expectedSessionId) {
         assertThat(session).as("Not null session").isNotNull();
         assertThat(session).as("The session is a DialogFlowSession instance").isInstanceOf(DialogFlowSession.class);
         DialogFlowSession dialogFlowSession = (DialogFlowSession) session;

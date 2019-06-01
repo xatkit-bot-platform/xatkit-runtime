@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.xatkit.core.server.JarvisServer;
+import com.xatkit.core.server.XatkitServer;
 import com.xatkit.intent.IntentDefinition;
 import fr.inria.atlanmod.commons.log.Log;
 import org.mapdb.DB;
@@ -25,7 +25,7 @@ import static java.util.Objects.isNull;
  * <p>
  * This class stores analytics information related to (un)matched intents, and registers a set of REST endpoints
  * allowing to query them from external applications. <b>Warning</b>: the REST endpoints must be accessed using the
- * <i>POST</i> method, this is a current limitation of the {@link JarvisServer}.
+ * <i>POST</i> method, this is a current limitation of the {@link XatkitServer}.
  * <p>
  * The following endpoints can be used to access the stored information:
  * <ul>
@@ -76,14 +76,14 @@ public class RecognitionMonitor {
     private DB db;
 
     /**
-     * Constructs a {@link RecognitionMonitor} with the provided {@code jarvisServer}.
+     * Constructs a {@link RecognitionMonitor} with the provided {@code xatkitServer}.
      * <p>
      * This constructor loads the stored information from the <i>analytics</i> database and create the in-memory
      * data structures used to monitor intent recognition providers.
      * <p>
      * This constructor also registers two REST endpoints allowing to query the stored information from external
      * applications. <b>Warning</b>: the REST endpoints must be accessed using the
-     * <i>POST</i> method, this is a current limitation of the {@link JarvisServer}.
+     * <i>POST</i> method, this is a current limitation of the {@link XatkitServer}.
      * <p>
      * The following endpoints can be used to access the stored information:
      * <ul>
@@ -96,9 +96,9 @@ public class RecognitionMonitor {
      * This method also registers a shutdown hook which ensures that the database is closed properly when the JVM is
      * stopped.
      *
-     * @param jarvisServer the {@link JarvisServer} instance used to register the REST endpoints
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
      */
-    public RecognitionMonitor(JarvisServer jarvisServer) {
+    public RecognitionMonitor(XatkitServer xatkitServer) {
         Log.info("Starting intent recognition monitoring");
         File analyticsDbFolder = new File(ANALYTICS_DB_FOLDER);
         analyticsDbFolder.mkdirs();
@@ -111,17 +111,17 @@ public class RecognitionMonitor {
                 db.close();
             }
         }));
-        this.registerServerEndpoints(jarvisServer);
+        this.registerServerEndpoints(xatkitServer);
     }
 
     /**
      * Registers the REST endpoints used to retrieve monitoring information.
      *
-     * @param jarvisServer the {@link JarvisServer} instance used to register the REST endpoints
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
      */
-    private void registerServerEndpoints(JarvisServer jarvisServer) {
-        this.registerUnmatchedEndpoint(jarvisServer);
-        this.registerMatchedEndpoint(jarvisServer);
+    private void registerServerEndpoints(XatkitServer xatkitServer) {
+        this.registerUnmatchedEndpoint(xatkitServer);
+        this.registerMatchedEndpoint(xatkitServer);
     }
 
     /**
@@ -139,10 +139,10 @@ public class RecognitionMonitor {
      * }
      * </pre>
      *
-     * @param jarvisServer the {@link JarvisServer} instance used to register the REST endpoint
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
      */
-    private void registerUnmatchedEndpoint(JarvisServer jarvisServer) {
-        jarvisServer.registerRestEndpoint("/analytics/unmatched",
+    private void registerUnmatchedEndpoint(XatkitServer xatkitServer) {
+        xatkitServer.registerRestEndpoint("/analytics/unmatched",
                 (headers, param, content) -> {
                     JsonObject result = new JsonObject();
                     JsonArray array = new JsonArray();
@@ -185,10 +185,10 @@ public class RecognitionMonitor {
      * }
      * </pre>
      *
-     * @param jarvisServer the {@link JarvisServer} instance used to register the REST endpoint
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
      */
-    private void registerMatchedEndpoint(JarvisServer jarvisServer) {
-        jarvisServer.registerRestEndpoint("/analytics/matched",
+    private void registerMatchedEndpoint(XatkitServer xatkitServer) {
+        xatkitServer.registerRestEndpoint("/analytics/matched",
                 (headers, param, content) -> {
                     JsonObject result = new JsonObject();
                     JsonArray array = new JsonArray();

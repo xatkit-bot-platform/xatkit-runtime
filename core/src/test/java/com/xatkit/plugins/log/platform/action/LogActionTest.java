@@ -1,9 +1,9 @@
 package com.xatkit.plugins.log.platform.action;
 
 import com.xatkit.plugins.log.platform.LogPlatform;
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.stubs.StubXatkitCore;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class LogActionTest<T extends LogAction> extends AbstractJarvisTest {
+public abstract class LogActionTest<T extends LogAction> extends AbstractXatkitTest {
 
     protected static String VALID_MESSAGE = "test";
 
@@ -23,17 +23,17 @@ public abstract class LogActionTest<T extends LogAction> extends AbstractJarvisT
 
     protected LogPlatform logPlatform;
 
-    private static JarvisCore jarvisCore;
+    private static XatkitCore xatkitCore;
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        jarvisCore = new StubJarvisCore();
+        xatkitCore = new StubXatkitCore();
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        if (nonNull(jarvisCore)) {
-            jarvisCore.shutdown();
+        if (nonNull(xatkitCore)) {
+            xatkitCore.shutdown();
         }
     }
 
@@ -47,7 +47,7 @@ public abstract class LogActionTest<T extends LogAction> extends AbstractJarvisT
          */
         Thread.sleep(200);
         listAppender.clear();
-        logPlatform = new LogPlatform(jarvisCore, new BaseConfiguration());
+        logPlatform = new LogPlatform(xatkitCore, new BaseConfiguration());
     }
 
     @After

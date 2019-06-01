@@ -2,7 +2,7 @@ package com.xatkit.core.platform.io;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import fr.inria.atlanmod.commons.log.Log;
@@ -77,7 +77,7 @@ public class JsonEventMatcher {
      * @param eventTypeName the type of the {@link EventInstance} to return
      * @throws NullPointerException if the provided {@code headerValue}, {@code fieldValue}, or {@code eventTypeName}
      *                              is {@code null}
-     * @throws JarvisException      if the provided {@code headerValue} and {@code fieldValue} are already associated to
+     * @throws XatkitException      if the provided {@code headerValue} and {@code fieldValue} are already associated to
      *                              another {@code eventTypeName}, or if calling this method would associate the
      *                              {@link FieldValue#EMPTY_FIELD_VALUE} and specialized {@link FieldValue}s to the
      *                              provided {@code headerValue}.
@@ -99,7 +99,7 @@ public class JsonEventMatcher {
                  * throw an exception: it is not possible to register specialized FieldValues along with the
                  * EMPTY_FIELD_VALUE: the engine will always match the EMPTY_FIELD_VALUE.
                  */
-                throw new JarvisException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
+                throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
                         "empty FieldValue {1} is already registered for the HeaderValue {2}, and cannot be " +
                         "overloaded with the specialized FieldValue {3}", eventTypeName, FieldValue
                         .EMPTY_FIELD_VALUE, headerValue, fieldValue));
@@ -112,7 +112,7 @@ public class JsonEventMatcher {
                  * Note that this condition allows to register the same EventTypeName to EMPTY_FIELD_VALUE multiple
                  * times (the duplicate insertion is handled in the next conditions).
                  */
-                throw new JarvisException(MessageFormat.format("Cannot register the provided EventType {0}, a " +
+                throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, a " +
                         "specialized FieldValue {1} is already registered for the HeaderValue {2}, and cannot be used" +
                         " along with the empty FieldValue {3}", eventTypeName, fieldValue, headerValue, FieldValue
                         .EMPTY_FIELD_VALUE));
@@ -122,7 +122,7 @@ public class JsonEventMatcher {
                     Log.info("EventType {0} already associated to the pair ({1}, {2})", eventTypeName, headerValue
                             .toString(), fieldValue.toString());
                 } else {
-                    throw new JarvisException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
+                    throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
                                     "pair ({1}, {2}) is already matched to {3}", eventTypeName, headerValue.toString(),
                             fieldValue.toString(), fields.get(fieldValue)));
                 }

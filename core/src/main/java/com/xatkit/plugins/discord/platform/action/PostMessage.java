@@ -1,9 +1,9 @@
 package com.xatkit.plugins.discord.platform.action;
 
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.action.RuntimeMessageAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.discord.platform.DiscordPlatform;
 import fr.inria.atlanmod.commons.log.Log;
 import net.dv8tion.jda.core.entities.Message;
@@ -43,13 +43,13 @@ public class PostMessage extends RuntimeMessageAction<DiscordPlatform> {
      * message} and {@code channel}.
      *
      * @param runtimePlatform the {@link DiscordPlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param message          the message to post
      * @param channel          the Discord channel to post the message to
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null} or empty
      */
-    public PostMessage(DiscordPlatform runtimePlatform, JarvisSession session, String message, String channel) {
+    public PostMessage(DiscordPlatform runtimePlatform, XatkitSession session, String message, String channel) {
         super(runtimePlatform, session, message);
         checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a {0} action with the provided " +
                 "channel {1}, expected a non-null and not empty String", this.getClass().getSimpleName(), channel);
@@ -64,7 +64,7 @@ public class PostMessage extends RuntimeMessageAction<DiscordPlatform> {
                 Log.info("Opening a private channel with user {0} (id: {1})", user.getName(), user.getId());
                 this.channel = user.openPrivateChannel().complete();
             } else {
-                throw new JarvisException(MessageFormat.format("Cannot construct the %s action: the provided channel " +
+                throw new XatkitException(MessageFormat.format("Cannot construct the %s action: the provided channel " +
                                 "ID ({0}) does not correspond to an existing private channel or a valid Discord user",
                         channel));
             }
@@ -112,7 +112,7 @@ public class PostMessage extends RuntimeMessageAction<DiscordPlatform> {
     }
 
     @Override
-    protected JarvisSession getClientSession() {
+    protected XatkitSession getClientSession() {
         return this.runtimePlatform.createSessionFromChannel(channel);
     }
 }

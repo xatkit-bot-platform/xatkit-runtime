@@ -1,6 +1,6 @@
 package com.xatkit.core.interpreter;
 
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ public class ExecutionContext {
      */
     private Map<String, Object> values;
 
-    private JarvisSession session;
+    private XatkitSession session;
 
     /**
      * Constructs an empty {@link ExecutionContext}.
@@ -25,11 +25,11 @@ public class ExecutionContext {
         this.values = new HashMap<>();
     }
 
-    public void setSession(JarvisSession session) {
+    public void setSession(XatkitSession session) {
         this.session = session;
     }
 
-    public JarvisSession getSession() {
+    public XatkitSession getSession() {
         return this.session;
     }
 

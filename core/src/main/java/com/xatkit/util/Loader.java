@@ -1,7 +1,7 @@
 package com.xatkit.util;
 
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
@@ -19,7 +19,7 @@ import java.util.stream.StreamSupport;
 /**
  * Provides a set of utility methods to dynamically load and construct classes.
  * <p>
- * The {@link Loader} wraps Java reflection API exceptions in {@link JarvisException}s, easing client code to handle
+ * The {@link Loader} wraps Java reflection API exceptions in {@link XatkitException}s, easing client code to handle
  * loading and construction errors.
  */
 public class Loader {
@@ -31,10 +31,10 @@ public class Loader {
      * @param superClass    the super-class of the {@link Class} to load
      * @param <T>           the super type of the {@link Class} to load
      * @return the loaded {@link Class} casted to the provided {@code superClass}
-     * @throws JarvisException if the provided {@code qualifiedName} is not a valid {@link Class} name, or if the
+     * @throws XatkitException if the provided {@code qualifiedName} is not a valid {@link Class} name, or if the
      *                         loaded {@link Class} is not a sub-class of the provided {@code superClass}
      */
-    public static <T> Class<? extends T> loadClass(String qualifiedName, Class<T> superClass) throws JarvisException {
+    public static <T> Class<? extends T> loadClass(String qualifiedName, Class<T> superClass) throws XatkitException {
         Log.info("Loading class {0}", qualifiedName);
         try {
             Class<?> clazz = Loader.class.getClassLoader().loadClass(qualifiedName);
@@ -44,13 +44,13 @@ public class Loader {
                 String errorMessage = MessageFormat.format("The class {0} is not a subclass of {1}",
                         clazz.getSimpleName(), superClass.getSimpleName());
                 Log.error(errorMessage);
-                throw new JarvisException(errorMessage);
+                throw new XatkitException(errorMessage);
             }
         } catch (ClassNotFoundException e) {
             String errorMessage = MessageFormat.format("Cannot find the {0} with the name {1}", superClass
                     .getSimpleName(), qualifiedName);
             Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            throw new XatkitException(errorMessage, e);
         }
     }
 
@@ -104,12 +104,12 @@ public class Loader {
      * @param clazz the {@link Class} to construct a new instance of
      * @param <T>   the type of the {@link Class} to construct an instance of
      * @return the constructed instance
-     * @throws JarvisException if an error occurred when calling the {@code clazz}'s constructor
+     * @throws XatkitException if an error occurred when calling the {@code clazz}'s constructor
      * @see #construct(Class, Class, Object)
      * @see #construct(Class, List, List)
      * @see #construct(Class, Object[])
      */
-    public static <T> T construct(Class<T> clazz) throws JarvisException {
+    public static <T> T construct(Class<T> clazz) throws XatkitException {
         Log.info("Constructing {0} with its default constructor", clazz.getSimpleName());
         try {
             return clazz.newInstance();
@@ -117,7 +117,7 @@ public class Loader {
             String errorMessage = MessageFormat.format("Cannot construct an instance of {0} with its default " +
                     "constructor", clazz.getSimpleName());
             Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            throw new XatkitException(errorMessage, e);
         }
     }
 
@@ -133,11 +133,11 @@ public class Loader {
      * @return the constructed instance
      * @throws NoSuchMethodException if the provided {@code clazz} does not define a constructor matching the
      *                               provided {@code parameterType}
-     * @throws JarvisException       if an error occurred when calling the {@code clazz}'s constructor
+     * @throws XatkitException       if an error occurred when calling the {@code clazz}'s constructor
      * @see #construct(Class, List, List)
      */
     public static <T> T construct(Class<T> clazz, Class<?> parameterType, Object parameter) throws
-            NoSuchMethodException, JarvisException {
+            NoSuchMethodException, XatkitException {
         return construct(clazz, Arrays.asList(parameterType), Arrays.asList(parameter));
     }
 
@@ -156,11 +156,11 @@ public class Loader {
      * @return the constructed instance
      * @throws NoSuchMethodException if the provided {@code clazz} does not define a constructor matching the
      *                               provided {@code parameterType1} and {@code parameterType2}
-     * @throws JarvisException       if an error occurred when calling the {@code clazz}'s constructor
+     * @throws XatkitException       if an error occurred when calling the {@code clazz}'s constructor
      * @see #construct(Class, List, List)
      */
     public static <T> T construct(Class<T> clazz, Class<?> parameterType1, Class<?> parameterType2, Object parameter1,
-                                  Object parameter2) throws NoSuchMethodException, JarvisException {
+                                  Object parameter2) throws NoSuchMethodException, XatkitException {
         return construct(clazz, Arrays.asList(parameterType1, parameterType2), Arrays.asList(parameter1, parameter2));
     }
 
@@ -177,10 +177,10 @@ public class Loader {
      * @return the constructed instance
      * @throws NoSuchMethodException if the provided {@code clazz} does not define a constructor matching the
      *                               provided {@code parameterTypes}
-     * @throws JarvisException       if an error occurred when calling the {@code clazz}'s constructor
+     * @throws XatkitException       if an error occurred when calling the {@code clazz}'s constructor
      */
     public static <T> T construct(Class<T> clazz, List<Class<?>> parameterTypes, List<Object> parameters) throws
-            NoSuchMethodException, JarvisException {
+            NoSuchMethodException, XatkitException {
         Log.info("Constructing {0} with parameters ({1})", clazz.getSimpleName(), printArray(parameters.toArray()));
         try {
             if (parameterTypes.isEmpty()) {
@@ -198,60 +198,60 @@ public class Loader {
                 }
             }
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new JarvisException(e);
+            throw new XatkitException(e);
         }
     }
 
     /**
-     * Constructs a new instance of the provided {@code runtimePlatformClass} with the given {@code jarvisCore} and
+     * Constructs a new instance of the provided {@code runtimePlatformClass} with the given {@code xatkitCore} and
      * {@code configuration}.
      * <p>
      * This method first tries to construct an instance of the provided {@code runtimePlatformClass} with the provided
-     * {@code jarvisCore} and {@code configuration}. If the {@link RuntimePlatform} does not define such constructor,
-     * the method logs a warning and tries to construct an instance with only the {@code jarvisCore} parameter.
+     * {@code xatkitCore} and {@code configuration}. If the {@link RuntimePlatform} does not define such constructor,
+     * the method logs a warning and tries to construct an instance with only the {@code xatkitCore} parameter.
      * <p>
      * The {@code runtimePlatformClass} parameter can be loaded by using this class' {@link #loadClass(String, Class)}
      * utility method.
      *
      * @param runtimePlatformClass the {@link RuntimePlatform} {@link Class} to construct a new instance of
-     * @param jarvisCore        the {@link JarvisCore} instance used to construct the {@link RuntimePlatform}
+     * @param xatkitCore        the {@link XatkitCore} instance used to construct the {@link RuntimePlatform}
      * @param configuration     the {@link Configuration} instance used to construct the {@link RuntimePlatform}
      * @return the constructed {@link RuntimePlatform}
-     * @throws JarvisException if the {@link RuntimePlatform} does not define a constructor matching the provided
+     * @throws XatkitException if the {@link RuntimePlatform} does not define a constructor matching the provided
      *                         parameters.
      * @see #construct(Class, Class, Class, Object, Object)
      * @see #loadClass(String, Class)
      */
-    public static RuntimePlatform constructRuntimePlatform(Class<? extends RuntimePlatform> runtimePlatformClass, JarvisCore
-            jarvisCore, Configuration configuration) {
+    public static RuntimePlatform constructRuntimePlatform(Class<? extends RuntimePlatform> runtimePlatformClass, XatkitCore
+            xatkitCore, Configuration configuration) {
         RuntimePlatform platform;
         try {
-            platform = Loader.construct(runtimePlatformClass, JarvisCore.class, Configuration.class, jarvisCore,
+            platform = Loader.construct(runtimePlatformClass, XatkitCore.class, Configuration.class, xatkitCore,
                     configuration);
         } catch (NoSuchMethodException e) {
             Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the platform with the its {0}({1})" +
-                    "constructor", runtimePlatformClass.getSimpleName(), JarvisCore.class.getSimpleName(), Configuration
+                    "constructor", runtimePlatformClass.getSimpleName(), XatkitCore.class.getSimpleName(), Configuration
                     .class.getSimpleName());
             try {
-                platform = Loader.construct(runtimePlatformClass, JarvisCore.class, jarvisCore);
+                platform = Loader.construct(runtimePlatformClass, XatkitCore.class, xatkitCore);
                 Log.warn("{0} {1} loaded with its default constructor, the platform will not be initialized with " +
                         "jarvis configuration", RuntimePlatform.class.getSimpleName(), runtimePlatformClass
                         .getSimpleName());
             } catch (NoSuchMethodException e1) {
-                throw new JarvisException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", runtimePlatformClass.getSimpleName(), JarvisCore.class.getSimpleName()), e1);
+                throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+                        "not exist", runtimePlatformClass.getSimpleName(), XatkitCore.class.getSimpleName()), e1);
             }
         }
         return platform;
     }
 
     /**
-     * Constructs a new instance of the provided {@code eventProviderClass} with the given {@code jarvisCore} and
+     * Constructs a new instance of the provided {@code eventProviderClass} with the given {@code xatkitCore} and
      * {@code configuration}.
      * <p>
      * This method first tries to construct an instance of the provided {@code eventProviderClass} with the provided
-     * {@code jarvisCore} and {@code configuration}. If the {@link RuntimeEventProvider} does not define such constructor,
-     * the method logs a warning and tries to construct an instance with only the {@code jarvisCore} parameter.
+     * {@code xatkitCore} and {@code configuration}. If the {@link RuntimeEventProvider} does not define such constructor,
+     * the method logs a warning and tries to construct an instance with only the {@code xatkitCore} parameter.
      * <p>
      * The {@code eventProviderClass} parameter can be loaded by using this class" {@link #loadClass(String, Class)}
      * utility method.
@@ -260,7 +260,7 @@ public class Loader {
      * @param runtimePlatform       the {@link RuntimePlatform} instance used to construct the {@link RuntimeEventProvider}
      * @param configuration      the {@link Configuration} instance used to construct the {@link RuntimeEventProvider}
      * @return the constructed {@link RuntimeEventProvider}
-     * @throws JarvisException if the {@link RuntimeEventProvider} does not define a constructor matching the provided
+     * @throws XatkitException if the {@link RuntimeEventProvider} does not define a constructor matching the provided
      *                         parameters.
      * @see #construct(Class, Class, Class, Object, Object)
      * @see #loadClass(String, Class)
@@ -279,7 +279,7 @@ public class Loader {
             try {
                 runtimeEventProvider = Loader.construct(eventProviderClass, runtimePlatform.getClass(), runtimePlatform);
             } catch (NoSuchMethodException e1) {
-                throw new JarvisException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
+                throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
                         "not exist", eventProviderClass.getSimpleName(), runtimePlatform.getClass().getSimpleName()), e1);
             }
         }

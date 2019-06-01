@@ -1,8 +1,8 @@
 package com.xatkit.core.platform.io;
 
-import com.xatkit.core.JarvisCore;
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.server.JarvisServer;
+import com.xatkit.core.server.XatkitServer;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
@@ -14,7 +14,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
  * A specialised {@link RuntimeEventProvider} that handles HTTP requests sent by the
- * {@link JarvisServer}.
+ * {@link XatkitServer}.
  * <p>
  * This class defines primitives to handle raw HTTP request contents, manipulate the parsed content, and provides an
  * utility method that checks if the {@link WebhookEventProvider} accepts a given {@code contentType}.
@@ -42,7 +42,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends
      * {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
-     * {@link JarvisCore} component. Subclasses implementing this constructor typically
+     * {@link XatkitCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link WebhookEventProvider}

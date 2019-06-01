@@ -4,9 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.server.JarvisServer;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.server.XatkitServer;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -23,7 +23,7 @@ import static java.util.Objects.nonNull;
  * A Json {@link WebhookEventProvider} that provides utility methods to parse and manipulate Json HTTP requests.
  * <p>
  * This {@link WebhookEventProvider} should be extended by concrete providers that expect Json content in the HTTP
- * requests sent by the {@link JarvisServer}.
+ * requests sent by the {@link XatkitServer}.
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
  */
@@ -56,7 +56,7 @@ public abstract class JsonWebhookEventProvider<T extends RuntimePlatform> extend
      * {@code configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
-     * {@link JarvisCore} component. Subclasses implementing this constructor typically
+     * {@link XatkitCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link JsonWebhookEventProvider}
@@ -87,7 +87,7 @@ public abstract class JsonWebhookEventProvider<T extends RuntimePlatform> extend
      *
      * @param content the raw HTTP request content to parse
      * @return a {@link JsonElement} representing the raw request content
-     * @throws JarvisException if the provided {@code content} is cannot be parsed by the {@link JsonParser}.
+     * @throws XatkitException if the provided {@code content} is cannot be parsed by the {@link JsonParser}.
      * @see #handleParsedContent(JsonElement, Header[])
      */
     @Override
@@ -102,7 +102,7 @@ public abstract class JsonWebhookEventProvider<T extends RuntimePlatform> extend
         if (content instanceof JsonReader) {
             return jsonParser.parse((JsonReader) content);
         }
-        throw new JarvisException(MessageFormat.format("Cannot parse the provided content {0}, expected a {1}, {2}, " +
+        throw new XatkitException(MessageFormat.format("Cannot parse the provided content {0}, expected a {1}, {2}, " +
                 "or {3}, found {4}", content, String.class.getName(), Reader.class.getName(), JsonReader.class
                 .getName(), content.getClass().getName()));
     }
@@ -129,21 +129,21 @@ public abstract class JsonWebhookEventProvider<T extends RuntimePlatform> extend
         /**
          * Returns the {@link JsonElement} associated to the given {@code key} in the provided {@code object}.
          * <p>
-         * This method throws a {@link JarvisException} if the {@code key} field of the provided {@link JsonObject}
+         * This method throws a {@link XatkitException} if the {@code key} field of the provided {@link JsonObject}
          * is {@code null}. The thrown exception can be globally caught to avoid multiple {@code null} checks
          * when manipulating {@link JsonObject}s.
          *
          * @param object the {@link JsonObject} to retrieve the field of
          * @param key    the identifier of the field in the provided {@code object} to retrieve
          * @return the {@link JsonElement} associated to the given {@code key} in the provided {@code object}
-         * @throws JarvisException if the {@code key} field is {@code null}
+         * @throws XatkitException if the {@code key} field is {@code null}
          */
         public static JsonElement getJsonElementFromJsonObject(JsonObject object, String key) {
             JsonElement element = object.get(key);
             if (nonNull(element)) {
                 return element;
             } else {
-                throw new JarvisException(MessageFormat.format("The Json object does not contain the field {0}", key));
+                throw new XatkitException(MessageFormat.format("The Json object does not contain the field {0}", key));
             }
         }
 

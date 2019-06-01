@@ -2,7 +2,7 @@ package com.xatkit.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
 import com.xatkit.core.session.RuntimeContexts;
-import com.xatkit.AbstractJarvisTest;
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -10,9 +10,9 @@ import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class DialogFlowSessionTest extends AbstractJarvisTest {
+public class DialogFlowSessionTest extends AbstractXatkitTest {
 
-    private static String VALID_PROJECT_ID = VariableLoaderHelper.getJarvisDialogFlowProject();
+    private static String VALID_PROJECT_ID = VariableLoaderHelper.getXatkitDialogFlowProject();
 
     private DialogFlowSession session;
 

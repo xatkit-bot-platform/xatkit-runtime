@@ -21,34 +21,34 @@ public class VariableLoaderHelper {
 
     private static String LOCAL_FILE_PATH = "test-variables.properties";
 
-    private static String JARVIS_DIALOGFLOW_PROJECT = "JARVIS_DIALOGFLOW_PROJECT";
+    private static String XATKIT_DIALOGFLOW_PROJECT = "XATKIT_DIALOGFLOW_PROJECT";
 
-    private static String JARVIS_DIALOGFLOW_LANGUAGE = "JARVIS_DIALOGFLOW_LANGUAGE";
+    private static String XATKIT_DIALOGFLOW_LANGUAGE = "XATKIT_DIALOGFLOW_LANGUAGE";
 
-    private static String JARVIS_DIALOGFLOW_CREDENTIALS_PATH = "JARVIS_DIALOGFLOW_CREDENTIALS_PATH";
+    private static String XATKIT_DIALOGFLOW_CREDENTIALS_PATH = "XATKIT_DIALOGFLOW_CREDENTIALS_PATH";
 
-    private static String JARVIS_SLACK_TOKEN_KEY = "JARVIS_SLACK_TOKEN";
+    private static String XATKIT_SLACK_TOKEN_KEY = "XATKIT_SLACK_TOKEN";
 
-    private static String JARVIS_DISCORD_TOKEN = "JARVIS_DISCORD_TOKEN";
+    private static String XATKIT_DISCORD_TOKEN = "XATKIT_DISCORD_TOKEN";
 
-    public static String getJarvisDialogFlowProject() {
-        return getVariable(JARVIS_DIALOGFLOW_PROJECT);
+    public static String getXatkitDialogFlowProject() {
+        return getVariable(XATKIT_DIALOGFLOW_PROJECT);
     }
 
-    public static String getJarvisDialogFlowLanguage() {
-        return getVariable(JARVIS_DIALOGFLOW_LANGUAGE);
+    public static String getXatkitDialogFlowLanguage() {
+        return getVariable(XATKIT_DIALOGFLOW_LANGUAGE);
     }
 
-    public static String getJarvisDialogflowCredentialsPath() {
-        return getVariable(JARVIS_DIALOGFLOW_CREDENTIALS_PATH);
+    public static String getXatkitDialogflowCredentialsPath() {
+        return getVariable(XATKIT_DIALOGFLOW_CREDENTIALS_PATH);
     }
 
-    public static String getJarvisSlackToken() {
-        return getVariable(JARVIS_SLACK_TOKEN_KEY);
+    public static String getXatkitSlackToken() {
+        return getVariable(XATKIT_SLACK_TOKEN_KEY);
     }
 
-    public static String getJarvisDiscordToken() {
-        return getVariable(JARVIS_DISCORD_TOKEN);
+    public static String getXatkitDiscordToken() {
+        return getVariable(XATKIT_DISCORD_TOKEN);
     }
 
     private static String getVariable(String key) {

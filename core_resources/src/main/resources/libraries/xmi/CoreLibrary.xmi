@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<intent:Library xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:intent="edu.uoc.som.jarvis.intent" name="CoreLibrary">
+<intent:Library xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:intent="com.xatkit.intent" name="CoreLibrary">
   <eventDefinitions xsi:type="intent:IntentDefinition" name="Default_Fallback_Intent">
     <trainingSentences></trainingSentences>
   </eventDefinitions>

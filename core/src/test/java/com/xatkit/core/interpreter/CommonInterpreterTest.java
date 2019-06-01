@@ -4,7 +4,7 @@ import com.xatkit.common.CommonFactory;
 import com.xatkit.common.CommonPackage;
 import com.xatkit.common.Program;
 import com.xatkit.core.interpreter.operation.OperationException;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -195,7 +195,7 @@ public class CommonInterpreterTest {
     @Test
     public void context_access() {
         ExecutionContext context = new ExecutionContext();
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         session.getRuntimeContexts().setContextValue("test", 5, "var", "val");
         context.setSession(session);
         Object result = interpreter.compute(getProgram("context_access"), context);
@@ -207,7 +207,7 @@ public class CommonInterpreterTest {
     @Test
     public void context_access_get() {
         ExecutionContext context = new ExecutionContext();
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         session.getRuntimeContexts().setContextValue("test", 5, "var", "val");
         context.setSession(session);
         Object result = interpreter.compute(getProgram("context_access_get"), context);
@@ -329,18 +329,18 @@ public class CommonInterpreterTest {
     @Test
     public void session() {
         ExecutionContext context = new ExecutionContext();
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         context.setSession(session);
         Object result = interpreter.compute(getProgram("session"), context);
-        assertThat(result).as("valid JarvisSession result").isInstanceOf(JarvisSession.class);
-        JarvisSession sessionResult = (JarvisSession) result;
+        assertThat(result).as("valid XatkitSession result").isInstanceOf(XatkitSession.class);
+        XatkitSession sessionResult = (XatkitSession) result;
         assertThat(sessionResult.getSessionId()).as("valid session ID").isEqualTo(session.getSessionId());
     }
 
     @Test
     public void session_get() {
         ExecutionContext context = new ExecutionContext();
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         session.store("test", "value");
         context.setSession(session);
         Object result = interpreter.compute(getProgram("session_get"), context);
@@ -351,7 +351,7 @@ public class CommonInterpreterTest {
     @Test
     public void session_store() {
         ExecutionContext context = new ExecutionContext();
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         context.setSession(session);
         Object result = interpreter.compute(getProgram("session_store"), context);
         assertThat(result).as("null result").isNull();
@@ -361,7 +361,7 @@ public class CommonInterpreterTest {
     @Test
     public void session_store_get() {
         ExecutionContext context = new ExecutionContext();
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         context.setSession(session);
         Object result = interpreter.compute(getProgram("session_store_get"), context);
         assertThat(result).as("valid String result").isInstanceOf(String.class);

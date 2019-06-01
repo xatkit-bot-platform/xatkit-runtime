@@ -13,7 +13,7 @@ import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class XatkitTest extends AbstractJarvisTest {
+public class XatkitTest extends AbstractXatkitTest {
 
     private static String EXECUTION_MODEL_LOADING_MESSAGE = "Cannot retrieve the ExecutionModel from the property " +
             "null, please ensure it is set in the jarvis.execution.model property of the jarvis configuration";
@@ -37,8 +37,8 @@ public class XatkitTest extends AbstractJarvisTest {
     @After
     public void tearDown() {
         listAppender.clear();
-        if (nonNull(Xatkit.getJarvisCore()) && !Xatkit.getJarvisCore().isShutdown()) {
-            Xatkit.getJarvisCore().shutdown();
+        if (nonNull(Xatkit.getXatkitCore()) && !Xatkit.getXatkitCore().isShutdown()) {
+            Xatkit.getXatkitCore().shutdown();
         }
     }
 
@@ -104,8 +104,8 @@ public class XatkitTest extends AbstractJarvisTest {
      */
 
     /*
-     * Do not test that the created JarvisCore instance corresponds to the provided Configuration: once the
-     * Configuration is loaded the construction of the JarvisCore instance is similar to the ones tested in
-     * JarvisCoreTest.
+     * Do not test that the created XatkitCore instance corresponds to the provided Configuration: once the
+     * Configuration is loaded the construction of the XatkitCore instance is similar to the ones tested in
+     * XatkitCoreTest.
      */
 }

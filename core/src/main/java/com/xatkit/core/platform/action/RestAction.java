@@ -11,7 +11,7 @@ import com.mashape.unirest.request.BaseRequest;
 import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 import javax.annotation.Nullable;
@@ -84,7 +84,7 @@ public abstract class RestAction<T extends RuntimePlatform> extends RuntimeActio
      * This method doesn't perform the REST API request, this is done asynchronously in the {@link #compute()} method.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session         the {@link JarvisSession} associated to this action
+     * @param session         the {@link XatkitSession} associated to this action
      * @param method          the REST method to use
      * @param headers         the {@link Map} of user-defined headers to include in the request
      * @param restEndpoint    the REST API endpoint to request
@@ -94,7 +94,7 @@ public abstract class RestAction<T extends RuntimePlatform> extends RuntimeActio
      * @throws IllegalArgumentException if the provided {@code method} is {@code null}, or if the provided {@code
      *                                  restEndpoint} is {@code null} or {@code empty}
      */
-    public RestAction(T runtimePlatform, JarvisSession session, MethodKind method,
+    public RestAction(T runtimePlatform, XatkitSession session, MethodKind method,
                       @Nullable Map<String, String> headers, String restEndpoint,
                       @Nullable Map<String, Object> params, @Nullable JsonElement jsonContent) {
         super(runtimePlatform, session);

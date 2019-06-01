@@ -1,7 +1,7 @@
 package com.xatkit.plugins.chat.platform.io;
 
 import com.xatkit.core.platform.io.RuntimeIntentProvider;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.plugins.chat.ChatUtils;
 import com.xatkit.plugins.chat.platform.ChatPlatform;
@@ -40,7 +40,7 @@ public abstract class ChatIntentProvider<T extends ChatPlatform> extends Runtime
      * of variables and can be used transparently in execution models.
      */
     @Override
-    public void sendEventInstance(EventInstance eventInstance, JarvisSession session) {
+    public void sendEventInstance(EventInstance eventInstance, XatkitSession session) {
         Map<String, Object> contextVariables =
                 session.getRuntimeContexts().getContextVariables(ChatUtils.CHAT_CONTEXT_KEY);
         checkState(nonNull(contextVariables), "Intent provider %s did not define the context %s",

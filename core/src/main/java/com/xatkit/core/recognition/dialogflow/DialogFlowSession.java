@@ -1,17 +1,17 @@
 package com.xatkit.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
 /**
- * A DialogFlow {@link JarvisSession} implementation that relies on DialogFlow internal sessions.
+ * A DialogFlow {@link XatkitSession} implementation that relies on DialogFlow internal sessions.
  * <p>
  * This class computes the unique identifier of the session by using the internal DialogFlow API. The raw session can
  * be accessed by calling {@link #getSessionName()}.
  */
-public class DialogFlowSession extends JarvisSession {
+public class DialogFlowSession extends XatkitSession {
 
     /**
      * The raw DialogFlow session.
@@ -41,7 +41,7 @@ public class DialogFlowSession extends JarvisSession {
      *
      * @param sessionName   the raw DialogFlow session
      * @param configuration the {@link Configuration} parameterizing the {@link DialogFlowSession}
-     * @see JarvisSession#JarvisSession(String, Configuration)
+     * @see XatkitSession#XatkitSession(String, Configuration)
      */
     public DialogFlowSession(SessionName sessionName, Configuration configuration) {
         super(sessionName.toString(), configuration);

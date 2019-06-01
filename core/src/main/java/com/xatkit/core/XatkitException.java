@@ -5,50 +5,50 @@ package com.xatkit.core;
  * <p>
  * This exception is used to wrap internal {@link Exception}s and return them in a unified way to client applications.
  */
-public class JarvisException extends RuntimeException {
+public class XatkitException extends RuntimeException {
 
     /**
-     * Constructs a new {@link JarvisException}.
+     * Constructs a new {@link XatkitException}.
      *
      * @see RuntimeException#RuntimeException()
      */
-    public JarvisException() {
+    public XatkitException() {
         super();
     }
 
     /**
-     * Constructs a new {@link JarvisException} from the provided {@code message}.
+     * Constructs a new {@link XatkitException} from the provided {@code message}.
      *
      * @param message the exception's message
      * @see RuntimeException#RuntimeException(String)
      */
-    public JarvisException(String message) {
+    public XatkitException(String message) {
         super(message);
     }
 
     /**
-     * Constructs a new {@link JarvisException} from the provided {@code message} and {@code cause}.
+     * Constructs a new {@link XatkitException} from the provided {@code message} and {@code cause}.
      *
      * @param message the exception's message
      * @param cause   the exception's cause
      * @see RuntimeException#RuntimeException(String, Throwable)
      */
-    public JarvisException(String message, Throwable cause) {
+    public XatkitException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
-     * Constructs a new {@link JarvisException} from the provided {@code cause}.
+     * Constructs a new {@link XatkitException} from the provided {@code cause}.
      *
      * @param cause the exception's cause
      * @see RuntimeException#RuntimeException(Throwable)
      */
-    public JarvisException(Throwable cause) {
+    public XatkitException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * Constructs a new {@link JarvisException} from the provided {@code message}, {@code cause}, {@code
+     * Constructs a new {@link XatkitException} from the provided {@code message}, {@code cause}, {@code
      * enableSuppression}, and {@code writableStackTrace}.
      *
      * @param message            the exception's message
@@ -57,7 +57,7 @@ public class JarvisException extends RuntimeException {
      * @param writableStackTrace whether or not the stack trace should be writable
      * @see RuntimeException#RuntimeException(String, Throwable, boolean, boolean)
      */
-    protected JarvisException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    protected XatkitException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

@@ -1,8 +1,8 @@
 package com.xatkit.plugins.giphy.platform;
 
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.plugins.giphy.platform.action.GetGif;
-import com.xatkit.core.JarvisCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 
@@ -34,17 +34,17 @@ public class GiphyPlatform extends RuntimePlatform {
     private String giphyToken;
 
     /**
-     * Constructs a new {@link GiphyPlatform} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link GiphyPlatform} from the provided {@link XatkitCore} and {@link Configuration}.
      * <p>
      * This constructor retrieves the Giphy API token from the provided configuration.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance associated to this runtimePlatform
+     * @param xatkitCore    the {@link XatkitCore} instance associated to this runtimePlatform
      * @param configuration the {@link Configuration} used to retrieve the Giphy API token
-     * @throws NullPointerException     if the provided {@code jarvisCore} or {@code configuration} is {@code null}
+     * @throws NullPointerException     if the provided {@code xatkitCore} or {@code configuration} is {@code null}
      * @throws IllegalArgumentException if the provided {@link Configuration} does not contain a Giphy API token
      */
-    public GiphyPlatform(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public GiphyPlatform(XatkitCore xatkitCore, Configuration configuration) {
+        super(xatkitCore, configuration);
         checkArgument(configuration.containsKey(GIPHY_TOKEN_KEY), "Cannot construct a %s, please ensure that the " +
                         "configuration contains a valid Giphy API token (configuration key: %s)",
                 this.getClass().getSimpleName(), GIPHY_TOKEN_KEY);

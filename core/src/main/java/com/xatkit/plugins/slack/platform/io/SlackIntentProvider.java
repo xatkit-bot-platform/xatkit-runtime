@@ -13,10 +13,10 @@ import com.github.seratch.jslack.api.rtm.RTMMessageHandler;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.platform.io.RuntimeIntentProvider;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.plugins.chat.ChatUtils;
 import com.xatkit.plugins.chat.platform.io.ChatIntentProvider;
@@ -64,7 +64,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
      * waiting {@code RECONNECT_WAIT_TIME * <number_of_attempts>} ms. The delay is reset after each successful
      * reconnection.
      *
-     * @see JarvisRTMCloseHandler
+     * @see XatkitRTMCloseHandler
      */
     private static int RECONNECT_WAIT_TIME = 2000;
 
@@ -103,7 +103,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
      * {@code configuration}.
      * <p>
      * This constructor initializes the underlying RTM connection and creates a message listener that forwards to
-     * the {@code jarvisCore} instance not empty direct messages sent by users (not bots) to the Slack bot associated
+     * the {@code xatkitCore} instance not empty direct messages sent by users (not bots) to the Slack bot associated
      * to this class.
      * <p>
      * <b>Note:</b> {@link SlackIntentProvider} requires a valid Slack bot API token to be initialized, and calling
@@ -131,18 +131,18 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
                     "bot API token is valid and stored in jarvis configuration with the key {0}",
                     SlackUtils.SLACK_TOKEN_KEY);
             Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            throw new XatkitException(errorMessage, e);
         }
         this.jsonParser = new JsonParser();
         Log.info("Starting to listen jarvis Slack direct messages");
-        rtmClient.addMessageHandler(new JarvisRTMMessageHandler());
-        rtmClient.addCloseHandler(new JarvisRTMCloseHandler());
+        rtmClient.addMessageHandler(new XatkitRTMMessageHandler());
+        rtmClient.addCloseHandler(new XatkitRTMCloseHandler());
         try {
             rtmClient.connect();
         } catch (DeploymentException | IOException e) {
             String errorMessage = "Cannot start the Slack RTM websocket, please check your internet connection";
             Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            throw new XatkitException(errorMessage, e);
         }
     }
 
@@ -160,7 +160,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
             AuthTestResponse response = slack.methods().authTest(request);
             return response.getUserId();
         } catch (IOException | SlackApiException e) {
-            throw new JarvisException("Cannot retrieve the bot identifier", e);
+            throw new XatkitException("Cannot retrieve the bot identifier", e);
         }
     }
 
@@ -245,14 +245,14 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
         } catch (IOException e) {
             String errorMessage = "Cannot close the Slack RTM connection";
             Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            throw new XatkitException(errorMessage, e);
         }
     }
 
     /**
      * The {@link RTMMessageHandler} used to process user messages.
      */
-    private class JarvisRTMMessageHandler implements RTMMessageHandler {
+    private class XatkitRTMMessageHandler implements RTMMessageHandler {
 
         @Override
         public void handle(String message) {
@@ -288,7 +288,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
                                     if (!text.isEmpty()) {
                                         Log.info("Received message {0} from user {1} (channel: {2})", text,
                                                 user, channel);
-                                        JarvisSession session = runtimePlatform.createSessionFromChannel(channel);
+                                        XatkitSession session = runtimePlatform.createSessionFromChannel(channel);
                                         /*
                                          * Call getRecognizedIntent before setting any context variable, the
                                          * recognition triggers a decrement of all the context variables.
@@ -354,7 +354,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
      *
      * @see #RECONNECT_WAIT_TIME
      */
-    private class JarvisRTMCloseHandler implements RTMCloseHandler {
+    private class XatkitRTMCloseHandler implements RTMCloseHandler {
 
         @Override
         public void handle(CloseReason reason) {
@@ -367,8 +367,8 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
                         Log.info("Trying to reconnect in {0}ms", waitTime);
                         Thread.sleep(waitTime);
                         rtmClient = slack.rtm(slackToken);
-                        rtmClient.addMessageHandler(new JarvisRTMMessageHandler());
-                        rtmClient.addCloseHandler(new JarvisRTMCloseHandler());
+                        rtmClient.addMessageHandler(new XatkitRTMMessageHandler());
+                        rtmClient.addCloseHandler(new XatkitRTMCloseHandler());
                         rtmClient.connect();
                         /*
                          * The RTM client is reconnected and the handlers are set.

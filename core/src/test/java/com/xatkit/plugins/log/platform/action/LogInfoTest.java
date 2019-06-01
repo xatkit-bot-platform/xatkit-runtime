@@ -1,6 +1,6 @@
 package com.xatkit.plugins.log.platform.action;
 
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 public class LogInfoTest extends LogActionTest {
@@ -9,7 +9,7 @@ public class LogInfoTest extends LogActionTest {
 
     @Override
     protected LogAction createLogAction(String message) {
-        LogAction action = new LogInfo(logPlatform, new JarvisSession("id"), message);
+        LogAction action = new LogInfo(logPlatform, new XatkitSession("id"), message);
         /*
          * Clear the appender if the action initialization generated logs.
          */

@@ -2,7 +2,7 @@ package com.xatkit.stubs.action;
 
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 
 import java.util.List;
 
@@ -12,12 +12,12 @@ public class StubRuntimeActionTwoConstructors extends RuntimeAction {
 
     private List<String> listParam;
 
-    public StubRuntimeActionTwoConstructors(RuntimePlatform runtimePlatform, JarvisSession session, String param) {
+    public StubRuntimeActionTwoConstructors(RuntimePlatform runtimePlatform, XatkitSession session, String param) {
         super(runtimePlatform, session);
         this.param = param;
     }
 
-    public StubRuntimeActionTwoConstructors(RuntimePlatform runtimePlatform, JarvisSession session, List<String>
+    public StubRuntimeActionTwoConstructors(RuntimePlatform runtimePlatform, XatkitSession session, List<String>
             listParam) {
         super(runtimePlatform, session);
         this.listParam = listParam;

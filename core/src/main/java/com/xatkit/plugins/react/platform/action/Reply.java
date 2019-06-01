@@ -1,7 +1,7 @@
 package com.xatkit.plugins.react.platform.action;
 
 import com.xatkit.core.platform.action.RuntimeMessageAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.plugins.chat.ChatUtils;
 import com.xatkit.plugins.react.platform.ReactPlatform;
@@ -14,7 +14,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * A {@link RuntimeMessageAction} that replies to a message using the input
  * jarvis-react channel.
  * <p>
- * This action relies on the provided {@link JarvisSession} to retrieve the jarvis-react {@code channel} associated
+ * This action relies on the provided {@link XatkitSession} to retrieve the jarvis-react {@code channel} associated
  * to the user input.
  *
  * @see PostMessage
@@ -49,14 +49,14 @@ public class Reply extends PostMessage {
      * Constructs a new {@link Reply} with the provided {@code reactPlatform}, {@code session}, and {@code message}.
      *
      * @param reactPlatform the {@link ReactPlatform} containing this action
-     * @param session       the {@link JarvisSession} associated to this action
+     * @param session       the {@link XatkitSession} associated to this action
      * @param message       the message to post
      * @throws NullPointerException     if the provided {@code reactPlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} is {@code null} or empty
      * @see #getChannel(RuntimeContexts)
      * @see PostMessage
      */
-    public Reply(ReactPlatform reactPlatform, JarvisSession session, String message) {
+    public Reply(ReactPlatform reactPlatform, XatkitSession session, String message) {
         super(reactPlatform, session, message, getChannel(session.getRuntimeContexts()));
     }
 

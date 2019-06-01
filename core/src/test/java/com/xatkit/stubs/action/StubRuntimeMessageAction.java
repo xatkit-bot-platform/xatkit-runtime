@@ -2,7 +2,7 @@ package com.xatkit.stubs.action;
 
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeMessageAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 import java.util.UUID;
@@ -13,9 +13,9 @@ public class StubRuntimeMessageAction extends RuntimeMessageAction {
 
     protected int attempts;
 
-    private JarvisSession clientSession = new JarvisSession(UUID.randomUUID().toString());
+    private XatkitSession clientSession = new XatkitSession(UUID.randomUUID().toString());
 
-    public StubRuntimeMessageAction(RuntimePlatform runtimePlatform, JarvisSession session, String rawMessage) {
+    public StubRuntimeMessageAction(RuntimePlatform runtimePlatform, XatkitSession session, String rawMessage) {
         super(runtimePlatform, session, rawMessage);
         attempts = 0;
     }
@@ -28,7 +28,7 @@ public class StubRuntimeMessageAction extends RuntimeMessageAction {
     }
 
     @Override
-    protected JarvisSession getClientSession() {
+    protected XatkitSession getClientSession() {
         return clientSession;
     }
 

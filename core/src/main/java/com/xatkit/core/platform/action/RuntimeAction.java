@@ -2,7 +2,7 @@ package com.xatkit.core.platform.action;
 
 import com.xatkit.core.ExecutionService;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.platform.ActionDefinition;
 
@@ -36,22 +36,22 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
     protected T runtimePlatform;
 
     /**
-     * The {@link JarvisSession} associated to this action.
+     * The {@link XatkitSession} associated to this action.
      */
-    protected JarvisSession session;
+    protected XatkitSession session;
 
     /**
      * Constructs a new {@link RuntimeAction} with the provided {@code runtimePlatform} and {@code session}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
      */
-    public RuntimeAction(T runtimePlatform, JarvisSession session) {
+    public RuntimeAction(T runtimePlatform, XatkitSession session) {
         checkNotNull(runtimePlatform, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName
                 (), RuntimePlatform.class.getSimpleName(), runtimePlatform);
         checkNotNull(session, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName(),
-                JarvisSession.class.getSimpleName(), session);
+                XatkitSession.class.getSimpleName(), session);
         this.runtimePlatform = runtimePlatform;
         this.session = session;
     }

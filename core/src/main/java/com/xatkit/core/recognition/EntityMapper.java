@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition;
 
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CustomEntityDefinition;
 import com.xatkit.intent.EntityDefinition;
@@ -219,7 +219,7 @@ public class EntityMapper {
      * @throws NullPointerException     if the provided {@code abstractEntity} is {@code null}
      * @throws IllegalArgumentException if the provided {@link EntityDefinition} is a {@link BaseEntityDefinition}
      *                                  and its {@code entityType} reference is {@code null}
-     * @throws JarvisException          if the provided {@code abstractEntity} is not an instance of
+     * @throws XatkitException          if the provided {@code abstractEntity} is not an instance of
      *                                  {@link BaseEntityDefinition} (see
      *                                  <href="https://github.com/gdaniel/jarvis/issues/145">#145</href="">)
      */
@@ -238,7 +238,7 @@ public class EntityMapper {
         } else if (abstractEntity instanceof CustomEntityDefinition) {
             return getMappingForCustomEntity((CustomEntityDefinition) abstractEntity);
         } else {
-            throw new JarvisException(MessageFormat.format("{0} does not support the provided {1} {2}", this.getClass
+            throw new XatkitException(MessageFormat.format("{0} does not support the provided {1} {2}", this.getClass
                     ().getSimpleName(), EntityDefinition.class.getSimpleName(), abstractEntity.getClass()
                     .getSimpleName()));
         }

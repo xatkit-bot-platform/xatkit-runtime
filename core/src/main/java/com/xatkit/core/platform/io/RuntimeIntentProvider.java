@@ -1,10 +1,10 @@
 package com.xatkit.core.platform.io;
 
-import com.xatkit.core.JarvisCore;
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.intent.RecognizedIntent;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -16,7 +16,7 @@ import org.apache.commons.configuration2.Configuration;
  * This class wraps a {@link IntentRecognitionProvider} instance that is used to extract {@link RecognizedIntent}s
  * from textual user inputs. Note that the {@link IntentRecognitionProvider} instance is not directly accessible by
  * subclasses to avoid uncontrolled accesses such as intent creation, removal, and context manipulation. Subclasses
- * should use {@link #getRecognizedIntent(String, JarvisSession)} to retrieve {@link RecognizedIntent}s from textual
+ * should use {@link #getRecognizedIntent(String, XatkitSession)} to retrieve {@link RecognizedIntent}s from textual
  * user inputs.
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
@@ -33,7 +33,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
     private IntentRecognitionProvider intentRecognitionProvider;
 
     /**
-     * Constructs a new {@link RuntimeIntentProvider} from the provided {@code jarvisCore}.
+     * Constructs a new {@link RuntimeIntentProvider} from the provided {@code xatkitCore}.
      * <p>
      * This constructor sets the internal {@link IntentRecognitionProvider} instance that is used to parse user input
      * and retrieve {@link RecognizedIntent}s.
@@ -55,7 +55,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
      * and retrieve {@link RecognizedIntent}s.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
-     * {@link JarvisCore} component. Subclasses implementing this constructor typically
+     * {@link XatkitCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeIntentProvider}
@@ -64,7 +64,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
      */
     public RuntimeIntentProvider(T runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
-        this.intentRecognitionProvider = jarvisCore.getIntentRecognitionProvider();
+        this.intentRecognitionProvider = xatkitCore.getIntentRecognitionProvider();
     }
 
     /**
@@ -81,7 +81,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
      * 1} will be immediately removed by the {@link RuntimeContexts#decrementLifespanCounts()} call).
      *
      * @param input   the textual user input to extract the {@link RecognizedIntent} from
-     * @param session the {@link JarvisSession} wrapping the underlying {@link IntentRecognitionProvider}'s session
+     * @param session the {@link XatkitSession} wrapping the underlying {@link IntentRecognitionProvider}'s session
      * @return the {@link RecognizedIntent} computed by the {@link IntentRecognitionProvider}
      * @throws NullPointerException                                           if the provided {@code text} or {@code
      *                                                                        session} is {@code null}
@@ -92,7 +92,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
      *                                                                        by the underlying intent recognition
      *                                                                        engine
      */
-    public final RecognizedIntent getRecognizedIntent(String input, JarvisSession session) {
+    public final RecognizedIntent getRecognizedIntent(String input, XatkitSession session) {
         /*
          * We are trying to recognize an intent from a new input, decrement the current context variables lifespan
          * counts.

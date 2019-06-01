@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.mashape.unirest.http.Headers;
 import com.xatkit.core.platform.action.RestGetAction;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.giphy.platform.GiphyPlatform;
 
 import java.util.Collections;
@@ -46,13 +46,13 @@ public class GetGif extends RestGetAction<GiphyPlatform> {
      * This constructor requires a valid Giphy API token in order to build the REST query used to retrieve GIF urls.
      *
      * @param runtimePlatform the {@link GiphyPlatform} containing this action
-     * @param session         the {@link JarvisSession} associated to this action
+     * @param session         the {@link XatkitSession} associated to this action
      * @param searchString    the {@link String} used to search GIFs
      * @throws NullPointerException if the provided {@code runtimePlatform}, {@code session}, or {@code searchString}
      *                              is {@code null}
      * @see GiphyPlatform#getGiphyToken()
      */
-    public GetGif(GiphyPlatform runtimePlatform, JarvisSession session, String searchString) {
+    public GetGif(GiphyPlatform runtimePlatform, XatkitSession session, String searchString) {
         super(runtimePlatform, session, Collections.emptyMap(), GIFS_SEARCH_URL, getParams(runtimePlatform,
                 searchString));
     }

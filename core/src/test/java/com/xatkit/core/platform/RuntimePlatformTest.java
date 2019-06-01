@@ -1,17 +1,17 @@
 package com.xatkit.core.platform;
 
-import com.xatkit.AbstractJarvisTest;
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.common.CommonFactory;
 import com.xatkit.common.StringLiteral;
 import com.xatkit.common.VariableAccess;
 import com.xatkit.common.VariableDeclaration;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.interpreter.ExecutionContext;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.WebhookEventProvider;
-import com.xatkit.core.server.JarvisServer;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.server.XatkitServer;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ActionInstance;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.ParameterValue;
@@ -20,7 +20,7 @@ import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.Parameter;
 import com.xatkit.platform.PlatformFactory;
 import com.xatkit.stubs.EmptyRuntimePlatform;
-import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.stubs.action.StubRuntimeActionNoParameter;
 import com.xatkit.stubs.action.StubRuntimeActionTwoConstructors;
 import com.xatkit.stubs.io.StubInputProvider;
@@ -38,7 +38,7 @@ import java.util.concurrent.CompletableFuture;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RuntimePlatformTest extends AbstractJarvisTest {
+public class RuntimePlatformTest extends AbstractXatkitTest {
 
     private static ExecutionFactory executionFactory = ExecutionFactory.eINSTANCE;
 
@@ -46,19 +46,19 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     private RuntimePlatform runtimePlatform;
 
-    private static JarvisCore jarvisCore;
+    private static XatkitCore xatkitCore;
 
     private ExecutionContext executionContext;
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        jarvisCore = new StubJarvisCore();
+        xatkitCore = new StubXatkitCore();
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        if (nonNull(jarvisCore)) {
-            jarvisCore.shutdown();
+        if (nonNull(xatkitCore)) {
+            xatkitCore.shutdown();
         }
     }
 
@@ -67,17 +67,17 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Before
     public void setUp() {
-        runtimePlatform = new EmptyRuntimePlatform(jarvisCore);
-        if (nonNull(jarvisCore)) {
+        runtimePlatform = new EmptyRuntimePlatform(xatkitCore);
+        if (nonNull(xatkitCore)) {
             /*
              * Unregister the WebhookEventProviders that may have been set as side effect of startEventProvider
              */
-            JarvisServer jarvisServer = jarvisCore.getJarvisServer();
-            for (WebhookEventProvider eventProvider : jarvisServer.getRegisteredWebhookEventProviders()) {
-                jarvisServer.unregisterWebhookEventProvider(eventProvider);
+            XatkitServer xatkitServer = xatkitCore.getXatkitServer();
+            for (WebhookEventProvider eventProvider : xatkitServer.getRegisteredWebhookEventProviders()) {
+                xatkitServer.unregisterWebhookEventProvider(eventProvider);
             }
         }
-        if (!jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().isEmpty()) {
+        if (!xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders().isEmpty()) {
 
         }
         /*
@@ -99,9 +99,9 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
     }
 
     @Test
-    public void getJarvisCore() {
-        Assertions.assertThat(runtimePlatform.getJarvisCore()).as("Not null JarvisCore").isNotNull();
-        Assertions.assertThat(runtimePlatform.getJarvisCore()).as("Valid JarvisCore").isEqualTo(jarvisCore);
+    public void getXatkitCore() {
+        Assertions.assertThat(runtimePlatform.getXatkitCore()).as("Not null XatkitCore").isNotNull();
+        Assertions.assertThat(runtimePlatform.getXatkitCore()).as("Valid XatkitCore").isEqualTo(xatkitCore);
     }
 
     @Test(expected = NullPointerException.class)
@@ -109,7 +109,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         runtimePlatform.startEventProvider(null);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void startEventProviderInvalidName() {
         EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("Test");
@@ -129,8 +129,8 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubInputProvider.class);
         softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
-                "providers in JarvisServer").isEmpty();
+        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
+                "providers in XatkitServer").isEmpty();
     }
 
     @Test
@@ -146,8 +146,8 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubInputProviderNoConfigurationConstructor.class);
         softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
-                "providers in JarvisServer").isEmpty();
+        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
+                "providers in XatkitServer").isEmpty();
     }
 
     @Test
@@ -163,13 +163,13 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubJsonWebhookEventProvider.class);
         softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Webhook provider " +
-                "registered" + "in JarvisServer").hasSize(1);
-        softly.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as
-                ("Valid Webhook registered in JarvisServer").isInstanceOf(StubJsonWebhookEventProvider.class);
+        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders()).as("Webhook provider " +
+                "registered" + "in XatkitServer").hasSize(1);
+        softly.assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders().iterator().next()).as
+                ("Valid Webhook registered in XatkitServer").isInstanceOf(StubJsonWebhookEventProvider.class);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void enableActionNotPlatformAction() {
         ActionDefinition action = getNotRegisteredActionDefinition();
         runtimePlatform.enableAction(action);
@@ -210,27 +210,27 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void createRuntimeActionNullActionInstance() {
-        runtimePlatform.createRuntimeAction(null, new JarvisSession("id"), executionContext);
+        runtimePlatform.createRuntimeAction(null, new XatkitSession("id"), executionContext);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void createRuntimeActionNotEnabledAction() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         ActionInstance actionInstance = executionFactory.createActionInstance();
         actionInstance.setAction(actionDefinition);
-        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("id"), executionContext);
+        runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("id"), executionContext);
     }
 
     @Test
     public void createRuntimeActionValidActionInstanceNoParameters() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"), executionContext);
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("sessionID"), executionContext);
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf(StubRuntimeActionNoParameter
                 .class);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void createRuntimeActionTooManyParametersInAction() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
@@ -243,10 +243,10 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 //        parameterValue.setParameter(param);
         value.setValue("myValue");
         actionInstance.getValues().add(parameterValue);
-        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"), executionContext);
+        runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("sessionID"), executionContext);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void createRuntimeActionTooManyParametersInActionInstance() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
@@ -259,7 +259,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
 //        parameterValue.setParameter(param);
         value.setValue("myValue");
         actionInstance.getValues().add(parameterValue);
-        runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"), executionContext);
+        runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("sessionID"), executionContext);
     }
 
     @Test
@@ -277,7 +277,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
 //        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture("test"));
         executionContext.setValue(paramVariable.getName(), "test");
 
@@ -306,7 +306,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
          */
         executionContext.setValue("param", Collections.singletonList("test"));
 
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession(
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession(
                 "sessionID"),
                 executionContext);
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf
@@ -317,7 +317,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         softly.assertThat(runtimeActionTwoConstructors.getParam()).as("Constructor1 not called").isNull();
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void createRuntimeParameterActionConstructor1ValidActionInstanceVariableNotRegistered() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
@@ -328,10 +328,10 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         ParameterValue parameterValue = executionFactory.createParameterValue();
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new JarvisSession("sessionID"), executionContext);
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("sessionID"), executionContext);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void createRuntimeParameterActionValidActionInstanceInvalidParameterType() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
         ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
@@ -343,13 +343,13 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         parameterValue.setExpression(variableAccess);
         actionInstance.getValues().add(parameterValue);
         // Register the variable in the context to allow its access
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         // Register an integer in the context, there is no constructor to handle it
         session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture(1));
         runtimePlatform.createRuntimeAction(actionInstance, session, executionContext);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void createRuntimeParameterActionTooManyParametersInActionInstance() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
         Parameter param2 = PlatformFactory.eINSTANCE.createParameter();
@@ -371,7 +371,7 @@ public class RuntimePlatformTest extends AbstractJarvisTest {
         actionInstance.getValues().add(parameterValue1);
         actionInstance.getValues().add(parameterValue2);
         // Register the variable in the context to allow its access
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         List<String> listParam = new ArrayList<>();
         listParam.add("test");
         session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture

@@ -1,6 +1,6 @@
 package com.xatkit;
 
-import com.xatkit.core.JarvisCore;
+import com.xatkit.core.XatkitCore;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -15,7 +15,7 @@ import static java.util.Objects.isNull;
  * <p>
  * This class is executed when invoking {@code java -jar jarvis.jar}. The {@link #main(String[])} method accepts a
  * single {@link String} argument containing the path of the {@link org.apache.commons.configuration2.Configuration}
- * file to use to setup the underlying {@link JarvisCore} engine.
+ * file to use to setup the underlying {@link XatkitCore} engine.
  */
 public class Xatkit {
 
@@ -28,16 +28,16 @@ public class Xatkit {
             "using Xatkit here: https://github.com/jarvis-bot-platform/jarvis/wiki/Deploying-chatbots";
 
     /**
-     * The {@link JarvisCore} instance used to run the bot.
+     * The {@link XatkitCore} instance used to run the bot.
      */
-    private static JarvisCore jarvisCore;
+    private static XatkitCore xatkitCore;
 
     /**
-     * Starts the underlying {@link JarvisCore} engine with the
+     * Starts the underlying {@link XatkitCore} engine with the
      * {@link org.apache.commons.configuration2.Configuration} retrieved from the provided {@code args}.
      * <p>
      * The provided {@code args} must contain a single value representing the path of the
-     * {@link org.apache.commons.configuration2.Configuration} file to use to setup the {@link JarvisCore} engine.
+     * {@link org.apache.commons.configuration2.Configuration} file to use to setup the {@link XatkitCore} engine.
      *
      * @param args the program's arguments
      * @throws NullPointerException     if the provided {@code args} is {@code null}
@@ -61,7 +61,7 @@ public class Xatkit {
              */
             configuration.addProperty(CONFIGURATION_FOLDER_PATH,
                     propertiesFile.getAbsoluteFile().getParentFile().getAbsolutePath());
-            jarvisCore = new JarvisCore(configuration);
+            xatkitCore = new XatkitCore(configuration);
         } catch (ConfigurationException e) {
             Log.error("Cannot load the configuration file at the given location {0}, please ensure the provided file " +
                     "is a valid properties file ({1})", propertiesFile.getPath(), CHECK_TUTORIAL_SENTENCE);
@@ -69,11 +69,11 @@ public class Xatkit {
     }
 
     /**
-     * Returns the {@link JarvisCore} instance used to run the bot.
+     * Returns the {@link XatkitCore} instance used to run the bot.
      *
-     * @return the {@link JarvisCore} instance used to run the bot
+     * @return the {@link XatkitCore} instance used to run the bot
      */
-    public static JarvisCore getJarvisCore() {
-        return jarvisCore;
+    public static XatkitCore getXatkitCore() {
+        return xatkitCore;
     }
 }

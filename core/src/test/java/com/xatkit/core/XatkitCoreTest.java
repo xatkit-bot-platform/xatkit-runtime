@@ -1,11 +1,11 @@
 package com.xatkit.core;
 
-import com.xatkit.AbstractJarvisTest;
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.recognition.DefaultIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core_resources.utils.LibraryLoaderUtils;
 import com.xatkit.core_resources.utils.PlatformLoaderUtils;
 import com.xatkit.execution.ExecutionFactory;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class JarvisCoreTest extends AbstractJarvisTest {
+public class XatkitCoreTest extends AbstractXatkitTest {
 
     protected static ExecutionModel VALID_EXECUTION_MODEL;
 
@@ -71,7 +71,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         testExecutionResource.save(Collections.emptyMap());
     }
 
-    protected JarvisCore jarvisCore;
+    protected XatkitCore xatkitCore;
 
     public static Configuration buildConfiguration() {
         return buildConfiguration(VALID_EXECUTION_MODEL);
@@ -79,15 +79,15 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     public static Configuration buildConfiguration(Object executionModel) {
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
-        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, executionModel);
+        configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, executionModel);
         configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
         return configuration;
     }
 
     @After
     public void tearDown() {
-        if (nonNull(jarvisCore) && !jarvisCore.isShutdown()) {
-            jarvisCore.shutdown();
+        if (nonNull(xatkitCore) && !xatkitCore.isShutdown()) {
+            xatkitCore.shutdown();
         }
     }
 
@@ -95,35 +95,35 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
 
     /**
-     * Returns a valid {@link JarvisCore} instance.
+     * Returns a valid {@link XatkitCore} instance.
      * <p>
-     * The returned {@link JarvisCore} instance contains an empty {@link ExecutionModel}, see
+     * The returned {@link XatkitCore} instance contains an empty {@link ExecutionModel}, see
      * {@link ExecutionServiceTest} for execution-related test cases.
      *
-     * @return a valid {@link JarvisCore} instance
+     * @return a valid {@link XatkitCore} instance
      */
-    private JarvisCore getValidJarvisCore() {
+    private XatkitCore getValidXatkitCore() {
         Configuration configuration = buildConfiguration();
-        jarvisCore = new JarvisCore(configuration);
-        return jarvisCore;
+        xatkitCore = new XatkitCore(configuration);
+        return xatkitCore;
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        jarvisCore = new JarvisCore(null);
+        xatkitCore = new XatkitCore(null);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructMissingExecutionPathInConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        jarvisCore = new JarvisCore(configuration);
+        xatkitCore = new XatkitCore(configuration);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void constructInvalidCustomPlatformPathInConfiguration() {
         Configuration configuration = buildConfiguration();
-        configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", "test");
-        jarvisCore = new JarvisCore(configuration);
+        configuration.addProperty(XatkitCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", "test");
+        xatkitCore = new XatkitCore(configuration);
     }
 
     @Test
@@ -131,26 +131,26 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Configuration configuration = buildConfiguration();
         File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform.xmi")
                 .getFile());
-        configuration.addProperty(JarvisCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
-        jarvisCore = new JarvisCore(configuration);
-        checkJarvisCore(jarvisCore);
+        configuration.addProperty(XatkitCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
+        xatkitCore = new XatkitCore(configuration);
+        checkXatkitCore(xatkitCore);
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
-        List<URI> registeredResourceURIs = jarvisCore.executionResourceSet.getResources().stream().map(r -> r.getURI
+        List<URI> registeredResourceURIs = xatkitCore.executionResourceSet.getResources().stream().map(r -> r.getURI
                 ()).collect(Collectors.toList());
         assertThat(registeredResourceURIs).as("Custom runtimePlatform URI contained in the registered resource URIs")
                 .contains(expectedURI);
         URI expectedPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + "Example");
-        assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom runtimePlatform" +
+        assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom runtimePlatform" +
                 "pathmap contained in the ResourceSet's URI map").contains(expectedPathmapURI);
-        assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
+        assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
                 ("Valid concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void constructInvalidCustomLibraryPathInConfiguration() {
         Configuration configuration = buildConfiguration();
-        configuration.addProperty(JarvisCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", "test");
-        jarvisCore = new JarvisCore(configuration);
+        configuration.addProperty(XatkitCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", "test");
+        xatkitCore = new XatkitCore(configuration);
     }
 
     @Test
@@ -158,22 +158,22 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Configuration configuration = buildConfiguration();
         File validFile = new File(this.getClass().getClassLoader().getResource("Test_Libraries/ExampleLibrary.xmi")
                 .getFile());
-        configuration.addProperty(JarvisCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", validFile.getAbsolutePath());
-        jarvisCore = new JarvisCore(configuration);
-        checkJarvisCore(jarvisCore);
+        configuration.addProperty(XatkitCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", validFile.getAbsolutePath());
+        xatkitCore = new XatkitCore(configuration);
+        checkXatkitCore(xatkitCore);
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
-        List<URI> registeredResourceURIs = jarvisCore.executionResourceSet.getResources().stream().map(r -> r.getURI
+        List<URI> registeredResourceURIs = xatkitCore.executionResourceSet.getResources().stream().map(r -> r.getURI
                 ()).collect(Collectors.toList());
         assertThat(registeredResourceURIs).as("Custom library URI contained in the registered resource URIs")
                 .contains(expectedURI);
         URI expectedPathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + "Example");
-        assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom library pathmap" +
+        assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom library pathmap" +
                 " contained in the ResourceSet's URI map").contains(expectedPathmapURI);
-        assertThat(jarvisCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as("Valid " +
+        assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as("Valid " +
                 "concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void constructInvalidPlatformFromExecutionModel() {
         TestExecutionModel testExecutionModel = new TestExecutionModel();
         ExecutionModel executionModel = testExecutionModel.getExecutionModel();
@@ -181,59 +181,58 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         platformDefinition.setName("InvalidPlatform");
         platformDefinition.setRuntimePath("com.xatkit.stubs.InvalidPlatform");
         Configuration configuration = buildConfiguration(executionModel);
-        jarvisCore = new JarvisCore(configuration);
+        xatkitCore = new XatkitCore(configuration);
     }
 
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = buildConfiguration();
-        jarvisCore = new JarvisCore(configuration);
-        checkJarvisCore(jarvisCore);
+        xatkitCore = new XatkitCore(configuration);
+        checkXatkitCore(xatkitCore);
     }
 
     @Test
     public void constructValidDefaultRuntimePlatformConstructor() {
         /*
-         * Use another ExecutionModel linking to the StubRuntimePlatformJarvisCoreConstructor stub class, that only
+         * Use another ExecutionModel linking to the StubRuntimePlatformXatkitCoreConstructor stub class, that only
          * defines a default constructor.
          */
         TestExecutionModel testExecutionModel = new TestExecutionModel();
         PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
-        platformDefinition.setName("StubRuntimePlatformJarvisCoreConstructor");
-        platformDefinition.setRuntimePath("StubRuntimePlatformJarvisCoreConstructor");
+        platformDefinition.setName("StubRuntimePlatformXatkitCoreConstructor");
+        platformDefinition.setRuntimePath("com.xatkit.stubs.StubRuntimePlatformXatkitCoreConstructor");
 
         ExecutionModel executionModel = testExecutionModel.getExecutionModel();
 
-        jarvisCore = new JarvisCore(buildConfiguration(executionModel));
-        checkJarvisCore(jarvisCore, executionModel);
+        xatkitCore = new XatkitCore(buildConfiguration(executionModel));
+        checkXatkitCore(xatkitCore, executionModel);
     }
 
     @Test
     public void constructValidWebhookEventProvider() {
         PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
         stubPlatformDefinition.setName("EmptyRuntimePlatform");
-        stubPlatformDefinition.setRuntimePath("EmptyRuntimePlatform");
+        stubPlatformDefinition.setRuntimePath("com.xatkit.stubs.EmptyRuntimePlatform");
         EventProviderDefinition stubWebhookEventProviderDefinition = PlatformFactory.eINSTANCE
                 .createEventProviderDefinition();
         stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");
         stubPlatformDefinition.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
         executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
-        jarvisCore = new JarvisCore(buildConfiguration(executionModel));
-        checkJarvisCore(jarvisCore, executionModel);
-        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server " +
-                "WebhookEventProvider" +
-                " collection is not empty").isNotEmpty();
-        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
+        xatkitCore = new XatkitCore(buildConfiguration(executionModel));
+        checkXatkitCore(xatkitCore, executionModel);
+        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders()).as("Server " +
+                "WebhookEventProvider collection is not empty").isNotEmpty();
+        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
                 "registered WebhookEventProvider").isInstanceOf(StubJsonWebhookEventProvider.class);
     }
 
     @Test
     public void constructDefaultIntentRecognitionProviderEmptyExecutionModel() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, ExecutionFactory.eINSTANCE.createExecutionModel());
-        jarvisCore = new JarvisCore(configuration);
-        assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses " +
+        configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, ExecutionFactory.eINSTANCE.createExecutionModel());
+        xatkitCore = new XatkitCore(configuration);
+        assertThat(xatkitCore.getIntentRecognitionProvider()).as("XatkitCore uses " +
                 "DefaultIntentRecognitionProvider")
                 .isInstanceOf(DefaultIntentRecognitionProvider.class);
     }
@@ -241,45 +240,45 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     @Test
     public void constructDefaultIntentRecognitionProviderIntentDefinitionInExecutionModel() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
-        jarvisCore = new JarvisCore(configuration);
-        assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses " +
+        configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
+        xatkitCore = new XatkitCore(configuration);
+        assertThat(xatkitCore.getIntentRecognitionProvider()).as("XatkitCore uses " +
                 "DefaultIntentRecognitionProvider")
                 .isInstanceOf(DefaultIntentRecognitionProvider.class);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void getExecutionModelInvalidType() {
-        jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration(new Integer(2)));
+        xatkitCore = getValidXatkitCore();
+        ExecutionModel executionModel = xatkitCore.getExecutionModel(buildExecutionModelConfiguration(new Integer(2)));
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void getExecutionModelFromInvalidString() {
-        jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration("/tmp/test.xmi"));
+        xatkitCore = getValidXatkitCore();
+        ExecutionModel executionModel = xatkitCore.getExecutionModel(buildExecutionModelConfiguration("/tmp/test.xmi"));
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void getExecutionModelFromInvalidURI() {
-        jarvisCore = getValidJarvisCore();
-        ExecutionModel executionModel = jarvisCore.getExecutionModel(buildExecutionModelConfiguration(URI.createURI(
+        xatkitCore = getValidXatkitCore();
+        ExecutionModel executionModel = xatkitCore.getExecutionModel(buildExecutionModelConfiguration(URI.createURI(
                 "/tmp/test.xmi")));
     }
 
     @Test
     public void getExecutionModelFromValidInMemory() {
-        jarvisCore = getValidJarvisCore();
+        xatkitCore = getValidXatkitCore();
         ExecutionModel executionModel =
-                jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL));
+                xatkitCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL));
         assertThat(executionModel).as("Valid ExecutionModel").isEqualTo(VALID_EXECUTION_MODEL);
     }
 
     @Test
     public void getExecutionModelFromValidString() {
-        jarvisCore = getValidJarvisCore();
+        xatkitCore = getValidXatkitCore();
         ExecutionModel executionModel =
-                jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource().getURI()
+                xatkitCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource().getURI()
                         .toString()));
         assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
@@ -291,9 +290,9 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @Test
     public void getExecutionModelFromValidURI() {
-        jarvisCore = getValidJarvisCore();
+        xatkitCore = getValidXatkitCore();
         ExecutionModel executionModel =
-                jarvisCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource
+                xatkitCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource
                         ().getURI()));
         assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
@@ -305,31 +304,31 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     private Configuration buildExecutionModelConfiguration(Object value) {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, value);
+        configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, value);
         return configuration;
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void shutdownAlreadyShutdown() {
-        jarvisCore = getValidJarvisCore();
-        jarvisCore.shutdown();
-        jarvisCore.shutdown();
+        xatkitCore = getValidXatkitCore();
+        xatkitCore.shutdown();
+        xatkitCore.shutdown();
     }
 
     @Test(expected = NullPointerException.class)
-    public void getOrCreateJarvisSessionNullSessionId() {
-        jarvisCore = getValidJarvisCore();
-        jarvisCore.getOrCreateJarvisSession(null);
+    public void getOrCreateXatkitSessionNullSessionId() {
+        xatkitCore = getValidXatkitCore();
+        xatkitCore.getOrCreateXatkitSession(null);
     }
 
     @Test
-    public void getOrCreateJarvisSessionValidSessionId() {
-        jarvisCore = getValidJarvisCore();
-        JarvisSession session = jarvisCore.getOrCreateJarvisSession("sessionID");
-        assertThat(session).as("Not null JarvisSession").isNotNull();
+    public void getOrCreateXatkitSessionValidSessionId() {
+        xatkitCore = getValidXatkitCore();
+        XatkitSession session = xatkitCore.getOrCreateXatkitSession("sessionID");
+        assertThat(session).as("Not null XatkitSession").isNotNull();
         /*
          * Use contains because the underlying DialogFlow API add additional identification information in the
-         * returned JarvisSession.
+         * returned XatkitSession.
          */
         assertThat(session.getSessionId()).as("Valid session ID").contains("sessionID");
         assertThat(session.getRuntimeContexts()).as("Not null session context").isNotNull();
@@ -338,69 +337,69 @@ public class JarvisCoreTest extends AbstractJarvisTest {
 
     @Test
     public void shutdown() {
-        jarvisCore = getValidJarvisCore();
-        jarvisCore.shutdown();
-        softly.assertThat(jarvisCore.getExecutionService().isShutdown()).as("ExecutorService is shutdown");
-        softly.assertThat(jarvisCore.getIntentRecognitionProvider().isShutdown()).as("DialogFlow API is shutdown");
-        softly.assertThat(jarvisCore.getRuntimePlatformRegistry().getRuntimePlatforms()).as("Empty runtimePlatform " +
+        xatkitCore = getValidXatkitCore();
+        xatkitCore.shutdown();
+        softly.assertThat(xatkitCore.getExecutionService().isShutdown()).as("ExecutorService is shutdown");
+        softly.assertThat(xatkitCore.getIntentRecognitionProvider().isShutdown()).as("DialogFlow API is shutdown");
+        softly.assertThat(xatkitCore.getRuntimePlatformRegistry().getRuntimePlatforms()).as("Empty runtimePlatform " +
                 "registry").isEmpty();
     }
 
     /**
-     * Computes a set of basic assertions on the provided {@code jarvisCore} using the
+     * Computes a set of basic assertions on the provided {@code xatkitCore} using the
      * {@link #VALID_EXECUTION_MODEL}.
      *
-     * @param jarvisCore the {@link JarvisCore} instance to check
+     * @param xatkitCore the {@link XatkitCore} instance to check
      */
-    private void checkJarvisCore(JarvisCore jarvisCore) {
-        checkJarvisCore(jarvisCore, VALID_EXECUTION_MODEL);
+    private void checkXatkitCore(XatkitCore xatkitCore) {
+        checkXatkitCore(xatkitCore, VALID_EXECUTION_MODEL);
     }
 
     /**
-     * Computes a set of basic assertions on the provided {@code jarvisCore} using the provided {@code
+     * Computes a set of basic assertions on the provided {@code xatkitCore} using the provided {@code
      * executionModel}.
      *
-     * @param jarvisCore     the {@link JarvisCore} instance to check
+     * @param xatkitCore     the {@link XatkitCore} instance to check
      * @param executionModel the {@link ExecutionModel} to check
      */
-    private void checkJarvisCore(JarvisCore jarvisCore, ExecutionModel executionModel) {
+    private void checkXatkitCore(XatkitCore xatkitCore, ExecutionModel executionModel) {
         /*
          * isNotNull() assertions are not soft, otherwise the runner does not print the assertion error and fails on
          * a NullPointerException in the following assertions.
          */
-        assertThat(jarvisCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
-        assertThat(jarvisCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a " +
+        assertThat(xatkitCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
+        assertThat(xatkitCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a " +
                 "DialogFlowApi " +
                 "instance").isInstanceOf(DialogFlowApi.class);
-        DialogFlowApi dialogFlowApi = (DialogFlowApi) jarvisCore.getIntentRecognitionProvider();
+        DialogFlowApi dialogFlowApi = (DialogFlowApi) xatkitCore.getIntentRecognitionProvider();
         softly.assertThat(dialogFlowApi.getProjectId()).as("Valid DialogFlowAPI project ID").isEqualTo
                 (DialogFlowApiTest.VALID_PROJECT_ID);
         softly.assertThat(dialogFlowApi.getLanguageCode()).as("Valid DialogFlowAPI language code").isEqualTo
                 (DialogFlowApiTest.VALID_LANGUAGE_CODE);
-        assertThat(jarvisCore.getExecutionService().getExecutionModel()).as("Not null ExecutionModel")
+        assertThat(xatkitCore.getExecutionService().getExecutionModel()).as("Not null ExecutionModel")
                 .isNotNull();
-        softly.assertThat(jarvisCore.getExecutionService().getExecutionModel()).as("Valid " +
+        softly.assertThat(xatkitCore.getExecutionService().getExecutionModel()).as("Valid " +
                 "ExecutionModel").isEqualTo(executionModel);
-        softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
-        assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
+        softly.assertThat(xatkitCore.isShutdown()).as("Not shutdown").isFalse();
+        assertThat(xatkitCore.getXatkitServer()).as("Not null XatkitServer").isNotNull();
         URI corePlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "CorePlatform.xmi");
-        assertThat(jarvisCore.executionResourceSet.getResource(corePlatformPathmapURI, false)).as("CorePlatform " +
+        assertThat(xatkitCore.executionResourceSet.getResource(corePlatformPathmapURI, false)).as("CorePlatform " +
                 "pathmap resolved").isNotNull();
         URI discordPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "DiscordPlatform" +
                 ".xmi");
-        assertThat(jarvisCore.executionResourceSet.getResource(discordPlatformPathmapURI, false)).as("DiscordPlatform" +
+        assertThat(xatkitCore.executionResourceSet.getResource(discordPlatformPathmapURI, false)).as("DiscordPlatform" +
                 " pathmap resolved").isNotNull();
         URI githubPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "GithubPlatform.xmi");
-        assertThat(jarvisCore.executionResourceSet.getResource(githubPlatformPathmapURI, false)).as("GithubPlatform " +
+        assertThat(xatkitCore.executionResourceSet.getResource(githubPlatformPathmapURI, false)).as("GithubPlatform " +
                 "pathmap resolved").isNotNull();
         URI logPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "LogPlatform.xmi");
-        assertThat(jarvisCore.executionResourceSet.getResource(logPlatformPathmapURI, false)).as("LogPlatform " +
+        assertThat(xatkitCore.executionResourceSet.getResource(logPlatformPathmapURI, false)).as("LogPlatform " +
                 "pathmap resolved").isNotNull();
         URI slackPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "SlackPlatform.xmi");
-        assertThat(jarvisCore.executionResourceSet.getResource(slackPlatformPathmapURI, false)).as("SlackPlatform " +
+        assertThat(xatkitCore.executionResourceSet.getResource(slackPlatformPathmapURI, false)).as("SlackPlatform " +
                 "pathmap resolved").isNotNull();
         URI coreLibraryPathmapURI = URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + "CoreLibrary.xmi");
-        assertThat(jarvisCore.executionResourceSet.getResource(coreLibraryPathmapURI, false)).as("CoreLibrary pathmap" +
+        assertThat(xatkitCore.executionResourceSet.getResource(coreLibraryPathmapURI, false)).as("CoreLibrary pathmap" +
                 " resolved").isNotNull();
 
     }

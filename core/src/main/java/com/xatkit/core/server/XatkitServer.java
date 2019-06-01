@@ -2,7 +2,7 @@ package com.xatkit.core.server;
 
 import com.google.gson.JsonElement;
 import com.xatkit.core.platform.io.WebhookEventProvider;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
@@ -26,13 +26,13 @@ import static java.util.Objects.isNull;
 /**
  * The REST server used to receive external webhooks.
  * <p>
- * The {@link JarvisServer} provides a simple REST API that accepts POST methods on port {@code 5000}. Incoming
+ * The {@link XatkitServer} provides a simple REST API that accepts POST methods on port {@code 5000}. Incoming
  * requests are parsed and sent to the registered {@link WebhookEventProvider}s, that transform the
  * original request into {@link com.xatkit.intent.EventInstance}s that can be used to trigger actions.
  *
  * @see #registerWebhookEventProvider(WebhookEventProvider)
  */
-public class JarvisServer {
+public class XatkitServer {
 
     /**
      * The {@link Configuration} key to store the server port to use.
@@ -53,16 +53,16 @@ public class JarvisServer {
     private HttpServer server;
 
     /**
-     * A boolean flag representing whether the {@link JarvisServer} is started.
+     * A boolean flag representing whether the {@link XatkitServer} is started.
      *
      * @see #isStarted()
      */
     private boolean isStarted;
 
     /**
-     * The port the {@link JarvisServer} should listen to.
+     * The port the {@link XatkitServer} should listen to.
      * <p>
-     * The {@link JarvisServer} port can be specified in the constructor's {@link Configuration} with the key
+     * The {@link XatkitServer} port can be specified in the constructor's {@link Configuration} with the key
      * {@link #SERVER_PORT_KEY}. The default value is {@code 5000}.
      */
     private int port;
@@ -86,7 +86,7 @@ public class JarvisServer {
     private Map<String, JsonRestHandler> restEndpoints;
 
     /**
-     * Constructs a new {@link JarvisServer} with the given {@link Configuration}.
+     * Constructs a new {@link XatkitServer} with the given {@link Configuration}.
      * <p>
      * The provided {@link Configuration} is used to specify the port the server should listen to (see
      * {@link #SERVER_PORT_KEY}). If the {@link Configuration} does not specify a port the default value ({@code
@@ -95,12 +95,12 @@ public class JarvisServer {
      * <b>Note:</b> this method does not start the underlying {@link HttpServer}. Use {@link #start()} to start the
      * {@link HttpServer} in a dedicated thread.
      *
-     * @param configuration the {@link Configuration} used to initialize the {@link JarvisServer}
+     * @param configuration the {@link Configuration} used to initialize the {@link XatkitServer}
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
      * @see #start()
      * @see #stop()
      */
-    public JarvisServer(Configuration configuration) {
+    public XatkitServer(Configuration configuration) {
         checkNotNull(configuration, "Cannot start the %s with the provided %s: %s", this.getClass().getSimpleName
                 (), Configuration.class.getSimpleName(), configuration);
         Log.info("Creating {0}", this.getClass().getSimpleName());
@@ -145,9 +145,9 @@ public class JarvisServer {
     }
 
     /**
-     * Returns {@code true} if the {@link JarvisServer} is started, {@code false} otherwise.
+     * Returns {@code true} if the {@link XatkitServer} is started, {@code false} otherwise.
      *
-     * @return {@code true} if the {@link JarvisServer} is started, {@code false} otherwise
+     * @return {@code true} if the {@link XatkitServer} is started, {@code false} otherwise
      */
     public boolean isStarted() {
         return isStarted;
@@ -164,12 +164,12 @@ public class JarvisServer {
         try {
             this.server.start();
         } catch (BindException e) {
-            throw new JarvisException(MessageFormat.format("Cannot start the {0}, the port {1} cannot be bound. This " +
+            throw new XatkitException(MessageFormat.format("Cannot start the {0}, the port {1} cannot be bound. This " +
                     "may happen if another bot is started on the same port, if a previously started bot was not shut " +
                     "down properly, or if another application is already using the port", this.getClass()
                     .getSimpleName(), port), e);
         } catch (IOException e) {
-            throw new JarvisException(MessageFormat.format("Cannot start the {0}, see attached exception", this
+            throw new XatkitException(MessageFormat.format("Cannot start the {0}, see attached exception", this
                     .getClass().getSimpleName()), e);
         }
         isStarted = true;
@@ -177,7 +177,7 @@ public class JarvisServer {
             server.shutdown(5, TimeUnit.SECONDS);
             isStarted = false;
         }));
-        Log.info("JarvisServer started, listening on {0}:{1}", server.getInetAddress().toString(), server
+        Log.info("XatkitServer started, listening on {0}:{1}", server.getInetAddress().toString(), server
                 .getLocalPort());
     }
 
@@ -185,7 +185,7 @@ public class JarvisServer {
      * Stops the underlying {@link HttpServer}.
      */
     public void stop() {
-        Log.info("Stopping JarvisServer");
+        Log.info("Stopping XatkitServer");
         if (!isStarted) {
             Log.warn("Cannot stop the {0}, the server is not started", this.getClass().getSimpleName());
         }
@@ -239,7 +239,7 @@ public class JarvisServer {
      * @return the {@link JsonElement} returned by the endpoint, or {@code null} if the endpoint does not return
      * anything
      * @throws NullPointerException if the provided {@code uri}, {@code header}, or {@code params} is {@code null}
-     * @throws JarvisException      if there is no REST endpoint registered for the provided {@code uri}
+     * @throws XatkitException      if there is no REST endpoint registered for the provided {@code uri}
      * @see #registerRestEndpoint(String, JsonRestHandler)
      */
     public JsonElement notifyRestHandler(String uri, List<Header> header, List<NameValuePair> params,
@@ -249,7 +249,7 @@ public class JarvisServer {
         checkNotNull(params, "Cannot notify the REST endpoint %s, the parameters list is null", uri);
         JsonRestHandler handler = this.restEndpoints.get(uri);
         if (isNull(handler)) {
-            throw new JarvisException(MessageFormat.format("Cannot notify the REST endpoint {0}, there is no handler " +
+            throw new XatkitException(MessageFormat.format("Cannot notify the REST endpoint {0}, there is no handler " +
                     "registered for this URI", uri));
         }
         return handler.handle(header, params, content);

@@ -1,6 +1,6 @@
 package com.xatkit.plugins.react.platform.io;
 
-import com.xatkit.core.server.JarvisServer;
+import com.xatkit.core.server.XatkitServer;
 import com.xatkit.plugins.chat.platform.io.ChatIntentProvider;
 import com.xatkit.plugins.react.platform.ReactPlatform;
 import org.apache.commons.configuration2.Configuration;
@@ -9,7 +9,7 @@ import org.apache.commons.configuration2.Configuration;
  * A React {@link ChatIntentProvider}.
  * <p>
  * This class initializes a {@link ReactWebhook} and registers it to the
- * {@link JarvisServer}, allowing to receive messages from jarvis-react installations
+ * {@link XatkitServer}, allowing to receive messages from jarvis-react installations
  * as events (this is a quick fix for #221, provider hierarchy should be refactored to allow webhook-based chat
  * providers).
  */
@@ -31,7 +31,7 @@ public class ReactIntentProvider extends ChatIntentProvider<ReactPlatform> {
          * class to send event instances to the core component.
          */
         ReactWebhook webhookProvider = new ReactWebhook(runtimePlatform, configuration, this);
-        this.runtimePlatform.getJarvisCore().getJarvisServer().registerWebhookEventProvider(webhookProvider);
+        this.runtimePlatform.getXatkitCore().getXatkitServer().registerWebhookEventProvider(webhookProvider);
     }
 
     @Override

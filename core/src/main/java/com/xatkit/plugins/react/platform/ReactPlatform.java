@@ -3,8 +3,8 @@ package com.xatkit.plugins.react.platform;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.chat.platform.ChatPlatform;
 import com.xatkit.plugins.react.platform.action.PostMessage;
 import com.xatkit.plugins.react.platform.action.Reply;
@@ -48,7 +48,7 @@ public class ReactPlatform extends ChatPlatform {
     private Map<String, Queue<String>> storedMessages;
 
     /**
-     * Constructs a new {@link ReactPlatform} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link ReactPlatform} from the provided {@link XatkitCore} and {@link Configuration}.
      * <p>
      * This constructor initializes the underlying REST endpoint at {@code /react/getAnswers}, allowing to retrieve
      * the stored answers associated to a channel. The stored message are returned as a {@code json} object with the
@@ -69,18 +69,18 @@ public class ReactPlatform extends ChatPlatform {
      * A REST request on {@code /rest/getAnswers} must contain a JSON object with a {@code channel} field containing
      * the channel to retrieve the answer for.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance associated to this runtimePlatform
+     * @param xatkitCore    the {@link XatkitCore} instance associated to this runtimePlatform
      * @param configuration the platform's {@link Configuration}
-     * @throws NullPointerException if the provided {@code jarvisCore} or {@code configuration} is {@code null}
+     * @throws NullPointerException if the provided {@code xatkitCore} or {@code configuration} is {@code null}
      */
-    public ReactPlatform(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public ReactPlatform(XatkitCore xatkitCore, Configuration configuration) {
+        super(xatkitCore, configuration);
         this.storedMessages = new HashMap<>();
         /*
          * Register the REST endpoint at /react/getAnswers. Note that the received request must contain a JSON object
          * defining the channel field.
          */
-        this.getJarvisCore().getJarvisServer().registerRestEndpoint("/react/getAnswers",
+        this.getXatkitCore().getXatkitServer().registerRestEndpoint("/react/getAnswers",
                 (headers, param, content) -> {
                     JsonObject contentObject = content.getAsJsonObject();
                     String channel = contentObject.get("channel").getAsString();
@@ -137,15 +137,15 @@ public class ReactPlatform extends ChatPlatform {
     }
 
     /**
-     * Creates a {@link JarvisSession} from the provided {@code channel}.
+     * Creates a {@link XatkitSession} from the provided {@code channel}.
      * <p>
-     * This method ensures that the same {@link JarvisSession} is returned for the same {@code channel}.
+     * This method ensures that the same {@link XatkitSession} is returned for the same {@code channel}.
      *
-     * @param channel the channel to create a {@link JarvisSession} from
-     * @return the created {@link JarvisSession}
+     * @param channel the channel to create a {@link XatkitSession} from
+     * @return the created {@link XatkitSession}
      */
-    public JarvisSession createSessionFromChannel(String channel) {
-        return this.jarvisCore.getOrCreateJarvisSession(channel);
+    public XatkitSession createSessionFromChannel(String channel) {
+        return this.xatkitCore.getOrCreateXatkitSession(channel);
     }
 
 }

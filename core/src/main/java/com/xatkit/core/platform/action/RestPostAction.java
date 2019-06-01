@@ -2,7 +2,7 @@ package com.xatkit.core.platform.action;
 
 import com.google.gson.JsonElement;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public abstract class RestPostAction<T extends RuntimePlatform> extends RestActi
      * method.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session         the {@link JarvisSession} associated to this action
+     * @param session         the {@link XatkitSession} associated to this action
      * @param headers         the {@link Map} of user-defined headers to include in the request
      * @param restEndpoint    the REST API endpoint to request
      * @param params          the {@link Map} of user-defined parameters to include in the request
@@ -30,7 +30,7 @@ public abstract class RestPostAction<T extends RuntimePlatform> extends RestActi
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code restEndpoint} is {@code null} or {@code empty}
      */
-    public RestPostAction(T runtimePlatform, JarvisSession session, Map<String, String> headers, String restEndpoint,
+    public RestPostAction(T runtimePlatform, XatkitSession session, Map<String, String> headers, String restEndpoint,
                           Map<String, Object> params, JsonElement jsonContent) {
         super(runtimePlatform, session, MethodKind.POST, headers, restEndpoint, params, jsonContent);
     }

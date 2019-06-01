@@ -15,7 +15,7 @@ import java.time.Instant;
  * All the Xatkit tests should extend this utility class, that adds execution logs before/after executing each test
  * method, easing build issue debugging.
  */
-public abstract class AbstractJarvisTest {
+public abstract class AbstractXatkitTest {
 
     /**
      * The {@link TestWatcher} used to log execution information when starting and finishing a test method execution.

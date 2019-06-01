@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.http.Header;
@@ -70,14 +70,14 @@ class HttpHandler implements HttpRequestHandler {
     private static String ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
 
     /**
-     * The {@link JarvisServer} managing this handler.
+     * The {@link XatkitServer} managing this handler.
      * <p>
-     * The {@link JarvisServer} is used to notify the {@link WebhookEventProvider}s when a new
+     * The {@link XatkitServer} is used to notify the {@link WebhookEventProvider}s when a new
      * request is received.
      *
-     * @see JarvisServer#notifyWebhookEventProviders(String, Object, Header[])
+     * @see XatkitServer#notifyWebhookEventProviders(String, Object, Header[])
      */
-    private JarvisServer jarvisServer;
+    private XatkitServer xatkitServer;
 
     /**
      * The {@link JsonParser} used to pretty print {@code application/json} contents and provide readable debug logs.
@@ -97,16 +97,16 @@ class HttpHandler implements HttpRequestHandler {
     private Gson gsonPrinter;
 
     /**
-     * Constructs a new {@link HttpHandler} managed by the given {@code jarvisServer}.
+     * Constructs a new {@link HttpHandler} managed by the given {@code xatkitServer}.
      *
-     * @param jarvisServer the {@link JarvisServer} managing this handler
-     * @throws NullPointerException if the provided {@code jarvisServer} is {@code null}
+     * @param xatkitServer the {@link XatkitServer} managing this handler
+     * @throws NullPointerException if the provided {@code xatkitServer} is {@code null}
      */
-    public HttpHandler(JarvisServer jarvisServer) {
+    public HttpHandler(XatkitServer xatkitServer) {
         super();
-        checkNotNull(jarvisServer, "Cannot construct a %s with the provided %s: %s", HttpHandler.class.getSimpleName
-                (), JarvisServer.class.getSimpleName(), jarvisServer);
-        this.jarvisServer = jarvisServer;
+        checkNotNull(xatkitServer, "Cannot construct a %s with the provided %s: %s", HttpHandler.class.getSimpleName
+                (), XatkitServer.class.getSimpleName(), xatkitServer);
+        this.xatkitServer = xatkitServer;
         this.parser = new JsonParser();
         this.gson = new Gson();
         this.gsonPrinter = new GsonBuilder().setPrettyPrinting().create();
@@ -115,13 +115,13 @@ class HttpHandler implements HttpRequestHandler {
     /**
      * Handles the received {@code request} and fill the provided {@code response}.
      * <p>
-     * This method parses the received {@code request} headers and content and notifies the {@link JarvisServer}'s
+     * This method parses the received {@code request} headers and content and notifies the {@link XatkitServer}'s
      * registered {@link WebhookEventProvider}s.
      *
      * @param request  the received {@link HttpRequest}
      * @param response the {@link HttpResponse} to send to the caller
      * @param context  the {@link HttpContext} associated to the received {@link HttpRequest}
-     * @see JarvisServer#notifyWebhookEventProviders(String, Object, Header[])
+     * @see XatkitServer#notifyWebhookEventProviders(String, Object, Header[])
      */
     public void handle(final HttpRequest request, final HttpResponse response, final HttpContext context) {
 
@@ -135,7 +135,7 @@ class HttpHandler implements HttpRequestHandler {
             parameters = URLEncodedUtils.parse(new URI(target), HTTP.UTF_8);
         } catch (URISyntaxException e) {
             String errorMessage = MessageFormat.format("Cannot parse the requested URI {0}", target);
-            throw new JarvisException(errorMessage);
+            throw new XatkitException(errorMessage);
         }
 
         for (NameValuePair parameter : parameters) {
@@ -195,12 +195,12 @@ class HttpHandler implements HttpRequestHandler {
 
                 // WARNING: this is probably wrong: the target can probably contain also the parameters. If this is
                 // true we need to build a new URI(target) and retrieve the raw query
-                if (this.jarvisServer.isRestEndpoint(target)) {
+                if (this.xatkitServer.isRestEndpoint(target)) {
                     JsonElement jsonContent = null;
                     if (!content.isEmpty()) {
                         jsonContent = parser.parse(content);
                     }
-                    JsonElement result = jarvisServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
+                    JsonElement result = xatkitServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
                             jsonContent);
                     if (nonNull(result)) {
                         HttpEntity jsonEntity = createHttpEntityFromJsonElement(result);
@@ -210,15 +210,15 @@ class HttpHandler implements HttpRequestHandler {
                     }
                     response.setHeader("Access-Control-Allow-Headers", "content-type");
                 } else {
-                    this.jarvisServer.notifyWebhookEventProviders(contentType, content, headers);
+                    this.xatkitServer.notifyWebhookEventProviders(contentType, content, headers);
                 }
             } catch (IOException e) {
-                throw new JarvisException("An error occurred when handling the request content", e);
+                throw new XatkitException("An error occurred when handling the request content", e);
             }
         }
         response.setHeader(CORS_HEADER, CORS_VALUE);
         Set<String> accessControlAllowHeaders = new HashSet<>();
-        for (WebhookEventProvider provider : this.jarvisServer.getRegisteredWebhookEventProviders()) {
+        for (WebhookEventProvider provider : this.xatkitServer.getRegisteredWebhookEventProviders()) {
             accessControlAllowHeaders.addAll(provider.getAccessControlAllowHeaders());
         }
         accessControlAllowHeaders.add("content-type");

@@ -1,12 +1,12 @@
 package com.xatkit.plugins.slack.platform.io;
 
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.plugins.slack.SlackUtils;
 import com.xatkit.plugins.slack.platform.SlackPlatform;
-import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -19,11 +19,11 @@ import java.util.Map;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SlackIntentProviderTest extends AbstractJarvisTest {
+public class SlackIntentProviderTest extends AbstractXatkitTest {
 
     private SlackIntentProvider slackIntentProvider;
 
-    private StubJarvisCore stubJarvisCore;
+    private StubXatkitCore stubXatkitCore;
 
     private SlackPlatform slackPlatform;
 
@@ -39,10 +39,10 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
 
     @Before
     public void setUp() {
-        stubJarvisCore = new StubJarvisCore();
+        stubXatkitCore = new StubXatkitCore();
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
-        slackPlatform = new SlackPlatform(stubJarvisCore, configuration);
+        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getXatkitSlackToken());
+        slackPlatform = new SlackPlatform(stubXatkitCore, configuration);
     }
 
     @After
@@ -53,8 +53,8 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
         if(nonNull(slackPlatform)) {
             slackPlatform.shutdown();
         }
-        if(nonNull(stubJarvisCore)) {
-            stubJarvisCore.shutdown();
+        if(nonNull(stubXatkitCore)) {
+            stubXatkitCore.shutdown();
         }
     }
 
@@ -62,7 +62,7 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
     public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
 
     @Test(expected = NullPointerException.class)
-    public void constructNullJarvisCore() {
+    public void constructNullXatkitCore() {
         slackIntentProvider = new SlackIntentProvider(null, new BaseConfiguration());
     }
 
@@ -79,7 +79,7 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
+        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getXatkitSlackToken());
         slackIntentProvider = new SlackIntentProvider(slackPlatform, configuration);
         assertThat(slackIntentProvider.getRtmClient()).as("Not null RTM client").isNotNull();
     }
@@ -88,13 +88,13 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
     public void sendValidSlackMessage() {
         slackIntentProvider = getValidSlackInputProvider();
         slackIntentProvider.getRtmClient().onMessage(getValidMessage());
-        assertThat(stubJarvisCore.getHandledEvents()).as("Event handled").hasSize(1);
+        assertThat(stubXatkitCore.getHandledEvents()).as("Event handled").hasSize(1);
         /*
          * Check equality on names, equals() should not be redefined for EObjects.
          */
-        softly.assertThat(stubJarvisCore.getHandledEvents().get(0).getName()).as("Valid Event handled").isEqualTo
+        softly.assertThat(stubXatkitCore.getHandledEvents().get(0).getName()).as("Valid Event handled").isEqualTo
                 (VALID_EVENT_DEFINITION.getName());
-        JarvisSession session = stubJarvisCore.getJarvisSession(SLACK_CHANNEL);
+        XatkitSession session = stubXatkitCore.getXatkitSession(SLACK_CHANNEL);
         assertThat(session).as("Not null session").isNotNull();
         Map<String, Object> slackContext = session.getRuntimeContexts().getContextVariables(SlackUtils.SLACK_CONTEXT_KEY);
         assertThat(slackContext).as("Not null slack context").isNotNull();
@@ -113,45 +113,45 @@ public class SlackIntentProviderTest extends AbstractJarvisTest {
     public void sendSlackMessageInvalidType() {
         slackIntentProvider = getValidSlackInputProvider();
         slackIntentProvider.getRtmClient().onMessage(getMessageInvalidType());
-        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
-        assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
+        assertThat(stubXatkitCore.getHandledEvents()).as("Empty handled events").isEmpty();
+        assertThat(stubXatkitCore.getXatkitSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
     @Test
     public void sendSlackMessageNullText() {
         slackIntentProvider = getValidSlackInputProvider();
         slackIntentProvider.getRtmClient().onMessage(getMessageNullText());
-        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
-        assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
+        assertThat(stubXatkitCore.getHandledEvents()).as("Empty handled events").isEmpty();
+        assertThat(stubXatkitCore.getXatkitSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
     @Test
     public void sendSlackMessageNullChannel() {
         slackIntentProvider = getValidSlackInputProvider();
         slackIntentProvider.getRtmClient().onMessage(getMessageNullChannel());
-        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
-        assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
+        assertThat(stubXatkitCore.getHandledEvents()).as("Empty handled events").isEmpty();
+        assertThat(stubXatkitCore.getXatkitSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
     @Test
     public void sendSlackMessageNullUser() {
         slackIntentProvider = getValidSlackInputProvider();
         slackIntentProvider.getRtmClient().onMessage(getMessageNullUser());
-        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
-        assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
+        assertThat(stubXatkitCore.getHandledEvents()).as("Empty handled events").isEmpty();
+        assertThat(stubXatkitCore.getXatkitSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
     @Test
     public void sendSlackMessageEmptyMessage() {
         slackIntentProvider = getValidSlackInputProvider();
         slackIntentProvider.getRtmClient().onMessage(getMessageEmptyText());
-        assertThat(stubJarvisCore.getHandledEvents()).as("Empty handled events").isEmpty();
-        assertThat(stubJarvisCore.getJarvisSession(SLACK_CHANNEL)).as("Null session").isNull();
+        assertThat(stubXatkitCore.getHandledEvents()).as("Empty handled events").isEmpty();
+        assertThat(stubXatkitCore.getXatkitSession(SLACK_CHANNEL)).as("Null session").isNull();
     }
 
     private SlackIntentProvider getValidSlackInputProvider() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getJarvisSlackToken());
+        configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getXatkitSlackToken());
         return new SlackIntentProvider(slackPlatform, configuration);
     }
 

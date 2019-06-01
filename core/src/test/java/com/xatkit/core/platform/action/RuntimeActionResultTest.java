@@ -1,11 +1,11 @@
 package com.xatkit.core.platform.action;
 
-import com.xatkit.AbstractJarvisTest;
+import com.xatkit.AbstractXatkitTest;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RuntimeActionResultTest extends AbstractJarvisTest {
+public class RuntimeActionResultTest extends AbstractXatkitTest {
 
     private RuntimeActionResult result;
 

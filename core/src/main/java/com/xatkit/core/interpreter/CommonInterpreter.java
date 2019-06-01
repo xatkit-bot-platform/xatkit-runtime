@@ -3,7 +3,7 @@ package com.xatkit.core.interpreter;
 import com.xatkit.common.*;
 import com.xatkit.core.interpreter.operation.Operation;
 import com.xatkit.core.interpreter.operation.object.ObjectOperationProvider;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import java.text.MessageFormat;
@@ -250,11 +250,11 @@ public class CommonInterpreter {
 
     /**
      * Evaluates the provided {@link SessionAccess} {@link Expression} and returns the corresponding
-     * {@link JarvisSession}.
+     * {@link XatkitSession}.
      *
      * @param s       the {@link SessionAccess} to evaluate
      * @param context the {@link ExecutionContext} to use along the evaluation
-     * @return the {@link JarvisSession} associated to the provided {@code context}
+     * @return the {@link XatkitSession} associated to the provided {@code context}
      */
     public Object evaluate(SessionAccess s, ExecutionContext context) {
         return context.getSession();

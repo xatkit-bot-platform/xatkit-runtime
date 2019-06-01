@@ -1,12 +1,12 @@
 package com.xatkit.plugins.discord.platform.io;
 
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.plugins.discord.DiscordUtils;
 import com.xatkit.plugins.discord.platform.DiscordPlatform;
-import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.stubs.discord.StubMessage;
 import com.xatkit.stubs.discord.StubPrivateChannel;
 import com.xatkit.stubs.discord.StubPrivateMessageReceivedEvent;
@@ -25,9 +25,9 @@ import java.util.Map;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PrivateMessageListenerTest extends AbstractJarvisTest {
+public class PrivateMessageListenerTest extends AbstractXatkitTest {
 
-    private StubJarvisCore stubJarvisCore;
+    private StubXatkitCore stubXatkitCore;
 
     private DiscordPlatform discordPlatform;
 
@@ -45,10 +45,10 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     @Before
     public void setUp() {
-        stubJarvisCore = new StubJarvisCore();
+        stubXatkitCore = new StubXatkitCore();
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
-        discordPlatform = new DiscordPlatform(stubJarvisCore, configuration);
+        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getXatkitDiscordToken());
+        discordPlatform = new DiscordPlatform(stubXatkitCore, configuration);
         discordIntentProvider = createValidDiscordInputProvider();
     }
 
@@ -60,8 +60,8 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
         if(nonNull(discordPlatform)) {
             discordPlatform.shutdown();
         }
-        if (nonNull(stubJarvisCore)) {
-            stubJarvisCore.shutdown();
+        if (nonNull(stubXatkitCore)) {
+            stubXatkitCore.shutdown();
         }
     }
 
@@ -70,50 +70,50 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
 
     @Test(expected = NullPointerException.class)
-    public void constructNullJarvisCore() {
+    public void constructNullXatkitCore() {
         listener = new PrivateMessageListener(null, discordIntentProvider);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullDiscordInputProvider() {
-        listener = new PrivateMessageListener(stubJarvisCore, null);
+        listener = new PrivateMessageListener(stubXatkitCore, null);
     }
 
     @Test
-    public void constructValidJarvisCore() {
-        listener = new PrivateMessageListener(stubJarvisCore, discordIntentProvider);
-        assertThat(listener.getJarvisCore()).as("Non null JarvisCore").isNotNull();
-        assertThat(listener.getJarvisCore()).as("Valid JarvisCore").isEqualTo(stubJarvisCore);
+    public void constructValidXatkitCore() {
+        listener = new PrivateMessageListener(stubXatkitCore, discordIntentProvider);
+        assertThat(listener.getXatkitCore()).as("Non null XatkitCore").isNotNull();
+        assertThat(listener.getXatkitCore()).as("Valid XatkitCore").isEqualTo(stubXatkitCore);
     }
 
     @Test(expected = NullPointerException.class)
     public void onPrivateMessageReceivedNullMessage() {
-        listener = new PrivateMessageListener(stubJarvisCore, discordIntentProvider);
+        listener = new PrivateMessageListener(stubXatkitCore, discordIntentProvider);
         listener.onPrivateMessageReceived(null);
     }
 
     @Test
     public void onPrivateMessageEmptyMessage() {
-        listener = new PrivateMessageListener(stubJarvisCore, discordIntentProvider);
+        listener = new PrivateMessageListener(stubXatkitCore, discordIntentProvider);
         listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordIntentProvider.getJdaClient(),
                 StubMessage.createEmptyStubMessage()));
-        assertThat(stubJarvisCore.getHandledEvents()).as("Empty message skipped").isEmpty();
-        assertThat(stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_NAME)).as("Null session")
+        assertThat(stubXatkitCore.getHandledEvents()).as("Empty message skipped").isEmpty();
+        assertThat(stubXatkitCore.getXatkitSession(StubPrivateChannel.PRIVATE_CHANNEL_NAME)).as("Null session")
                 .isNull();
     }
 
     @Test
     public void onPrivateMessageValidMessage() {
-        listener = new PrivateMessageListener(stubJarvisCore, discordIntentProvider);
+        listener = new PrivateMessageListener(stubXatkitCore, discordIntentProvider);
         listener.onPrivateMessageReceived(new StubPrivateMessageReceivedEvent(discordIntentProvider.getJdaClient(),
                 StubMessage.createTestStubMessage()));
-        softly.assertThat(stubJarvisCore.getHandledEvents()).as("Event handled").hasSize(1);
+        softly.assertThat(stubXatkitCore.getHandledEvents()).as("Event handled").hasSize(1);
         /*
          * Check equality on names, equals() should not be redefined for EObjects.
          */
-        softly.assertThat(stubJarvisCore.getHandledEvents().get(0).getName()).as("Valid Event handled").isEqualTo
+        softly.assertThat(stubXatkitCore.getHandledEvents().get(0).getName()).as("Valid Event handled").isEqualTo
                 (VALID_EVENT_DEFINITION.getName());
-        JarvisSession session = stubJarvisCore.getJarvisSession(StubPrivateChannel.PRIVATE_CHANNEL_ID);
+        XatkitSession session = stubXatkitCore.getXatkitSession(StubPrivateChannel.PRIVATE_CHANNEL_ID);
         assertThat(session).as("Not null session").isNotNull();
         Map<String, Object> discordContext = session.getRuntimeContexts().getContextVariables(DiscordUtils
                 .DISCORD_CONTEXT_KEY);
@@ -133,7 +133,7 @@ public class PrivateMessageListenerTest extends AbstractJarvisTest {
 
     private DiscordIntentProvider createValidDiscordInputProvider() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
+        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getXatkitDiscordToken());
         return new DiscordIntentProvider(discordPlatform, configuration);
     }
 

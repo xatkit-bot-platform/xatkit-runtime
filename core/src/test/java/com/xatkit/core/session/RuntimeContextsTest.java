@@ -1,7 +1,7 @@
 package com.xatkit.core.session;
 
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.JarvisException;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.XatkitException;
 import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.IntentFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RuntimeContextsTest extends AbstractJarvisTest {
+public class RuntimeContextsTest extends AbstractXatkitTest {
 
     private RuntimeContexts context;
 
@@ -206,7 +206,7 @@ public class RuntimeContextsTest extends AbstractJarvisTest {
         context.getContextLifespanCount(null);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void getContextLifespanCountNotSetContext() {
         context = new RuntimeContexts();
         context.getContextLifespanCount("context");
@@ -247,7 +247,7 @@ public class RuntimeContextsTest extends AbstractJarvisTest {
         assertThat(lifespanCount).as("Decremented lifespan count").isEqualTo(4);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void getContextLifespanCountFullyDecrementedContext() {
         context = new RuntimeContexts();
         context.setContextValue("context", 1, "key", "value");

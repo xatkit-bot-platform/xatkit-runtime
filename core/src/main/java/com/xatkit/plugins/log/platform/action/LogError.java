@@ -1,6 +1,6 @@
 package com.xatkit.plugins.log.platform.action;
 
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import fr.inria.atlanmod.commons.log.Level;
 import com.xatkit.plugins.log.platform.LogPlatform;
 
@@ -14,12 +14,12 @@ public class LogError extends LogAction {
      * message}.
      *
      * @param runtimePlatform the {@link LogPlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param message          the message to log
      * @throws NullPointerException if the provided {@code runtimePlatform}, {@code session}, or {@code message} is
      *                              {@code null}
      */
-    public LogError(LogPlatform runtimePlatform, JarvisSession session, String message) {
+    public LogError(LogPlatform runtimePlatform, XatkitSession session, String message) {
         super(runtimePlatform, session, message, Level.ERROR);
     }
 }

@@ -1,10 +1,10 @@
 package com.xatkit.core.recognition;
 
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
-import com.xatkit.stubs.StubJarvisCore;
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.JarvisCore;
+import com.xatkit.stubs.StubXatkitCore;
+import com.xatkit.AbstractXatkitTest;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.After;
@@ -14,16 +14,16 @@ import org.junit.Test;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
+public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
 
-    private static JarvisCore stubJarvisCore = new StubJarvisCore();
+    private static XatkitCore stubXatkitCore = new StubXatkitCore();
 
     private IntentRecognitionProvider provider;
 
     @AfterClass
     public static void tearDownAfterClass() {
-        if (!stubJarvisCore.isShutdown()) {
-            stubJarvisCore.shutdown();
+        if (!stubXatkitCore.isShutdown()) {
+            stubXatkitCore.shutdown();
         }
     }
 
@@ -35,20 +35,20 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void getIntentRecognitionProviderNullJarvisCore() {
+    public void getIntentRecognitionProviderNullXatkitCore() {
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(null, new BaseConfiguration());
     }
 
     @Test(expected = NullPointerException.class)
     public void getIntentRecognitionProviderNullConfiguration() {
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubJarvisCore, null);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubXatkitCore, null);
     }
 
     @Test
     public void getIntentRecognitionProviderDialogFlowProperties() {
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
-                (stubJarvisCore, configuration);
+                (stubXatkitCore, configuration);
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DialogFlowApi").isInstanceOf(DialogFlowApi.class);
         assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNotNull();
@@ -58,7 +58,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
     public void getIntentRecognitionProviderDialogFlowPropertiesDisabledAnalytics() {
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
         configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubJarvisCore, configuration);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubXatkitCore, configuration);
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DialogFlowApi").isInstanceOf(DialogFlowApi.class);
         assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is null").isNull();
@@ -71,7 +71,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
          * contain any IntentRecognitionProvider property.
          */
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
-                (stubJarvisCore, new BaseConfiguration());
+                (stubXatkitCore, new BaseConfiguration());
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DefaultIntentRecognitionProvider").isInstanceOf
                 (DefaultIntentRecognitionProvider.class);
@@ -82,7 +82,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractJarvisTest {
     public void getIntentRecognitionProviderEmptyConfigurationDisableAnalytics() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubJarvisCore, configuration);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubXatkitCore, configuration);
         assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is null").isNull();
     }
 }

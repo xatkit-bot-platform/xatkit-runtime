@@ -1,7 +1,7 @@
 package com.xatkit.plugins.core.platform.action;
 
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.core.platform.CorePlatform;
 
 /**
@@ -21,11 +21,11 @@ public class Random extends RuntimeAction<CorePlatform> {
      * bound}.
      *
      * @param runtimePlatform the {@link CorePlatform} containing this action
-     * @param session         the {@link JarvisSession} associated to this action
+     * @param session         the {@link XatkitSession} associated to this action
      * @param bound           the upper bound (exclusive) of random number to generate
      * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
      */
-    public Random(CorePlatform runtimePlatform, JarvisSession session, Integer bound) {
+    public Random(CorePlatform runtimePlatform, XatkitSession session, Integer bound) {
         super(runtimePlatform, session);
         this.bound = bound;
     }

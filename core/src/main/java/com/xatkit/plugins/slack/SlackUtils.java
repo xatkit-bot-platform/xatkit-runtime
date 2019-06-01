@@ -1,6 +1,6 @@
 package com.xatkit.plugins.slack;
 
-import com.xatkit.core.JarvisCore;
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.plugins.chat.ChatUtils;
 import com.xatkit.plugins.slack.platform.SlackPlatform;
@@ -19,7 +19,7 @@ public interface SlackUtils extends ChatUtils {
      * The {@link Configuration} key to store the Slack bot API token.
      *
      * @see SlackIntentProvider#SlackIntentProvider(SlackPlatform, Configuration)
-     * @see SlackPlatform#SlackPlatform(JarvisCore, Configuration)
+     * @see SlackPlatform#SlackPlatform(XatkitCore, Configuration)
      */
     String SLACK_TOKEN_KEY = "jarvis.slack.token";
 

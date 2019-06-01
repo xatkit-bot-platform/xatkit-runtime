@@ -2,7 +2,7 @@ package com.xatkit.core.platform.action;
 
 import com.google.gson.JsonElement;
 import com.mashape.unirest.http.Headers;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.stubs.StubRuntimePlatform;
 import org.junit.Test;
 
@@ -80,7 +80,7 @@ public class RestGetActionTest extends RestActionTest {
 
         private JsonElement responseJsonElement;
 
-        public StubRestGetAction(StubRuntimePlatform runtimePlatform, JarvisSession session, Map<String,
+        public StubRestGetAction(StubRuntimePlatform runtimePlatform, XatkitSession session, Map<String,
                 String> headers, String restEndpoint, Map<String, Object> params) {
             super(runtimePlatform, session, headers, restEndpoint, params);
         }

@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import com.xatkit.core.platform.io.EventInstanceBuilder;
 import com.xatkit.core.platform.io.JsonEventMatcher;
 import com.xatkit.core.platform.io.JsonWebhookEventProvider;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.plugins.github.platform.GithubPlatform;
 import org.apache.commons.configuration2.Configuration;
@@ -18,7 +18,7 @@ public class GithubWebhookEventProvider extends JsonWebhookEventProvider<GithubP
 
     public GithubWebhookEventProvider(GithubPlatform runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
-        matcher = new JsonEventMatcher(EventInstanceBuilder.newBuilder(this.jarvisCore.getEventDefinitionRegistry()),
+        matcher = new JsonEventMatcher(EventInstanceBuilder.newBuilder(this.xatkitCore.getEventDefinitionRegistry()),
                 configuration);
         JsonEventMatcher.HeaderValue issueHeader = JsonEventMatcher.HeaderValue.of(GITHUB_EVENT_HEADER_KEY, "issues");
         matcher.addMatchableEvent(issueHeader, JsonEventMatcher.FieldValue.of("action", "opened"), "Issue_Opened");
@@ -80,8 +80,8 @@ public class GithubWebhookEventProvider extends JsonWebhookEventProvider<GithubP
     @Override
     protected void handleParsedContent(JsonElement parsedContent, Header[] headers) {
         EventInstance eventInstance = matcher.match(headers, parsedContent);
-        JarvisSession jarvisSession = this.jarvisCore.getOrCreateJarvisSession("github");
-        this.sendEventInstance(eventInstance, jarvisSession);
+        XatkitSession xatkitSession = this.xatkitCore.getOrCreateXatkitSession("github");
+        this.sendEventInstance(eventInstance, xatkitSession);
     }
 
     @Override

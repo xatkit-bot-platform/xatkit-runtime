@@ -1,12 +1,12 @@
 package com.xatkit.core.recognition;
 
 
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 
 /**
  * Wraps all the exceptions thrown by the {@link IntentRecognitionProvider}s.
  */
-public class IntentRecognitionProviderException extends JarvisException {
+public class IntentRecognitionProviderException extends XatkitException {
 
     /**
      * Constructs a new {@link IntentRecognitionProviderException}.

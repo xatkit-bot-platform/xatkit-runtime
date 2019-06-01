@@ -2,10 +2,10 @@ package com.xatkit.core.platform.action;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.session.JarvisSession;
-import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.session.XatkitSession;
+import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.stubs.StubRuntimePlatform;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.AfterClass;
@@ -15,9 +15,9 @@ import org.junit.BeforeClass;
 /*
  * This class is abstract: RestActions are only tested through their concrete subclasses.
  */
-public abstract class RestActionTest extends AbstractJarvisTest {
+public abstract class RestActionTest extends AbstractXatkitTest {
 
-    protected static JarvisCore JARVIS_CORE;
+    protected static XatkitCore XATKIT_CORE;
 
     protected static StubRuntimePlatform RUNTIME_PLATFORM;
 
@@ -39,22 +39,22 @@ public abstract class RestActionTest extends AbstractJarvisTest {
                 "    }");
     }
 
-    protected JarvisSession session;
+    protected XatkitSession session;
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        JARVIS_CORE = new StubJarvisCore();
-        RUNTIME_PLATFORM = new StubRuntimePlatform(JARVIS_CORE, new BaseConfiguration());
+        XATKIT_CORE = new StubXatkitCore();
+        RUNTIME_PLATFORM = new StubRuntimePlatform(XATKIT_CORE, new BaseConfiguration());
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
         RUNTIME_PLATFORM.shutdown();
-        JARVIS_CORE.shutdown();
+        XATKIT_CORE.shutdown();
     }
 
     @Before
     public void setUp() {
-        this.session = new JarvisSession("sessionID");
+        this.session = new XatkitSession("sessionID");
     }
 }

@@ -16,7 +16,7 @@ import java.util.List;
  * The endpoint can be registered using the following code:
  * <pre>
  * {@code
- * JarvisServer jarvisServer = [...]
+ * XatkitServer jarvisServer = [...]
  * String restEndpointURI = "/myEndpoint";
  * jarvisServer.registerRestEndpoint(restEndpointURI, (headers, params, content) -> {
  *     // Handle the request
@@ -25,7 +25,7 @@ import java.util.List;
  * }
  * </pre>
  *
- * @see JarvisServer
+ * @see XatkitServer
  */
 @FunctionalInterface
 public interface JsonRestHandler {
@@ -33,7 +33,7 @@ public interface JsonRestHandler {
     /**
      * Handles the provided HTTP request.
      * <p>
-     * This method is called by the {@link JarvisServer} when receiving a HTTP request on the URI associated to this
+     * This method is called by the {@link XatkitServer} when receiving a HTTP request on the URI associated to this
      * {@link JsonRestHandler}.
      *
      * @param headers the {@link Header}s of the HTTP request

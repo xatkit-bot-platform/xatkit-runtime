@@ -1,7 +1,7 @@
 package com.xatkit.core.recognition;
 
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.intent.*;
 import com.xatkit.test.util.ElementFactory;
@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
+public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
 
     private DefaultIntentRecognitionProvider provider;
 
@@ -161,7 +161,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
     @Test
     public void getIntentValidIntentDefinitionWithOutContextUnmatchedInput() {
         provider.registerIntentDefinition(VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT);
-        RecognizedIntent recognizedIntent = provider.getIntent("test test intent definition", new JarvisSession(
+        RecognizedIntent recognizedIntent = provider.getIntent("test test intent definition", new XatkitSession(
                 "sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Unmatched input returns default fallback intent").
@@ -171,7 +171,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
     @Test
     public void getIntentValidIntentDefinitionWithOutContext() {
         provider.registerIntentDefinition(VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT);
-        RecognizedIntent recognizedIntent = provider.getIntent("Value intent definition", new JarvisSession(
+        RecognizedIntent recognizedIntent = provider.getIntent("Value intent definition", new XatkitSession(
                 "sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT);
@@ -188,7 +188,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
     public void getIntentValidIntentDefinitionWithOutContextMapping() {
         provider.registerEntityDefinition(MAPPING_ENTITY);
         provider.registerIntentDefinition(INTENT_MAPPING_OUT_CONTEXT);
-        RecognizedIntent recognizedIntent = provider.getIntent("this is a Person", new JarvisSession("sessionID"));
+        RecognizedIntent recognizedIntent = provider.getIntent("this is a Person", new XatkitSession("sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(INTENT_MAPPING_OUT_CONTEXT);
         assertThat(recognizedIntent.getOutContextInstances()).as("Recognized intent contains one out context").hasSize(1);
@@ -204,7 +204,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
     public void getIntentValidIntentDefinitionWithOutContextComposite() {
         provider.registerEntityDefinition(COMPOSITE_ENTITY);
         provider.registerIntentDefinition(INTENT_COMPOSITE_OUT_CONTEXT);
-        RecognizedIntent recognizedIntent = provider.getIntent("this is a Person with 23", new JarvisSession(
+        RecognizedIntent recognizedIntent = provider.getIntent("this is a Person with 23", new XatkitSession(
                 "sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(INTENT_COMPOSITE_OUT_CONTEXT);
@@ -219,7 +219,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
 
     @Test
     public void getIntentValidIntentDefinitionNoOutContextUnmatchedInput() {
-        RecognizedIntent recognizedIntent = provider.getIntent("test", new JarvisSession("sessionID"));
+        RecognizedIntent recognizedIntent = provider.getIntent("test", new XatkitSession("sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Unmatched input returns default fallback intent")
                 .isEqualTo(DefaultIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
@@ -228,7 +228,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
     @Test
     public void getIntentValidIntentDefinitionNoOutContext() {
         provider.registerIntentDefinition(VALID_INTENT_DEFINITION_NO_OUT_CONTEXT);
-        RecognizedIntent recognizedIntent = provider.getIntent("this is a test", new JarvisSession("sessionID"));
+        RecognizedIntent recognizedIntent = provider.getIntent("this is a test", new XatkitSession("sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(VALID_INTENT_DEFINITION_NO_OUT_CONTEXT);
     }
@@ -238,7 +238,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
         IntentDefinition intentDefinition = ElementFactory.createIntentDefinitionNoOutContext();
         intentDefinition.getTrainingSentences().add("$test");
         provider.registerIntentDefinition(intentDefinition);
-        RecognizedIntent recognizedIntent = provider.getIntent("$test", new JarvisSession("sessionID"));
+        RecognizedIntent recognizedIntent = provider.getIntent("$test", new XatkitSession("sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(intentDefinition);
     }
@@ -249,7 +249,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
         IntentDefinition childIntent = ElementFactory.createFollowUpIntent(parentIntent);
         provider.registerIntentDefinition(parentIntent);
         provider.registerIntentDefinition(childIntent);
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         RecognizedIntent recognizedParent = provider.getIntent("this is a test", session);
         assertThat(recognizedParent.getDefinition()).as("Correct parent intent matched").isEqualTo(parentIntent);
         ContextInstance parentFollowContextInstance =
@@ -270,7 +270,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
         inContext.setName("InContext");
         intentDefinition.getInContexts().add(inContext);
         provider.registerIntentDefinition(intentDefinition);
-        RecognizedIntent recognizedIntent = provider.getIntent("this is a test", new JarvisSession("sessionID"));
+        RecognizedIntent recognizedIntent = provider.getIntent("this is a test", new XatkitSession("sessionID"));
         assertThat(recognizedIntent.getDefinition()).as("Default fallback intent matched").isEqualTo(DefaultIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
     }
 
@@ -281,7 +281,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
         inContext.setName("InContext");
         intentDefinition.getInContexts().add(inContext);
         provider.registerIntentDefinition(intentDefinition);
-        JarvisSession session = new JarvisSession("sessionID");
+        XatkitSession session = new XatkitSession("sessionID");
         session.getRuntimeContexts().setContext("InContext", 5);
         RecognizedIntent recognizedIntent = provider.getIntent("this is a test", session);
         assertThat(recognizedIntent.getDefinition()).as("Correct intent matched").isEqualTo(intentDefinition);
@@ -317,7 +317,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
 
     @Test
     public void createSessionEmptyConfiguration() {
-        JarvisSession session = provider.createSession("SessionID");
+        XatkitSession session = provider.createSession("SessionID");
         assertThat(session).as("Not null session").isNotNull();
         assertThat(session.getSessionId()).as("Valid session id").isEqualTo("SessionID");
         assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
@@ -330,7 +330,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         provider = new DefaultIntentRecognitionProvider(configuration);
-        JarvisSession session = provider.createSession("SessionID");
+        XatkitSession session = provider.createSession("SessionID");
         assertThat(session).as("Not null session").isNotNull();
         assertThat(session.getSessionId()).as("Valid sessio id").isEqualTo("SessionID");
         assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();

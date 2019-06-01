@@ -1,7 +1,7 @@
 package com.xatkit.core.platform.action;
 
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 
 import java.util.Map;
 
@@ -21,14 +21,14 @@ public abstract class RestGetAction<T extends RuntimePlatform> extends RestActio
      * method.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session         the {@link JarvisSession} associated to this action
+     * @param session         the {@link XatkitSession} associated to this action
      * @param headers         the {@link Map} of user-defined headers to include in the request
      * @param restEndpoint    the REST API endpoint to request
      * @param params          the {@link Map} of user-defined parameters to include in the request
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code restEndpoint} is {@code null} or {@code empty}
      */
-    public RestGetAction(T runtimePlatform, JarvisSession session, Map<String, String> headers, String restEndpoint,
+    public RestGetAction(T runtimePlatform, XatkitSession session, Map<String, String> headers, String restEndpoint,
                          Map<String, Object> params) {
         super(runtimePlatform, session, MethodKind.GET, headers, restEndpoint, params, null);
     }

@@ -1,10 +1,10 @@
 package com.xatkit.stubs;
 
-import com.xatkit.core.JarvisCore;
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.interpreter.ExecutionContext;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ActionInstance;
 import com.xatkit.stubs.action.ErroringStubRuntimeAction;
 import com.xatkit.stubs.action.StubRuntimeAction;
@@ -18,8 +18,8 @@ public class StubRuntimePlatform extends RuntimePlatform {
 
     private ErroringStubRuntimeAction erroringRuntimeAction;
 
-    public StubRuntimePlatform(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public StubRuntimePlatform(XatkitCore xatkitCore, Configuration configuration) {
+        super(xatkitCore, configuration);
         init();
     }
 
@@ -37,7 +37,7 @@ public class StubRuntimePlatform extends RuntimePlatform {
     }
 
     @Override
-    public RuntimeAction createRuntimeAction(ActionInstance actionInstance, JarvisSession session,
+    public RuntimeAction createRuntimeAction(ActionInstance actionInstance, XatkitSession session,
                                              ExecutionContext context) {
         if(actionInstance.getAction().getName().equals("StubRuntimeAction")) {
             return runtimeAction;

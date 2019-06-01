@@ -1,6 +1,6 @@
 package com.xatkit.plugins.discord;
 
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.plugins.chat.ChatUtils;
 import com.xatkit.plugins.discord.platform.DiscordPlatform;
@@ -70,11 +70,11 @@ public class DiscordUtils implements ChatUtils {
         } catch (LoginException e) {
             String errorMessage = "Cannot connect to the Discord API, check that the provided token is valid";
             Log.error(errorMessage);
-            throw new JarvisException(errorMessage, e);
+            throw new XatkitException(errorMessage, e);
         } catch (InterruptedException e) {
             String errorMessage = "An error occurred when starting the Discord client, see attached exception";
             Log.error(e, errorMessage);
-            throw new JarvisException(errorMessage, e);
+            throw new XatkitException(errorMessage, e);
         }
         return jda;
     }

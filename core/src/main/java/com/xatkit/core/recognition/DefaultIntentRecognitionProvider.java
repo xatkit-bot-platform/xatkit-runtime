@@ -1,7 +1,7 @@
 package com.xatkit.core.recognition;
 
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
@@ -53,7 +53,7 @@ import static java.util.Objects.nonNull;
  * <p>
  * The {@link DefaultIntentRecognitionProvider} will be used by Xatkit if the application's {@link Configuration}
  * file does not contain specific {@link IntentRecognitionProvider} properties (see
- * {@link IntentRecognitionProviderFactory#getIntentRecognitionProvider(JarvisCore, Configuration)}).
+ * {@link IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitCore, Configuration)}).
  *
  * @see IntentRecognitionProviderFactory
  */
@@ -106,7 +106,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     /**
      * The application's {@link Configuration}.
      * <p>
-     * This {@link Configuration} is used to customize the created {@link JarvisSession}s.
+     * This {@link Configuration} is used to customize the created {@link XatkitSession}s.
      */
     private Configuration configuration;
 
@@ -146,7 +146,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * {@link RecognitionMonitor}.
      *
      * @param configuration the {@link Configuration} the {@link Configuration} used to customize the created
-     *                      {@link JarvisSession}s
+     *                      {@link XatkitSession}s
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
      * @see #DefaultIntentRecognitionProvider(Configuration, RecognitionMonitor)
      */
@@ -157,7 +157,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     /**
      * Constructs a {@link DefaultIntentRecognitionProvider} with the provided {@code configuration}.
      *
-     * @param configuration the {@link Configuration} used to customize the created {@link JarvisSession}s
+     * @param configuration the {@link Configuration} used to customize the created {@link XatkitSession}s
      *                      * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent
      *                      matching information
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
@@ -397,8 +397,8 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * {@inheritDoc}
      */
     @Override
-    public JarvisSession createSession(String sessionId) {
-        return new JarvisSession(sessionId, configuration);
+    public XatkitSession createSession(String sessionId) {
+        return new XatkitSession(sessionId, configuration);
     }
 
     /**
@@ -449,11 +449,11 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * alternative {@link IntentRecognitionProvider}s if you need to support such features.
      *
      * @param input   the {@link String} representing the textual input to process and extract the intent from
-     * @param session the {@link JarvisSession} used to access context information
+     * @param session the {@link XatkitSession} used to access context information
      * @return the {@link RecognizedIntent} matched from the provided {@code input}
      */
     @Override
-    public RecognizedIntent getIntent(String input, JarvisSession session) {
+    public RecognizedIntent getIntent(String input, XatkitSession session) {
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
         List<IntentDefinition> matchableIntents = getMatchableIntents(intentPatterns.keySet(), session);
         for (IntentDefinition intentDefinition : matchableIntents) {
@@ -502,12 +502,12 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * </ul>
      *
      * @param intentDefinitions the {@link Set} of {@link IntentDefinition} to retrieve the matchable intents from
-     * @param session           the {@link JarvisSession} storing contextual values
+     * @param session           the {@link XatkitSession} storing contextual values
      * @return the {@link List} of {@link IntentDefinition} that can be matched according to the provided {@code
      * session}
      * @see #setFollowUpContexts(IntentDefinition, RecognizedIntent)
      */
-    private List<IntentDefinition> getMatchableIntents(Set<IntentDefinition> intentDefinitions, JarvisSession session) {
+    private List<IntentDefinition> getMatchableIntents(Set<IntentDefinition> intentDefinitions, XatkitSession session) {
         RuntimeContexts runtimeContexts = session.getRuntimeContexts();
         List<IntentDefinition> result = new ArrayList<>();
         for (IntentDefinition intentDefinition : intentDefinitions) {

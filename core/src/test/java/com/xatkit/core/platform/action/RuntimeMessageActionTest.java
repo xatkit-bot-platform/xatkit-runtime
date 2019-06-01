@@ -1,14 +1,14 @@
 package com.xatkit.core.platform.action;
 
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
-import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.stubs.StubRuntimePlatform;
 import com.xatkit.stubs.action.StubRuntimeMessageAction;
 import com.xatkit.stubs.action.StubRuntimeMessageActionIOException;
 import com.xatkit.stubs.action.StubRuntimeMessageActionIOExceptionThenOk;
-import com.xatkit.core.JarvisCore;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.*;
 
@@ -21,27 +21,27 @@ public class RuntimeMessageActionTest {
 
     private static String MESSAGE = "test message";
 
-    private static JarvisCore JARVIS_CORE;
+    private static XatkitCore XATKIT_CORE;
 
     private static RuntimePlatform RUNTIME_PLATFORM;
 
-    private JarvisSession session;
+    private XatkitSession session;
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        JARVIS_CORE = new StubJarvisCore();
-        RUNTIME_PLATFORM = new StubRuntimePlatform(JARVIS_CORE, new BaseConfiguration());
+        XATKIT_CORE = new StubXatkitCore();
+        RUNTIME_PLATFORM = new StubRuntimePlatform(XATKIT_CORE, new BaseConfiguration());
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
         RUNTIME_PLATFORM.shutdown();
-        JARVIS_CORE.shutdown();
+        XATKIT_CORE.shutdown();
     }
 
     @Before
     public void setUp() {
-        session = new JarvisSession(UUID.randomUUID().toString());
+        session = new XatkitSession(UUID.randomUUID().toString());
     }
 
     @After
@@ -78,7 +78,7 @@ public class RuntimeMessageActionTest {
         session.getRuntimeContexts().setContextValue("Test", 5, "key", "value");
         RuntimeMessageAction runtimeMessageAction = new StubRuntimeMessageAction(RUNTIME_PLATFORM, session, MESSAGE);
         runtimeMessageAction.init();
-        JarvisSession clientSession = runtimeMessageAction.getClientSession();
+        XatkitSession clientSession = runtimeMessageAction.getClientSession();
         assertThat(clientSession).as("Not null client session").isNotNull();
         RuntimeContexts context = clientSession.getRuntimeContexts();
         assertThat(context.getContextValue("Test", "key")).as("Session context has been merged in the client one")

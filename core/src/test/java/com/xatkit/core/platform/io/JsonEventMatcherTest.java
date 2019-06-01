@@ -2,9 +2,9 @@ package com.xatkit.core.platform.io;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.xatkit.AbstractJarvisTest;
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.intent.*;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -19,7 +19,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class JsonEventMatcherTest extends AbstractJarvisTest {
+public class JsonEventMatcherTest extends AbstractXatkitTest {
 
     private static JsonEventMatcher.HeaderValue validHeaderValue = JsonEventMatcher.HeaderValue.of("hkey", "hvalue");
 
@@ -205,13 +205,13 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         assertThat(storedEventType).as("Valid EventTypeName").isEqualTo(validEventTypeName);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void addMatchableEventsSameHeaderValuesFirstEmptyFieldValuesSameEventNames() {
         matcher.addMatchableEvent(validHeaderValue, JsonEventMatcher.FieldValue.EMPTY_FIELD_VALUE, validEventTypeName);
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, validEventTypeName);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void addMatchableEventsSameHeaderValuesFirstValidSecondEmptyFieldValuesSameEventNames() {
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, validEventTypeName);
         matcher.addMatchableEvent(validHeaderValue, JsonEventMatcher.FieldValue.EMPTY_FIELD_VALUE, validEventTypeName);
@@ -235,7 +235,7 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         assertThat(storedEventType).as("Valid EventTypeName").isEqualTo(validEventTypeName);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void addMatchableEventsSameHeaderValuesSameFieldValuesDifferentEventNames() {
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, validEventTypeName);
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, "EventName2");
@@ -286,13 +286,13 @@ public class JsonEventMatcherTest extends AbstractJarvisTest {
         assertThat(value2.getValue()).as("Valid value2 value").isEqualTo("inner-value");
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void matchValidNotRegisteredEventDefinition() {
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, "EventName2");
         matcher.match(validHeaders, validPayload);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void matchValidRegisteredEventDefinitionMissingOutContext() {
         EventDefinitionRegistry registry = new EventDefinitionRegistry();
         EventDefinition eventDefinition = IntentFactory.eINSTANCE.createEventDefinition();

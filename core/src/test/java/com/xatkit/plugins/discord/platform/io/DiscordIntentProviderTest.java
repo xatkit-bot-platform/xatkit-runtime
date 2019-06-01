@@ -2,8 +2,8 @@ package com.xatkit.plugins.discord.platform.io;
 
 import com.xatkit.plugins.discord.DiscordUtils;
 import com.xatkit.plugins.discord.platform.DiscordPlatform;
-import com.xatkit.AbstractJarvisTest;
-import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.AbstractXatkitTest;
+import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -18,20 +18,20 @@ import java.util.List;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DiscordIntentProviderTest extends AbstractJarvisTest {
+public class DiscordIntentProviderTest extends AbstractXatkitTest {
 
     private DiscordIntentProvider discordIntentProvider;
 
-    private StubJarvisCore stubJarvisCore;
+    private StubXatkitCore stubXatkitCore;
 
     private DiscordPlatform discordPlatform;
 
     @Before
     public void setUp() {
-        stubJarvisCore = new StubJarvisCore();
+        stubXatkitCore = new StubXatkitCore();
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
-        discordPlatform = new DiscordPlatform(stubJarvisCore, configuration);
+        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getXatkitDiscordToken());
+        discordPlatform = new DiscordPlatform(stubXatkitCore, configuration);
     }
 
     @After
@@ -42,8 +42,8 @@ public class DiscordIntentProviderTest extends AbstractJarvisTest {
         if(nonNull(discordPlatform)) {
             discordPlatform.shutdown();
         }
-        if (nonNull(stubJarvisCore)) {
-            stubJarvisCore.shutdown();
+        if (nonNull(stubXatkitCore)) {
+            stubXatkitCore.shutdown();
         }
     }
 
@@ -52,7 +52,7 @@ public class DiscordIntentProviderTest extends AbstractJarvisTest {
 
 
     @Test(expected = NullPointerException.class)
-    public void constructNullJarvisCore() {
+    public void constructNullXatkitCore() {
         discordIntentProvider = new DiscordIntentProvider(null, new BaseConfiguration());
     }
 
@@ -69,7 +69,7 @@ public class DiscordIntentProviderTest extends AbstractJarvisTest {
     @Test
     public void constructValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getJarvisDiscordToken());
+        configuration.addProperty(DiscordUtils.DISCORD_TOKEN_KEY, VariableLoaderHelper.getXatkitDiscordToken());
         discordIntentProvider = new DiscordIntentProvider(discordPlatform, configuration);
         assertThat(discordIntentProvider.getJdaClient()).as("Not null JDA client").isNotNull();
         List<Object> listeners = discordIntentProvider.getJdaClient().getRegisteredListeners();

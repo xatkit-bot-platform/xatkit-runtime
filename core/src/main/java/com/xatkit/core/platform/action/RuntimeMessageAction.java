@@ -1,10 +1,10 @@
 package com.xatkit.core.platform.action;
 
 import com.xatkit.core.ExecutionService;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import fr.inria.atlanmod.commons.log.Log;
 
@@ -64,14 +64,14 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * the end user.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param rawMessage       the message to process
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code rawMessage} is {@code null} or empty
-     * @see JarvisSession
+     * @see XatkitSession
      * @see RuntimeContexts
      */
-    public RuntimeMessageAction(T runtimePlatform, JarvisSession session, String rawMessage) {
+    public RuntimeMessageAction(T runtimePlatform, XatkitSession session, String rawMessage) {
         super(runtimePlatform, session);
         checkArgument(nonNull(rawMessage) && !rawMessage.isEmpty(), "Cannot construct a %s action with the provided " +
                 "message %s, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
@@ -79,25 +79,25 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
     }
 
     /**
-     * Retrieve the {@link JarvisSession} associated to the client of the message and merges it with the current one.
+     * Retrieve the {@link XatkitSession} associated to the client of the message and merges it with the current one.
      * <p>
-     * This method relies on {@link #getClientSession()} to retrieve the {@link JarvisSession} associated to the
+     * This method relies on {@link #getClientSession()} to retrieve the {@link XatkitSession} associated to the
      * client of the message, and merges the current {@code session} with the client one if they are different.
      * This allows to pass client-independent context variables (e.g. from {@link RuntimeEventProvider}s)
      * to new client sessions.
      *
-     * @throws JarvisException if the provided {@code session} is different from the {@link #getClientSession()} and
+     * @throws XatkitException if the provided {@code session} is different from the {@link #getClientSession()} and
      *                         the merge operation between the contexts failed
      */
     @Override
     public void init() {
-        JarvisSession clientSession = getClientSession();
+        XatkitSession clientSession = getClientSession();
         if (!clientSession.equals(session)) {
             Log.info("Merging {0} session to the client one", this.getClass().getSimpleName());
             try {
                 clientSession.getRuntimeContexts().merge(session.getRuntimeContexts());
-            } catch (JarvisException e) {
-                throw new JarvisException("Cannot construct the action {0}, the action session cannot be merged in " +
+            } catch (XatkitException e) {
+                throw new XatkitException("Cannot construct the action {0}, the action session cannot be merged in " +
                         "the client one", e);
             }
         }
@@ -203,12 +203,12 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
     }
 
     /**
-     * Returns the {@link JarvisSession} associated to the client of the message to send.
+     * Returns the {@link XatkitSession} associated to the client of the message to send.
      * <p>
      * This method is used by the {@link RuntimeMessageAction} constructor to pass client-independent context
      * variables (e.g. from {@link RuntimeEventProvider}s) to the client session.
      *
-     * @return the {@link JarvisSession} associated to the client of the message to send
+     * @return the {@link XatkitSession} associated to the client of the message to send
      */
-    protected abstract JarvisSession getClientSession();
+    protected abstract XatkitSession getClientSession();
 }

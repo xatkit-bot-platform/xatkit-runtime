@@ -3,11 +3,11 @@ package com.xatkit.core.server;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.stubs.EmptyRuntimePlatform;
-import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
-import com.xatkit.AbstractJarvisTest;
+import com.xatkit.AbstractXatkitTest;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
@@ -23,7 +23,7 @@ import java.util.Collections;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class JarvisServerTest extends AbstractJarvisTest {
+public class XatkitServerTest extends AbstractXatkitTest {
 
     /**
      * A valid {@link JsonRestHandler} used to test handler registration.
@@ -37,17 +37,17 @@ public class JarvisServerTest extends AbstractJarvisTest {
      */
     private static String VALID_REST_URI = "/test";
 
-    private JarvisServer server;
+    private XatkitServer server;
 
     /**
      * A second server used to check multiple starts on the same port.
      * <p>
-     * This variable is defined as a class attribute to allow to {@link JarvisServer#stop()} the server if an exception
+     * This variable is defined as a class attribute to allow to {@link XatkitServer#stop()} the server if an exception
      * occurred during the test cases it is involved in.
      */
-    private JarvisServer server2;
+    private XatkitServer server2;
 
-    private StubJarvisCore stubJarvisCore;
+    private StubXatkitCore stubXatkitCore;
 
     @BeforeClass
     public static void setUpBeforeClass() {
@@ -63,8 +63,8 @@ public class JarvisServerTest extends AbstractJarvisTest {
         if (nonNull(server) && server.isStarted()) {
             server.stop();
         }
-        if (nonNull(stubJarvisCore)) {
-            stubJarvisCore.shutdown();
+        if (nonNull(stubXatkitCore)) {
+            stubXatkitCore.shutdown();
         }
         if (nonNull(server2) && server2.isStarted()) {
             server2.stop();
@@ -76,27 +76,27 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        this.server = new JarvisServer(null);
+        this.server = new XatkitServer(null);
     }
 
     @Test
     public void constructEmptyConfiguration() {
-        this.server = new JarvisServer(new BaseConfiguration());
-        checkJarvisServer(server);
+        this.server = new XatkitServer(new BaseConfiguration());
+        checkXatkitServer(server);
     }
 
     @Test
     public void constructConfigurationWithPort() {
         Configuration configuration = new BaseConfiguration();
-        configuration.setProperty(JarvisServer.SERVER_PORT_KEY, 1234);
-        this.server = new JarvisServer(configuration);
+        configuration.setProperty(XatkitServer.SERVER_PORT_KEY, 1234);
+        this.server = new XatkitServer(configuration);
     }
 
     @Test
     public void startEmptyConfiguration() {
-        this.server = new JarvisServer(new BaseConfiguration());
+        this.server = new XatkitServer(new BaseConfiguration());
         this.server.start();
-        softly.assertThat(server.getHttpServer().getLocalPort()).as("Valid port number").isEqualTo(JarvisServer
+        softly.assertThat(server.getHttpServer().getLocalPort()).as("Valid port number").isEqualTo(XatkitServer
                 .DEFAULT_SERVER_PORT);
         softly.assertThat(server.isStarted()).as("Server started").isTrue();
     }
@@ -104,31 +104,31 @@ public class JarvisServerTest extends AbstractJarvisTest {
     @Test
     public void startConfigurationWithPort() {
         Configuration configuration = new BaseConfiguration();
-        configuration.setProperty(JarvisServer.SERVER_PORT_KEY, 1234);
-        this.server = new JarvisServer(configuration);
+        configuration.setProperty(XatkitServer.SERVER_PORT_KEY, 1234);
+        this.server = new XatkitServer(configuration);
         this.server.start();
         softly.assertThat(server.getHttpServer().getLocalPort()).as("Valid port number").isEqualTo(1234);
         softly.assertThat(server.isStarted()).as("Server started").isTrue();
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void startTwoServersSamePort() {
-        this.server = new JarvisServer(new BaseConfiguration());
+        this.server = new XatkitServer(new BaseConfiguration());
         this.server.start();
-        this.server2 = new JarvisServer(new BaseConfiguration());
+        this.server2 = new XatkitServer(new BaseConfiguration());
         this.server2.start();
     }
 
     @Test
     public void stopNotStartedServer() {
         // Should only log a message, not throw an exception
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.stop();
     }
 
     @Test
     public void stopStartedServer() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.start();
         this.server.stop();
         assertThat(server.isStarted()).as("Server not started").isFalse();
@@ -136,13 +136,13 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void registerNullWebhookEventProvider() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         server.registerWebhookEventProvider(null);
     }
 
     @Test
     public void registerValidWebhookEventProvider() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
         Assertions.assertThat(server.getRegisteredWebhookEventProviders()).as("WebhookEventProvider collection size is " +
@@ -153,13 +153,13 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void unregisterNullWebhookEventProvider() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         server.unregisterWebhookEventProvider(null);
     }
 
     @Test
     public void unregisterValidWebhookEventProvider() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
         this.server.unregisterWebhookEventProvider(stubJsonWebhookEventProvider);
@@ -169,7 +169,7 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test
     public void notifyAcceptedContentType() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
         this.server.notifyWebhookEventProviders("application/json", "{field: value}", new Header[0]);
@@ -179,7 +179,7 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test
     public void notifyNotAcceptedContentType() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
         this.server.notifyWebhookEventProviders("not valid", "test", new Header[0]);
@@ -189,25 +189,25 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void registerRestEndpointNullUri() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(null, VALID_REST_HANDLER);
     }
 
     @Test(expected = NullPointerException.class)
     public void registerRestEndpointNullHandler() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void registerRestEndpointNotRootUri() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint("test", VALID_REST_HANDLER);
     }
 
     @Test
     public void registerRestEndpoint() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         /*
          * Don't test the method to access the endpoint, they have their own test methods. Here we only check that
@@ -217,14 +217,14 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test(expected = NullPointerException.class)
     public void isRestEndpointNullUri() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         this.server.isRestEndpoint(null);
     }
 
     @Test
     public void isRestEndpointRegisteredUri() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         boolean result = this.server.isRestEndpoint(VALID_REST_URI);
         assertThat(result).as("Provided URI is a rest endpoint").isTrue();
@@ -232,35 +232,35 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test
     public void isRestEndpointNotRegisteredUri() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         boolean result = this.server.isRestEndpoint(VALID_REST_URI);
         assertThat(result).as("Provided URI is not a rest endpoint").isFalse();
     }
 
     @Test(expected = NullPointerException.class)
     public void notifyRestHandlerNullUri() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         this.server.notifyRestHandler(null, Collections.emptyList(), Collections.emptyList(), new JsonObject());
     }
 
     @Test(expected = NullPointerException.class)
     public void notifyRestHandlerNullHeaders() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         this.server.notifyRestHandler(VALID_REST_URI, null, Collections.emptyList(), new JsonObject());
     }
 
     @Test(expected = NullPointerException.class)
     public void notifyRestHandlerNullParams() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(), null, new JsonObject());
     }
 
     @Test
     public void notifyRestHandlerNullJsonObject() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         JsonElement result = this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(),
                 Collections.emptyList(),
@@ -270,50 +270,50 @@ public class JarvisServerTest extends AbstractJarvisTest {
 
     @Test
     public void notifyRestHandler() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         JsonElement result = this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(),
                 Collections.emptyList(), new JsonObject());
         checkRestHandlerResult(result);
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void notifyRestHandlerNotRegisteredUri() {
-        this.server = getValidJarvisServer();
+        this.server = getValidXatkitServer();
         this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(), Collections.emptyList(), null);
     }
 
     /**
-     * Returns a valid {@link JarvisServer} instance listening to port {@code 1234}.
+     * Returns a valid {@link XatkitServer} instance listening to port {@code 1234}.
      * <p>
-     * This method avoid port conflicts when starting the {@link StubJarvisCore}, and should be used in tests that do
-     * not require specific {@link JarvisServer} ports.
+     * This method avoid port conflicts when starting the {@link StubXatkitCore}, and should be used in tests that do
+     * not require specific {@link XatkitServer} ports.
      *
-     * @return a valid {@link JarvisServer} instance listening to port {@code 1234}
+     * @return a valid {@link XatkitServer} instance listening to port {@code 1234}
      */
-    private JarvisServer getValidJarvisServer() {
+    private XatkitServer getValidXatkitServer() {
         Configuration configuration = new BaseConfiguration();
-        configuration.setProperty(JarvisServer.SERVER_PORT_KEY, 1234);
-        this.server = new JarvisServer(configuration);
+        configuration.setProperty(XatkitServer.SERVER_PORT_KEY, 1234);
+        this.server = new XatkitServer(configuration);
         return this.server;
     }
 
     /**
      * Returns a valid {@link StubJsonWebhookEventProvider}.
      * <p>
-     * This method starts a {@link StubJarvisCore} instance to create the {@link StubJsonWebhookEventProvider}, since
-     * the {@link StubJarvisCore} instance listens to port {@code 5000} it is recommended to get a valid
-     * {@link JarvisServer} instance with {@link #getValidJarvisServer()} to avoid port conflicts.
+     * This method starts a {@link StubXatkitCore} instance to create the {@link StubJsonWebhookEventProvider}, since
+     * the {@link StubXatkitCore} instance listens to port {@code 5000} it is recommended to get a valid
+     * {@link XatkitServer} instance with {@link #getValidXatkitServer()} to avoid port conflicts.
      *
      * @return a valid {@link StubJsonWebhookEventProvider}
      */
     private StubJsonWebhookEventProvider getStubWebhookEventProvider() {
-        stubJarvisCore = new StubJarvisCore();
-        EmptyRuntimePlatform emptyRuntimePlatform = new EmptyRuntimePlatform(stubJarvisCore);
+        stubXatkitCore = new StubXatkitCore();
+        EmptyRuntimePlatform emptyRuntimePlatform = new EmptyRuntimePlatform(stubXatkitCore);
         return new StubJsonWebhookEventProvider(emptyRuntimePlatform);
     }
 
-    private void checkJarvisServer(JarvisServer server) {
+    private void checkXatkitServer(XatkitServer server) {
         softly.assertThat(server.getRegisteredWebhookEventProviders()).as("Empty registered WebhookEventProvider " +
                 "collection").isEmpty();
         assertThat(server.getHttpServer()).as("Not null HttpServer").isNotNull();

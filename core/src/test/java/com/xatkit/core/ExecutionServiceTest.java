@@ -1,9 +1,9 @@
 package com.xatkit.core;
 
-import com.xatkit.AbstractJarvisTest;
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.execution.ActionInstance;
 import com.xatkit.execution.ExecutionFactory;
@@ -27,7 +27,7 @@ import java.util.UUID;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ExecutionServiceTest extends AbstractJarvisTest {
+public class ExecutionServiceTest extends AbstractXatkitTest {
 
     protected static ExecutionModel VALID_EXECUTION_MODEL;
 
@@ -40,7 +40,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
 
     protected static EntityDefinitionReference VALID_ENTITY_DEFINITION_REFERENCE;
 
-    protected static JarvisCore VALID_JARVIS_CORE;
+    protected static XatkitCore VALID_XATKIT_CORE;
 
     @BeforeClass
     public static void setUpBeforeClass() {
@@ -86,20 +86,20 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         VALID_ENTITY_DEFINITION_REFERENCE = ElementFactory.createBaseEntityDefinitionReference(EntityType.ANY);
 
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
-        configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
-        VALID_JARVIS_CORE = new JarvisCore(configuration);
+        configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
+        VALID_XATKIT_CORE = new XatkitCore(configuration);
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        if (nonNull(VALID_JARVIS_CORE) && !VALID_JARVIS_CORE.isShutdown()) {
-            VALID_JARVIS_CORE.shutdown();
+        if (nonNull(VALID_XATKIT_CORE) && !VALID_XATKIT_CORE.isShutdown()) {
+            VALID_XATKIT_CORE.shutdown();
         }
     }
 
     @Before
     public void setUp() {
-        RuntimePlatform runtimePlatform = VALID_JARVIS_CORE.getRuntimePlatformRegistry().getRuntimePlatform
+        RuntimePlatform runtimePlatform = VALID_XATKIT_CORE.getRuntimePlatformRegistry().getRuntimePlatform
                 ("StubRuntimePlatform");
         if(nonNull(runtimePlatform)) {
             /*
@@ -119,14 +119,14 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
     private ExecutionService executionService;
 
     private ExecutionService getValidExecutionService() {
-        executionService = new ExecutionService(VALID_EXECUTION_MODEL, VALID_JARVIS_CORE
+        executionService = new ExecutionService(VALID_EXECUTION_MODEL, VALID_XATKIT_CORE
                 .getRuntimePlatformRegistry());
         return executionService;
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullExecutionModel() {
-        executionService = new ExecutionService(null, VALID_JARVIS_CORE.getRuntimePlatformRegistry());
+        executionService = new ExecutionService(null, VALID_XATKIT_CORE.getRuntimePlatformRegistry());
     }
 
     @Test(expected = NullPointerException.class)
@@ -140,7 +140,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         assertThat(executionService.getExecutionModel()).as("Valid execution model").isEqualTo
                 (VALID_EXECUTION_MODEL);
         assertThat(executionService.getRuntimePlatformRegistry()).as("Valid Xatkit runtimePlatform registry").isEqualTo
-                (VALID_JARVIS_CORE.getRuntimePlatformRegistry());
+                (VALID_XATKIT_CORE.getRuntimePlatformRegistry());
         assertThat(executionService.getExecutorService()).as("Not null ExecutorService").isNotNull();
         assertThat(executionService.isShutdown()).as("Execution service started").isFalse();
     }
@@ -148,7 +148,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
     @Test(expected = NullPointerException.class)
     public void handleEventNullEvent() {
         executionService = getValidExecutionService();
-        executionService.handleEventInstance(null, new JarvisSession("sessionID"));
+        executionService.handleEventInstance(null, new XatkitSession("sessionID"));
     }
 
     @Test(expected = NullPointerException.class)
@@ -163,9 +163,9 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         /*
          * Retrieve the stub RuntimePlatform to check that its action has been processed.
          */
-        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_JARVIS_CORE.getRuntimePlatformRegistry()
+        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_XATKIT_CORE.getRuntimePlatformRegistry()
                 .getRuntimePlatform("StubRuntimePlatform");
-        executionService.handleEventInstance(VALID_EVENT_INSTANCE, VALID_JARVIS_CORE.getOrCreateJarvisSession
+        executionService.handleEventInstance(VALID_EVENT_INSTANCE, VALID_XATKIT_CORE.getOrCreateXatkitSession
                 ("sessionID"));
         /*
          * Sleep to ensure that the Action has been processed.
@@ -221,7 +221,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         contextInstance2.getValues().add(value2);
         instance.getOutContextInstances().add(contextInstance2);
         executionService = getValidExecutionService();
-        JarvisSession session = new JarvisSession(UUID.randomUUID().toString());
+        XatkitSession session = new XatkitSession(UUID.randomUUID().toString());
         /*
          * Should not trigger any action, the EventDefinition is not registered in the execution model.
          */
@@ -254,13 +254,13 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         /*
          * Retrieve the stub RuntimePlatform to check that its action has been processed.
          */
-        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_JARVIS_CORE.getRuntimePlatformRegistry()
+        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_XATKIT_CORE.getRuntimePlatformRegistry()
                 .getRuntimePlatform("StubRuntimePlatform");
         EventDefinition notHandledDefinition = IntentFactory.eINSTANCE.createEventDefinition();
         notHandledDefinition.setName("NotHandled");
         EventInstance notHandledEventInstance = IntentFactory.eINSTANCE.createEventInstance();
         notHandledEventInstance.setDefinition(notHandledDefinition);
-        executionService.handleEventInstance(notHandledEventInstance, VALID_JARVIS_CORE.getOrCreateJarvisSession
+        executionService.handleEventInstance(notHandledEventInstance, VALID_XATKIT_CORE.getOrCreateXatkitSession
                 ("sessionID"));
         /*
          * Sleep to ensure that the Action has been processed.
@@ -272,9 +272,9 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
     @Test
     public void executedRuntimeActionErroringAction() throws InterruptedException {
         executionService = getValidExecutionService();
-        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_JARVIS_CORE.getRuntimePlatformRegistry()
+        StubRuntimePlatform stubRuntimePlatform = (StubRuntimePlatform) VALID_XATKIT_CORE.getRuntimePlatformRegistry()
                 .getRuntimePlatform("StubRuntimePlatform");
-        executionService.handleEventInstance(ON_ERROR_EVENT_INSTANCE, new JarvisSession(UUID.randomUUID()
+        executionService.handleEventInstance(ON_ERROR_EVENT_INSTANCE, new XatkitSession(UUID.randomUUID()
                 .toString()));
         Thread.sleep(1000);
         Assertions.assertThat(stubRuntimePlatform.getErroringAction().isActionProcessed()).as("Erroring action processed").isTrue();

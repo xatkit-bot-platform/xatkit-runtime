@@ -1,8 +1,8 @@
 package com.xatkit.core.platform.io;
 
-import com.xatkit.core.JarvisCore;
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EventInstance;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -12,7 +12,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An abstract class representing user input providers.
  * <p>
- * Concrete implementations of this class are dynamically instantiated by the {@link JarvisCore} component, and use
+ * Concrete implementations of this class are dynamically instantiated by the {@link XatkitCore} component, and use
  * it to notify the engine about new messages to handle. Note that {@link RuntimeEventProvider} instances are
  * started in a dedicated {@link Thread}.
  * <p>
@@ -24,11 +24,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements Runnable {
 
     /**
-     * The {@link JarvisCore} instance used to handle events.
+     * The {@link XatkitCore} instance used to handle events.
      * <p>
-     * This attribute is a shortcut for {@code runtimePlatform.getJarvisCore()}.
+     * This attribute is a shortcut for {@code runtimePlatform.getXatkitCore()}.
      */
-    protected JarvisCore jarvisCore;
+    protected XatkitCore xatkitCore;
 
     /**
      * The {@link RuntimePlatform} subclass containing this action.
@@ -53,7 +53,7 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
-     * {@link JarvisCore} component. Subclasses implementing this constructor typically
+     * {@link XatkitCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}
@@ -68,7 +68,7 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
         checkNotNull(runtimePlatform, "Cannot construct an instance of %s with a null %s", this.getClass()
                 .getSimpleName(), RuntimePlatform.class.getSimpleName());
         this.runtimePlatform = runtimePlatform;
-        this.jarvisCore = runtimePlatform.getJarvisCore();
+        this.xatkitCore = runtimePlatform.getXatkitCore();
     }
 
     /**
@@ -87,10 +87,10 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * context variable has been set).
      *
      * @param eventInstance the {@link EventInstance} to send to the Xatkit core component
-     * @param session       the {@link JarvisSession} associated to the provided {@code eventInstance}
+     * @param session       the {@link XatkitSession} associated to the provided {@code eventInstance}
      */
-    public void sendEventInstance(EventInstance eventInstance, JarvisSession session) {
-        this.jarvisCore.getExecutionService().handleEventInstance(eventInstance, session);
+    public void sendEventInstance(EventInstance eventInstance, XatkitSession session) {
+        this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, session);
     }
 
     /**

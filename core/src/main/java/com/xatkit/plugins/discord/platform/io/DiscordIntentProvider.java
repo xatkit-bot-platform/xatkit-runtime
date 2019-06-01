@@ -45,7 +45,7 @@ public class DiscordIntentProvider extends ChatIntentProvider<DiscordPlatform> {
      * {@code configuration}.
      * <p>
      * This constructor initializes the underlying {@link JDA} client and creates a message listener that forwards to
-     * the {@code jarvisCore} instance not empty direct messages sent by users (not bots) to the bot private channel
+     * the {@code xatkitCore} instance not empty direct messages sent by users (not bots) to the bot private channel
      * (see {@link PrivateMessageListener}.
      * <p>
      * <b>Note:</b> {@link DiscordIntentProvider} requires a valid Discord bot API token to be initialized, and
@@ -69,7 +69,7 @@ public class DiscordIntentProvider extends ChatIntentProvider<DiscordPlatform> {
                 "API token associated to the key %s", discordToken, DiscordUtils.DISCORD_TOKEN_KEY);
         jdaClient = DiscordUtils.getJDA(discordToken);
         Log.info("Starting to listen jarvis Discord direct messages");
-        jdaClient.addEventListener(new PrivateMessageListener(jarvisCore, this));
+        jdaClient.addEventListener(new PrivateMessageListener(xatkitCore, this));
     }
 
     /**

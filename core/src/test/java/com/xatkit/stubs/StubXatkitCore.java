@@ -1,11 +1,11 @@
 package com.xatkit.stubs;
 
 import com.xatkit.core.ExecutionService;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.JarvisCoreTest;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitCoreTest;
 import com.xatkit.core.RuntimePlatformRegistry;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.intent.EventDefinition;
@@ -17,12 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@link JarvisCore} subclass that stores handled messages in a {@link List}.
+ * A {@link XatkitCore} subclass that stores handled messages in a {@link List}.
  * <p>
- * This class is designed to ease testing of classes depending on {@link JarvisCore}, and allows to easily retrieve
+ * This class is designed to ease testing of classes depending on {@link XatkitCore}, and allows to easily retrieve
  * its processed messages (see {@link #getHandledEvents()}).
  */
-public class StubJarvisCore extends JarvisCore {
+public class StubXatkitCore extends XatkitCore {
 
     protected static ExecutionModel VALID_EXECUTION_MODEL = ExecutionFactory.eINSTANCE
             .createExecutionModel();
@@ -33,10 +33,10 @@ public class StubJarvisCore extends JarvisCore {
     private List<EventDefinition> handledEvents;
 
     /**
-     * Constructs a valid {@link StubJarvisCore} instance.
+     * Constructs a valid {@link StubXatkitCore} instance.
      */
-    public StubJarvisCore() {
-        super(JarvisCoreTest.buildConfiguration(VALID_EXECUTION_MODEL));
+    public StubXatkitCore() {
+        super(XatkitCoreTest.buildConfiguration(VALID_EXECUTION_MODEL));
         this.handledEvents = new ArrayList<>();
         IntentDefinition welcomeIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         welcomeIntentDefinition.setName("Default Welcome Intent");
@@ -81,8 +81,8 @@ public class StubJarvisCore extends JarvisCore {
          * @param session the user session to use to process the message
          */
         @Override
-        public void handleEventInstance(EventInstance eventInstance, JarvisSession session) {
-            StubJarvisCore.this.handledEvents.add(eventInstance.getDefinition());
+        public void handleEventInstance(EventInstance eventInstance, XatkitSession session) {
+            StubXatkitCore.this.handledEvents.add(eventInstance.getDefinition());
         }
     }
 }

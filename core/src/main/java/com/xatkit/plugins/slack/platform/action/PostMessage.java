@@ -3,10 +3,10 @@ package com.xatkit.plugins.slack.platform.action;
 import com.github.seratch.jslack.api.methods.SlackApiException;
 import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
 import com.github.seratch.jslack.api.methods.response.chat.ChatPostMessageResponse;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.action.RuntimeMessageAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.slack.platform.SlackPlatform;
 import fr.inria.atlanmod.commons.log.Log;
 
@@ -37,13 +37,13 @@ public class PostMessage extends RuntimeMessageAction<SlackPlatform> {
      * message} and {@code channel}.
      *
      * @param runtimePlatform the {@link SlackPlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param message          the message to post
      * @param channel          the Slack channel to post the message to
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null} or empty.
      */
-    public PostMessage(SlackPlatform runtimePlatform, JarvisSession session, String message, String channel) {
+    public PostMessage(SlackPlatform runtimePlatform, XatkitSession session, String message, String channel) {
         super(runtimePlatform, session, message);
 
         checkArgument(nonNull(channel) && !channel.isEmpty(), "Cannot construct a %s action with the provided " +
@@ -60,7 +60,7 @@ public class PostMessage extends RuntimeMessageAction<SlackPlatform> {
      *
      * @return {@code null}
      * @throws IOException       if an I/O error occurred when sending the message
-     * @throws JarvisException if the provided token does not authenticate the bot
+     * @throws XatkitException if the provided token does not authenticate the bot
      */
     @Override
     public Object compute() throws IOException {
@@ -80,13 +80,13 @@ public class PostMessage extends RuntimeMessageAction<SlackPlatform> {
                         response);
             }
         } catch (SlackApiException e) {
-            throw new JarvisException(MessageFormat.format("Cannot send the message {0} to the Slack API", request), e);
+            throw new XatkitException(MessageFormat.format("Cannot send the message {0} to the Slack API", request), e);
         }
         return null;
     }
 
     @Override
-    protected JarvisSession getClientSession() {
+    protected XatkitSession getClientSession() {
         return this.runtimePlatform.createSessionFromChannel(channel);
     }
 }

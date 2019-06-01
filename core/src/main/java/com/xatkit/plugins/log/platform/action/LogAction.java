@@ -1,7 +1,7 @@
 package com.xatkit.plugins.log.platform.action;
 
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.log.platform.LogPlatform;
 import fr.inria.atlanmod.commons.log.Level;
 import fr.inria.atlanmod.commons.log.Log;
@@ -32,13 +32,13 @@ public abstract class LogAction extends RuntimeAction<LogPlatform> {
      * message} and {@code LogLevel}.
      *
      * @param runtimePlatform the {@link LogPlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param message          the message to log
      * @param logLevel         the severity {@link Level} of the message to log
      * @throws NullPointerException if the provided {@code runtimePlatform}, {@code session}, {@code message} or
      *                              {@code logLevel} is {@code null}
      */
-    public LogAction(LogPlatform runtimePlatform, JarvisSession session, String message, Level logLevel) {
+    public LogAction(LogPlatform runtimePlatform, XatkitSession session, String message, Level logLevel) {
         super(runtimePlatform, session);
         checkNotNull(message, "Cannot construct a {0} action with null as its message", this.getClass().getSimpleName
                 ());

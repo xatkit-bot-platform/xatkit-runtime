@@ -1,8 +1,8 @@
 package com.xatkit.core.platform.io;
 
-import com.xatkit.AbstractJarvisTest;
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.intent.*;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class EventInstanceBuilderTest extends AbstractJarvisTest {
+public class EventInstanceBuilderTest extends AbstractXatkitTest {
 
     private EventInstanceBuilder builder;
 
@@ -84,7 +84,7 @@ public class EventInstanceBuilderTest extends AbstractJarvisTest {
                 .isEqualTo("value");
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void buildNotRegisteredEventDefinition() {
         builder = EventInstanceBuilder.newBuilder(registry);
         builder.setEventDefinitionName("EventName").build();
@@ -102,7 +102,7 @@ public class EventInstanceBuilderTest extends AbstractJarvisTest {
         softly.assertThat(builder.getOutContextValues()).as("Builder OutContextValues cleared").isEmpty();
     }
 
-    @Test(expected = JarvisException.class)
+    @Test(expected = XatkitException.class)
     public void buildRegisteredEventDefinitionNotRegisteredOutContext() {
         EventDefinition eventDefinition = createAndRegisterEventDefinitionWithOutContextParameter("EventName",
                 "OutContext", "key");

@@ -2,9 +2,9 @@ package com.xatkit.plugins.github.platform;
 
 import com.jcabi.github.Github;
 import com.jcabi.github.RtGithub;
+import com.xatkit.core.XatkitCore;
 import com.xatkit.plugins.github.platform.action.OpenIssue;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
@@ -75,7 +75,7 @@ public class GithubPlatform extends RuntimePlatform {
     private Github githubClient;
 
     /**
-     * Constructs a new {@link GithubPlatform} from the provided {@link JarvisCore} and {@link Configuration}.
+     * Constructs a new {@link GithubPlatform} from the provided {@link XatkitCore} and {@link Configuration}.
      * <p>
      * This constructor tries to initialize the {@link Github} client used to access the Github API by looking for
      * the username/login or oauth token in the provided {@link Configuration}. If no authentication credentials can
@@ -87,16 +87,16 @@ public class GithubPlatform extends RuntimePlatform {
      * {@link Configuration} defines credentials the constructed {@link GithubPlatform} will check that these
      * credentials are valid.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance associated to this runtimePlatform
+     * @param xatkitCore    the {@link XatkitCore} instance associated to this runtimePlatform
      * @param configuration the {@link Configuration} used to customize Github events and actions
-     * @throws NullPointerException     if the provided {@code jarvisCore} or {@code configuration} is {@code null}
+     * @throws NullPointerException     if the provided {@code xatkitCore} or {@code configuration} is {@code null}
      * @throws IllegalArgumentException if the provided {@link Configuration} contains a {@code username} but does not
      *                                  contain a valid {@code password}
-     * @throws JarvisException          if the provided credentials are not valid or if a network error occurred when
+     * @throws XatkitException          if the provided credentials are not valid or if a network error occurred when
      *                                  accessing the Github API.
      */
-    public GithubPlatform(JarvisCore jarvisCore, Configuration configuration) {
-        super(jarvisCore, configuration);
+    public GithubPlatform(XatkitCore xatkitCore, Configuration configuration) {
+        super(xatkitCore, configuration);
         String username = configuration.getString(GITHUB_USERNAME_KEY);
         if (nonNull(username)) {
             String password = configuration.getString(GITHUB_PASSWORD_KEY);
@@ -129,7 +129,7 @@ public class GithubPlatform extends RuntimePlatform {
      * {@link AssertionError} when receiving the API result.
      *
      * @param githubClient the {@link Github} client to check
-     * @throws JarvisException if the provided {@link Github} client credentials are invalid or if an
+     * @throws XatkitException if the provided {@link Github} client credentials are invalid or if an
      *                         {@link IOException} occurred when accessing the Github API.
      */
     private void checkGithubClient(Github githubClient) {
@@ -138,9 +138,9 @@ public class GithubPlatform extends RuntimePlatform {
             String selfLogin = githubClient.users().self().login();
             Log.info("Logged in Github under the user {0}", selfLogin);
         } catch (IOException e) {
-            throw new JarvisException(e);
+            throw new XatkitException(e);
         } catch (AssertionError e) {
-            throw new JarvisException("Cannot access the Github API, please check your credentials", e);
+            throw new XatkitException("Cannot access the Github API, please check your credentials", e);
         }
     }
 
@@ -148,7 +148,7 @@ public class GithubPlatform extends RuntimePlatform {
      * Returns the {@link Github} client used to access the Github API.
      *
      * @return the {@link Github} client used to access the Github API
-     * @throws JarvisException if the {@link GithubPlatform} does not define a valid {@link Github} client (i.e. if the
+     * @throws XatkitException if the {@link GithubPlatform} does not define a valid {@link Github} client (i.e. if the
      *                         provided {@link Configuration} does not contain any credentials information or if the
      *                         authentication failed).
      */
@@ -156,7 +156,7 @@ public class GithubPlatform extends RuntimePlatform {
         if (nonNull(githubClient)) {
             return githubClient;
         } else {
-            throw new JarvisException("Cannot access the Github client, make sure it has been initialized correctly");
+            throw new XatkitException("Cannot access the Github client, make sure it has been initialized correctly");
         }
     }
 }

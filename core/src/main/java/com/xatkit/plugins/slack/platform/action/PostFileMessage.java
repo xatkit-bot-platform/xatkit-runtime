@@ -3,9 +3,9 @@ package com.xatkit.plugins.slack.platform.action;
 import com.github.seratch.jslack.api.methods.SlackApiException;
 import com.github.seratch.jslack.api.methods.request.files.FilesUploadRequest;
 import com.github.seratch.jslack.api.methods.response.files.FilesUploadResponse;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.slack.platform.SlackPlatform;
 import fr.inria.atlanmod.commons.log.Log;
 
@@ -56,19 +56,19 @@ public class PostFileMessage extends PostMessage {
      * <p>
      * This constructor builds a {@link PostFileMessage} action that uploads the provided {@code file} to the given
      * Slack {@code channel}. To upload a {@link String} as a file see
-     * {@link #PostFileMessage(SlackPlatform, JarvisSession, String, String, String, String)}.
+     * {@link #PostFileMessage(SlackPlatform, XatkitSession, String, String, String, String)}.
      *
      * @param runtimePlatform the {@link SlackPlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param message          the message to associate to the uploaded {@link File}
      * @param file             the file to upload
      * @param channel          the Slack channel to upload the {@link File} to
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null} or empty,
      *                                  or if the provided {@code file} is {@code null} or does not exist
-     * @see #PostFileMessage(SlackPlatform, JarvisSession, String, String, String, String)
+     * @see #PostFileMessage(SlackPlatform, XatkitSession, String, String, String, String)
      */
-    public PostFileMessage(SlackPlatform runtimePlatform, JarvisSession session, String message, File file, String
+    public PostFileMessage(SlackPlatform runtimePlatform, XatkitSession session, String message, File file, String
             channel) {
         super(runtimePlatform, session, message, channel);
         checkArgument(nonNull(file) && file.exists(), "Cannot construct a %s action with the provided file %s, " +
@@ -82,10 +82,10 @@ public class PostFileMessage extends PostMessage {
      * <p>
      * This constructor builds a {@link PostFileMessage} action that uploads the provided {@code content} as a file
      * to the given Slack {@code channel}. To upload an existing {@link File} see
-     * {@link #PostFileMessage(SlackPlatform, JarvisSession, String, File, String)}.
+     * {@link #PostFileMessage(SlackPlatform, XatkitSession, String, File, String)}.
      *
      * @param runtimePlatform the {@link SlackPlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param title            the title of the file to upload
      * @param message          the message to associate to the uploaded {@link File}
      * @param content          the content of the file to upload
@@ -93,9 +93,9 @@ public class PostFileMessage extends PostMessage {
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code title}, {@code message}, {@code content}, or {@code
      *                                  channel} is {@code null} or empty.
-     * @see #PostFileMessage(SlackPlatform, JarvisSession, String, File, String)
+     * @see #PostFileMessage(SlackPlatform, XatkitSession, String, File, String)
      */
-    public PostFileMessage(SlackPlatform runtimePlatform, JarvisSession session, String title, String message, String
+    public PostFileMessage(SlackPlatform runtimePlatform, XatkitSession session, String title, String message, String
             content, String channel) {
         super(runtimePlatform, session, message, channel);
         checkArgument(nonNull(title) && !title.isEmpty(), "Cannot construct a %s action with the provided title %s, " +
@@ -145,7 +145,7 @@ public class PostFileMessage extends PostMessage {
                         response);
             }
         } catch (IOException | SlackApiException e) {
-            throw new JarvisException(MessageFormat.format("Cannot send the message {0} to the Slack API", request), e);
+            throw new XatkitException(MessageFormat.format("Cannot send the message {0} to the Slack API", request), e);
         }
         return null;
     }

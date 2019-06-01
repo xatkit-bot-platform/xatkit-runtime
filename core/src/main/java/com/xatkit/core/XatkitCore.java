@@ -9,8 +9,8 @@ import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.recognition.dialogflow.DialogFlowException;
-import com.xatkit.core.server.JarvisServer;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.server.XatkitServer;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core_resources.utils.LibraryLoaderUtils;
 import com.xatkit.core_resources.utils.PlatformLoaderUtils;
 import com.xatkit.execution.ActionInstance;
@@ -79,12 +79,12 @@ import static java.util.Objects.nonNull;
  * @see ExecutionService
  * @see RuntimePlatform
  */
-public class JarvisCore {
+public class XatkitCore {
 
     /**
      * The {@link Configuration} key to store the {@link ExecutionModel} to use.
      *
-     * @see #JarvisCore(Configuration)
+     * @see #XatkitCore(Configuration)
      */
     public static String EXECUTION_MODEL_KEY = "jarvis.execution.model";
 
@@ -174,25 +174,25 @@ public class JarvisCore {
      * The {@link ExecutionService} used to handle {@link EventInstance}s and execute the associated
      * {@link RuntimeAction}s.
      *
-     * @see ExecutionService#handleEventInstance(EventInstance, JarvisSession)
+     * @see ExecutionService#handleEventInstance(EventInstance, XatkitSession)
      * @see RuntimeAction
      */
     protected ExecutionService executionService;
 
     /**
-     * The {@link Map} used to store and retrieve {@link JarvisSession}s associated to users.
+     * The {@link Map} used to store and retrieve {@link XatkitSession}s associated to users.
      *
-     * @see #getOrCreateJarvisSession(String)
+     * @see #getOrCreateXatkitSession(String)
      */
-    private Map<String, JarvisSession> sessions;
+    private Map<String, XatkitSession> sessions;
 
     /**
-     * The {@link JarvisServer} instance used to capture incoming webhooks.
+     * The {@link XatkitServer} instance used to capture incoming webhooks.
      */
-    private JarvisServer jarvisServer;
+    private XatkitServer xatkitServer;
 
     /**
-     * Constructs a new {@link JarvisCore} instance from the provided {@code configuration}.
+     * Constructs a new {@link XatkitCore} instance from the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following key (note that additional values may
      * be required according to the used {@link RuntimeEventProvider}s and {@link RuntimePlatform}s):
@@ -203,10 +203,10 @@ public class JarvisCore {
      *
      * @param configuration the {@link Configuration} to construct the instance from
      * @throws NullPointerException if the provided {@code configuration} or one of the mandatory values is {@code null}
-     * @throws JarvisException      if the framework is not able to retrieve the {@link ExecutionModel}
+     * @throws XatkitException      if the framework is not able to retrieve the {@link ExecutionModel}
      * @see ExecutionModel
      */
-    public JarvisCore(Configuration configuration) {
+    public XatkitCore(Configuration configuration) {
         checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
         try {
             this.configuration = configuration;
@@ -215,10 +215,10 @@ public class JarvisCore {
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
                     .getSimpleName(), ExecutionModel.class.getSimpleName());
             /*
-             * Start the server before creating the IntentRecognitionProvider, we need a valid JarvisServer instance
+             * Start the server before creating the IntentRecognitionProvider, we need a valid XatkitServer instance
              * to register the analytics REST endpoints (this is also required to start the EventProviderDefinition).
              */
-            this.jarvisServer = new JarvisServer(configuration);
+            this.xatkitServer = new XatkitServer(configuration);
             this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                     configuration);
             this.sessions = new HashMap<>();
@@ -226,7 +226,7 @@ public class JarvisCore {
             this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry);
             this.eventDefinitionRegistry = new EventDefinitionRegistry();
             this.loadExecutionModel(executionModel);
-            jarvisServer.start();
+            xatkitServer.start();
             Log.info("Xatkit bot started");
         } catch (Throwable t) {
             Log.error("An error occurred when starting the {0}, trying to close started services", this.getClass()
@@ -283,7 +283,7 @@ public class JarvisCore {
              * The EventProviderDefinition is still a proxy, meaning that the proxy resolution failed.
              */
             if (eventProviderDefinition.eIsProxy()) {
-                throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
+                throw new XatkitException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
                         "from the {1}", eventProviderDefinition, ExecutionModel.class.getSimpleName()));
             }
             PlatformDefinition eventProviderPlatform = (PlatformDefinition) eventProviderDefinition.eContainer();
@@ -360,7 +360,7 @@ public class JarvisCore {
              * The Action is still a proxy, meaning that the proxy resolution failed.
              */
             if (actionDefinition.eIsProxy()) {
-                throw new JarvisException(MessageFormat.format("An error occurred when resolving the proxy " +
+                throw new XatkitException(MessageFormat.format("An error occurred when resolving the proxy " +
                         "{0} from the {1}", actionDefinition, ExecutionModel.class.getSimpleName()));
             }
             PlatformDefinition platform = (PlatformDefinition) actionDefinition.eContainer();
@@ -412,7 +412,7 @@ public class JarvisCore {
      *
      * @param configuration the {@link Configuration} to retrieve the {@link ExecutionModel} from
      * @return the {@link ExecutionModel} from the provided {@code property}
-     * @throws JarvisException      if the provided {@code property} type is not handled, if the
+     * @throws XatkitException      if the provided {@code property} type is not handled, if the
      *                              underlying {@link Resource} cannot be loaded or if it does not contain an
      *                              {@link ExecutionModel} top-level element, or if the loaded
      *                              {@link ExecutionModel} is empty.
@@ -444,7 +444,7 @@ public class JarvisCore {
                 /*
                  * Unknown property type
                  */
-                throw new JarvisException(MessageFormat.format("Cannot retrieve the {0} from the " +
+                throw new XatkitException(MessageFormat.format("Cannot retrieve the {0} from the " +
                         "provided property {1}, the property type ({2}) is not supported", ExecutionModel.class
                         .getSimpleName(), property, property.getClass().getSimpleName()));
             }
@@ -453,22 +453,22 @@ public class JarvisCore {
                 executionModelResource = executionResourceSet.getResource(uri, true);
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new JarvisException(MessageFormat.format("Cannot load the {0} at the given location: {1}",
+                throw new XatkitException(MessageFormat.format("Cannot load the {0} at the given location: {1}",
                         ExecutionModel.class.getSimpleName(), uri.toString()), e);
             }
             if (isNull(executionModelResource)) {
-                throw new JarvisException(MessageFormat.format("Cannot load the provided {0} (uri: {1})",
+                throw new XatkitException(MessageFormat.format("Cannot load the provided {0} (uri: {1})",
                         ExecutionModel.class.getSimpleName(), uri));
             }
             if (executionModelResource.getContents().isEmpty()) {
-                throw new JarvisException(MessageFormat.format("The provided {0} is empty (uri: {1})", ExecutionModel
+                throw new XatkitException(MessageFormat.format("The provided {0} is empty (uri: {1})", ExecutionModel
                         .class.getSimpleName(), executionModelResource.getURI()));
             }
             ExecutionModel executionModel;
             try {
                 executionModel = (ExecutionModel) executionModelResource.getContents().get(0);
             } catch (ClassCastException e) {
-                throw new JarvisException(MessageFormat.format("The provided {0} does not contain an " +
+                throw new XatkitException(MessageFormat.format("The provided {0} does not contain an " +
                                 "{0} top-level element (uri: {1})", ExecutionModel.class.getSimpleName(),
                         executionModelResource.getURI()), e);
             }
@@ -508,7 +508,7 @@ public class JarvisCore {
      * {@link LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP}, {@link PlatformLoaderUtils#CORE_PLATFORM_PATHMAP} and
      * {@link PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP} for further information.
      *
-     * @throws JarvisException if an error occurred when loading the {@link Resource}s
+     * @throws XatkitException if an error occurred when loading the {@link Resource}s
      * @see #loadCoreLibraries()
      * @see #loadCustomLibraries()
      * @see #loadCorePlatforms()
@@ -590,7 +590,7 @@ public class JarvisCore {
      * @param pathmapPrefix       the pathmap used to prefix the core {@link Resource}'s {@link URI}
      * @param topLevelElementType the expected type of the top-level element of the loaded {@link Resource}
      * @param <T>                 the type of the top-level element
-     * @throws JarvisException if an error occurred when crawling the folder's content or when loading a core
+     * @throws XatkitException if an error occurred when crawling the folder's content or when loading a core
      *                         {@link Resource}
      */
     private <T extends EObject> void loadCoreResources(Path folderPath, String pathmapPrefix, Class<T>
@@ -613,12 +613,12 @@ public class JarvisCore {
                     Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
                     Log.debug("\tPath: {0}", resourcePath);
                 } catch (IOException e) {
-                    throw new JarvisException(MessageFormat.format("An error occurred when loading the {0}, see " +
+                    throw new XatkitException(MessageFormat.format("An error occurred when loading the {0}, see " +
                             "attached exception", resourcePath), e);
                 }
             });
         } catch (IOException e) {
-            throw new JarvisException(MessageFormat.format("An error occurred when crawling the core {0} at the " +
+            throw new XatkitException(MessageFormat.format("An error occurred when crawling the core {0} at the " +
                     "location {1}, see attached exception", topLevelElementType.getSimpleName(), folderPath), e);
         }
     }
@@ -686,7 +686,7 @@ public class JarvisCore {
      * @param pathmapURI          the pathmap {@link URI} used to load the {@link Resource}
      * @param topLevelElementType the expected type of the top-level element of the loaded {@link Resource}
      * @param <T>                 the type of the top-level element
-     * @throws JarvisException if an error occurred when loading the {@link Resource}
+     * @throws XatkitException if an error occurred when loading the {@link Resource}
      */
     private <T extends EObject> void loadCustomResource(String path, URI pathmapURI, Class<T> topLevelElementType) {
         /*
@@ -709,7 +709,7 @@ public class JarvisCore {
             Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
             Log.debug("\tPath: {0}", resourceFile.toString());
         } else {
-            throw new JarvisException(MessageFormat.format("Cannot load the custom {0}, the provided path {1} is not " +
+            throw new XatkitException(MessageFormat.format("Cannot load the custom {0}, the provided path {1} is not " +
                     "a valid file", topLevelElementType.getSimpleName(), path));
         }
     }
@@ -723,7 +723,7 @@ public class JarvisCore {
      *
      * @param resourceLocation the location of the resource to retrieve the {@link Path} of
      * @return the computed {@link Path}
-     * @throws JarvisException if an error occurred when computing the {@link Path}
+     * @throws XatkitException if an error occurred when computing the {@link Path}
      */
     private Path getPath(String resourceLocation) {
         URL url = this.getClass().getClassLoader().getResource(resourceLocation);
@@ -731,7 +731,7 @@ public class JarvisCore {
         try {
             uri = url.toURI();
         } catch (URISyntaxException e) {
-            throw new JarvisException(MessageFormat.format("An error occurred when loading the resource {0}, see " +
+            throw new XatkitException(MessageFormat.format("An error occurred when loading the resource {0}, see " +
                     "attached exception", resourceLocation), e);
         }
         /*
@@ -754,7 +754,7 @@ public class JarvisCore {
                      */
                     FileSystems.newFileSystem(uri, env);
                 } catch (IOException e1) {
-                    throw new JarvisException(MessageFormat.format("An error occurred when loading the resource {0}, " +
+                    throw new XatkitException(MessageFormat.format("An error occurred when loading the resource {0}, " +
                             "see attached exception", resourceLocation), e1);
                 }
             }
@@ -776,13 +776,13 @@ public class JarvisCore {
      * @param platformDefinition the jarvis {@link PlatformDefinition} to load
      * @param configuration      the jarvis {@link Configuration} used to retrieve abstract platform bindings
      * @return an instance of the loaded {@link RuntimePlatform}
-     * @throws JarvisException if their is no {@link Class} matching the provided {@code platformDefinition} or if the
+     * @throws XatkitException if their is no {@link Class} matching the provided {@code platformDefinition} or if the
      *                         {@link RuntimePlatform} can not be constructed
      * @see PlatformDefinition
      * @see RuntimePlatform
      */
     private RuntimePlatform loadRuntimePlatformFromPlatformModel(PlatformDefinition platformDefinition, Configuration
-            configuration) throws JarvisException {
+            configuration) throws XatkitException {
         Log.info("Loading RuntimePlatform for {0}", platformDefinition.getName());
         String platformPath = platformDefinition.getRuntimePath();
         if (platformDefinition.isAbstract()) {
@@ -853,20 +853,20 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link JarvisServer} used to capture incoming webhooks.
+     * Returns the {@link XatkitServer} used to capture incoming webhooks.
      *
-     * @return the {@link JarvisServer} used to capture incoming webhooks
+     * @return the {@link XatkitServer} used to capture incoming webhooks
      */
-    public JarvisServer getJarvisServer() {
-        return jarvisServer;
+    public XatkitServer getXatkitServer() {
+        return xatkitServer;
     }
 
     /**
-     * Shuts down the {@link JarvisCore} and the underlying engines.
+     * Shuts down the {@link XatkitCore} and the underlying engines.
      * <p>
      * This method shuts down the underlying {@link IntentRecognitionProvider}, unloads and shuts down all the
      * {@link RuntimePlatform}s associated to this instance, unregisters the {@link EventDefinition} from the associated
-     * {@link EventDefinitionRegistry}, shuts down the {@link ExecutionService}, and stops the {@link JarvisServer}.
+     * {@link EventDefinitionRegistry}, shuts down the {@link ExecutionService}, and stops the {@link XatkitServer}.
      * <p>
      * <b>Note:</b> calling this method invalidates the {@link IntentRecognitionProvider} connection, and thus shuts
      * down intent recognition features. New {@link RuntimeAction}s cannot be processed either.
@@ -875,12 +875,12 @@ public class JarvisCore {
      * @see RuntimePlatform#shutdown()
      * @see EventDefinitionRegistry#unregisterEventDefinition(EventDefinition)
      * @see ExecutionService#shutdown()
-     * @see JarvisServer#stop()
+     * @see XatkitServer#stop()
      */
     public void shutdown() {
-        Log.info("Shutting down JarvisCore");
+        Log.info("Shutting down XatkitCore");
         if (isShutdown()) {
-            throw new JarvisException("Cannot perform shutdown, JarvisCore is already shutdown");
+            throw new XatkitException("Cannot perform shutdown, XatkitCore is already shutdown");
         }
         /* Shutdown the ExecutionService first in case there are running tasks using the IntentRecognitionProvider
          * API.
@@ -912,11 +912,11 @@ public class JarvisCore {
                 Log.error("An error occurred when closing the {0}", this.executionService.getClass().getSimpleName());
             }
         }
-        if (nonNull(this.jarvisServer)) {
+        if (nonNull(this.xatkitServer)) {
             try {
-                this.jarvisServer.stop();
+                this.xatkitServer.stop();
             } catch (Throwable t) {
-                Log.error("An error occurred when closing the {0}", this.jarvisServer.getClass().getSimpleName());
+                Log.error("An error occurred when closing the {0}", this.xatkitServer.getClass().getSimpleName());
             }
         }
         if (nonNull(this.intentRecognitionProvider)) {
@@ -930,32 +930,32 @@ public class JarvisCore {
     }
 
     /**
-     * Returns whether the {@link JarvisCore} client is shutdown.
+     * Returns whether the {@link XatkitCore} client is shutdown.
      * <p>
      * This class is considered as shutdown if its underlying {@link ExecutionService},
-     * {@link IntentRecognitionProvider}, and {@link JarvisServer} are shutdown.
+     * {@link IntentRecognitionProvider}, and {@link XatkitServer} are shutdown.
      *
-     * @return {@code true} if the {@link JarvisCore} client is shutdown, {@code false} otherwise
+     * @return {@code true} if the {@link XatkitCore} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
-        return (!jarvisServer.isStarted()) && executionService.isShutdown() && intentRecognitionProvider
+        return (!xatkitServer.isStarted()) && executionService.isShutdown() && intentRecognitionProvider
                 .isShutdown();
     }
 
     /**
-     * Retrieves or creates the {@link JarvisSession} associated to the provided {@code sessionId}.
+     * Retrieves or creates the {@link XatkitSession} associated to the provided {@code sessionId}.
      * <p>
-     * If the {@link JarvisSession} does not exist a new one is created using
+     * If the {@link XatkitSession} does not exist a new one is created using
      * {@link IntentRecognitionProvider#createSession(String)}.
      *
      * @param sessionId the identifier to get or retrieve a session from
-     * @return the {@link JarvisSession} associated to the provided {@code sessionId}
+     * @return the {@link XatkitSession} associated to the provided {@code sessionId}
      * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
-    public JarvisSession getOrCreateJarvisSession(String sessionId) {
-        checkNotNull(sessionId, "Cannot create or retrieve the %s from the provided session ID %s", JarvisSession
+    public XatkitSession getOrCreateXatkitSession(String sessionId) {
+        checkNotNull(sessionId, "Cannot create or retrieve the %s from the provided session ID %s", XatkitSession
                 .class.getSimpleName(), sessionId);
-        JarvisSession session = getJarvisSession(sessionId);
+        XatkitSession session = getXatkitSession(sessionId);
         if (isNull(session)) {
             session = this.intentRecognitionProvider.createSession(sessionId);
             sessions.put(sessionId, session);
@@ -964,26 +964,26 @@ public class JarvisCore {
     }
 
     /**
-     * Returns the {@link JarvisSession} associated to the provided {@code sessionId}
+     * Returns the {@link XatkitSession} associated to the provided {@code sessionId}
      *
      * @param sessionId the identifier to retrieve the session from
-     * @return the {@link JarvisSession} associated to the provided {@code sessionId}
+     * @return the {@link XatkitSession} associated to the provided {@code sessionId}
      * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
-    public JarvisSession getJarvisSession(String sessionId) {
+    public XatkitSession getXatkitSession(String sessionId) {
         checkNotNull(sessionId, "Cannot retrieve a session from null as the session ID");
         return sessions.get(sessionId);
     }
 
     /**
-     * Invalidates all the {@link JarvisSession}s and clear the session registry.
+     * Invalidates all the {@link XatkitSession}s and clear the session registry.
      */
-    public void clearJarvisSessions() {
+    public void clearXatkitSessions() {
         this.sessions.clear();
     }
 
     /**
-     * Logs a warning message and stops the running services if the {@link JarvisCore} hasn't been closed properly.
+     * Logs a warning message and stops the running services if the {@link XatkitCore} hasn't been closed properly.
      *
      * @throws Throwable if an error occurred when stopping the running services.
      */

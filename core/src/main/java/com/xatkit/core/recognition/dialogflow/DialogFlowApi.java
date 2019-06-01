@@ -34,12 +34,12 @@ import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.xatkit.Xatkit;
 import com.xatkit.core.EventDefinitionRegistry;
-import com.xatkit.core.JarvisCore;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.RecognitionMonitor;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
@@ -96,14 +96,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * The {@link Configuration} key to store the unique identifier of the DialogFlow project.
      *
-     * @see #DialogFlowApi(JarvisCore, Configuration)
+     * @see #DialogFlowApi(XatkitCore, Configuration)
      */
     public static String PROJECT_ID_KEY = "jarvis.dialogflow.projectId";
 
     /**
      * The {@link Configuration} key to store the code of the language processed by DialogFlow.
      *
-     * @see #DialogFlowApi(JarvisCore, Configuration)
+     * @see #DialogFlowApi(XatkitCore, Configuration)
      */
     public static String LANGUAGE_CODE_KEY = "jarvis.dialogflow.language";
 
@@ -113,7 +113,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * If this key is not set the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
      * environment variable to retrieve the credentials file.
      *
-     * @see #DialogFlowApi(JarvisCore, Configuration)
+     * @see #DialogFlowApi(XatkitCore, Configuration)
      */
     public static String GOOGLE_CREDENTIALS_PATH_KEY = "jarvis.dialogflow.credentials.path";
 
@@ -160,14 +160,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     public static String ENABLE_ENTITY_LOADING_KEY = "jarvis.dialogflow.entity.loading";
 
     /**
-     * The {@link Configuration} key to store whether to merge the local {@link JarvisSession} in the DialogFlow one.
+     * The {@link Configuration} key to store whether to merge the local {@link XatkitSession} in the DialogFlow one.
      * <p>
-     * This option is enabled by default to ensure consistency between the local {@link JarvisSession} and the
+     * This option is enabled by default to ensure consistency between the local {@link XatkitSession} and the
      * DialogFlow's one. However, bot implementations that strictly rely on the DialogFlow API and do not use local
-     * {@link JarvisSession}s can disable this option to improve the bot's performances and reduce the number of
+     * {@link XatkitSession}s can disable this option to improve the bot's performances and reduce the number of
      * calls to the remote DialogFlow API.
      * <p>
-     * Note that disabling this option for a bot implementation that manipulates local {@link JarvisSession}s may
+     * Note that disabling this option for a bot implementation that manipulates local {@link XatkitSession}s may
      * generate consistency issues and unexpected behaviors (such as unmatched intents and context value overwriting).
      */
     public static String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "jarvis.dialogflow.context.merge";
@@ -187,15 +187,15 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     }
 
     /**
-     * The containing {@link JarvisCore} instance.
+     * The containing {@link XatkitCore} instance.
      */
-    private JarvisCore jarvisCore;
+    private XatkitCore xatkitCore;
 
     /**
      * The {@link Configuration} used to initialize this class.
      * <p>
      * This {@link Configuration} is used to retrieve the underlying DialogFlow project identifier, language, and
-     * customize {@link JarvisSession} and {@link RuntimeContexts}s.
+     * customize {@link XatkitSession} and {@link RuntimeContexts}s.
      */
     private Configuration configuration;
 
@@ -248,11 +248,11 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     private boolean enableEntityLoader;
 
     /**
-     * A flag allowing the {@link DialogFlowApi} to merge local {@link JarvisSession}s in the DialogFlow one.
+     * A flag allowing the {@link DialogFlowApi} to merge local {@link XatkitSession}s in the DialogFlow one.
      * <p>
      * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
      * sent to the DialogFlow API, but may generate consistency issues and unexpected behaviors for bot
-     * implementations that manipulate local {@link JarvisSession}s.
+     * implementations that manipulate local {@link XatkitSession}s.
      *
      * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
@@ -328,10 +328,10 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * custom variables, etc).
      * <p>
      * <b>Note:</b> the local {@link RuntimeContexts} is merged in DialogFlow before each
-     * intent recognition query (see {@link #getIntent(String, JarvisSession)}. This behavior can be disabled by
+     * intent recognition query (see {@link #getIntent(String, XatkitSession)}. This behavior can be disabled by
      * setting the {@link #ENABLE_LOCAL_CONTEXT_MERGE_KEY} to {@code false} in the provided {@link Configuration}.
      *
-     * @see #getIntent(String, JarvisSession)
+     * @see #getIntent(String, XatkitSession)
      * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
     private ContextsClient contextsClient;
@@ -373,18 +373,18 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
      * <p>
-     * This constructor is a placeholder for {@link #DialogFlowApi(JarvisCore, Configuration, RecognitionMonitor)}
+     * This constructor is a placeholder for {@link #DialogFlowApi(XatkitCore, Configuration, RecognitionMonitor)}
      * with a {@code null} {@link RecognitionMonitor}.
      *
-     * @param jarvisCore    the {@link JarvisCore} instance managing the {@link DialogFlowApi}
+     * @param xatkitCore    the {@link XatkitCore} instance managing the {@link DialogFlowApi}
      * @param configuration the {@link Configuration} holding the DialogFlow project ID and language code
-     * @throws NullPointerException if the provided {@code jarvisCore}, {@code configuration} or one of the
+     * @throws NullPointerException if the provided {@code xatkitCore}, {@code configuration} or one of the
      *                              mandatory {@code configuration} value is {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
-     * @see #DialogFlowApi(JarvisCore, Configuration, RecognitionMonitor)
+     * @see #DialogFlowApi(XatkitCore, Configuration, RecognitionMonitor)
      */
-    public DialogFlowApi(JarvisCore jarvisCore, Configuration configuration) {
-        this(jarvisCore, configuration, null);
+    public DialogFlowApi(XatkitCore xatkitCore, Configuration configuration) {
+        this(xatkitCore, configuration, null);
     }
 
     /**
@@ -407,16 +407,16 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * consistency issues between the DialogFlow agent and the local {@link DialogFlowApi}.
      * <p>
      * The vaule <b>jarvis.dialogflow.context.merge</b> is not mandatory and allows to tune whether the
-     * {@link DialogFlowApi} should merge the local {@link JarvisSession} in the DialogFlow one. This option is set
+     * {@link DialogFlowApi} should merge the local {@link XatkitSession} in the DialogFlow one. This option is set
      * to {@code true} by default, and may be set to {@code false} to improve the performances of bot implementations
-     * that strictly rely on the DialogFlow API, and do not manipulate local {@link JarvisSession}s. Disabling this
-     * option for a bot implementation that manipulates local {@link JarvisSession}s may generate consistency issues
+     * that strictly rely on the DialogFlow API, and do not manipulate local {@link XatkitSession}s. Disabling this
+     * option for a bot implementation that manipulates local {@link XatkitSession}s may generate consistency issues
      * and unexpected behaviors (such as unmatched intents and context value overwriting).
      *
-     * @param jarvisCore         the {@link JarvisCore} instance managing the {@link DialogFlowApi}
+     * @param xatkitCore         the {@link XatkitCore} instance managing the {@link DialogFlowApi}
      * @param configuration      the {@link Configuration} holding the DialogFlow project ID and language code
      * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent matching information
-     * @throws NullPointerException if the provided {@code jarvisCore}, {@code configuration} or one of the mandatory
+     * @throws NullPointerException if the provided {@code xatkitCore}, {@code configuration} or one of the mandatory
      *                              {@code configuration} value is {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
      * @see #PROJECT_ID_KEY
@@ -425,12 +425,12 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #ENABLE_INTENT_LOADING_KEY
      * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
-    public DialogFlowApi(JarvisCore jarvisCore, Configuration configuration,
+    public DialogFlowApi(XatkitCore xatkitCore, Configuration configuration,
                          @Nullable RecognitionMonitor recognitionMonitor) {
-        checkNotNull(jarvisCore, "Cannot construct a DialogFlow API instance with a null JarvisCore instance");
+        checkNotNull(xatkitCore, "Cannot construct a DialogFlow API instance with a null XatkitCore instance");
         checkNotNull(configuration, "Cannot construct a DialogFlow API instance from a configuration");
         Log.info("Starting DialogFlow Client");
-        this.jarvisCore = jarvisCore;
+        this.xatkitCore = xatkitCore;
         this.configuration = configuration;
         this.loadConfiguration(configuration);
         this.projectAgentName = ProjectAgentName.of(projectId);
@@ -990,7 +990,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                  * The parentIntent registration has failed, there is no way to build a DialogFlow agent that is
                  * consistent with the provided model.
                  */
-                throw new JarvisException(MessageFormat.format("Cannot retrieve the parent intent {0}, check the logs" +
+                throw new XatkitException(MessageFormat.format("Cannot retrieve the parent intent {0}, check the logs" +
                         " for additional information", intentDefinition.getFollows().getName()));
             }
         }
@@ -1358,13 +1358,13 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * The created session wraps the internal DialogFlow session that is used on the DialogFlow project to retrieve
      * conversation parts from a given user.
      * <p>
-     * The returned {@link JarvisSession} is configured by the global {@link Configuration} provided in
-     * {@link #DialogFlowApi(JarvisCore, Configuration)}.
+     * The returned {@link XatkitSession} is configured by the global {@link Configuration} provided in
+     * {@link #DialogFlowApi(XatkitCore, Configuration)}.
      *
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
     @Override
-    public JarvisSession createSession(String sessionId) {
+    public XatkitSession createSession(String sessionId) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
         }
@@ -1376,7 +1376,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Merges the local {@link DialogFlowSession} in the remote DialogFlow API one.
      * <p>
-     * This method ensures that the remote DialogFlow API stays consistent with the local {@link JarvisSession} by
+     * This method ensures that the remote DialogFlow API stays consistent with the local {@link XatkitSession} by
      * setting all the local context variables in the remote session. This allows to match intents with input
      * contexts that have been defined locally, such as received events, custom variables, etc.
      * <p>
@@ -1386,9 +1386,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * calls to the remote DialogFlow API.
      *
      * @param dialogFlowSession the local {@link DialogFlowSession} to merge in the remote one
-     * @throws JarvisException      if at least one of the local context values' type is not supported
+     * @throws XatkitException      if at least one of the local context values' type is not supported
      * @throws NullPointerException if the provided {@code dialogFlowSession} is {@code null}
-     * @see #getIntent(String, JarvisSession)
+     * @see #getIntent(String, XatkitSession)
      */
     public void mergeLocalSessionInDialogFlow(DialogFlowSession dialogFlowSession) {
         Log.info("Merging local context in the DialogFlow session {0}", dialogFlowSession.getSessionId());
@@ -1405,7 +1405,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                     Map<String, Value> dialogFlowContextVariables = new HashMap<>();
                     contextVariables.entrySet().stream().forEach(contextVariableEntry -> {
                                 if (!(contextVariableEntry.getValue() instanceof String)) {
-                                    throw new JarvisException(MessageFormat.format("Cannot merge the current {0} in " +
+                                    throw new XatkitException(MessageFormat.format("Cannot merge the current {0} in " +
                                                     "DialogFlow, the context parameter value {1}.{2}={3} is not a " +
                                                     "{4}", this.getClass().getSimpleName(), contextName,
                                             contextVariableEntry.getKey(), contextVariableEntry.getValue(),
@@ -1435,7 +1435,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * decouple the application from the concrete API used.
      * <p>
      * If the {@link #ENABLE_LOCAL_CONTEXT_MERGE_KEY} property is set to {@code true} this method will first merge the
-     * local {@link JarvisSession} in the remote DialogFlow one, in order to ensure that all the local contexts are
+     * local {@link XatkitSession} in the remote DialogFlow one, in order to ensure that all the local contexts are
      * propagated to the recognition engine.
      *
      * @throws NullPointerException     if the provided {@code input} or {@code session} is {@code null}
@@ -1445,7 +1445,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
     @Override
-    public RecognizedIntent getIntent(String input, JarvisSession session) {
+    public RecognizedIntent getIntent(String input, XatkitSession session) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot extract an Intent from the provided input, the DialogFlow API is " +
                     "shutdown");
@@ -1532,7 +1532,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              */
             com.xatkit.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
             if (isNull(contextDefinition)) {
-                contextDefinition = this.jarvisCore.getEventDefinitionRegistry().getEventDefinitionOutContext
+                contextDefinition = this.xatkitCore.getEventDefinitionRegistry().getEventDefinitionOutContext
                         (contextName);
             }
             if (nonNull(contextDefinition)) {
@@ -1580,7 +1580,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     private IntentDefinition convertDialogFlowIntentToIntentDefinition(Intent intent) {
         checkNotNull(intent, "Cannot retrieve the %s from the provided %s %s", IntentDefinition.class.getSimpleName()
                 , Intent.class.getSimpleName(), intent);
-        IntentDefinition result = jarvisCore.getEventDefinitionRegistry().getIntentDefinition(intent
+        IntentDefinition result = xatkitCore.getEventDefinitionRegistry().getIntentDefinition(intent
                 .getDisplayName());
         if (isNull(result)) {
             Log.warn("Cannot retrieve the {0} with the provided name {1}, returning the Default Fallback Intent",

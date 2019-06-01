@@ -1,7 +1,7 @@
 package com.xatkit.plugins.react.platform.action;
 
 import com.xatkit.core.platform.action.RuntimeMessageAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.react.platform.ReactPlatform;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -22,13 +22,13 @@ public class PostMessage extends RuntimeMessageAction<ReactPlatform> {
      * message}, and {@code channel}.
      *
      * @param runtimePlatform the {@link ReactPlatform} containing this action
-     * @param session         the {@link JarvisSession} associated to this action
+     * @param session         the {@link XatkitSession} associated to this action
      * @param message         the message to post
      * @param channel         the jarvis-react channel to post the message to
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null}
      */
-    public PostMessage(ReactPlatform runtimePlatform, JarvisSession session, String message, String channel) {
+    public PostMessage(ReactPlatform runtimePlatform, XatkitSession session, String message, String channel) {
         super(runtimePlatform, session, message);
         checkArgument(nonNull(channel) && !(channel.isEmpty()), "Cannot construct a %s action with the provided " +
                 "channel %s, expected a non-null and not empty String", this.getClass().getSimpleName(), channel);
@@ -50,7 +50,7 @@ public class PostMessage extends RuntimeMessageAction<ReactPlatform> {
     }
 
     @Override
-    protected JarvisSession getClientSession() {
+    protected XatkitSession getClientSession() {
         return this.runtimePlatform.createSessionFromChannel(channel);
     }
 }

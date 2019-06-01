@@ -1,13 +1,13 @@
 package com.xatkit.stubs.action;
 
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 
 import java.io.IOException;
 
 public class StubRuntimeMessageActionIOException extends StubRuntimeMessageAction {
 
-    public StubRuntimeMessageActionIOException(RuntimePlatform runtimePlatform, JarvisSession session, String
+    public StubRuntimeMessageActionIOException(RuntimePlatform runtimePlatform, XatkitSession session, String
             rawMessage) {
         super(runtimePlatform, session, rawMessage);
     }

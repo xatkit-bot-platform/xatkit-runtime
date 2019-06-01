@@ -3,7 +3,7 @@ package com.xatkit.plugins.react.platform.io;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.xatkit.core.platform.io.JsonWebhookEventProvider;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.plugins.chat.ChatUtils;
 import com.xatkit.plugins.react.platform.ReactPlatform;
@@ -26,7 +26,7 @@ import static java.util.Objects.nonNull;
  */
 class ReactWebhook extends JsonWebhookEventProvider<ReactPlatform> {
 
-    private static final String JARVIS_REACT_HEADER = "jarvis-react";
+    private static final String XATKIT_REACT_HEADER = "jarvis-react";
 
     /**
      * The {@link ReactIntentProvider} managing this {@link ReactWebhook}.
@@ -50,19 +50,19 @@ class ReactWebhook extends JsonWebhookEventProvider<ReactPlatform> {
 
     @Override
     public List<String> getAccessControlAllowHeaders() {
-        return Collections.singletonList(JARVIS_REACT_HEADER);
+        return Collections.singletonList(XATKIT_REACT_HEADER);
     }
 
     @Override
     protected void handleParsedContent(JsonElement parsedContent, Header[] headers) {
-        if (containsJarvisReact(headers)) {
+        if (containsXatkitReact(headers)) {
             JsonObject content = parsedContent.getAsJsonObject();
             String username = content.get("username").getAsString();
             String channel = content.get("channel").getAsString();
             JsonElement message = content.get("message");
             if (nonNull(message)) {
                 String textMessage = message.getAsString();
-                JarvisSession session = runtimePlatform.createSessionFromChannel(channel);
+                XatkitSession session = runtimePlatform.createSessionFromChannel(channel);
                 RecognizedIntent recognizedIntent = baseProvider.getRecognizedIntent(textMessage, session);
                 session.getRuntimeContexts().setContextValue(ReactUtils.REACT_CONTEXT_KEY, 1,
                         ReactUtils.CHAT_USERNAME_CONTEXT_KEY, username);
@@ -102,15 +102,15 @@ class ReactWebhook extends JsonWebhookEventProvider<ReactPlatform> {
     }
 
     /**
-     * Checks if the provided {@link Header}s contain the JARVIS_REACT_HEADER.
+     * Checks if the provided {@link Header}s contain the XATKIT_REACT_HEADER.
      *
      * @param headers the {@link Header}s to check
-     * @return {@code true} if the provided {@code headers} contain the JARVIS_REACT_HEADER, {@code false} otherwise
+     * @return {@code true} if the provided {@code headers} contain the XATKIT_REACT_HEADER, {@code false} otherwise
      */
-    private boolean containsJarvisReact(Header[] headers) {
+    private boolean containsXatkitReact(Header[] headers) {
         for (int i = 0; i < headers.length; i++) {
             Header h = headers[i];
-            if (h.getName().equals(JARVIS_REACT_HEADER)) {
+            if (h.getName().equals(XATKIT_REACT_HEADER)) {
                 return true;
             }
         }

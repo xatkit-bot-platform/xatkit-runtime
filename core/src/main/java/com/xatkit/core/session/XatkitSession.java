@@ -1,6 +1,6 @@
 package com.xatkit.core.session;
 
-import com.xatkit.core.JarvisCore;
+import com.xatkit.core.XatkitCore;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -14,17 +14,17 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 /**
  * A session holding user-related information.
  * <p>
- * A {@link JarvisSession} is bound to a user, and holds all the volatile information related to the current
- * conversation. A {@link JarvisSession} contains a {@link RuntimeContexts}, that represents the contextual variables
+ * A {@link XatkitSession} is bound to a user, and holds all the volatile information related to the current
+ * conversation. A {@link XatkitSession} contains a {@link RuntimeContexts}, that represents the contextual variables
  * of the current conversation.
  *
  * @see RuntimeContexts
- * @see JarvisCore#getOrCreateJarvisSession(String)
+ * @see XatkitCore#getOrCreateXatkitSession(String)
  */
-public class JarvisSession {
+public class XatkitSession {
 
     /**
-     * The unique identifier of the {@link JarvisSession}.
+     * The unique identifier of the {@link XatkitSession}.
      */
     private String sessionId;
 
@@ -43,30 +43,30 @@ public class JarvisSession {
     private Map<String, Object> sessionVariables;
 
     /**
-     * Constructs a new, empty {@link JarvisSession} with the provided {@code sessionId}.
-     * See {@link #JarvisSession(String, Configuration)} to construct a {@link JarvisSession} with a given
+     * Constructs a new, empty {@link XatkitSession} with the provided {@code sessionId}.
+     * See {@link #XatkitSession(String, Configuration)} to construct a {@link XatkitSession} with a given
      * {@link Configuration}.
      *
-     * @param sessionId the unique identifier of the {@link JarvisSession}
+     * @param sessionId the unique identifier of the {@link XatkitSession}
      */
-    public JarvisSession(String sessionId) {
+    public XatkitSession(String sessionId) {
         this(sessionId, new BaseConfiguration());
     }
 
     /**
-     * Constructs a new, empty {@link JarvisSession} with the provided {@code sessionId} and {@code configuration}.
+     * Constructs a new, empty {@link XatkitSession} with the provided {@code sessionId} and {@code configuration}.
      * <p>
      * This constructor forwards the provided {@link Configuration} to the underlying {@link RuntimeContexts} and can
      * be used to customize {@link RuntimeContexts} properties.
      *
-     * @param sessionId     the unique identifier of the {@link JarvisSession}
-     * @param configuration the {@link Configuration} parameterizing the {@link JarvisSession}
+     * @param sessionId     the unique identifier of the {@link XatkitSession}
+     * @param configuration the {@link Configuration} parameterizing the {@link XatkitSession}
      * @throws NullPointerException if the provided {@code sessionId} or {@code configuration} is {@code null}
      */
-    public JarvisSession(String sessionId, Configuration configuration) {
-        checkNotNull(sessionId, "Cannot construct a %s with the session Id %s", JarvisSession.class.getSimpleName(),
+    public XatkitSession(String sessionId, Configuration configuration) {
+        checkNotNull(sessionId, "Cannot construct a %s with the session Id %s", XatkitSession.class.getSimpleName(),
                 sessionId);
-        checkNotNull(configuration, "Cannot construct a %s with the provided %s: %s", JarvisSession.class
+        checkNotNull(configuration, "Cannot construct a %s with the provided %s: %s", XatkitSession.class
                 .getSimpleName(), Configuration.class.getSimpleName(), configuration);
         this.sessionId = sessionId;
         this.runtimeContexts = new RuntimeContexts(configuration);
@@ -74,9 +74,9 @@ public class JarvisSession {
     }
 
     /**
-     * Returns the unique identifier of the {@link JarvisSession}.
+     * Returns the unique identifier of the {@link XatkitSession}.
      *
-     * @return the unique identifier of the {@link JarvisSession}
+     * @return the unique identifier of the {@link XatkitSession}
      */
     public String getSessionId() {
         return sessionId;
@@ -117,7 +117,7 @@ public class JarvisSession {
      * This method creates a new {@link List} with the provided {@code value} if the session variables do not contain
      * any record associated to the provided {@code key}.
      * <p>
-     * <b>Note:</b> if the {@link JarvisSession} contains a single-valued entry for the provided {@code key} this
+     * <b>Note:</b> if the {@link XatkitSession} contains a single-valued entry for the provided {@code key} this
      * value will be erased and replaced by the created {@link List}.
      *
      * @param key   the key of the {@link List} to store the provided {@code value}

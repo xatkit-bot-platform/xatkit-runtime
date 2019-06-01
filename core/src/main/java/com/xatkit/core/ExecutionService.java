@@ -8,7 +8,7 @@ import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.action.RuntimeActionResult;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ActionInstance;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.ExecutionRule;
@@ -35,15 +35,15 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * provided {@link ExecutionModel}.
  * <p>
  * This class defines Xatkit' execution logic: {@link RuntimeEventProvider}s typically call the
- * {@link #handleEventInstance(EventInstance, JarvisSession)} method to process a retrieved {@link EventInstance},
+ * {@link #handleEventInstance(EventInstance, XatkitSession)} method to process a retrieved {@link EventInstance},
  * and trigger the {@link RuntimeAction}s that are associated to it in the {@link ExecutionModel}.
  * <p>
- * The {@link ExecutionService} is initialized by the {@link JarvisCore} instance, that loads the
+ * The {@link ExecutionService} is initialized by the {@link XatkitCore} instance, that loads the
  * {@link ExecutionModel} and initializes the {@link RuntimePlatformRegistry}.
  *
  * @see ActionInstance
  * @see EventInstance
- * @see JarvisCore
+ * @see XatkitCore
  */
 public class ExecutionService extends CommonInterpreter {
 
@@ -58,9 +58,9 @@ public class ExecutionService extends CommonInterpreter {
      * to retrieve, unregister, and clear them.
      * <p>
      * This instance is provided in the {@link ExecutionService} constructor, and is typically initialized by the
-     * {@link JarvisCore} component.
+     * {@link XatkitCore} component.
      * <p>
-     * TODO should we initialize the {@link RuntimePlatformRegistry} in this class instead of {@link JarvisCore}? (see
+     * TODO should we initialize the {@link RuntimePlatformRegistry} in this class instead of {@link XatkitCore}? (see
      * <a href="https://github.com/gdaniel/jarvis/issues/155">#155</a>
      *
      * @see #getRuntimePlatformRegistry()
@@ -107,7 +107,7 @@ public class ExecutionService extends CommonInterpreter {
      * Returns the {@link ExecutorService} used to process {@link RuntimeAction}s.
      * <p>
      * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications.
-     * Manipulating {@link JarvisCore}'s {@link ExecutorService} may create consistency issues on currently executed
+     * Manipulating {@link XatkitCore}'s {@link ExecutorService} may create consistency issues on currently executed
      * {@link RuntimeAction}s.
      *
      * @return the {@link ExecutorService} used to process {@link RuntimeAction}s
@@ -150,13 +150,13 @@ public class ExecutionService extends CommonInterpreter {
      * available for the computed actions.
      *
      * @param eventInstance the {@link EventInstance} to handle
-     * @param session       the {@link JarvisSession} used to define and access context variables
+     * @param session       the {@link XatkitSession} used to define and access context variables
      * @throws NullPointerException if the provided {@code eventInstance} or {@code session} is {@code null}
-     * @see #executeExecutionRule(ExecutionRule, JarvisSession)
+     * @see #executeExecutionRule(ExecutionRule, XatkitSession)
      */
-    public void handleEventInstance(EventInstance eventInstance, JarvisSession session) {
+    public void handleEventInstance(EventInstance eventInstance, XatkitSession session) {
         checkNotNull(eventInstance, "Cannot handle the %s %s", EventInstance.class.getSimpleName(), eventInstance);
-        checkNotNull(session, "Cannot handle the %s %s", JarvisSession.class.getSimpleName(), session);
+        checkNotNull(session, "Cannot handle the %s %s", XatkitSession.class.getSimpleName(), session);
         CompletableFuture.runAsync(() -> {
             /*
              * Register the returned context values
@@ -202,10 +202,10 @@ public class ExecutionService extends CommonInterpreter {
      * in the provided {@code executionRule} cannot access variables that are defined in another {@link ExecutionRule}.
      *
      * @param executionRule the {@link ExecutionRule} to execute
-     * @param session       the {@link JarvisSession} used to define and access the rule's context variables
-     * @see #executeRuntimeAction(RuntimeAction, ActionInstance, JarvisSession, ExecutionContext)
+     * @param session       the {@link XatkitSession} used to define and access the rule's context variables
+     * @see #executeRuntimeAction(RuntimeAction, ActionInstance, XatkitSession, ExecutionContext)
      */
-    private void executeExecutionRule(ExecutionRule executionRule, JarvisSession session) {
+    private void executeExecutionRule(ExecutionRule executionRule, XatkitSession session) {
         ExecutionContext context = new ExecutionContext();
         context.setSession(session);
         for (Instruction instruction : executionRule.getInstructions()) {
@@ -237,7 +237,7 @@ public class ExecutionService extends CommonInterpreter {
      * <p>
      * This method executes the provided {@link RuntimeAction} in the calling {@link Thread}, and will block the
      * execution until the action completes. This method is called sequentially by the
-     * {@link #handleEventInstance(EventInstance, JarvisSession)} method, that wraps all the computation in a single
+     * {@link #handleEventInstance(EventInstance, XatkitSession)} method, that wraps all the computation in a single
      * asynchronous task.
      * <p>
      * This method processes the {@link RuntimeActionResult} returned by the computed {@code action}. If the {@code
@@ -248,16 +248,16 @@ public class ExecutionService extends CommonInterpreter {
      * @param action         the {@link RuntimeAction} to execute
      * @param actionInstance the {@link ActionInstance} representing the signature of the {@link RuntimeAction} to
      *                       execute
-     * @param session        the {@link JarvisSession} used to define and access the context variables associated to the
+     * @param session        the {@link XatkitSession} used to define and access the context variables associated to the
      *                       provided {@code action}
      * @throws NullPointerException if the provided {@code action} or {@code session} is {@code null}
      */
     private RuntimeActionResult executeRuntimeAction(RuntimeAction action, ActionInstance actionInstance,
-                                                     JarvisSession session,
+                                                     XatkitSession session,
                                                      ExecutionContext context) {
         checkNotNull(action, "Cannot execute the provided %s %s", RuntimeAction.class.getSimpleName(), action);
         checkNotNull(session, "Cannot execute the provided %s with the provided %s %s", RuntimeAction.class
-                .getSimpleName(), JarvisSession.class.getSimpleName(), session);
+                .getSimpleName(), XatkitSession.class.getSimpleName(), session);
         RuntimeActionResult result = action.call();
         if (result.isError()) {
             Log.error("An error occurred when executing the action {0}", action.getClass().getSimpleName());
@@ -297,10 +297,10 @@ public class ExecutionService extends CommonInterpreter {
      * {@link RuntimeAction}s (from the internal Xatkit execution engine).
      *
      * @param actionInstance the {@link ActionInstance} to construct a {@link RuntimeAction} from
-     * @param session        the {@link JarvisSession} used to define and access context variables
+     * @param session        the {@link XatkitSession} used to define and access context variables
      * @return the constructed {@link RuntimeAction}
      */
-    private RuntimeAction getRuntimeActionFromActionInstance(ActionInstance actionInstance, JarvisSession session,
+    private RuntimeAction getRuntimeActionFromActionInstance(ActionInstance actionInstance, XatkitSession session,
                                                              ExecutionContext context) {
         RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform((PlatformDefinition)
                 actionInstance.getAction().eContainer());
@@ -316,7 +316,7 @@ public class ExecutionService extends CommonInterpreter {
      *
      * @param eventInstance the {@link EventInstance} to retrieve the {@link ExecutionRule}s from
      * @return a {@link List} containing the retrieved {@link ExecutionRule}s
-     * @see #executeExecutionRule(ExecutionRule, JarvisSession)
+     * @see #executeExecutionRule(ExecutionRule, XatkitSession)
      */
     private List<ExecutionRule> getExecutionRulesFromEvent(EventInstance eventInstance) {
         EventDefinition eventDefinition = eventInstance.getDefinition();

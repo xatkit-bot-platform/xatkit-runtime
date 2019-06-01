@@ -1,6 +1,6 @@
 package com.xatkit.core.session;
 
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
@@ -25,7 +25,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
 /**
- * A variable container bound to a {@link JarvisSession}.
+ * A variable container bound to a {@link XatkitSession}.
  * <p>
  * This class stores the different variables that can be set during user input processing and accessed by executed
  * {@link RuntimeAction}. {@link RuntimeContexts} is used to store:
@@ -343,7 +343,7 @@ public class RuntimeContexts {
         if (nonNull(lifespanCount)) {
             return lifespanCount;
         } else {
-            throw new JarvisException(MessageFormat.format("Cannot retrieve the lifespan count for the provided " +
+            throw new XatkitException(MessageFormat.format("Cannot retrieve the lifespan count for the provided " +
                     "context {0} the context is not registered", context));
         }
     }
@@ -385,7 +385,7 @@ public class RuntimeContexts {
      * context (see #129).
      *
      * @param other the {@link RuntimeContexts} to merge into this one
-     * @throws JarvisException if the provided {@link RuntimeContexts} defines at least one {@code context} with the
+     * @throws XatkitException if the provided {@link RuntimeContexts} defines at least one {@code context} with the
      *                         same name as one of the {@code contexts} stored in this {@link RuntimeContexts}
      */
     public void merge(RuntimeContexts other) {

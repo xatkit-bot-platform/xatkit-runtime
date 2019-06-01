@@ -16,7 +16,7 @@ public class TestPlatformModel {
     public TestPlatformModel() {
         platformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
         platformDefinition.setName("StubRuntimePlatform");
-        platformDefinition.setRuntimePath("StubRuntimePlatform");
+        platformDefinition.setRuntimePath("com.xatkit.stubs.StubRuntimePlatform");
         actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
         actionDefinition.setName("StubRuntimeAction");
         platformDefinition.getActions().add(actionDefinition);

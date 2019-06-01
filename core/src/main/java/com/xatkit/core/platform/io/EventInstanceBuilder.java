@@ -1,7 +1,7 @@
 package com.xatkit.core.platform.io;
 
 import com.xatkit.core.EventDefinitionRegistry;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameter;
@@ -161,7 +161,7 @@ public class EventInstanceBuilder {
      * multiple {@link EventInstance} creations from the same {@link EventInstanceBuilder} (see {@link #clear()}).
      *
      * @return the created {@link EventInstance}
-     * @throws JarvisException if there is no {@link EventDefinition} associated to the provided {@code name}, or if
+     * @throws XatkitException if there is no {@link EventDefinition} associated to the provided {@code name}, or if
      *                         the {@link EventDefinition} does not define the {@link ContextParameter}s representing
      *                         the provided ones
      * @see #setEventDefinitionName(String)
@@ -174,7 +174,7 @@ public class EventInstanceBuilder {
         if (isNull(eventDefinition)) {
             String errorMessage = MessageFormat.format("Cannot build the EventInstance, the EventDefinition {0} does " +
                     "not exist", eventDefinitionName);
-            throw new JarvisException(errorMessage);
+            throw new XatkitException(errorMessage);
         }
         eventInstance.setDefinition(eventDefinition);
         for (String contextKey : contextValues.keySet()) {
@@ -186,7 +186,7 @@ public class EventInstanceBuilder {
                 }
             }
             if (isNull(context)) {
-                throw new JarvisException(MessageFormat.format("Cannot retrieve the out context associated to the " +
+                throw new XatkitException(MessageFormat.format("Cannot retrieve the out context associated to the " +
                         "context parameter {0}", contextKey));
             }
             /*
@@ -205,7 +205,7 @@ public class EventInstanceBuilder {
 
             ContextParameter contextParameter = context.getContextParameter(contextKey);
             if (isNull(contextParameter)) {
-                throw new JarvisException(MessageFormat.format("Cannot build the EventInstance, the " +
+                throw new XatkitException(MessageFormat.format("Cannot build the EventInstance, the " +
                         "EventDefinition {0} does not define the output context parameter {1}", eventDefinition
                         .getName(), contextKey));
             }

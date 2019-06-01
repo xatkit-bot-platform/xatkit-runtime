@@ -1,8 +1,8 @@
 package com.xatkit.plugins.slack.platform.action;
 
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.slack.SlackUtils;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.plugins.slack.platform.SlackPlatform;
 
@@ -12,7 +12,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 /**
  * A {@link RuntimeAction} that replies to a message using the input Slack channel.
  * <p>
- * This action relies on the provided {@link JarvisSession} to retrieve the Slack {@code channel} associated to the
+ * This action relies on the provided {@link XatkitSession} to retrieve the Slack {@code channel} associated to the
  * user input.
  * <p>
  * This class relies on the {@link SlackPlatform}'s {@link com.github.seratch.jslack.Slack} client and Slack bot API
@@ -54,14 +54,14 @@ public class Reply extends PostMessage {
      * Constructs a new {@link Reply} with the provided {@code runtimePlatform}, {@code session}, and {@code message}.
      *
      * @param runtimePlatform the {@link SlackPlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param message          the message to post
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} is {@code null} or empty
      * @see #getChannel(RuntimeContexts)
-     * @see PostMessage#PostMessage(SlackPlatform, JarvisSession, String, String)
+     * @see PostMessage#PostMessage(SlackPlatform, XatkitSession, String, String)
      */
-    public Reply(SlackPlatform runtimePlatform, JarvisSession session, String message) {
+    public Reply(SlackPlatform runtimePlatform, XatkitSession session, String message) {
         super(runtimePlatform, session, message, getChannel(session.getRuntimeContexts()));
     }
 }

@@ -3,9 +3,9 @@ package com.xatkit.plugins.github.platform.action;
 import com.jcabi.github.Coordinates;
 import com.jcabi.github.Issue;
 import com.jcabi.github.Repo;
-import com.xatkit.core.JarvisException;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.github.platform.GithubPlatform;
 import fr.inria.atlanmod.commons.log.Log;
 
@@ -55,7 +55,7 @@ public class OpenIssue extends RuntimeAction<GithubPlatform> {
      * will have an empty content.
      *
      * @param runtimePlatform the {@link GithubPlatform} containing this action
-     * @param session          the {@link JarvisSession} associated to this action
+     * @param session          the {@link XatkitSession} associated to this action
      * @param user             the Github user managing the repository to open an issue in
      * @param repository       the Github repository to open an issue in
      * @param issueTitle       the title of the issue to open
@@ -63,7 +63,7 @@ public class OpenIssue extends RuntimeAction<GithubPlatform> {
      * @throws NullPointerException if the provided {@code runtimePlatform}, {@code session}, {@code user}, {@code
      *                              repository}, or {@code issueTitle} is {@code null}
      */
-    public OpenIssue(GithubPlatform runtimePlatform, JarvisSession session, String user, String repository, String
+    public OpenIssue(GithubPlatform runtimePlatform, XatkitSession session, String user, String repository, String
             issueTitle, String issueContent) {
         super(runtimePlatform, session);
         checkNotNull(user, "Cannot construct a %s action with the provided Github user %s", this.getClass()
@@ -85,11 +85,11 @@ public class OpenIssue extends RuntimeAction<GithubPlatform> {
      * Opens a new issue on the given {@code repository} with the provided {@code issueTitle} and {@code issueContent}.
      * <p>
      * This method relies on the containing {@link GithubPlatform} to access the Github API, and will throw a
-     * {@link JarvisException} if the Xatkit {@link org.apache.commons.configuration2.Configuration} does not define
+     * {@link XatkitException} if the Xatkit {@link org.apache.commons.configuration2.Configuration} does not define
      * valid Github authentication credentials.
      *
      * @return the created {@link Issue}
-     * @throws JarvisException if the {@link GithubPlatform} does not hold a valid Github API client (i.e. if the
+     * @throws XatkitException if the {@link GithubPlatform} does not hold a valid Github API client (i.e. if the
      *                         Xatkit {@link org.apache.commons.configuration2.Configuration} does not define valid
      *                         Github authentication credentials)
      * @see GithubPlatform#getGithubClient()
@@ -101,7 +101,7 @@ public class OpenIssue extends RuntimeAction<GithubPlatform> {
             Issue githubIssue = githubRepo.issues().create(issueTitle, issueContent);
             return githubIssue;
         } catch (IOException e) {
-            throw new JarvisException("Cannot open the Github issue, see attached exception", e);
+            throw new XatkitException("Cannot open the Github issue, see attached exception", e);
         }
     }
 }
