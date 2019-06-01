@@ -21,7 +21,7 @@ import static java.util.Objects.nonNull;
  * <p>
  * This class is configured through the {@link #addEntityMapping(EntityType, String)} method, that allows to specify a
  * mapping from an abstract entity to a concrete entity name. This mapping is used to retrieve
- * {@link IntentRecognitionProvider} specific entities, and deploy jarvis generically on different platforms.
+ * {@link IntentRecognitionProvider} specific entities, and deploy xatkit generically on different platforms.
  * <p>
  * This class also defines the {@link #setFallbackEntityMapping(String)}, that allows to handle abstract entities
  * that do not have a concrete mapping in the {@link IntentRecognitionProvider} platform.
@@ -205,9 +205,7 @@ public class EntityMapper {
      * This method looks in the registered mappings (set by calling {@link #addEntityMapping(EntityType, String)}) and
      * returns the one associated to name extracted from the provided {@code abstractEntity}. Name extraction will
      * downcast the provided {@link EntityDefinition} to {@link BaseEntityDefinition}, and compute the
-     * {@link EntityDefinition} name from its associated {@link EntityType} literal. Note that other subclasses of
-     * {@link EntityDefinition} are not supported for now (see
-     * <a href="https://github.com/gdaniel/jarvis/issues/145">#145</a>).
+     * {@link EntityDefinition} name from its associated {@link EntityType} literal.
      * <p>
      * If there is no direct mapping for the {@code abstractEntity} extracted name, the fallback entity (set by
      * calling {@link #setFallbackEntityMapping(String)} is returned.

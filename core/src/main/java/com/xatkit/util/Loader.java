@@ -235,7 +235,7 @@ public class Loader {
             try {
                 platform = Loader.construct(runtimePlatformClass, XatkitCore.class, xatkitCore);
                 Log.warn("{0} {1} loaded with its default constructor, the platform will not be initialized with " +
-                        "jarvis configuration", RuntimePlatform.class.getSimpleName(), runtimePlatformClass
+                        "Xatkit configuration", RuntimePlatform.class.getSimpleName(), runtimePlatformClass
                         .getSimpleName());
             } catch (NoSuchMethodException e1) {
                 throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +

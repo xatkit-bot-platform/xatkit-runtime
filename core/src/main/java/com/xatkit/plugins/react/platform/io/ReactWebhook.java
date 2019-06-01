@@ -18,7 +18,7 @@ import java.util.List;
 import static java.util.Objects.nonNull;
 
 /**
- * A {@link JsonWebhookEventProvider} that receives jarvis-react messages and convert them into
+ * A {@link JsonWebhookEventProvider} that receives xatkit-react messages and convert them into
  * {@link RecognizedIntent}.
  * <p>
  * This class should not be initialized reflexively by the core framework: it is created by the

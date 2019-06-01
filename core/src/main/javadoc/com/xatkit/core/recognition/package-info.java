@@ -5,4 +5,4 @@
  * <a href="http://dialogflow.com/">DialogFlow platform</a>. Custom implementations are dynamically instantiated by
  * the core components.
  */
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;

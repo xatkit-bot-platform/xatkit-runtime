@@ -54,7 +54,7 @@ public abstract class RuntimeIntentProvider<T extends RuntimePlatform> extends R
      * This constructor sets the internal {@link IntentRecognitionProvider} instance that is used to parse user input
      * and retrieve {@link RecognizedIntent}s.
      * <p>
-     * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
+     * <b>Note</b>: this constructor will be called by xatkit internal engine when initializing the
      * {@link XatkitCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *

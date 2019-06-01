@@ -1,8 +1,8 @@
 /**
  * Contains the core components of the Xatkit framework.
  * <p>
- * This package contains the {@link edu.uoc.som.jarvis.core.JarvisCore} class, that is initialized with an execution
+ * This package contains the {@link com.xatkit.core.XatkitCore} class, that is initialized with an execution
  * model. It also contains the different registries that are used to store model-level information and map them to
  * runtime-level classes.
  */
-package edu.uoc.som.jarvis.core;
+package com.xatkit.core;

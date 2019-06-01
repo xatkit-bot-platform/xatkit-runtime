@@ -11,7 +11,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 /**
  * An abstract class representing logging actions.
  * <p>
- * This class relies on the slf4j logger bound with jarvis to print messages. The default implementation embeds a
+ * This class relies on the slf4j logger bound with xatkit to print messages. The default implementation embeds a
  * <i>log4j2</i> instance, and a default configuration that can be extended using a custom <i>log4j2.xml</i>
  * configuration file.
  */

@@ -26,7 +26,7 @@ import static java.util.Objects.nonNull;
  * channel</li>
  * </ul>
  * <p>
- * This class is part of jarvis' core platforms, and can be used in an execution model by importing the
+ * This class is part of xatkit's core platforms, and can be used in an execution model by importing the
  * <i>DiscordPlatform</i> package.
  */
 public class DiscordPlatform extends ChatPlatform {
@@ -61,7 +61,7 @@ public class DiscordPlatform extends ChatPlatform {
         super(xatkitCore, configuration);
         String discordToken = configuration.getString(DiscordUtils.DISCORD_TOKEN_KEY);
         checkArgument(nonNull(discordToken) && !discordToken.isEmpty(), "Cannot construct a DiscordPlatform from the " +
-                "provided token %s, please ensure that the jarvis configuration contains a valid Discord bot API " +
+                "provided token %s, please ensure that the Xatkit configuration contains a valid Discord bot API " +
                 "token associated to the key %s", discordToken, DiscordUtils.DISCORD_TOKEN_KEY);
         jdaClient = DiscordUtils.getJDA(discordToken);
     }

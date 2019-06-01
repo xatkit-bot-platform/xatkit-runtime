@@ -10,7 +10,7 @@ import org.apache.commons.configuration2.Configuration;
 /**
  * An utility interface that holds Slack-related helpers.
  * <p>
- * This class defines the jarvis configuration key to store the Slack bot API token, as well as a set of API response
+ * This class defines the xatkit configuration key to store the Slack bot API token, as well as a set of API response
  * types that are used internally to check connection and filter incoming events.
  */
 public interface SlackUtils extends ChatUtils {

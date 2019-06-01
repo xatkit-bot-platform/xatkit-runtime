@@ -13,7 +13,7 @@ import static java.util.Objects.isNull;
 /**
  * The main {@link Xatkit} {@link Class} used to start a Xatkit bot instance.
  * <p>
- * This class is executed when invoking {@code java -jar jarvis.jar}. The {@link #main(String[])} method accepts a
+ * This class is executed when invoking {@code java -jar xatkit.jar}. The {@link #main(String[])} method accepts a
  * single {@link String} argument containing the path of the {@link org.apache.commons.configuration2.Configuration}
  * file to use to setup the underlying {@link XatkitCore} engine.
  */
@@ -25,7 +25,7 @@ public class Xatkit {
     public static String CONFIGURATION_FOLDER_PATH = "jarvis.core.configuration.path";
 
     private static String CHECK_TUTORIAL_SENTENCE = "You can check our online tutorial to learn how to setup a bot " +
-            "using Xatkit here: https://github.com/jarvis-bot-platform/jarvis/wiki/Deploying-chatbots";
+            "using Xatkit here: https://github.com/xatkit-bot-platform/xatkit/wiki/Deploying-chatbots";
 
     /**
      * The {@link XatkitCore} instance used to run the bot.

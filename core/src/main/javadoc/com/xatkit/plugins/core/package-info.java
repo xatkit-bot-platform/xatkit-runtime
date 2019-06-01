@@ -1,4 +1,4 @@
 /**
  * The root package of the Xatkit Core plugin.
  */
-package edu.uoc.som.jarvis.plugins.core;
+package com.xatkit.plugins.core;

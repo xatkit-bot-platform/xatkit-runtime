@@ -5,7 +5,7 @@
  * recognition platform), as well as event providers (receiving and processing external events). These classes are
  * implemented by the Xatkit plugins, and dynamically instantiated by the core components.
  *
- * @see edu.uoc.som.jarvis.core
- * @see edu.uoc.som.jarvis.plugins
+ * @see com.xatkit.core
+ * @see com.xatkit.plugins
  */
-package edu.uoc.som.jarvis.core.platform.io;
+package com.xatkit.core.platform.io;

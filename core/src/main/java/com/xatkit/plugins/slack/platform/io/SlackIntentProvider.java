@@ -120,7 +120,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
         checkNotNull(configuration, "Cannot construct a SlackIntentProvider from a null configuration");
         this.slackToken = configuration.getString(SlackUtils.SLACK_TOKEN_KEY);
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackIntentProvider from the " +
-                "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
+                "provided token %s, please ensure that the Xatkit configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SlackUtils.SLACK_TOKEN_KEY);
         this.slack = new Slack();
         this.botId = getSelfId();
@@ -128,13 +128,13 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
             String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the " +
-                    "bot API token is valid and stored in jarvis configuration with the key {0}",
+                    "bot API token is valid and stored in Xatkit configuration with the key {0}",
                     SlackUtils.SLACK_TOKEN_KEY);
             Log.error(errorMessage);
             throw new XatkitException(errorMessage, e);
         }
         this.jsonParser = new JsonParser();
-        Log.info("Starting to listen jarvis Slack direct messages");
+        Log.info("Starting to listen Slack direct messages");
         rtmClient.addMessageHandler(new XatkitRTMMessageHandler());
         rtmClient.addCloseHandler(new XatkitRTMCloseHandler());
         try {

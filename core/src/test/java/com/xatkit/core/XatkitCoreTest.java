@@ -52,20 +52,20 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         testResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
                 ());
 
-        Resource testIntentResource = testResourceSet.createResource(URI.createURI("/tmp/jarvisTestIntentResource" +
+        Resource testIntentResource = testResourceSet.createResource(URI.createURI("/tmp/xatkitTestIntentResource" +
                 ".xmi"));
         testIntentResource.getContents().clear();
         testIntentResource.getContents().add(testExecutionModel.getTestIntentModel().getIntentLibrary());
         testIntentResource.save(Collections.emptyMap());
 
-        Resource testPlatformResource = testResourceSet.createResource(URI.createURI("/tmp/jarvisTestPlatformResource" +
+        Resource testPlatformResource = testResourceSet.createResource(URI.createURI("/tmp/xatkitTestPlatformResource" +
                 ".xmi"));
         testPlatformResource.getContents().clear();
         testPlatformResource.getContents().add(testExecutionModel.getTestPlatformModel().getPlatformDefinition());
         testPlatformResource.save(Collections.emptyMap());
 
         Resource testExecutionResource = testResourceSet.createResource(URI.createURI
-                ("/tmp/jarvisTestExecutionResource.xmi"));
+                ("/tmp/xatkitTestExecutionResource.xmi"));
         testExecutionResource.getContents().clear();
         testExecutionResource.getContents().add(VALID_EXECUTION_MODEL);
         testExecutionResource.save(Collections.emptyMap());

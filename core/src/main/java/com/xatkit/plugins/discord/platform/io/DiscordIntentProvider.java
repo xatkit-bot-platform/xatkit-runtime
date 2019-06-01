@@ -65,10 +65,10 @@ public class DiscordIntentProvider extends ChatIntentProvider<DiscordPlatform> {
         checkNotNull(configuration, "Cannot construct a DiscordIntentProvider from a null configuration");
         this.discordToken = configuration.getString(DiscordUtils.DISCORD_TOKEN_KEY);
         checkArgument(nonNull(discordToken) && !discordToken.isEmpty(), "Cannot construct a DiscordIntentProvider " +
-                "from the provided token %s, please ensure that the jarvis configuration contains a valid Discord bot" +
+                "from the provided token %s, please ensure that the Xatkit configuration contains a valid Discord bot" +
                 "API token associated to the key %s", discordToken, DiscordUtils.DISCORD_TOKEN_KEY);
         jdaClient = DiscordUtils.getJDA(discordToken);
-        Log.info("Starting to listen jarvis Discord direct messages");
+        Log.info("Starting to listen Discord direct messages");
         jdaClient.addEventListener(new PrivateMessageListener(xatkitCore, this));
     }
 

@@ -9,7 +9,7 @@ import org.apache.commons.configuration2.Configuration;
  * A React {@link ChatIntentProvider}.
  * <p>
  * This class initializes a {@link ReactWebhook} and registers it to the
- * {@link XatkitServer}, allowing to receive messages from jarvis-react installations
+ * {@link XatkitServer}, allowing to receive messages from xatkit-react installations
  * as events (this is a quick fix for #221, provider hierarchy should be refactored to allow webhook-based chat
  * providers).
  */
@@ -18,7 +18,7 @@ public class ReactIntentProvider extends ChatIntentProvider<ReactPlatform> {
     /**
      * Constructs a new {@link ReactIntentProvider} from the provided {@code runtimePlatform} and {@code configuration}.
      * <p>
-     * This constructor initializes the {@link ReactWebhook} that is used to receive messages from jarvis-react
+     * This constructor initializes the {@link ReactWebhook} that is used to receive messages from xatkit-react
      * installations as events.
      *
      * @param runtimePlatform the {@link ReactPlatform} containing this {@link ReactIntentProvider}

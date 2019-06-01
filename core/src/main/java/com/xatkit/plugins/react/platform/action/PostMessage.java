@@ -8,7 +8,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;
 
 /**
- * A {@link RuntimeMessageAction} that posts a {@code message} to a given jarvis-react {@code channel}.
+ * A {@link RuntimeMessageAction} that posts a {@code message} to a given xatkit-react {@code channel}.
  */
 public class PostMessage extends RuntimeMessageAction<ReactPlatform> {
 
@@ -24,7 +24,7 @@ public class PostMessage extends RuntimeMessageAction<ReactPlatform> {
      * @param runtimePlatform the {@link ReactPlatform} containing this action
      * @param session         the {@link XatkitSession} associated to this action
      * @param message         the message to post
-     * @param channel         the jarvis-react channel to post the message to
+     * @param channel         the xatkit-react channel to post the message to
      * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code message} or {@code channel} is {@code null}
      */

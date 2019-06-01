@@ -12,9 +12,9 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
  * A {@link RuntimeMessageAction} that replies to a message using the input
- * jarvis-react channel.
+ * xatkit-react channel.
  * <p>
- * This action relies on the provided {@link XatkitSession} to retrieve the jarvis-react {@code channel} associated
+ * This action relies on the provided {@link XatkitSession} to retrieve the xatkit-react {@code channel} associated
  * to the user input.
  *
  * @see PostMessage
@@ -22,14 +22,14 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 public class Reply extends PostMessage {
 
     /**
-     * Returns the jarvis-react channel associated to the user input.
+     * Returns the xatkit-react channel associated to the user input.
      * <p>
      * This method searches in the provided {@link RuntimeContexts} for the value stored with the key
      * {@link ReactUtils#REACT_CONTEXT_KEY}.{@link ReactUtils#CHAT_CHANNEL_CONTEXT_KEY}. Note that if the provided
      * {@link RuntimeContexts} does not contain the requested value a {@link NullPointerException} is thrown.
      *
-     * @param context the {@link RuntimeContexts} to retrieve the jarvis-react channel from
-     * @return the jarvis-react channel associated to the user input
+     * @param context the {@link RuntimeContexts} to retrieve the xatkit-react channel from
+     * @return the xatkit-react channel associated to the user input
      * @throws NullPointerException     if the provided {@code context} is {@code null}, or if it does not contain the
      *                                  channel information
      * @throws IllegalArgumentException if the retrieved channel is not a {@link String}

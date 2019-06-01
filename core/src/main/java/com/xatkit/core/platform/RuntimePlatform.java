@@ -87,7 +87,7 @@ public abstract class RuntimePlatform {
     /**
      * Constructs a new {@link RuntimePlatform} from the provided {@link XatkitCore} and {@link Configuration}.
      * <p>
-     * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
+     * <b>Note</b>: this constructor will be called by xatkit internal engine when initializing the
      * {@link RuntimePlatform}s. Subclasses implementing this constructor typically need additional parameters to be
      * initialized, that can be provided in the {@code configuration}.
      *
@@ -124,7 +124,7 @@ public abstract class RuntimePlatform {
      * Returns the name of the platform.
      * <p>
      * This method returns the value of {@link Class#getSimpleName()}, and can not be overridden by concrete
-     * subclasses. {@link RuntimePlatform}'s names are part of jarvis' naming convention, and are used to dynamically
+     * subclasses. {@link RuntimePlatform}'s names are part of xatkit's naming convention, and are used to dynamically
      * load platforms and actions.
      *
      * @return the name of the platform.
@@ -197,7 +197,7 @@ public abstract class RuntimePlatform {
     /**
      * Retrieves and loads the {@link RuntimeAction} defined by the provided {@link ActionDefinition}.
      * <p>
-     * This method loads the corresponding {@link RuntimeAction} based on jarvis' naming convention. The
+     * This method loads the corresponding {@link RuntimeAction} based on xatkit's naming convention. The
      * {@link RuntimeAction} must be located under the {@code actionDefinition} sub-package of the
      * {@link RuntimePlatform}
      * concrete subclass package.

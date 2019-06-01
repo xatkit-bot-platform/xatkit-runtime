@@ -24,7 +24,7 @@ import static java.util.Objects.nonNull;
  * <li>{@link PostMessage}: post a message to a given Slack channel</li>
  * </ul>
  * <p>
- * This class is part of jarvis' core platform, and can be used in an execution model by importing the
+ * This class is part of xatkit's core platform, and can be used in an execution model by importing the
  * <i>SlackPlatform</i> package.
  */
 public class SlackPlatform extends ChatPlatform {
@@ -63,7 +63,7 @@ public class SlackPlatform extends ChatPlatform {
         super(xatkitCore, configuration);
         slackToken = configuration.getString(SlackUtils.SLACK_TOKEN_KEY);
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackPlatform from the " +
-                "provided token %s, please ensure that the jarvis configuration contains a valid Slack bot API token " +
+                "provided token %s, please ensure that the Xatkit configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SlackUtils.SLACK_TOKEN_KEY);
         slack = new Slack();
     }

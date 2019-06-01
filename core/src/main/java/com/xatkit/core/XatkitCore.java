@@ -67,7 +67,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * The core component of the jarvis framework.
+ * The core component of the xatkit framework.
  * <p>
  * This class is constructed from an {@link ExecutionModel}, that defines the Intent to Action bindings that are
  * executed by the application. Constructing an instance of this class will load the {@link RuntimePlatform}s used by
@@ -207,7 +207,8 @@ public class XatkitCore {
      * @see ExecutionModel
      */
     public XatkitCore(Configuration configuration) {
-        checkNotNull(configuration, "Cannot construct a jarvis instance from a null configuration");
+        checkNotNull(configuration, "Cannot construct a %s instance from a null configuration",
+                this.getClass().getSimpleName());
         try {
             this.configuration = configuration;
             initializeExecutionResourceSet();
@@ -421,7 +422,7 @@ public class XatkitCore {
     protected ExecutionModel getExecutionModel(Configuration configuration) {
         Object property = configuration.getProperty(EXECUTION_MODEL_KEY);
         checkNotNull(property, "Cannot retrieve the %s from the property %s, please ensure it is " +
-                        "set in the %s property of the jarvis configuration", ExecutionModel.class.getSimpleName(),
+                        "set in the %s property of the Xatkit configuration", ExecutionModel.class.getSimpleName(),
                 property, EXECUTION_MODEL_KEY);
         String basePath = configuration.getString(Xatkit.CONFIGURATION_FOLDER_PATH, "");
         if (property instanceof ExecutionModel) {
@@ -773,8 +774,8 @@ public class XatkitCore {
      * {@link RuntimePlatform} is registered with the abstract {@link PlatformDefinition}'s name in order to
      * correctly retrieve its actions when executing abstract actions specified in the execution model.
      *
-     * @param platformDefinition the jarvis {@link PlatformDefinition} to load
-     * @param configuration      the jarvis {@link Configuration} used to retrieve abstract platform bindings
+     * @param platformDefinition the xatkit {@link PlatformDefinition} to load
+     * @param configuration      the xatkit {@link Configuration} used to retrieve abstract platform bindings
      * @return an instance of the loaded {@link RuntimePlatform}
      * @throws XatkitException if their is no {@link Class} matching the provided {@code platformDefinition} or if the
      *                         {@link RuntimePlatform} can not be constructed
@@ -817,7 +818,7 @@ public class XatkitCore {
      * Returns the underlying {@link IntentRecognitionProvider}.
      * <p>
      * <b>Note:</b> this method is designed to ease debugging and testing, direct interactions with the
-     * {@link IntentRecognitionProvider} API may create consistency issues. In particular, jarvis does not ensure
+     * {@link IntentRecognitionProvider} API may create consistency issues. In particular, xatkit does not ensure
      * that {@link RuntimeAction}s will be triggered in case of direct queries to the
      * {@link IntentRecognitionProvider} API.
      *

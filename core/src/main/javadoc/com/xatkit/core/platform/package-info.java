@@ -3,7 +3,7 @@
  * <p>
  * These classes are implemented by Xatkit plugins, and dynamically instantiated by the core components.
  *
- * @see edu.uoc.som.jarvis.core
- * @see edu.uoc.som.jarvis.plugins
+ * @see com.xatkit.core
+ * @see com.xatkit.plugins
  */
-package edu.uoc.som.jarvis.core.platform;
+package com.xatkit.core.platform;

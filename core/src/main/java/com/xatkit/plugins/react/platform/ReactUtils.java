@@ -4,7 +4,7 @@ import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.plugins.chat.ChatUtils;
 
 /**
- * An utility interface that holds jarvis-react related helpers and context keys.
+ * An utility interface that holds xatkit-react related helpers and context keys.
  */
 public interface ReactUtils extends ChatUtils {
 

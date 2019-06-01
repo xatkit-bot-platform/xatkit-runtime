@@ -17,7 +17,7 @@ import static java.util.Objects.nonNull;
 /**
  * An utility class that holds Discord-related helpers.
  * <p>
- * This class defines the jarvis configuration key to store the Discord bot token, as well as an utility method
+ * This class defines the xatkit configuration key to store the Discord bot token, as well as an utility method
  * to retrieve an existing instance of the {@link JDA} client, in order to avoid multiple client instantiations.
  */
 public class DiscordUtils implements ChatUtils {

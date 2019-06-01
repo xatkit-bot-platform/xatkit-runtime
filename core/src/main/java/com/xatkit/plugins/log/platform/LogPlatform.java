@@ -19,7 +19,7 @@ import org.apache.commons.configuration2.Configuration;
  * <li>{@link LogError}: logs an error message</li>
  * </ul>
  * <p>
- * This class is part of jarvis' core platforms, and can be used in an execution model by importing the
+ * This class is part of xatkit's core platforms, and can be used in an execution model by importing the
  * <i>LogPlatform</i> package.
  *
  * @see LogAction

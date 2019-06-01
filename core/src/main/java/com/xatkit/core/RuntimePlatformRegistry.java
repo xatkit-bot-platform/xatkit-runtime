@@ -96,7 +96,7 @@ public class RuntimePlatformRegistry {
     /**
      * Returns the {@link RuntimePlatform} associated to the provided {@code platformDefinition}.
      * <p>
-     * The provided {@link PlatformDefinition} should follow jarvis' naming conventions, and provide a
+     * The provided {@link PlatformDefinition} should follow xatkit's naming conventions, and provide a
      * {@link PlatformDefinition#getName()}
      * method that returns the name of the concrete {@link RuntimePlatform} class to retrieve.
      *

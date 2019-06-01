@@ -21,29 +21,28 @@ import static java.util.Objects.nonNull;
 
 /**
  * A {@link ChatPlatform} class that interacts with the
- * <a href="https://github.com/jarvis-platform/jarvis-react">Xatkit React component</a>.
+ * <a href="https://github.com/xatkit-bot-platform/xatkit-react">Xatkit React component</a>.
  * <p>
- * This {@link ChatPlatform} manages a list of pending messages that can be queried by the jarvis-react application
+ * This {@link ChatPlatform} manages a list of pending messages that can be queried by the xatkit-react application
  * to display them. It initializes a REST endpoint and registers it to the Xatkit server, allowing to reply to
- * jarvis-react REST queries.
+ * xatkit-react REST queries.
  * <p>
  * This platform provides the following actions:
  * <ul>
  * <li>{@link Reply}: replies to a user input</li>
- * <li>{@link PostMessage}: post a message to a given channel
- * (i.e. window running a jarvis-react instance)</li>
+ * <li>{@link PostMessage}: post a message to a given channel (i.e. window running a xatkit-react instance)</li>
  * </ul>
  * <p>
  * This platform registers a webhook at {@code /react/getAnswer}, that provides the last answer associated to a given
  * channel.
  * <p>
- * This class is part of jarvis" core paltform, and can be used in an execution model by importing the
+ * This class is part of xatkit's core paltform, and can be used in an execution model by importing the
  * <i>ReactPlatform</i> package.
  */
 public class ReactPlatform extends ChatPlatform {
 
     /**
-     * The {@link Map} containing the pending messages that can be queried by the jarvis-react application.
+     * The {@link Map} containing the pending messages that can be queried by the xatkit-react application.
      */
     private Map<String, Queue<String>> storedMessages;
 
@@ -109,7 +108,7 @@ public class ReactPlatform extends ChatPlatform {
     /**
      * Stores the provided {@code message} for the given {@code channel}.
      * <p>
-     * The stored message can be accessed by jarvis-react through the {@code /react/getAnswers} endpoint.
+     * The stored message can be accessed by xatkit-react through the {@code /react/getAnswers} endpoint.
      *
      * @param channel the channel associated to the message to store
      * @param message the message to store

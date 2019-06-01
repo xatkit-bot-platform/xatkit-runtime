@@ -37,7 +37,7 @@ import static java.util.Objects.nonNull;
  * <li><b>Action values</b>, that are returned by {@link RuntimeAction}s</li>
  * </ul>
  * <p>
- * This class is heavily used by jarvis core component to pass {@link RuntimeAction} parameters,
+ * This class is heavily used by xatkit core component to pass {@link RuntimeAction} parameters,
  * and replace output message variables by their concrete values.
  */
 public class RuntimeContexts {

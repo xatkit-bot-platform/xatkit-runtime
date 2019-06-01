@@ -4,6 +4,6 @@
  * These classes are implemented by custom intent recognition providers and event providers that are responsible of
  * synchronizing their remote context with the Xatkit one.
  *
- * @see edu.uoc.som.jarvis.core.recognition
+ * @see com.xatkit.core.recognition
  */
-package edu.uoc.som.jarvis.core.session;
+package com.xatkit.core.session;

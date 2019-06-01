@@ -26,7 +26,7 @@ import static java.util.Objects.nonNull;
  *     <li>{@link OpenIssue}: open an issue on a given repository</li>
  * </ul>
  * <p>
- * This class is part of jarvis' core platforms, and can be used in an execution model by importing the
+ * This class is part of xatkit's core platforms, and can be used in an execution model by importing the
  * <i>GithubPlatform</i> package.
  */
 public class GithubPlatform extends RuntimePlatform {
@@ -101,7 +101,7 @@ public class GithubPlatform extends RuntimePlatform {
         if (nonNull(username)) {
             String password = configuration.getString(GITHUB_PASSWORD_KEY);
             checkArgument(nonNull(password) && !password.isEmpty(), "Cannot construct a %s from the " +
-                            "provided username and password, please ensure that the jarvis configuration contains a " +
+                            "provided username and password, please ensure that the Xatkit configuration contains a " +
                             "valid password for the username %s (configuration key: %s)", this.getClass()
                             .getSimpleName(),
                     username, GITHUB_PASSWORD_KEY);
@@ -115,7 +115,7 @@ public class GithubPlatform extends RuntimePlatform {
             } else {
                 Log.warn("No authentication method set in the configuration, {0} will not be able to call methods on " +
                         "the remote Github API. If you want to use the Github API you must provide a " +
-                        "username/password or an oauth token in the jarvis configuration", this.getClass().getSimpleName
+                        "username/password or an oauth token in the Xatkit configuration", this.getClass().getSimpleName
                         ());
             }
         }

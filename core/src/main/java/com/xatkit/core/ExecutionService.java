@@ -61,7 +61,7 @@ public class ExecutionService extends CommonInterpreter {
      * {@link XatkitCore} component.
      * <p>
      * TODO should we initialize the {@link RuntimePlatformRegistry} in this class instead of {@link XatkitCore}? (see
-     * <a href="https://github.com/gdaniel/jarvis/issues/155">#155</a>
+     * <a href="https://github.com/xatkit-bot-platform/xatkit/issues/155">#155</a>
      *
      * @see #getRuntimePlatformRegistry()
      */

@@ -564,7 +564,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Deletes all the {@link Intent}s and {@link EntityType}s from the DialogFlow agent.
      * <p>
-     * Agent cleaning is enabled by setting the property {@link #CLEAN_AGENT_ON_STARTUP_KEY} in the jarvis
+     * Agent cleaning is enabled by setting the property {@link #CLEAN_AGENT_ON_STARTUP_KEY} in the xatkit
      * configuration file, and allows to easily re-deploy bots under development. Production-ready agents should not
      * be cleaned on startup: re-training the ML engine can take a while.
      */
@@ -1163,7 +1163,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * <p>
      * The created context is set with a lifespan value of {@code 2}, following DialogFlow usage. Customization of
      * follow-up intent lifespan is planned for a future release (see
-     * <a href="https://github.com/gdaniel/jarvis/issues/147">#147</a>)
+     * <a href="https://github.com/xatkit-bot-platform/xatkit/issues/147">#147</a>)
      *
      * @param parentIntentDefinition the {@link IntentDefinition} to build the context from
      * @return the built DialogFlow context

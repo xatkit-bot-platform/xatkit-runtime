@@ -41,7 +41,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends
      * Constructs a new {@link WebhookEventProvider} from the provided {@code runtimePlatform} and
      * {@code configuration}.
      * <p>
-     * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
+     * <b>Note</b>: this constructor will be called by xatkit internal engine when initializing the
      * {@link XatkitCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *

@@ -99,7 +99,7 @@ public class XatkitTest extends AbstractXatkitTest {
     }
 
     /*
-     * We cannot properly test relative paths such as ./configuration.properties, the tests are executed with jarvis/
+     * We cannot properly test relative paths such as ./configuration.properties, the tests are executed with xatkit/
      * as their base folder. We need to find a way to test it without polluting the repository.
      */
 

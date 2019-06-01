@@ -16,9 +16,9 @@ import java.util.List;
  * The endpoint can be registered using the following code:
  * <pre>
  * {@code
- * XatkitServer jarvisServer = [...]
+ * XatkitServer xatkitServer = [...]
  * String restEndpointURI = "/myEndpoint";
- * jarvisServer.registerRestEndpoint(restEndpointURI, (headers, params, content) -> {
+ * xatkitServer.registerRestEndpoint(restEndpointURI, (headers, params, content) -> {
  *     // Handle the request
  *     // return a JsonElement that will be sent back to the caller
  * }

@@ -5,4 +5,4 @@
  * can be used to send webhook events to the framework from remote services. These events are then handled by
  * specific event providers that transform them into Xatkit-compatible events.
  */
-package edu.uoc.som.jarvis.core.server;
+package com.xatkit.core.server;
