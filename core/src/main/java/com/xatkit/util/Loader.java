@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.util;
+package com.xatkit.util;
 
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.JarvisException;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.platform.io.RuntimeEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 

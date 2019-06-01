@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.plugins.discord.platform.io;
+package com.xatkit.plugins.discord.platform.io;
 
-import edu.uoc.som.jarvis.core.platform.io.RuntimeIntentProvider;
-import edu.uoc.som.jarvis.plugins.chat.platform.io.ChatIntentProvider;
-import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
-import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
+import com.xatkit.core.platform.io.RuntimeIntentProvider;
+import com.xatkit.plugins.discord.DiscordUtils;
+import com.xatkit.plugins.discord.platform.DiscordPlatform;
+import com.xatkit.plugins.chat.platform.io.ChatIntentProvider;
 import fr.inria.atlanmod.commons.log.Log;
 import net.dv8tion.jda.core.JDA;
 import org.apache.commons.configuration2.Configuration;

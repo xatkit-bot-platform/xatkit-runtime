@@ -1,7 +1,7 @@
 package com.xatkit.stubs.io;
 
-        import com.xatkit.core.platform.io.RuntimeEventProvider;
-        import com.xatkit.stubs.EmptyRuntimePlatform;
+import com.xatkit.core.platform.io.RuntimeEventProvider;
+import com.xatkit.stubs.EmptyRuntimePlatform;
 
 public class StubInputProviderNoConfigurationConstructor extends RuntimeEventProvider<EmptyRuntimePlatform> {
 

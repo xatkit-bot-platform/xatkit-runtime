@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.EntityDefinition;
-import edu.uoc.som.jarvis.intent.IntentDefinition;
-import edu.uoc.som.jarvis.intent.RecognizedIntent;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.RecognizedIntent;
 
 import javax.annotation.Nullable;
 

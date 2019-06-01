@@ -1,6 +1,7 @@
-package edu.uoc.som.jarvis.core.server;
+package com.xatkit.core.server;
 
 import com.google.gson.JsonElement;
+import com.xatkit.core.platform.RuntimePlatform;
 import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * A handler that receives HTTP requests and process them.
  * <p>
- * This interface can be used to define REST endpoint from {@link edu.uoc.som.jarvis.core.platform.RuntimePlatform}s.
+ * This interface can be used to define REST endpoint from {@link RuntimePlatform}s.
  * The endpoint can be registered using the following code:
  * <pre>
  * {@code

@@ -1,8 +1,8 @@
-package edu.uoc.som.jarvis.core.platform.action;
+package com.xatkit.core.platform.action;
 
 import com.google.gson.JsonElement;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.session.JarvisSession;
 
 import java.util.Map;
 

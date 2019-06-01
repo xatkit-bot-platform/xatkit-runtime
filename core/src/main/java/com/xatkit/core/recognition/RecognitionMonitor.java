@@ -1,8 +1,12 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
-import com.google.gson.*;
-import edu.uoc.som.jarvis.core.server.JarvisServer;
-import edu.uoc.som.jarvis.intent.IntentDefinition;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.xatkit.core.server.JarvisServer;
+import com.xatkit.intent.IntentDefinition;
 import fr.inria.atlanmod.commons.log.Log;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -21,7 +25,7 @@ import static java.util.Objects.isNull;
  * <p>
  * This class stores analytics information related to (un)matched intents, and registers a set of REST endpoints
  * allowing to query them from external applications. <b>Warning</b>: the REST endpoints must be accessed using the
- * <i>POST</i> method, this is a current limitation of the {@link edu.uoc.som.jarvis.core.server.JarvisServer}.
+ * <i>POST</i> method, this is a current limitation of the {@link JarvisServer}.
  * <p>
  * The following endpoints can be used to access the stored information:
  * <ul>
@@ -79,7 +83,7 @@ public class RecognitionMonitor {
      * <p>
      * This constructor also registers two REST endpoints allowing to query the stored information from external
      * applications. <b>Warning</b>: the REST endpoints must be accessed using the
-     * <i>POST</i> method, this is a current limitation of the {@link edu.uoc.som.jarvis.core.server.JarvisServer}.
+     * <i>POST</i> method, this is a current limitation of the {@link JarvisServer}.
      * <p>
      * The following endpoints can be used to access the stored information:
      * <ul>

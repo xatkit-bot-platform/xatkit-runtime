@@ -1,8 +1,8 @@
-package edu.uoc.som.jarvis.plugins.log.platform.action;
+package com.xatkit.plugins.log.platform.action;
 
-import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.plugins.log.platform.LogPlatform;
+import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.plugins.log.platform.LogPlatform;
 import fr.inria.atlanmod.commons.log.Level;
 import fr.inria.atlanmod.commons.log.Log;
 

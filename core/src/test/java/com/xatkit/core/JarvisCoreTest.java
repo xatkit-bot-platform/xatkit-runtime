@@ -1,23 +1,22 @@
-package edu.uoc.som.jarvis.core;
+package com.xatkit.core;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.recognition.DefaultIntentRecognitionProvider;
-import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProviderFactory;
-import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
-import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
-import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
-import edu.uoc.som.jarvis.execution.ExecutionFactory;
-import edu.uoc.som.jarvis.execution.ExecutionModel;
-import edu.uoc.som.jarvis.platform.EventProviderDefinition;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.platform.PlatformFactory;
-import edu.uoc.som.jarvis.stubs.io.StubJsonWebhookEventProvider;
-import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.recognition.DefaultIntentRecognitionProvider;
+import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
+import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
+import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core_resources.utils.LibraryLoaderUtils;
+import com.xatkit.core_resources.utils.PlatformLoaderUtils;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.platform.EventProviderDefinition;
+import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.platform.PlatformFactory;
+import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
+import com.xatkit.test.util.models.TestExecutionModel;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -180,7 +179,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         ExecutionModel executionModel = testExecutionModel.getExecutionModel();
         PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
         platformDefinition.setName("InvalidPlatform");
-        platformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.InvalidPlatform");
+        platformDefinition.setRuntimePath("com.xatkit.stubs.InvalidPlatform");
         Configuration configuration = buildConfiguration(executionModel);
         jarvisCore = new JarvisCore(configuration);
     }
@@ -201,7 +200,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         TestExecutionModel testExecutionModel = new TestExecutionModel();
         PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
         platformDefinition.setName("StubRuntimePlatformJarvisCoreConstructor");
-        platformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.StubRuntimePlatformJarvisCoreConstructor");
+        platformDefinition.setRuntimePath("StubRuntimePlatformJarvisCoreConstructor");
 
         ExecutionModel executionModel = testExecutionModel.getExecutionModel();
 
@@ -213,7 +212,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
     public void constructValidWebhookEventProvider() {
         PlatformDefinition stubPlatformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
         stubPlatformDefinition.setName("EmptyRuntimePlatform");
-        stubPlatformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.EmptyRuntimePlatform");
+        stubPlatformDefinition.setRuntimePath("EmptyRuntimePlatform");
         EventProviderDefinition stubWebhookEventProviderDefinition = PlatformFactory.eINSTANCE
                 .createEventProviderDefinition();
         stubWebhookEventProviderDefinition.setName("StubJsonWebhookEventProvider");
@@ -222,10 +221,10 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         jarvisCore = new JarvisCore(buildConfiguration(executionModel));
         checkJarvisCore(jarvisCore, executionModel);
-        Assertions.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server " +
+        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders()).as("Server " +
                 "WebhookEventProvider" +
                 " collection is not empty").isNotEmpty();
-        Assertions.assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
+        assertThat(jarvisCore.getJarvisServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
                 "registered WebhookEventProvider").isInstanceOf(StubJsonWebhookEventProvider.class);
     }
 
@@ -234,7 +233,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, ExecutionFactory.eINSTANCE.createExecutionModel());
         jarvisCore = new JarvisCore(configuration);
-        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses " +
+        assertThat(jarvisCore.getIntentRecognitionProvider()).as("JarvisCore uses " +
                 "DefaultIntentRecognitionProvider")
                 .isInstanceOf(DefaultIntentRecognitionProvider.class);
     }
@@ -369,8 +368,8 @@ public class JarvisCoreTest extends AbstractJarvisTest {
          * isNotNull() assertions are not soft, otherwise the runner does not print the assertion error and fails on
          * a NullPointerException in the following assertions.
          */
-        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
-        Assertions.assertThat(jarvisCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a " +
+        assertThat(jarvisCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
+        assertThat(jarvisCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a " +
                 "DialogFlowApi " +
                 "instance").isInstanceOf(DialogFlowApi.class);
         DialogFlowApi dialogFlowApi = (DialogFlowApi) jarvisCore.getIntentRecognitionProvider();
@@ -383,7 +382,7 @@ public class JarvisCoreTest extends AbstractJarvisTest {
         softly.assertThat(jarvisCore.getExecutionService().getExecutionModel()).as("Valid " +
                 "ExecutionModel").isEqualTo(executionModel);
         softly.assertThat(jarvisCore.isShutdown()).as("Not shutdown").isFalse();
-        Assertions.assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
+        assertThat(jarvisCore.getJarvisServer()).as("Not null JarvisServer").isNotNull();
         URI corePlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "CorePlatform.xmi");
         assertThat(jarvisCore.executionResourceSet.getResource(corePlatformPathmapURI, false)).as("CorePlatform " +
                 "pathmap resolved").isNotNull();

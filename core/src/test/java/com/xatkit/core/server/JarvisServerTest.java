@@ -327,4 +327,6 @@ public class JarvisServerTest extends AbstractJarvisTest {
         assertThat(result).as("Result is not null").isNotNull();
         assertThat(result).as("Result is a JsonObject").isInstanceOf(JsonObject.class);
         JsonObject resultObject = (JsonObject) result;
-        assertThat(resultObject.get("called").getAsBoolean()).as("Result contains the handler val
+        assertThat(resultObject.get("called").getAsBoolean()).as("Result contains the handler value").isTrue();
+    }
+}

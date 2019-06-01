@@ -1,13 +1,13 @@
-package edu.uoc.som.jarvis.plugins.react.platform.io;
+package com.xatkit.plugins.react.platform.io;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import edu.uoc.som.jarvis.core.platform.io.JsonWebhookEventProvider;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.RecognizedIntent;
-import edu.uoc.som.jarvis.plugins.chat.ChatUtils;
-import edu.uoc.som.jarvis.plugins.react.platform.ReactPlatform;
-import edu.uoc.som.jarvis.plugins.react.platform.ReactUtils;
+import com.xatkit.core.platform.io.JsonWebhookEventProvider;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.plugins.chat.ChatUtils;
+import com.xatkit.plugins.react.platform.ReactPlatform;
+import com.xatkit.plugins.react.platform.ReactUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
@@ -86,7 +86,7 @@ class ReactWebhook extends JsonWebhookEventProvider<ReactPlatform> {
             }
             Log.info("Received a message from user {0} (channel {1}): {2}", username, channel, message);
         } else {
-            Log.error("Does not contain Jarvis REACt header");
+            Log.error("Does not contain Xatkit REACt header");
         }
     }
 

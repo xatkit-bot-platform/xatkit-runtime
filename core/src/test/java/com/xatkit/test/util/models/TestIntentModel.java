@@ -1,8 +1,8 @@
 package com.xatkit.test.util.models;
 
-import edu.uoc.som.jarvis.intent.IntentDefinition;
-import edu.uoc.som.jarvis.intent.IntentFactory;
-import edu.uoc.som.jarvis.intent.Library;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
+import com.xatkit.intent.Library;
 
 public class TestIntentModel {
 

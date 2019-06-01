@@ -1,7 +1,7 @@
-package edu.uoc.som.jarvis.plugins.chat.platform;
+package com.xatkit.plugins.chat.platform;
 
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 
 /**

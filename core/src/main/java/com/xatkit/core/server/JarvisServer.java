@@ -1,8 +1,8 @@
-package edu.uoc.som.jarvis.core.server;
+package com.xatkit.core.server;
 
 import com.google.gson.JsonElement;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
+import com.xatkit.core.platform.io.WebhookEventProvider;
+import com.xatkit.core.JarvisException;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
@@ -28,7 +28,7 @@ import static java.util.Objects.isNull;
  * <p>
  * The {@link JarvisServer} provides a simple REST API that accepts POST methods on port {@code 5000}. Incoming
  * requests are parsed and sent to the registered {@link WebhookEventProvider}s, that transform the
- * original request into {@link edu.uoc.som.jarvis.intent.EventInstance}s that can be used to trigger actions.
+ * original request into {@link com.xatkit.intent.EventInstance}s that can be used to trigger actions.
  *
  * @see #registerWebhookEventProvider(WebhookEventProvider)
  */
@@ -71,7 +71,7 @@ public class JarvisServer {
      * The {@link WebhookEventProvider}s to notify when a request is received.
      * <p>
      * These {@link WebhookEventProvider}s are used to parse the input requests and create the corresponding
-     * {@link edu.uoc.som.jarvis.intent.EventInstance}s that can be used to trigger actions.
+     * {@link com.xatkit.intent.EventInstance}s that can be used to trigger actions.
      */
     private Set<WebhookEventProvider> webhookEventProviders;
 
@@ -116,7 +116,7 @@ public class JarvisServer {
 
         server = ServerBootstrap.bootstrap()
                 .setListenerPort(port)
-                .setServerInfo("Jarvis/1.1")
+                .setServerInfo("Xatkit/1.1")
                 .setSocketConfig(socketConfig)
                 .setExceptionLogger(e -> {
                     if(e instanceof SocketTimeoutException) {
@@ -260,7 +260,7 @@ public class JarvisServer {
      * <p>
      * The registered {@code webhookEventProvider} will be notified when a new request is received. If the provider
      * supports the request content type (see {@link WebhookEventProvider#acceptContentType(String)}, it will receive
-     * the request content that will be used to create the associated {@link edu.uoc.som.jarvis.intent.EventInstance}.
+     * the request content that will be used to create the associated {@link com.xatkit.intent.EventInstance}.
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to register
      * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
@@ -278,7 +278,7 @@ public class JarvisServer {
      * Unregistered a {@link WebhookEventProvider}.
      * <p>
      * The provided {@code webhookEventProvider} will not be notified when new request are received, and cannot be
-     * used to create {@link edu.uoc.som.jarvis.intent.EventInstance}s.
+     * used to create {@link com.xatkit.intent.EventInstance}s.
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to unregister
      * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
@@ -303,7 +303,7 @@ public class JarvisServer {
      * <p>
      * This method asks each registered {@link WebhookEventProvider} if it accepts the given {@code contentType}. If
      * so, the provided {@code content} is sent to the {@link WebhookEventProvider} that will create the associated
-     * {@link edu.uoc.som.jarvis.intent.EventInstance}.
+     * {@link com.xatkit.intent.EventInstance}.
      *
      * @param contentType the content type of the received request
      * @param content     the content of the received request

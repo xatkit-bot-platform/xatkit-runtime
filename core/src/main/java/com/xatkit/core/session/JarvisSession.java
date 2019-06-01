@@ -1,5 +1,6 @@
-package edu.uoc.som.jarvis.core.session;
+package com.xatkit.core.session;
 
+import com.xatkit.core.JarvisCore;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -18,7 +19,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * of the current conversation.
  *
  * @see RuntimeContexts
- * @see edu.uoc.som.jarvis.core.JarvisCore#getOrCreateJarvisSession(String)
+ * @see JarvisCore#getOrCreateJarvisSession(String)
  */
 public class JarvisSession {
 

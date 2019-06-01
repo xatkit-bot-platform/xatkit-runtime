@@ -1,8 +1,8 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.intent.*;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.JarvisException;
+import com.xatkit.intent.*;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.util.EList;

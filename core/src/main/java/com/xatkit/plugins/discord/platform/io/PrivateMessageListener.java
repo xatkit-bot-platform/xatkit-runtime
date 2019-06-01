@@ -1,10 +1,10 @@
-package edu.uoc.som.jarvis.plugins.discord.platform.io;
+package com.xatkit.plugins.discord.platform.io;
 
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.RecognizedIntent;
-import edu.uoc.som.jarvis.plugins.chat.ChatUtils;
-import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.plugins.chat.ChatUtils;
+import com.xatkit.plugins.discord.DiscordUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;

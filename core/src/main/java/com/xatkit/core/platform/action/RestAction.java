@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.core.platform.action;
+package com.xatkit.core.platform.action;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -10,8 +10,8 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.BaseRequest;
 import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.session.JarvisSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 import javax.annotation.Nullable;

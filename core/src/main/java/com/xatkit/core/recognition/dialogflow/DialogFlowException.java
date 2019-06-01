@@ -1,6 +1,6 @@
-package edu.uoc.som.jarvis.core.recognition.dialogflow;
+package com.xatkit.core.recognition.dialogflow;
 
-import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProviderException;
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 
 /**
  * Wraps all the exceptions returned by the DialogFlow API.

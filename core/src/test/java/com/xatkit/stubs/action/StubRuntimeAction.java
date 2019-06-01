@@ -1,8 +1,8 @@
-package edu.uoc.som.jarvis.stubs.action;
+package com.xatkit.stubs.action;
 
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.session.JarvisSession;
 
 public class StubRuntimeAction extends RuntimeAction {
 

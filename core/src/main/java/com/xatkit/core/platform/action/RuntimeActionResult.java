@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.core.platform.action;
+package com.xatkit.core.platform.action;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;

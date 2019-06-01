@@ -1,10 +1,10 @@
-package edu.uoc.som.jarvis.plugins.discord.platform.io;
+package com.xatkit.plugins.discord.platform.io;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.plugins.discord.DiscordUtils;
-import edu.uoc.som.jarvis.plugins.discord.platform.DiscordPlatform;
-import edu.uoc.som.jarvis.stubs.StubJarvisCore;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
+import com.xatkit.plugins.discord.DiscordUtils;
+import com.xatkit.plugins.discord.platform.DiscordPlatform;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;

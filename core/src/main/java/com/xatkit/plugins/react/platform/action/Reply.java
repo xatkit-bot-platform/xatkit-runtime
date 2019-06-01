@@ -1,16 +1,17 @@
-package edu.uoc.som.jarvis.plugins.react.platform.action;
+package com.xatkit.plugins.react.platform.action;
 
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.plugins.chat.ChatUtils;
-import edu.uoc.som.jarvis.plugins.react.platform.ReactPlatform;
-import edu.uoc.som.jarvis.plugins.react.platform.ReactUtils;
+import com.xatkit.core.platform.action.RuntimeMessageAction;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.plugins.chat.ChatUtils;
+import com.xatkit.plugins.react.platform.ReactPlatform;
+import com.xatkit.plugins.react.platform.ReactUtils;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
- * A {@link edu.uoc.som.jarvis.core.platform.action.RuntimeMessageAction} that replies to a message using the input
+ * A {@link RuntimeMessageAction} that replies to a message using the input
  * jarvis-react channel.
  * <p>
  * This action relies on the provided {@link JarvisSession} to retrieve the jarvis-react {@code channel} associated

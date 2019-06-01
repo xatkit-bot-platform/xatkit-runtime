@@ -1,12 +1,14 @@
-package edu.uoc.som.jarvis.core.platform.io;
+package com.xatkit.core.platform.io;
 
-import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
-import edu.uoc.som.jarvis.intent.Context;
-import edu.uoc.som.jarvis.intent.ContextInstance;
-import edu.uoc.som.jarvis.intent.ContextParameter;
-import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.intent.*;
+import com.xatkit.core.EventDefinitionRegistry;
+import com.xatkit.core.JarvisException;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.ContextParameterValue;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.IntentFactory;
 
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -178,12 +180,12 @@ public class EventInstanceBuilder {
         for (String contextKey : contextValues.keySet()) {
 
             Context context = null;
-            for(Context outContext : eventDefinition.getOutContexts()) {
-                if(nonNull(outContext.getContextParameter(contextKey))) {
+            for (Context outContext : eventDefinition.getOutContexts()) {
+                if (nonNull(outContext.getContextParameter(contextKey))) {
                     context = outContext;
                 }
             }
-            if(isNull(context)) {
+            if (isNull(context)) {
                 throw new JarvisException(MessageFormat.format("Cannot retrieve the out context associated to the " +
                         "context parameter {0}", contextKey));
             }
@@ -191,7 +193,7 @@ public class EventInstanceBuilder {
              * Retrieve the context instance bound to the retrieved context. Create it if it does not exist.
              */
             ContextInstance contextInstance = eventInstance.getOutContextInstance(context.getName());
-            if(isNull(contextInstance)) {
+            if (isNull(contextInstance)) {
                 contextInstance = IntentFactory.eINSTANCE.createContextInstance();
                 contextInstance.setDefinition(context);
                 eventInstance.getOutContextInstances().add(contextInstance);
@@ -202,7 +204,7 @@ public class EventInstanceBuilder {
             contextInstance.setLifespanCount(context.getLifeSpan());
 
             ContextParameter contextParameter = context.getContextParameter(contextKey);
-            if(isNull(contextParameter)) {
+            if (isNull(contextParameter)) {
                 throw new JarvisException(MessageFormat.format("Cannot build the EventInstance, the " +
                         "EventDefinition {0} does not define the output context parameter {1}", eventDefinition
                         .getName(), contextKey));

@@ -1,7 +1,7 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
 
-import edu.uoc.som.jarvis.core.JarvisException;
+import com.xatkit.core.JarvisException;
 
 /**
  * Wraps all the exceptions thrown by the {@link IntentRecognitionProvider}s.

@@ -1,8 +1,8 @@
-package edu.uoc.som.jarvis.stubs.io;
+package com.xatkit.stubs.io;
 
 import com.google.gson.JsonElement;
-import edu.uoc.som.jarvis.core.platform.io.JsonWebhookEventProvider;
-import edu.uoc.som.jarvis.stubs.EmptyRuntimePlatform;
+import com.xatkit.core.platform.io.JsonWebhookEventProvider;
+import com.xatkit.stubs.EmptyRuntimePlatform;
 import org.apache.http.Header;
 
 public class StubJsonWebhookEventProvider extends JsonWebhookEventProvider<EmptyRuntimePlatform> {

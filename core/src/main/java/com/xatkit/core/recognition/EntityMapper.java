@@ -1,10 +1,10 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.intent.BaseEntityDefinition;
-import edu.uoc.som.jarvis.intent.CustomEntityDefinition;
-import edu.uoc.som.jarvis.intent.EntityDefinition;
-import edu.uoc.som.jarvis.intent.EntityType;
+import com.xatkit.core.JarvisException;
+import com.xatkit.intent.BaseEntityDefinition;
+import com.xatkit.intent.CustomEntityDefinition;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.EntityType;
 import fr.inria.atlanmod.commons.log.Log;
 
 import java.text.MessageFormat;

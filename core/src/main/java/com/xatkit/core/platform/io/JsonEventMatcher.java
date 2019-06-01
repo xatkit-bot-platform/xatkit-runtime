@@ -1,11 +1,11 @@
-package edu.uoc.som.jarvis.core.platform.io;
+package com.xatkit.core.platform.io;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.xatkit.core.JarvisException;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.EventInstance;
 import fr.inria.atlanmod.commons.log.Log;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.intent.EventDefinition;
-import edu.uoc.som.jarvis.intent.EventInstance;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 
@@ -205,7 +205,7 @@ public class JsonEventMatcher {
      * {@code content}, formatted by the {@link #convertJsonObjectToOutContext(JsonObject, EventInstanceBuilder)}
      * method.
      *
-     * @param eventDefinitionName the name of the {@link edu.uoc.som.jarvis.intent.EventDefinition} to create an
+     * @param eventDefinitionName the name of the {@link EventDefinition} to create an
      *                            {@link EventInstance} from
      * @param content             the {@link JsonElement} to set as the created {@link EventInstance} out context
      * @return an {@link EventInstance} matching the provided {@code eventDefinitionName} and containing the {@code

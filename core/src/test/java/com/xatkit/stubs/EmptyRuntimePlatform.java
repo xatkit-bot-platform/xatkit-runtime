@@ -1,9 +1,9 @@
 package com.xatkit.stubs;
 
+import com.xatkit.core.JarvisCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.session.JarvisSession;
-import com.xatkit.core.JarvisCore;
-import edu.uoc.som.jarvis.execution.ActionInstance;
+import com.xatkit.execution.ActionInstance;
 
 /**
  * An empty {@link RuntimePlatform} used to test {@link RuntimePlatform}-related methods.

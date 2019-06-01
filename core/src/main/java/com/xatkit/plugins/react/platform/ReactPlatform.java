@@ -1,11 +1,13 @@
-package edu.uoc.som.jarvis.plugins.react.platform;
+package com.xatkit.plugins.react.platform;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.plugins.chat.platform.ChatPlatform;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.plugins.chat.platform.ChatPlatform;
+import com.xatkit.plugins.react.platform.action.PostMessage;
+import com.xatkit.plugins.react.platform.action.Reply;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
@@ -19,16 +21,16 @@ import static java.util.Objects.nonNull;
 
 /**
  * A {@link ChatPlatform} class that interacts with the
- * <a href="https://github.com/jarvis-platform/jarvis-react">Jarvis React component</a>.
+ * <a href="https://github.com/jarvis-platform/jarvis-react">Xatkit React component</a>.
  * <p>
  * This {@link ChatPlatform} manages a list of pending messages that can be queried by the jarvis-react application
- * to display them. It initializes a REST endpoint and registers it to the Jarvis server, allowing to reply to
+ * to display them. It initializes a REST endpoint and registers it to the Xatkit server, allowing to reply to
  * jarvis-react REST queries.
  * <p>
  * This platform provides the following actions:
  * <ul>
- * <li>{@link edu.uoc.som.jarvis.plugins.react.platform.action.Reply}: replies to a user input</li>
- * <li>{@link edu.uoc.som.jarvis.plugins.react.platform.action.PostMessage}: post a message to a given channel
+ * <li>{@link Reply}: replies to a user input</li>
+ * <li>{@link PostMessage}: post a message to a given channel
  * (i.e. window running a jarvis-react instance)</li>
  * </ul>
  * <p>

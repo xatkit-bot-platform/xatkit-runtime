@@ -1,6 +1,6 @@
-package edu.uoc.som.jarvis.core.session;
+package com.xatkit.core.session;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
+import com.xatkit.AbstractJarvisTest;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;

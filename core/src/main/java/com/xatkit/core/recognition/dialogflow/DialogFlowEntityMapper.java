@@ -1,19 +1,18 @@
-package edu.uoc.som.jarvis.core.recognition.dialogflow;
+package com.xatkit.core.recognition.dialogflow;
 
-import edu.uoc.som.jarvis.core.recognition.EntityMapper;
-import edu.uoc.som.jarvis.intent.CustomEntityDefinition;
-import edu.uoc.som.jarvis.intent.EntityDefinition;
-import edu.uoc.som.jarvis.intent.EntityType;
+import com.xatkit.core.recognition.EntityMapper;
+import com.xatkit.intent.CustomEntityDefinition;
+import com.xatkit.intent.EntityDefinition;
 
 import java.text.MessageFormat;
 
-import static edu.uoc.som.jarvis.intent.EntityType.*;
+import static com.xatkit.intent.EntityType.*;
 
 /**
  * An {@link EntityMapper} initialized with DialogFlow's system entities.
  * <p>
- * This class provides a mapping of {@link EntityType}s to DialogFlow's system entities. Mapped entities can be
- * accessed by calling {@link #getMappingFor(EntityDefinition)}.
+ * This class provides a mapping of {@link com.xatkit.intent.EntityType}s to DialogFlow's system entities. Mapped
+ * entities can be accessed by calling {@link #getMappingFor(EntityDefinition)}.
  */
 public class DialogFlowEntityMapper extends EntityMapper {
 
@@ -156,7 +155,7 @@ public class DialogFlowEntityMapper extends EntityMapper {
          * is no need for such feature for now.
          */
         throw new UnsupportedOperationException(MessageFormat.format("{0} does not allow to register custom entity " +
-                "mappings, use getMappingFor(EntityDefinition) to get DialogFlow-compatible mapping of {1}",
+                        "mappings, use getMappingFor(EntityDefinition) to get DialogFlow-compatible mapping of {1}",
                 this.getClass().getSimpleName(), CustomEntityDefinition.class.getSimpleName()));
     }
 

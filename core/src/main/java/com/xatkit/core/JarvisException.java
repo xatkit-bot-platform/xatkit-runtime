@@ -1,7 +1,7 @@
-package edu.uoc.som.jarvis.core;
+package com.xatkit.core;
 
 /**
- * Jarvis top-level exception.
+ * Xatkit top-level exception.
  * <p>
  * This exception is used to wrap internal {@link Exception}s and return them in a unified way to client applications.
  */

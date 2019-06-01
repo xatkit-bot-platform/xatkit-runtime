@@ -1,12 +1,12 @@
-package edu.uoc.som.jarvis.core.platform.action;
+package com.xatkit.core.platform.action;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.stubs.StubJarvisCore;
-import edu.uoc.som.jarvis.stubs.StubRuntimePlatform;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.stubs.StubRuntimePlatform;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.AfterClass;
 import org.junit.Before;

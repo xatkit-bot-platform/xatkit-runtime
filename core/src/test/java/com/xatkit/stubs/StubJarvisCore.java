@@ -1,18 +1,17 @@
-package edu.uoc.som.jarvis.stubs;
+package com.xatkit.stubs;
 
-import edu.uoc.som.jarvis.core.ExecutionService;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.JarvisCoreTest;
-import edu.uoc.som.jarvis.core.RuntimePlatformRegistry;
-import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.execution.ExecutionFactory;
-import edu.uoc.som.jarvis.execution.ExecutionModel;
-import edu.uoc.som.jarvis.intent.EventDefinition;
-import edu.uoc.som.jarvis.intent.EventInstance;
-import edu.uoc.som.jarvis.intent.IntentDefinition;
-import edu.uoc.som.jarvis.intent.IntentFactory;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
+import com.xatkit.core.ExecutionService;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.JarvisCoreTest;
+import com.xatkit.core.RuntimePlatformRegistry;
+import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
 
 import java.util.ArrayList;
 import java.util.List;

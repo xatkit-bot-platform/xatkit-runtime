@@ -1,6 +1,7 @@
 package com.xatkit.core;
 
-import com.xatkit.Jarvis;
+import com.xatkit.Xatkit;
+import com.xatkit.common.Instruction;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
@@ -12,18 +13,25 @@ import com.xatkit.core.server.JarvisServer;
 import com.xatkit.core.session.JarvisSession;
 import com.xatkit.core_resources.utils.LibraryLoaderUtils;
 import com.xatkit.core_resources.utils.PlatformLoaderUtils;
+import com.xatkit.execution.ActionInstance;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.ExecutionPackage;
+import com.xatkit.execution.ExecutionRule;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentPackage;
+import com.xatkit.intent.Library;
+import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.platform.ActionDefinition;
+import com.xatkit.platform.EventProviderDefinition;
+import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.platform.PlatformPackage;
 import com.xatkit.util.EMFUtils;
 import com.xatkit.util.Loader;
-import edu.uoc.som.jarvis.common.Instruction;
-import edu.uoc.som.jarvis.execution.ActionInstance;
-import edu.uoc.som.jarvis.execution.ExecutionModel;
-import edu.uoc.som.jarvis.execution.ExecutionPackage;
-import edu.uoc.som.jarvis.execution.ExecutionRule;
-import edu.uoc.som.jarvis.intent.*;
-import edu.uoc.som.jarvis.platform.ActionDefinition;
-import edu.uoc.som.jarvis.platform.EventProviderDefinition;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.platform.PlatformPackage;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
@@ -39,9 +47,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
@@ -208,7 +227,7 @@ public class JarvisCore {
             this.eventDefinitionRegistry = new EventDefinitionRegistry();
             this.loadExecutionModel(executionModel);
             jarvisServer.start();
-            Log.info("Jarvis bot started");
+            Log.info("Xatkit bot started");
         } catch (Throwable t) {
             Log.error("An error occurred when starting the {0}, trying to close started services", this.getClass()
                     .getSimpleName());
@@ -404,7 +423,7 @@ public class JarvisCore {
         checkNotNull(property, "Cannot retrieve the %s from the property %s, please ensure it is " +
                         "set in the %s property of the jarvis configuration", ExecutionModel.class.getSimpleName(),
                 property, EXECUTION_MODEL_KEY);
-        String basePath = configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
+        String basePath = configuration.getString(Xatkit.CONFIGURATION_FOLDER_PATH, "");
         if (property instanceof ExecutionModel) {
             return (ExecutionModel) property;
         } else {
@@ -460,7 +479,7 @@ public class JarvisCore {
     /**
      * Creates and initializes the {@link ResourceSet} used to load the provided {@link ExecutionModel}.
      * <p>
-     * This method registers the Jarvis language's {@link EPackage}s, loads the core <i>library</i> and
+     * This method registers the Xatkit language's {@link EPackage}s, loads the core <i>library</i> and
      * <i>platform</i> {@link Resource}s, and loads the custom <i>library</i> and <i>platforms</i> specified in the
      * {@link Configuration}.
      * <p>
@@ -528,7 +547,7 @@ public class JarvisCore {
      * @see #loadCoreResources(Path, String, Class)
      */
     private void loadCoreLibraries() {
-        Log.info("Loading Jarvis core libraries");
+        Log.info("Loading Xatkit core libraries");
         Path librariesPath = getPath("libraries/xmi/");
         loadCoreResources(librariesPath, LibraryLoaderUtils.CORE_LIBRARY_PATHMAP, Library.class);
     }
@@ -550,7 +569,7 @@ public class JarvisCore {
      * @see #loadCoreResources(Path, String, Class)
      */
     private void loadCorePlatforms() {
-        Log.info("Loading Jarvis core platforms");
+        Log.info("Loading Xatkit core platforms");
         Path platformsPath = getPath("platforms/xmi/");
         loadCoreResources(platformsPath, PlatformLoaderUtils.CORE_PLATFORM_PATHMAP, PlatformDefinition.class);
     }
@@ -605,7 +624,7 @@ public class JarvisCore {
     }
 
     /**
-     * Loads the custom <i>libraries</i> specified in the Jarvis {@link Configuration}.
+     * Loads the custom <i>libraries</i> specified in the Xatkit {@link Configuration}.
      * <p>
      * <i>Custom libraries</i> loading is done by searching in the provided {@link Configuration} file the entries
      * starting with {@link #CUSTOM_LIBRARIES_KEY_PREFIX}. These entries are handled as absolute paths to the
@@ -616,7 +635,7 @@ public class JarvisCore {
      * @see #loadCustomResource(String, URI, Class)
      */
     private void loadCustomLibraries() {
-        Log.info("Loading Jarvis custom libraries");
+        Log.info("Loading Xatkit custom libraries");
         configuration.getKeys().forEachRemaining(key -> {
             if (key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX)) {
                 String libraryPath = configuration.getString(key);
@@ -628,7 +647,7 @@ public class JarvisCore {
     }
 
     /**
-     * Loads the custom <i>platforms</i> specified in the Jarvis {@link Configuration}.
+     * Loads the custom <i>platforms</i> specified in the Xatkit {@link Configuration}.
      * <p>
      * <i>Custom platforms</i> loading is done by searching in the provided {@link Configuration} file the entries
      * starting with {@link #CUSTOM_PLATFORMS_KEY_PREFIX}. These entries are handled as absolute paths to the
@@ -637,7 +656,7 @@ public class JarvisCore {
      * provided {@link ExecutionModel}.
      */
     private void loadCustomPlatforms() {
-        Log.info("Loading Jarvis custom platforms");
+        Log.info("Loading Xatkit custom platforms");
         configuration.getKeys().forEachRemaining(key -> {
             if (key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)) {
                 String platformPath = configuration.getString(key);
@@ -674,7 +693,7 @@ public class JarvisCore {
          * The provided path is handled as a File path. Loading custom resources from external jars is left for a
          * future release.
          */
-        String baseConfigurationPath = this.configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
+        String baseConfigurationPath = this.configuration.getString(Xatkit.CONFIGURATION_FOLDER_PATH, "");
         File resourceFile = new File(path);
         /*
          * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
@@ -716,7 +735,7 @@ public class JarvisCore {
                     "attached exception", resourceLocation), e);
         }
         /*
-         * Jarvis is imported as a jar, we need to setup a FileSystem that handles jar file loading.
+         * Xatkit is imported as a jar, we need to setup a FileSystem that handles jar file loading.
          */
         if (uri.getScheme().equals("jar")) {
             try {

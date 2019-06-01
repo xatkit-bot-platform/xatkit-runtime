@@ -1,12 +1,12 @@
 package com.xatkit.core.platform.io;
 
 import com.xatkit.core.JarvisCore;
+import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
-import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.session.JarvisSession;
 import com.xatkit.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.intent.RecognizedIntent;
+import com.xatkit.intent.RecognizedIntent;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 

@@ -1,7 +1,7 @@
-package edu.uoc.som.jarvis.stubs;
+package com.xatkit.stubs;
 
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.JarvisCore;
 
 public class StubRuntimePlatformJarvisCoreConstructor extends RuntimePlatform {
 

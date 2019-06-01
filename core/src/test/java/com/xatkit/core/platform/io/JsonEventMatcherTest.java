@@ -1,11 +1,11 @@
-package edu.uoc.som.jarvis.core.platform.io;
+package com.xatkit.core.platform.io;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.intent.*;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.EventDefinitionRegistry;
+import com.xatkit.core.JarvisException;
+import com.xatkit.intent.*;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;

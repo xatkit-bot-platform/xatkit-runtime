@@ -1,11 +1,11 @@
-package edu.uoc.som.jarvis.plugins.log.platform;
+package com.xatkit.plugins.log.platform;
 
-import edu.uoc.som.jarvis.plugins.log.platform.action.LogAction;
-import edu.uoc.som.jarvis.plugins.log.platform.action.LogError;
-import edu.uoc.som.jarvis.plugins.log.platform.action.LogInfo;
-import edu.uoc.som.jarvis.plugins.log.platform.action.LogWarning;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
+import com.xatkit.plugins.log.platform.action.LogAction;
+import com.xatkit.plugins.log.platform.action.LogError;
+import com.xatkit.plugins.log.platform.action.LogInfo;
+import com.xatkit.plugins.log.platform.action.LogWarning;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.platform.RuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 
 /**

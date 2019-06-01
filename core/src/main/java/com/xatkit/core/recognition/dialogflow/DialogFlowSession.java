@@ -1,7 +1,7 @@
-package edu.uoc.som.jarvis.core.recognition.dialogflow;
+package com.xatkit.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
+import com.xatkit.core.session.JarvisSession;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 

@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.test.util.models;
+package com.xatkit.test.util.models;
 
-import edu.uoc.som.jarvis.execution.ActionInstance;
-import edu.uoc.som.jarvis.execution.ExecutionFactory;
-import edu.uoc.som.jarvis.execution.ExecutionModel;
-import edu.uoc.som.jarvis.execution.ExecutionRule;
+import com.xatkit.execution.ActionInstance;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.ExecutionRule;
 
 public class TestExecutionModel {
 

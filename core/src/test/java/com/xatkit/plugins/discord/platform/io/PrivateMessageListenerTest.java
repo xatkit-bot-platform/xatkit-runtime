@@ -1,11 +1,11 @@
 package com.xatkit.plugins.discord.platform.io;
 
+import com.xatkit.AbstractJarvisTest;
 import com.xatkit.core.session.JarvisSession;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.IntentFactory;
 import com.xatkit.plugins.discord.DiscordUtils;
 import com.xatkit.plugins.discord.platform.DiscordPlatform;
-import com.xatkit.AbstractJarvisTest;
-import edu.uoc.som.jarvis.intent.EventDefinition;
-import edu.uoc.som.jarvis.intent.IntentFactory;
 import com.xatkit.stubs.StubJarvisCore;
 import com.xatkit.stubs.discord.StubMessage;
 import com.xatkit.stubs.discord.StubPrivateChannel;
@@ -14,7 +14,11 @@ import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.util.Map;
 

@@ -17,11 +17,11 @@ import com.xatkit.core.JarvisException;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.platform.io.RuntimeIntentProvider;
 import com.xatkit.core.session.JarvisSession;
-import com.xatkit.plugins.slack.SlackUtils;
-import com.xatkit.plugins.slack.platform.SlackPlatform;
-import edu.uoc.som.jarvis.intent.RecognizedIntent;
+import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.plugins.chat.ChatUtils;
 import com.xatkit.plugins.chat.platform.io.ChatIntentProvider;
+import com.xatkit.plugins.slack.SlackUtils;
+import com.xatkit.plugins.slack.platform.SlackPlatform;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
@@ -350,7 +350,7 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
      * <p>
      * This handler will attempt to reconnect the RTM client by creating a new {@link RTMClient} instance after
      * waiting {@code RECONNECT_WAIT_TIME * <number_of_attempts>} ms. Note that reconnecting the RTM client will be
-     * executed in the main thread and will block Jarvis execution.
+     * executed in the main thread and will block Xatkit execution.
      *
      * @see #RECONNECT_WAIT_TIME
      */

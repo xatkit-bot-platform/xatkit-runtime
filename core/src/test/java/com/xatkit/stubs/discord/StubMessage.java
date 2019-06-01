@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.stubs.discord;
+package com.xatkit.stubs.discord;
 
 
 import net.dv8tion.jda.core.entities.PrivateChannel;

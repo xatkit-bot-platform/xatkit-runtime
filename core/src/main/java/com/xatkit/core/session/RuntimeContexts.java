@@ -1,11 +1,13 @@
-package edu.uoc.som.jarvis.core.session;
+package com.xatkit.core.session;
 
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.platform.io.RuntimeEventProvider;
-import edu.uoc.som.jarvis.intent.Context;
-import edu.uoc.som.jarvis.intent.ContextInstance;
-import edu.uoc.som.jarvis.intent.ContextParameterValue;
+import com.xatkit.core.JarvisException;
+import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.platform.io.RuntimeEventProvider;
+import com.xatkit.core.recognition.IntentRecognitionProvider;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.ContextParameterValue;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -256,7 +258,7 @@ public class RuntimeContexts {
      * Stores the provided {@code contextParameterValue} in the context.
      * <p>
      * This method extracts the context name and parameter key from the provided {@link ContextParameterValue}, by
-     * navigating its {@link edu.uoc.som.jarvis.intent.ContextParameter} and {@link Context} references. This method is
+     * navigating its {@link ContextParameter} and {@link Context} references. This method is
      * used as syntactic sugar to register {@link ContextParameterValue}s received from {@link RuntimeEventProvider}
      * s, see
      * {@link #setContextValue(String, int, String, Object)} to register a context value from {@link String} values.
@@ -327,7 +329,7 @@ public class RuntimeContexts {
      * <p>
      * Context lifespan counts are set by {@link #setContextValue(String, int, String, Object)}, and decrementing after
      * each user input by {@link #decrementLifespanCounts()}, and are synchronized with the
-     * {@link edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider}'s remote context lifespan counts.
+     * {@link IntentRecognitionProvider}'s remote context lifespan counts.
      *
      * @param context the context to retrieve the lifespan count of
      * @return the lifespan count of the provided {@code context}

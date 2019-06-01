@@ -1,6 +1,11 @@
-package edu.uoc.som.jarvis.core.recognition.dialogflow;
+package com.xatkit.core.recognition.dialogflow;
 
-import edu.uoc.som.jarvis.intent.*;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.MappingEntityDefinition;
 import fr.inria.atlanmod.commons.log.Log;
 
 import java.text.MessageFormat;
@@ -19,7 +24,7 @@ public class DialogFlowCheckingUtils {
     }
 
     /**
-     * Checks the out {@link edu.uoc.som.jarvis.intent.Context}s of the provided {@code intentDefinition}.
+     * Checks the out {@link Context}s of the provided {@code intentDefinition}.
      * <p>
      * This method searches for consistency issues in the provided {@code intentDefinition} out contexts, e.g. text
      * fragment in {@link ContextParameter}s that does not correspond to their corresponding entity value, or text
@@ -28,11 +33,10 @@ public class DialogFlowCheckingUtils {
      * Non-critical errors are logged as warning. Critical errors (i.e. errors that will generate a non-working bot)
      * throw an exception.
      *
-     * @param intentDefinition the {@link IntentDefinition} to check the out
-     *                         {@link edu.uoc.som.jarvis.intent.Context} of
+     * @param intentDefinition the {@link IntentDefinition} to check the out {@link Context} of
      */
     public static void checkOutContexts(IntentDefinition intentDefinition) {
-        for (edu.uoc.som.jarvis.intent.Context outContext : intentDefinition.getOutContexts()) {
+        for (Context outContext : intentDefinition.getOutContexts()) {
             for (ContextParameter contextParameter : outContext.getParameters()) {
                 checkContextParameterFragmentIsValidMappingEntityValue(contextParameter);
                 checkContextParameterFragmentIsInTrainingSentence(contextParameter);

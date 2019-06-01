@@ -1,10 +1,9 @@
-package edu.uoc.som.jarvis.core.platform.io;
+package com.xatkit.core.platform.io;
 
-import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.intent.*;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.EventDefinitionRegistry;
+import com.xatkit.core.JarvisException;
+import com.xatkit.intent.*;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
 import org.junit.Before;

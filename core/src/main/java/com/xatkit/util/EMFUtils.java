@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.util;
+package com.xatkit.util;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;

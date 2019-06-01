@@ -1,10 +1,10 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.intent.*;
-import edu.uoc.som.jarvis.test.util.ElementFactory;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.intent.*;
+import com.xatkit.test.util.ElementFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.After;
@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static edu.uoc.som.jarvis.test.util.ElementFactory.createBaseEntityDefinitionReference;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
@@ -44,7 +43,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractJarvisTest {
         ContextParameter contextParameter = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter.setName("param");
         contextParameter.setTextFragment("test");
-        EntityDefinitionReference entityReference = createBaseEntityDefinitionReference(EntityType.ANY);
+        EntityDefinitionReference entityReference = ElementFactory.createBaseEntityDefinitionReference(EntityType.ANY);
         contextParameter.setEntity(entityReference);
         VALID_OUT_CONTEXT.getParameters().add(contextParameter);
         VALID_INTENT_DEFINITION_WITH_OUT_CONTEXT = IntentFactory.eINSTANCE.createIntentDefinition();

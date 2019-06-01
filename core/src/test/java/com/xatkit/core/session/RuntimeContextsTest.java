@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.core.session;
+package com.xatkit.core.session;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.intent.ContextInstance;
-import edu.uoc.som.jarvis.intent.IntentFactory;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.JarvisException;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.IntentFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;

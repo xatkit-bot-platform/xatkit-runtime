@@ -3,8 +3,8 @@ package com.xatkit.core.platform.action;
 import com.xatkit.core.ExecutionService;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.RecognizedIntent;
-import edu.uoc.som.jarvis.platform.ActionDefinition;
+import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.platform.ActionDefinition;
 
 import java.util.concurrent.Callable;
 

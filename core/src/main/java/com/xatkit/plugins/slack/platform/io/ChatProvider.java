@@ -1,10 +1,11 @@
-package edu.uoc.som.jarvis.plugins.slack.platform.io;
+package com.xatkit.plugins.slack.platform.io;
 
-import edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform;
+import com.xatkit.core.platform.io.RuntimeIntentProvider;
+import com.xatkit.plugins.slack.platform.SlackPlatform;
 import org.apache.commons.configuration2.Configuration;
 
 /**
- * A generic Slack user {@link edu.uoc.som.jarvis.core.platform.io.RuntimeIntentProvider}.
+ * A generic Slack user {@link RuntimeIntentProvider}.
  * <p>
  * This class wraps the {@link SlackIntentProvider} and allows to use it as a generic <i>ChatProvider</i> from the
  * <i>ChatPlatform</i>.

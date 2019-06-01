@@ -1,6 +1,7 @@
-package edu.uoc.som.jarvis.test.util;
+package com.xatkit.test.util;
 
-import edu.uoc.som.jarvis.intent.*;
+
+import com.xatkit.intent.*;
 
 import java.text.MessageFormat;
 

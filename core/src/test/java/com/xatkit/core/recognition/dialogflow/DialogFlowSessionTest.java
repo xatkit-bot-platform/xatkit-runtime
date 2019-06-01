@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.core.recognition.dialogflow;
+package com.xatkit.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
+import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;

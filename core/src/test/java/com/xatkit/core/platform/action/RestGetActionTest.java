@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.core.platform.action;
+package com.xatkit.core.platform.action;
 
 import com.google.gson.JsonElement;
 import com.mashape.unirest.http.Headers;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.stubs.StubRuntimePlatform;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.stubs.StubRuntimePlatform;
 import org.junit.Test;
 
 import java.util.Collections;

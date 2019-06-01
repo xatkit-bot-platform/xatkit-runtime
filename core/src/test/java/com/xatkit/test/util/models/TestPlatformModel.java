@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.test.util.models;
+package com.xatkit.test.util.models;
 
-import edu.uoc.som.jarvis.platform.ActionDefinition;
-import edu.uoc.som.jarvis.platform.InputProviderDefinition;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.platform.PlatformFactory;
+import com.xatkit.platform.ActionDefinition;
+import com.xatkit.platform.InputProviderDefinition;
+import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.platform.PlatformFactory;
 
 public class TestPlatformModel {
 
@@ -16,7 +16,7 @@ public class TestPlatformModel {
     public TestPlatformModel() {
         platformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
         platformDefinition.setName("StubRuntimePlatform");
-        platformDefinition.setRuntimePath("edu.uoc.som.jarvis.stubs.StubRuntimePlatform");
+        platformDefinition.setRuntimePath("StubRuntimePlatform");
         actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
         actionDefinition.setName("StubRuntimeAction");
         platformDefinition.getActions().add(actionDefinition);

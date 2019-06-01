@@ -1,11 +1,11 @@
 package com.xatkit.plugins.slack.platform.io;
 
+import com.xatkit.AbstractJarvisTest;
 import com.xatkit.core.session.JarvisSession;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.IntentFactory;
 import com.xatkit.plugins.slack.SlackUtils;
 import com.xatkit.plugins.slack.platform.SlackPlatform;
-import com.xatkit.AbstractJarvisTest;
-import edu.uoc.som.jarvis.intent.EventDefinition;
-import edu.uoc.som.jarvis.intent.IntentFactory;
 import com.xatkit.stubs.StubJarvisCore;
 import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;

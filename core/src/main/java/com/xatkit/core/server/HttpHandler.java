@@ -1,10 +1,21 @@
-package edu.uoc.som.jarvis.core.server;
+package com.xatkit.core.server;
 
-import com.google.gson.*;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.core.platform.io.WebhookEventProvider;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.xatkit.core.JarvisException;
+import com.xatkit.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
-import org.apache.http.*;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
@@ -13,12 +24,19 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
@@ -38,7 +56,7 @@ class HttpHandler implements HttpRequestHandler {
     /**
      * The value of the CORS HTTP header.
      * <p>
-     * The CORS attribute accept all queries by default, this is required to allow in-browser calls to the Jarvis
+     * The CORS attribute accept all queries by default, this is required to allow in-browser calls to the Xatkit
      * server.
      */
     private static String CORS_VALUE = "*";
@@ -179,7 +197,7 @@ class HttpHandler implements HttpRequestHandler {
                 // true we need to build a new URI(target) and retrieve the raw query
                 if (this.jarvisServer.isRestEndpoint(target)) {
                     JsonElement jsonContent = null;
-                    if(!content.isEmpty()) {
+                    if (!content.isEmpty()) {
                         jsonContent = parser.parse(content);
                     }
                     JsonElement result = jarvisServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
@@ -192,7 +210,7 @@ class HttpHandler implements HttpRequestHandler {
                     }
                     response.setHeader("Access-Control-Allow-Headers", "content-type");
                 } else {
-                    this.jarvisServer.notifyWebhookEventProviders(contentType,content, headers);
+                    this.jarvisServer.notifyWebhookEventProviders(contentType, content, headers);
                 }
             } catch (IOException e) {
                 throw new JarvisException("An error occurred when handling the request content", e);
@@ -200,7 +218,7 @@ class HttpHandler implements HttpRequestHandler {
         }
         response.setHeader(CORS_HEADER, CORS_VALUE);
         Set<String> accessControlAllowHeaders = new HashSet<>();
-        for(WebhookEventProvider provider : this.jarvisServer.getRegisteredWebhookEventProviders()) {
+        for (WebhookEventProvider provider : this.jarvisServer.getRegisteredWebhookEventProviders()) {
             accessControlAllowHeaders.addAll(provider.getAccessControlAllowHeaders());
         }
         accessControlAllowHeaders.add("content-type");

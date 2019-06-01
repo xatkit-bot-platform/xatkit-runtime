@@ -1,33 +1,77 @@
-package edu.uoc.som.jarvis.core.recognition.dialogflow;
+package com.xatkit.core.recognition.dialogflow;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.FailedPreconditionException;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.dialogflow.v2.AgentsClient;
+import com.google.cloud.dialogflow.v2.AgentsSettings;
 import com.google.cloud.dialogflow.v2.Context;
+import com.google.cloud.dialogflow.v2.ContextName;
+import com.google.cloud.dialogflow.v2.ContextsClient;
+import com.google.cloud.dialogflow.v2.ContextsSettings;
+import com.google.cloud.dialogflow.v2.DetectIntentResponse;
 import com.google.cloud.dialogflow.v2.EntityType;
-import com.google.cloud.dialogflow.v2.*;
+import com.google.cloud.dialogflow.v2.EntityTypesClient;
+import com.google.cloud.dialogflow.v2.EntityTypesSettings;
+import com.google.cloud.dialogflow.v2.Intent;
+import com.google.cloud.dialogflow.v2.IntentView;
+import com.google.cloud.dialogflow.v2.IntentsClient;
+import com.google.cloud.dialogflow.v2.IntentsSettings;
+import com.google.cloud.dialogflow.v2.ListIntentsRequest;
+import com.google.cloud.dialogflow.v2.ProjectAgentName;
+import com.google.cloud.dialogflow.v2.ProjectName;
+import com.google.cloud.dialogflow.v2.QueryInput;
+import com.google.cloud.dialogflow.v2.QueryResult;
+import com.google.cloud.dialogflow.v2.SessionName;
+import com.google.cloud.dialogflow.v2.SessionsClient;
+import com.google.cloud.dialogflow.v2.SessionsSettings;
+import com.google.cloud.dialogflow.v2.TextInput;
+import com.google.cloud.dialogflow.v2.TrainAgentRequest;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
-import edu.uoc.som.jarvis.Jarvis;
-import edu.uoc.som.jarvis.core.EventDefinitionRegistry;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.core.recognition.EntityMapper;
-import edu.uoc.som.jarvis.core.recognition.IntentRecognitionProvider;
-import edu.uoc.som.jarvis.core.recognition.RecognitionMonitor;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.intent.*;
+import com.xatkit.Xatkit;
+import com.xatkit.core.EventDefinitionRegistry;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.JarvisException;
+import com.xatkit.core.recognition.EntityMapper;
+import com.xatkit.core.recognition.IntentRecognitionProvider;
+import com.xatkit.core.recognition.RecognitionMonitor;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.intent.BaseEntityDefinition;
+import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.CompositeEntityDefinitionEntry;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.ContextParameterValue;
+import com.xatkit.intent.CustomEntityDefinition;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.EntityTextFragment;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
+import com.xatkit.intent.LiteralTextFragment;
+import com.xatkit.intent.MappingEntityDefinition;
+import com.xatkit.intent.MappingEntityDefinitionEntry;
+import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.intent.TextFragment;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -93,7 +137,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * <p>
      * Intent loading is enabled by default, and should not be an issue when using the {@link DialogFlowApi} in
      * development context. However, creating multiple instances of the {@link DialogFlowApi} (e.g. when running the
-     * Jarvis test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
+     * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
      * avoid Intent loading, limiting the number of queries to the DialogFlow API.
      * <p>
      * Note that disabling {@link Intent} loading may create consistency issues between the DialogFlow agent and the
@@ -107,7 +151,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * <p>
      * Entity loading is enabled by default, and should not be an issue when using the {@link DialogFlowApi} in
      * development context. However, creating multiple instances of the {@link DialogFlowApi} (e.g. when running the
-     * Jarvis test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
+     * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
      * avoid Entity loading, limiting the number of queries to the DialogFlow API.
      * <p>
      * Note that disabling {@link EntityType} loading may create consistency issues between the DialogFlow agent and
@@ -494,7 +538,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                  * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
                  */
                 if (!credentialsFile.isAbsolute() && !(credentialsPath.charAt(0) == '/')) {
-                    String configurationFolderPath = configuration.getString(Jarvis.CONFIGURATION_FOLDER_PATH, "");
+                    String configurationFolderPath = configuration.getString(Xatkit.CONFIGURATION_FOLDER_PATH, "");
                     credentialsFile = new File(configurationFolderPath + File.separator + credentialsPath);
                 }
                 if (credentialsFile.exists()) {
@@ -975,19 +1019,19 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      *
      * @param trainingSentence the {@link IntentDefinition}'s training sentence to create a
      *                         {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase} from
-     * @param outContexts      the {@link IntentDefinition}'s output {@link edu.uoc.som.jarvis.intent.Context}s
+     * @param outContexts      the {@link IntentDefinition}'s output {@link com.xatkit.intent.Context}s
      *                         associated to the provided training sentence
      * @return the created DialogFlow's {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase}
      * @throws NullPointerException if the provided {@code trainingSentence} or {@code outContexts} {@link List} is
      *                              {@code null}, or if one of the {@link ContextParameter}'s name from the provided
      *                              {@code outContexts} is {@code null}
      */
-    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<edu.uoc.som.jarvis.intent
+    protected Intent.TrainingPhrase createTrainingPhrase(String trainingSentence, List<com.xatkit.intent
             .Context> outContexts) {
         checkNotNull(trainingSentence, "Cannot create a %s from the provided training sentence %s", Intent
                 .TrainingPhrase.class.getSimpleName(), trainingSentence);
         checkNotNull(outContexts, "Cannot create a %s from the provided output %s list %s", Intent.TrainingPhrase
-                .class.getSimpleName(), edu.uoc.som.jarvis.intent.Context.class.getSimpleName(), outContexts);
+                .class.getSimpleName(), com.xatkit.intent.Context.class.getSimpleName(), outContexts);
         if (outContexts.isEmpty()) {
             return Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part.newBuilder().setText
                     (trainingSentence).build()).build();
@@ -1000,7 +1044,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              * issue we can reshape this method to avoid this pre-processing phase.
              */
             String preparedTrainingSentence = trainingSentence;
-            for (edu.uoc.som.jarvis.intent.Context context : outContexts) {
+            for (com.xatkit.intent.Context context : outContexts) {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
                         preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(), "#"
@@ -1018,7 +1062,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 String sentencePart = splitTrainingSentence[i];
                 Intent.TrainingPhrase.Part.Builder partBuilder = Intent.TrainingPhrase.Part.newBuilder().setText
                         (sentencePart);
-                for (edu.uoc.som.jarvis.intent.Context context : outContexts) {
+                for (com.xatkit.intent.Context context : outContexts) {
                     for (ContextParameter parameter : context.getParameters()) {
                         if (sentencePart.equals(parameter.getTextFragment())) {
                             checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the " +
@@ -1042,7 +1086,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Creates the DialogFlow input {@link Context} names from the provided {@code intentDefinition}.
      * <p>
-     * This method iterates the provided {@code intentDefinition}'s in {@link edu.uoc.som.jarvis.intent.Context}s, and
+     * This method iterates the provided {@code intentDefinition}'s in {@link com.xatkit.intent.Context}s, and
      * maps them to their concrete DialogFlow {@link String} identifier. The returned {@link String} can be used to
      * refer to existing DialogFlow's {@link Context}s.
      *
@@ -1054,9 +1098,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     protected List<String> createInContextNames(IntentDefinition intentDefinition) {
         checkNotNull(intentDefinition, "Cannot create the in contexts from the provided %s %s", IntentDefinition
                 .class.getSimpleName(), intentDefinition);
-        List<edu.uoc.som.jarvis.intent.Context> contexts = intentDefinition.getInContexts();
+        List<com.xatkit.intent.Context> contexts = intentDefinition.getInContexts();
         List<String> results = new ArrayList<>();
-        for (edu.uoc.som.jarvis.intent.Context context : contexts) {
+        for (com.xatkit.intent.Context context : contexts) {
             /*
              * Use a dummy session to create the context.
              */
@@ -1080,7 +1124,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Creates the DialogFlow output {@link Context}s from the provided {@code intentDefinition}.
      * <p>
-     * This method iterates the provided {@code intentDefinition}'s out {@link edu.uoc.som.jarvis.intent.Context}s, and
+     * This method iterates the provided {@code intentDefinition}'s out {@link com.xatkit.intent.Context}s, and
      * maps them to their concrete DialogFlow implementations.
      *
      * @param intentDefinition the {@link IntentDefinition} to create the DialogFlow output {@link Context}s from
@@ -1092,9 +1136,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         checkNotNull(intentDefinition, "Cannot create the out contexts from the provided %s %s", IntentDefinition
                 .class.getSimpleName(), intentDefinition);
         DialogFlowCheckingUtils.checkOutContexts(intentDefinition);
-        List<edu.uoc.som.jarvis.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
+        List<com.xatkit.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
         List<Context> results = new ArrayList<>();
-        for (edu.uoc.som.jarvis.intent.Context context : intentDefinitionContexts) {
+        for (com.xatkit.intent.Context context : intentDefinitionContexts) {
             /*
              * Use a dummy session to create the context.
              */
@@ -1138,22 +1182,22 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     }
 
     /**
-     * Creates the DialogFlow context parameters from the provided Jarvis {@code contexts}.
+     * Creates the DialogFlow context parameters from the provided Xatkit {@code contexts}.
      * <p>
-     * This method iterates the provided {@link edu.uoc.som.jarvis.intent.Context}s, and maps their contained
+     * This method iterates the provided {@link com.xatkit.intent.Context}s, and maps their contained
      * parameter's entities to their concrete DialogFlow implementation.
      *
-     * @param contexts the {@link List} of Jarvis {@link edu.uoc.som.jarvis.intent.Context}s to create the parameters
+     * @param contexts the {@link List} of Xatkit {@link com.xatkit.intent.Context}s to create the parameters
      *                 from
      * @return the {@link List} of DialogFlow context parameters
      * @throws NullPointerException if the provided {@code contexts} {@link List} is {@code null}, or if one of the
      *                              provided {@link ContextParameter}'s name is {@code null}
      */
-    protected List<Intent.Parameter> createParameters(List<edu.uoc.som.jarvis.intent.Context> contexts) {
-        checkNotNull(contexts, "Cannot create the DialogFlow parameters from the provided %s List %s", edu.uoc.som
-                .jarvis.intent.Context.class.getSimpleName(), contexts);
+    protected List<Intent.Parameter> createParameters(List<com.xatkit.intent.Context> contexts) {
+        checkNotNull(contexts, "Cannot create the DialogFlow parameters from the provided %s List %s",
+                com.xatkit.intent.Context.class.getSimpleName(), contexts);
         List<Intent.Parameter> results = new ArrayList<>();
-        for (edu.uoc.som.jarvis.intent.Context context : contexts) {
+        for (com.xatkit.intent.Context context : contexts) {
             for (ContextParameter contextParameter : context.getParameters()) {
                 checkNotNull(contextParameter.getName(), "Cannot create the %s from the provided %s %s, the" +
                         " name %s is invalid", Intent.Parameter.class.getSimpleName(), ContextParameter.class
@@ -1174,8 +1218,6 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     /**
      * Adapts the provided {@code intentDefinitionName} by replacing its {@code _} by spaces.
      * <p>
-     * This method is used to deserialize names that have been serialized by
-     * {@link EventDefinitionRegistry#adaptEventName(String)}.
      *
      * @param intentDefinitionName the {@link IntentDefinition} name to adapt
      * @return the adapted {@code intentDefinitionName}
@@ -1488,7 +1530,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
              * find the Context from the global registry, that may return inconsistent result if there are multiple
              * contexts defined with the same name.
              */
-            edu.uoc.som.jarvis.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
+            com.xatkit.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
             if (isNull(contextDefinition)) {
                 contextDefinition = this.jarvisCore.getEventDefinitionRegistry().getEventDefinitionOutContext
                         (contextName);
@@ -1525,13 +1567,13 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     }
 
     /**
-     * Reifies the provided DialogFlow {@code intent} into an Jarvis {@link IntentDefinition}.
+     * Reifies the provided DialogFlow {@code intent} into an Xatkit {@link IntentDefinition}.
      * <p>
      * This method looks in the {@link EventDefinitionRegistry} for an {@link IntentDefinition} associated to the
      * provided {@code intent}'s name and returns it. If there is no such {@link IntentDefinition} the
      * {@link #DEFAULT_FALLBACK_INTENT} is returned.
      *
-     * @param intent the DialogFlow {@link Intent} to retrieve the Jarvis {@link IntentDefinition} from
+     * @param intent the DialogFlow {@link Intent} to retrieve the Xatkit {@link IntentDefinition} from
      * @return the {@link IntentDefinition} associated to the provided {@code intent}
      * @throws NullPointerException if the provided {@code intent} is {@code null}
      */
@@ -1560,7 +1602,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         this.intentsClient.shutdownNow();
         this.contextsClient.shutdownNow();
         this.agentsClient.shutdownNow();
-        if(nonNull(this.recognitionMonitor)) {
+        if (nonNull(this.recognitionMonitor)) {
             this.recognitionMonitor.shutdown();
         }
     }

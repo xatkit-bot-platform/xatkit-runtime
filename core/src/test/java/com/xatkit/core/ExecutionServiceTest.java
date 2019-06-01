@@ -1,28 +1,29 @@
-package edu.uoc.som.jarvis.core;
+package com.xatkit.core;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.execution.ActionInstance;
-import edu.uoc.som.jarvis.execution.ExecutionFactory;
-import edu.uoc.som.jarvis.execution.ExecutionModel;
-import edu.uoc.som.jarvis.execution.ExecutionRule;
-import edu.uoc.som.jarvis.intent.*;
-import edu.uoc.som.jarvis.platform.ActionDefinition;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.platform.PlatformFactory;
-import edu.uoc.som.jarvis.stubs.StubRuntimePlatform;
-import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
-import edu.uoc.som.jarvis.test.util.models.TestIntentModel;
-import edu.uoc.som.jarvis.test.util.models.TestPlatformModel;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.execution.ActionInstance;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.ExecutionRule;
+import com.xatkit.intent.*;
+import com.xatkit.platform.ActionDefinition;
+import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.platform.PlatformFactory;
+import com.xatkit.stubs.StubRuntimePlatform;
+import com.xatkit.test.util.ElementFactory;
+import com.xatkit.test.util.models.TestExecutionModel;
+import com.xatkit.test.util.models.TestIntentModel;
+import com.xatkit.test.util.models.TestPlatformModel;
 import org.apache.commons.configuration2.Configuration;
+import org.assertj.core.api.Assertions;
 import org.junit.*;
 
 import java.util.UUID;
 
-import static edu.uoc.som.jarvis.test.util.ElementFactory.createBaseEntityDefinitionReference;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,7 +83,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         VALID_EVENT_INSTANCE.setDefinition(testIntentModel.getIntentDefinition());
         ON_ERROR_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
         ON_ERROR_EVENT_INSTANCE.setDefinition(onErrorIntentDefinition);
-        VALID_ENTITY_DEFINITION_REFERENCE = createBaseEntityDefinitionReference(EntityType.ANY);
+        VALID_ENTITY_DEFINITION_REFERENCE = ElementFactory.createBaseEntityDefinitionReference(EntityType.ANY);
 
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
         configuration.addProperty(JarvisCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
@@ -138,7 +139,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         executionService = getValidExecutionService();
         assertThat(executionService.getExecutionModel()).as("Valid execution model").isEqualTo
                 (VALID_EXECUTION_MODEL);
-        assertThat(executionService.getRuntimePlatformRegistry()).as("Valid Jarvis runtimePlatform registry").isEqualTo
+        assertThat(executionService.getRuntimePlatformRegistry()).as("Valid Xatkit runtimePlatform registry").isEqualTo
                 (VALID_JARVIS_CORE.getRuntimePlatformRegistry());
         assertThat(executionService.getExecutorService()).as("Not null ExecutorService").isNotNull();
         assertThat(executionService.isShutdown()).as("Execution service started").isFalse();
@@ -170,7 +171,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
          * Sleep to ensure that the Action has been processed.
          */
         Thread.sleep(1000);
-        assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Action processed").isTrue();
+        Assertions.assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Action processed").isTrue();
     }
 
     @Test
@@ -265,7 +266,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
          * Sleep to ensure that the Action has been processed.
          */
         Thread.sleep(1000);
-        assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Action not processed").isFalse();
+        Assertions.assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Action not processed").isFalse();
     }
 
     @Test
@@ -276,7 +277,7 @@ public class ExecutionServiceTest extends AbstractJarvisTest {
         executionService.handleEventInstance(ON_ERROR_EVENT_INSTANCE, new JarvisSession(UUID.randomUUID()
                 .toString()));
         Thread.sleep(1000);
-        assertThat(stubRuntimePlatform.getErroringAction().isActionProcessed()).as("Erroring action processed").isTrue();
-        assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Fallback action processed").isTrue();
+        Assertions.assertThat(stubRuntimePlatform.getErroringAction().isActionProcessed()).as("Erroring action processed").isTrue();
+        Assertions.assertThat(stubRuntimePlatform.getAction().isActionProcessed()).as("Fallback action processed").isTrue();
     }
 }

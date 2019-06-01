@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.core.platform.io;
+package com.xatkit.core.platform.io;
 
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.EventInstance;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.intent.EventInstance;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -53,7 +53,7 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * configuration}.
      * <p>
      * <b>Note</b>: this constructor will be called by jarvis internal engine when initializing the
-     * {@link edu.uoc.som.jarvis.core.JarvisCore} component. Subclasses implementing this constructor typically
+     * {@link JarvisCore} component. Subclasses implementing this constructor typically
      * need additional parameters to be initialized, that can be provided in the {@code configuration}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}
@@ -81,12 +81,12 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
     }
 
     /**
-     * Sends the provided {@code eventInstance} and {@code session} for computation to the Jarvis core component.
+     * Sends the provided {@code eventInstance} and {@code session} for computation to the Xatkit core component.
      * <p>
      * This method can be extended to perform specific checks before triggering actions (e.g. ensure that a specific
      * context variable has been set).
      *
-     * @param eventInstance the {@link EventInstance} to send to the Jarvis core component
+     * @param eventInstance the {@link EventInstance} to send to the Xatkit core component
      * @param session       the {@link JarvisSession} associated to the provided {@code eventInstance}
      */
     public void sendEventInstance(EventInstance eventInstance, JarvisSession session) {

@@ -1,9 +1,9 @@
-package edu.uoc.som.jarvis.plugins.log.platform.action;
+package com.xatkit.plugins.log.platform.action;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.plugins.log.platform.LogPlatform;
-import edu.uoc.som.jarvis.stubs.StubJarvisCore;
+import com.xatkit.plugins.log.platform.LogPlatform;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.stubs.StubJarvisCore;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;

@@ -1,9 +1,8 @@
-package edu.uoc.som.jarvis.plugins.log.platform.action;
+package com.xatkit.plugins.log.platform.action;
 
-import edu.uoc.som.jarvis.core.session.JarvisSession;
+import com.xatkit.core.session.JarvisSession;
 import fr.inria.atlanmod.commons.log.Level;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.plugins.log.platform.LogPlatform;
+import com.xatkit.plugins.log.platform.LogPlatform;
 
 /**
  * A {@link LogAction} that logs the provided message as an error.

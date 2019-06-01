@@ -1,6 +1,6 @@
-package edu.uoc.som.jarvis.plugins.log.platform.action;
+package com.xatkit.plugins.log.platform.action;
 
-import edu.uoc.som.jarvis.core.session.JarvisSession;
+import com.xatkit.core.session.JarvisSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 public class LogErrorTest extends LogActionTest {

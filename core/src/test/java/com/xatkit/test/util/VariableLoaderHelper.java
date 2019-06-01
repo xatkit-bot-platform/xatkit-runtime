@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.test.util;
+package com.xatkit.test.util;
 
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.PropertiesConfiguration;
@@ -54,11 +54,11 @@ public class VariableLoaderHelper {
     private static String getVariable(String key) {
         String token = System.getenv(key);
         if (isNull(token) || token.isEmpty()) {
-            Log.debug("Cannot retrieve Jarvis variable {0} from the environment variables, using local file {1} ",
+            Log.debug("Cannot retrieve Xatkit variable {0} from the environment variables, using local file {1} ",
                     key, LOCAL_FILE_PATH);
             URL resource = VariableLoaderHelper.class.getClassLoader().getResource(LOCAL_FILE_PATH);
             if (isNull(resource)) {
-                throw new RuntimeException(MessageFormat.format("Cannot retrieve Jarvis bot variables from local " +
+                throw new RuntimeException(MessageFormat.format("Cannot retrieve Xatkit bot variables from local " +
                         "file: the file {0} does not exist", LOCAL_FILE_PATH));
             }
             String fileString = resource.getFile();

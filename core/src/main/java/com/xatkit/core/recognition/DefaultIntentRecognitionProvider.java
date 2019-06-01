@@ -1,14 +1,35 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.intent.*;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.intent.BaseEntityDefinition;
+import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.CompositeEntityDefinitionEntry;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.ContextParameterValue;
+import com.xatkit.intent.CustomEntityDefinition;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.EntityTextFragment;
+import com.xatkit.intent.EntityType;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
+import com.xatkit.intent.LiteralTextFragment;
+import com.xatkit.intent.MappingEntityDefinition;
+import com.xatkit.intent.MappingEntityDefinitionEntry;
+import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.intent.TextFragment;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,7 +51,7 @@ import static java.util.Objects.nonNull;
  * patterns. This means that the {@code any} entity will match "test", but not "test test", you can check
  * alternative {@link IntentRecognitionProvider}s if you need to support such features.
  * <p>
- * The {@link DefaultIntentRecognitionProvider} will be used by Jarvis if the application's {@link Configuration}
+ * The {@link DefaultIntentRecognitionProvider} will be used by Xatkit if the application's {@link Configuration}
  * file does not contain specific {@link IntentRecognitionProvider} properties (see
  * {@link IntentRecognitionProviderFactory#getIntentRecognitionProvider(JarvisCore, Configuration)}).
  *

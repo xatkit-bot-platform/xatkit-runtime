@@ -1,10 +1,10 @@
-package edu.uoc.som.jarvis.plugins.chat.platform.io;
+package com.xatkit.plugins.chat.platform.io;
 
-import edu.uoc.som.jarvis.core.platform.io.RuntimeIntentProvider;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.intent.EventInstance;
-import edu.uoc.som.jarvis.plugins.chat.ChatUtils;
-import edu.uoc.som.jarvis.plugins.chat.platform.ChatPlatform;
+import com.xatkit.core.platform.io.RuntimeIntentProvider;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.plugins.chat.ChatUtils;
+import com.xatkit.plugins.chat.platform.ChatPlatform;
 import org.apache.commons.configuration2.Configuration;
 
 import java.util.Map;

@@ -1,10 +1,11 @@
-package edu.uoc.som.jarvis.plugins.react.platform.io;
+package com.xatkit.plugins.react.platform.io;
 
-import edu.uoc.som.jarvis.plugins.react.platform.ReactPlatform;
+import com.xatkit.core.platform.io.RuntimeIntentProvider;
+import com.xatkit.plugins.react.platform.ReactPlatform;
 import org.apache.commons.configuration2.Configuration;
 
 /**
- * A generic React {@link edu.uoc.som.jarvis.core.platform.io.RuntimeIntentProvider}.
+ * A generic React {@link RuntimeIntentProvider}.
  * <p>
  * This class wraps the {@link ReactIntentProvider} and allows to use it as a generic <i>ChatIntentProvider</i> from
  * the <i>ChatPlatform</i>.

@@ -1,13 +1,13 @@
-package edu.uoc.som.jarvis.stubs;
+package com.xatkit.stubs;
 
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.interpreter.ExecutionContext;
-import edu.uoc.som.jarvis.core.platform.RuntimePlatform;
-import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.execution.ActionInstance;
-import edu.uoc.som.jarvis.stubs.action.ErroringStubRuntimeAction;
-import edu.uoc.som.jarvis.stubs.action.StubRuntimeAction;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.interpreter.ExecutionContext;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.execution.ActionInstance;
+import com.xatkit.stubs.action.ErroringStubRuntimeAction;
+import com.xatkit.stubs.action.StubRuntimeAction;
 import org.apache.commons.configuration2.Configuration;
 
 import java.text.MessageFormat;

@@ -1,8 +1,10 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.RecognizedIntent;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
@@ -17,11 +19,9 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * {@link DefaultIntentRecognitionProvider} is returned, providing minimal support to
  * {@link JarvisSession} management.
  * <p>
- * <b>Note:</b> {@link DefaultIntentRecognitionProvider} does not handle
- * {@link edu.uoc.som.jarvis.intent.IntentDefinition} and {@link edu.uoc.som.jarvis.intent.RecognizedIntent}
- * computation.
- * If the bot application requires such features a valid {@link IntentRecognitionProvider} must be specified in the
- * provided configuration.
+ * <b>Note:</b> {@link DefaultIntentRecognitionProvider} does not handle {@link IntentDefinition} and
+ * {@link RecognizedIntent} computation. If the bot application requires such features a valid
+ * {@link IntentRecognitionProvider} must be specified in the provided configuration.
  *
  * @see IntentRecognitionProvider
  * @see DefaultIntentRecognitionProvider
@@ -83,7 +83,8 @@ public class IntentRecognitionProviderFactory {
      * the provided {@link Configuration}
      * @see #ENABLE_RECOGNITION_ANALYTICS
      */
-    @Nullable  private static RecognitionMonitor getRecognitionMonitor(JarvisCore jarvisCore,
+    @Nullable
+    private static RecognitionMonitor getRecognitionMonitor(JarvisCore jarvisCore,
                                                             Configuration configuration) {
         boolean enableRecognitionAnalytics = configuration.getBoolean(ENABLE_RECOGNITION_ANALYTICS, true);
         RecognitionMonitor monitor = null;

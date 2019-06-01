@@ -1,14 +1,15 @@
-package edu.uoc.som.jarvis.plugins.react.platform.io;
+package com.xatkit.plugins.react.platform.io;
 
-import edu.uoc.som.jarvis.plugins.chat.platform.io.ChatIntentProvider;
-import edu.uoc.som.jarvis.plugins.react.platform.ReactPlatform;
+import com.xatkit.core.server.JarvisServer;
+import com.xatkit.plugins.chat.platform.io.ChatIntentProvider;
+import com.xatkit.plugins.react.platform.ReactPlatform;
 import org.apache.commons.configuration2.Configuration;
 
 /**
  * A React {@link ChatIntentProvider}.
  * <p>
  * This class initializes a {@link ReactWebhook} and registers it to the
- * {@link edu.uoc.som.jarvis.core.server.JarvisServer}, allowing to receive messages from jarvis-react installations
+ * {@link JarvisServer}, allowing to receive messages from jarvis-react installations
  * as events (this is a quick fix for #221, provider hierarchy should be refactored to allow webhook-based chat
  * providers).
  */

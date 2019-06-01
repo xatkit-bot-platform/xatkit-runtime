@@ -1,12 +1,12 @@
-package edu.uoc.som.jarvis.plugins.github.platform.action;
+package com.xatkit.plugins.github.platform.action;
 
 import com.jcabi.github.Coordinates;
 import com.jcabi.github.Issue;
 import com.jcabi.github.Repo;
-import edu.uoc.som.jarvis.core.JarvisException;
-import edu.uoc.som.jarvis.core.platform.action.RuntimeAction;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.plugins.github.platform.GithubPlatform;
+import com.xatkit.plugins.github.platform.GithubPlatform;
+import com.xatkit.core.JarvisException;
+import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.session.JarvisSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 import java.io.IOException;
@@ -74,12 +74,12 @@ public class GetIssue extends RuntimeAction<GithubPlatform> {
      * Retrieve the issue on the given {@code repository} with the provided {@code issueNumber}.
      * <p>
      * This method relies on the containing {@link GithubPlatform} to access the Github API, and will throw a
-     * {@link JarvisException} if the Jarvis {@link org.apache.commons.configuration2.Configuration} does not define
+     * {@link JarvisException} if the Xatkit {@link org.apache.commons.configuration2.Configuration} does not define
      * valid Github authentication credentials.
      *
      * @return the retrieved {@link Issue}
      * @throws JarvisException if the {@link GithubPlatform} does not hold a valid Github API client (i.e. if the
-     *                         Jarvis {@link org.apache.commons.configuration2.Configuration} does not define valid
+     *                         Xatkit {@link org.apache.commons.configuration2.Configuration} does not define valid
      *                         Github authentication credentials)
      * @see GithubPlatform#getGithubClient()
      */

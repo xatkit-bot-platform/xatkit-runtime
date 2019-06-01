@@ -1,10 +1,10 @@
-package edu.uoc.som.jarvis.core.recognition;
+package com.xatkit.core.recognition;
 
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApi;
-import edu.uoc.som.jarvis.core.recognition.dialogflow.DialogFlowApiTest;
-import edu.uoc.som.jarvis.stubs.StubJarvisCore;
+import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
+import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
+import com.xatkit.stubs.StubJarvisCore;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.JarvisCore;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.After;

@@ -1,14 +1,14 @@
-package edu.uoc.som.jarvis.core.recognition.dialogflow;
+package com.xatkit.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
-import edu.uoc.som.jarvis.AbstractJarvisTest;
-import edu.uoc.som.jarvis.core.JarvisCore;
-import edu.uoc.som.jarvis.core.session.JarvisSession;
-import edu.uoc.som.jarvis.core.session.RuntimeContexts;
-import edu.uoc.som.jarvis.intent.*;
-import edu.uoc.som.jarvis.test.util.ElementFactory;
-import edu.uoc.som.jarvis.test.util.VariableLoaderHelper;
-import edu.uoc.som.jarvis.test.util.models.TestExecutionModel;
+import com.xatkit.AbstractJarvisTest;
+import com.xatkit.core.JarvisCore;
+import com.xatkit.core.session.JarvisSession;
+import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.intent.*;
+import com.xatkit.test.util.ElementFactory;
+import com.xatkit.test.util.VariableLoaderHelper;
+import com.xatkit.test.util.models.TestExecutionModel;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -18,7 +18,7 @@ import org.junit.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static edu.uoc.som.jarvis.test.util.ElementFactory.createBaseEntityDefinitionReference;
+import static com.xatkit.test.util.ElementFactory.createBaseEntityDefinitionReference;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
