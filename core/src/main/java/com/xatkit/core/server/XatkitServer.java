@@ -37,7 +37,7 @@ public class XatkitServer {
     /**
      * The {@link Configuration} key to store the server port to use.
      */
-    public static String SERVER_PORT_KEY = "jarvis.server.port";
+    public static String SERVER_PORT_KEY = "xatkit.server.port";
 
     /**
      * The default port to use.

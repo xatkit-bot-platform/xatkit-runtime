@@ -21,7 +21,7 @@ public interface SlackUtils extends ChatUtils {
      * @see SlackIntentProvider#SlackIntentProvider(SlackPlatform, Configuration)
      * @see SlackPlatform#SlackPlatform(XatkitCore, Configuration)
      */
-    String SLACK_TOKEN_KEY = "jarvis.slack.token";
+    String SLACK_TOKEN_KEY = "xatkit.slack.token";
 
     /**
      * The Slack API answer type representing a {@code message}.

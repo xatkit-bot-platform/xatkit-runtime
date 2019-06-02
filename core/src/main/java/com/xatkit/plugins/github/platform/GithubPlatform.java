@@ -40,7 +40,7 @@ public class GithubPlatform extends RuntimePlatform {
      * @see #GITHUB_PASSWORD_KEY
      * @see #GITHUB_OAUTH_TOKEN
      */
-    public static String GITHUB_USERNAME_KEY = "jarvis.github.username";
+    public static String GITHUB_USERNAME_KEY = "xatkit.github.username";
 
     /**
      * The {@link Configuration} key to store the Github password associated to the defined username.
@@ -51,7 +51,7 @@ public class GithubPlatform extends RuntimePlatform {
      * @see #GITHUB_USERNAME_KEY
      * @see #GITHUB_OAUTH_TOKEN
      */
-    public static String GITHUB_PASSWORD_KEY = "jarvis.github.password";
+    public static String GITHUB_PASSWORD_KEY = "xatkit.github.password";
 
     /**
      * The {@link Configuration} key to store the Github oauth token.
@@ -62,7 +62,7 @@ public class GithubPlatform extends RuntimePlatform {
      * @see #GITHUB_USERNAME_KEY
      * @see #GITHUB_PASSWORD_KEY
      */
-    public static String GITHUB_OAUTH_TOKEN = "jarvis.github.oauth.token";
+    public static String GITHUB_OAUTH_TOKEN = "xatkit.github.oauth.token";
 
     /**
      * The {@link Github} client used to access the Github API.

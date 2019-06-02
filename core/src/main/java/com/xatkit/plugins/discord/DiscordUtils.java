@@ -28,7 +28,7 @@ public class DiscordUtils implements ChatUtils {
      * @see DiscordIntentProvider
      * @see DiscordPlatform
      */
-    public static String DISCORD_TOKEN_KEY = "jarvis.discord.token";
+    public static String DISCORD_TOKEN_KEY = "xatkit.discord.token";
 
     /**
      * The {@link RuntimeContexts} key used to store discord-related information.

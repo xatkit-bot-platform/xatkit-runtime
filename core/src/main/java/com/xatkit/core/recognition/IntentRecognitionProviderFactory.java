@@ -35,7 +35,7 @@ public class IntentRecognitionProviderFactory {
      * folder. It can be disabled by explicitly setting this property to {@code false} in the {@link Configuration}
      * file.
      */
-    public static String ENABLE_RECOGNITION_ANALYTICS = "jarvis.recognition.enable_monitoring";
+    public static String ENABLE_RECOGNITION_ANALYTICS = "xatkit.recognition.enable_monitoring";
 
     /**
      * Returns the {@link IntentRecognitionProvider} matching the provided {@code configuration}.

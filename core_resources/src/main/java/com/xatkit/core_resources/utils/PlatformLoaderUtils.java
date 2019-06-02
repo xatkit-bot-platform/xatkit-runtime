@@ -12,7 +12,7 @@ public interface PlatformLoaderUtils {
      * "MyPlatform.xmi"}. The XatkitCore engine will take care of dynamically loading the platforms and mapping their
      * {@code pathmaps} to the concrete resources.
      */
-    String CORE_PLATFORM_PATHMAP = "pathmap://JARVIS_CORE_PLATFORM/";
+    String CORE_PLATFORM_PATHMAP = "pathmap://XATKIT_CORE_PLATFORM/";
 
     /**
      * The {@code pathmap} prefix used to map custom platform resources to their concrete URIs.
@@ -24,5 +24,5 @@ public interface PlatformLoaderUtils {
      * Custom platform resource concrete paths must be specified in the Xatkit configuration using {@code
      * XatkitCore#CUSTOM_PLATFORM_KEY_PREFIX + <platform_name>=<concrete_path>}.
      */
-    String CUSTOM_PLATFORM_PATHMAP = "pathmap://JARVIS_CUSTOM_PLATFORM/";
+    String CUSTOM_PLATFORM_PATHMAP = "pathmap://XATKIT_CUSTOM_PLATFORM/";
 }

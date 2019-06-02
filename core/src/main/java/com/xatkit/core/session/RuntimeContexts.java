@@ -45,7 +45,7 @@ public class RuntimeContexts {
     /**
      * The {@link Configuration} key to store maximum time to spend waiting for a context variable (in seconds).
      */
-    public static String VARIABLE_TIMEOUT_KEY = "jarvis.context.variable.timeout";
+    public static String VARIABLE_TIMEOUT_KEY = "xatkit.context.variable.timeout";
 
     /**
      * The default amount of time to spend waiting for a context variable (in seconds).

@@ -1,5 +1,6 @@
 package com.xatkit;
 
+import com.xatkit.core.XatkitCore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.test.appender.ListAppender;
@@ -8,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.text.MessageFormat;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,8 +17,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class XatkitTest extends AbstractXatkitTest {
 
-    private static String EXECUTION_MODEL_LOADING_MESSAGE = "Cannot retrieve the ExecutionModel from the property " +
-            "null, please ensure it is set in the jarvis.execution.model property of the jarvis configuration";
+    private static String EXECUTION_MODEL_LOADING_MESSAGE = MessageFormat.format("Cannot retrieve the ExecutionModel " +
+            "from the property null, please ensure it is set in the {0} property of the Xatkit configuration",
+            XatkitCore.EXECUTION_MODEL_KEY);
 
     private static final String ERROR_PREFIX = "[ERROR]";
 
@@ -92,7 +95,7 @@ public class XatkitTest extends AbstractXatkitTest {
          */
         try {
             Thread.sleep(200);
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         return listAppender.getMessages().get(listAppender.getMessages().size() - 1);

@@ -98,14 +98,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      *
      * @see #DialogFlowApi(XatkitCore, Configuration)
      */
-    public static String PROJECT_ID_KEY = "jarvis.dialogflow.projectId";
+    public static String PROJECT_ID_KEY = "xatkit.dialogflow.projectId";
 
     /**
      * The {@link Configuration} key to store the code of the language processed by DialogFlow.
      *
      * @see #DialogFlowApi(XatkitCore, Configuration)
      */
-    public static String LANGUAGE_CODE_KEY = "jarvis.dialogflow.language";
+    public static String LANGUAGE_CODE_KEY = "xatkit.dialogflow.language";
 
     /**
      * The {@link Configuration} key to store the path of the {@code JSON} credential file for DialogFlow.
@@ -115,7 +115,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      *
      * @see #DialogFlowApi(XatkitCore, Configuration)
      */
-    public static String GOOGLE_CREDENTIALS_PATH_KEY = "jarvis.dialogflow.credentials.path";
+    public static String GOOGLE_CREDENTIALS_PATH_KEY = "xatkit.dialogflow.credentials.path";
 
     /**
      * The default language processed by DialogFlow.
@@ -129,7 +129,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * This property is disabled by default. Enabling it allows to easily re-deploy chatbots under development, but
      * complete agent cleaning should not be done on production-ready bots (re-training such bots may take a long time).
      */
-    public static String CLEAN_AGENT_ON_STARTUP_KEY = "jarvis.dialogflow.clean_on_startup";
+    public static String CLEAN_AGENT_ON_STARTUP_KEY = "xatkit.dialogflow.clean_on_startup";
 
     /**
      * The {@link Configuration} key to store whether to initialize the {@link #registeredIntents} {@link Map} with
@@ -143,7 +143,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * Note that disabling {@link Intent} loading may create consistency issues between the DialogFlow agent and the
      * local {@link DialogFlowApi}, and is not recommended in development environment.
      */
-    public static String ENABLE_INTENT_LOADING_KEY = "jarvis.dialogflow.intent.loading";
+    public static String ENABLE_INTENT_LOADING_KEY = "xatkit.dialogflow.intent.loading";
 
     /**
      * The {@link Configuration} key to store whether to initialize the {@link #registeredEntityTypes} {@link Map}
@@ -157,7 +157,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * Note that disabling {@link EntityType} loading may create consistency issues between the DialogFlow agent and
      * the local {@link DialogFlowApi}, and is not recommended in development environment.
      */
-    public static String ENABLE_ENTITY_LOADING_KEY = "jarvis.dialogflow.entity.loading";
+    public static String ENABLE_ENTITY_LOADING_KEY = "xatkit.dialogflow.entity.loading";
 
     /**
      * The {@link Configuration} key to store whether to merge the local {@link XatkitSession} in the DialogFlow one.
@@ -170,7 +170,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * Note that disabling this option for a bot implementation that manipulates local {@link XatkitSession}s may
      * generate consistency issues and unexpected behaviors (such as unmatched intents and context value overwriting).
      */
-    public static String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "jarvis.dialogflow.context.merge";
+    public static String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "xatkit.dialogflow.context.merge";
 
     /**
      * The DialogFlow Default Fallback Intent that is returned when the user input does not match any registered Intent.
@@ -392,21 +392,21 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * <p>
      * The provided {@code configuration} must provide values for the following keys:
      * <ul>
-     * <li><b>jarvis.dialogflow.projectId</b>: the unique identifier of the DialogFlow project</li>
+     * <li><b>xatkit.dialogflow.projectId</b>: the unique identifier of the DialogFlow project</li>
      * </ul>
-     * The value <b>jarvis.dialogflow.language</b> is not mandatory: if no language code is provided in the
+     * The value <b>xatkit.dialogflow.language</b> is not mandatory: if no language code is provided in the
      * {@link Configuration} the default one ({@link #DEFAULT_LANGUAGE_CODE} will be used.
      * <p>
-     * The value <b>jarvis.dialogflow.credentials.path</b> is not mandatory either: if no credential path is provided
+     * The value <b>xatkit.dialogflow.credentials.path</b> is not mandatory either: if no credential path is provided
      * in the {@link Configuration} the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
      * environment variable to retrieve the credentials file.
      * <p>
-     * The value <b>jarvis.dialogflow.intent.loading</b> is not mandatory and allows to tune whether the
+     * The value <b>xatkit.dialogflow.intent.loading</b> is not mandatory and allows to tune whether the
      * {@link DialogFlowApi} should load registered DialogFlow {@link Intent}. This option is set to {@code true} by
      * default. Disabling it will reduce the number of queries sent to the DialogFlow API, but may generate
      * consistency issues between the DialogFlow agent and the local {@link DialogFlowApi}.
      * <p>
-     * The vaule <b>jarvis.dialogflow.context.merge</b> is not mandatory and allows to tune whether the
+     * The vaule <b>xatkit.dialogflow.context.merge</b> is not mandatory and allows to tune whether the
      * {@link DialogFlowApi} should merge the local {@link XatkitSession} in the DialogFlow one. This option is set
      * to {@code true} by default, and may be set to {@code false} to improve the performances of bot implementations
      * that strictly rely on the DialogFlow API, and do not manipulate local {@link XatkitSession}s. Disabling this

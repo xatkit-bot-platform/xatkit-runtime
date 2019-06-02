@@ -22,7 +22,7 @@ public class Xatkit {
     /**
      * The {@link org.apache.commons.configuration2.Configuration} key to store the configuration folder path.
      */
-    public static String CONFIGURATION_FOLDER_PATH = "jarvis.core.configuration.path";
+    public static String CONFIGURATION_FOLDER_PATH = "xatkit.core.configuration.path";
 
     private static String CHECK_TUTORIAL_SENTENCE = "You can check our online tutorial to learn how to setup a bot " +
             "using Xatkit here: https://github.com/xatkit-bot-platform/xatkit/wiki/Deploying-chatbots";
@@ -50,7 +50,7 @@ public class Xatkit {
             return;
         }
         String configurationFilePath = args[0];
-        Log.info("Starting jarvis with the configuration file {0}", configurationFilePath);
+        Log.info("Starting xatkit with the configuration file {0}", configurationFilePath);
         File propertiesFile = new File(configurationFilePath);
         try {
             Configurations configs = new Configurations();

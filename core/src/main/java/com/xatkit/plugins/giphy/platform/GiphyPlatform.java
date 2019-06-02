@@ -26,7 +26,7 @@ public class GiphyPlatform extends RuntimePlatform {
     /**
      * The {@link Configuration} key to store the Giphy API token.
      */
-    public static String GIPHY_TOKEN_KEY = "jarvis.giphy.token";
+    public static String GIPHY_TOKEN_KEY = "xatkit.giphy.token";
 
     /**
      * The Giphy API token used to initialize this class.

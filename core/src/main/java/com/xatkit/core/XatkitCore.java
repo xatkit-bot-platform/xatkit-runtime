@@ -86,7 +86,7 @@ public class XatkitCore {
      *
      * @see #XatkitCore(Configuration)
      */
-    public static String EXECUTION_MODEL_KEY = "jarvis.execution.model";
+    public static String EXECUTION_MODEL_KEY = "xatkit.execution.model";
 
     /**
      * The {@link Configuration} key prefix to store the custom platform paths.
@@ -99,7 +99,7 @@ public class XatkitCore {
      * Custom platform properties must be set following this pattern: {@code CUSTOM_PLATFORMS_KEY_PREFIX + <platform
      * alias> = <platform path>}.
      */
-    public static String CUSTOM_PLATFORMS_KEY_PREFIX = "jarvis.platforms.custom.";
+    public static String CUSTOM_PLATFORMS_KEY_PREFIX = "xatkit.platforms.custom.";
 
     /**
      * The {@link Configuration} key prefix to store the custom library paths.
@@ -112,7 +112,7 @@ public class XatkitCore {
      * Custom library properties must be set following this pattern: {@code CUSTOM_LIBRARIES_KEY_PREFIX + <library
      * alias> = <library path>}.
      */
-    public static String CUSTOM_LIBRARIES_KEY_PREFIX = "jarvis.libraries.custom.";
+    public static String CUSTOM_LIBRARIES_KEY_PREFIX = "xatkit.libraries.custom.";
 
     /**
      * The {@link Configuration} key prefix to store the abstract platform bindings.
@@ -122,7 +122,7 @@ public class XatkitCore {
      * separately, following this pattern {@code ABSTRACT_PLATFORM_BINDINGS_PREFIX + <abstract platform name> =
      * <concrete platform path>}.
      */
-    public static String ABSTRACT_PLATFORM_BINDINGS_PREFIX = "jarvis.platforms.abstract.";
+    public static String ABSTRACT_PLATFORM_BINDINGS_PREFIX = "xatkit.platforms.abstract.";
 
     /**
      * The {@link Configuration} used to initialize this class.
@@ -197,7 +197,7 @@ public class XatkitCore {
      * The provided {@code configuration} must provide values for the following key (note that additional values may
      * be required according to the used {@link RuntimeEventProvider}s and {@link RuntimePlatform}s):
      * <ul>
-     * <li><b>jarvis.execution.model</b>: the {@link ExecutionModel} defining the Intent to
+     * <li><b>xatkit.execution.model</b>: the {@link ExecutionModel} defining the Intent to
      * Action bindings (or the string representing its location)</li>
      * </ul>
      *

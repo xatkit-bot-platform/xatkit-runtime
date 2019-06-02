@@ -30,7 +30,7 @@ public class JsonEventMatcher {
      * The {@link Configuration} key to store whether to print the {@link EventInstanceBuilder} content before
      * building the matched {@link EventInstance}.
      */
-    public static String PRINT_BUILDER_CONTENT_KEY = "jarvis.event.matcher.print_builder";
+    public static String PRINT_BUILDER_CONTENT_KEY = "xatkit.event.matcher.print_builder";
 
     /**
      * The internal {@link Map} used to store the header and field values to match.

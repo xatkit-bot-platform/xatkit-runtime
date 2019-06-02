@@ -26,7 +26,7 @@ import static java.util.Objects.nonNull;
  */
 class ReactWebhook extends JsonWebhookEventProvider<ReactPlatform> {
 
-    private static final String XATKIT_REACT_HEADER = "jarvis-react";
+    private static final String XATKIT_REACT_HEADER = "xatkit-react";
 
     /**
      * The {@link ReactIntentProvider} managing this {@link ReactWebhook}.

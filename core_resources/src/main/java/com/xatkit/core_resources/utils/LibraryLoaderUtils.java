@@ -12,7 +12,7 @@ public interface LibraryLoaderUtils {
      * + "MyLibrary.xmi"}. The XatkitCore engine will take care of dynamically loading the libraries and mapping
      * their {@code pathmap} to the concrete resources.
      */
-    String CORE_LIBRARY_PATHMAP = "pathmap://JARVIS_CORE_LIBRARY/";
+    String CORE_LIBRARY_PATHMAP = "pathmap://XATKIT_CORE_LIBRARY/";
 
     /**
      * The {@code pathmap} prefix used to map custom library resources to their concrete URIs.
@@ -24,5 +24,5 @@ public interface LibraryLoaderUtils {
      * Custom library resource concrete paths must be specified in the Xatkit configuration using {@code
      * XatkitCore#CUSTOM_LIBRARY_KEY_PREFIX + <library_name>=<concrete_path>}.
      */
-    String CUSTOM_LIBRARY_PATHMAP = "pathmap://JARVIS_CUSTOM_LIBRARY/";
+    String CUSTOM_LIBRARY_PATHMAP = "pathmap://XATKIT_CUSTOM_LIBRARY/";
 }

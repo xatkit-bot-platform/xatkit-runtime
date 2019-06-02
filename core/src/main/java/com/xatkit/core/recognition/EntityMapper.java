@@ -44,7 +44,7 @@ public class EntityMapper {
      *
      * @see #entities
      */
-    protected static String FALLBACK_ENTITY_KEY = "edu.uoc.som.jarvis.core.recognition.entity.fallback";
+    protected static String FALLBACK_ENTITY_KEY = "xatkit.core.recognition.entity.fallback";
 
     /**
      * The {@link Map} storing the abstract-to-concrete entity mappings.
@@ -217,9 +217,7 @@ public class EntityMapper {
      * @throws NullPointerException     if the provided {@code abstractEntity} is {@code null}
      * @throws IllegalArgumentException if the provided {@link EntityDefinition} is a {@link BaseEntityDefinition}
      *                                  and its {@code entityType} reference is {@code null}
-     * @throws XatkitException          if the provided {@code abstractEntity} is not an instance of
-     *                                  {@link BaseEntityDefinition} (see
-     *                                  <href="https://github.com/gdaniel/jarvis/issues/145">#145</href="">)
+     * @throws XatkitException          if the provided {@code abstractEntity} is not supported
      */
     public String getMappingFor(EntityDefinition abstractEntity) {
         checkNotNull(abstractEntity, "Cannot retrieve the concrete mapping for the provided %s %s", EntityDefinition
