@@ -2,16 +2,17 @@
  * ge
  * nerated by Xtext 2.12.0
  */
-package edu.uoc.som.jarvis.language.execution.ui.contentassist
+package com.xatkit.language.execution.ui.contentassist
 
+import com.xatkit.execution.ExecutionModel
+import com.xatkit.platform.PlatformDefinition
+import com.xatkit.utils.ImportRegistry
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.Assignment
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
-import org.eclipse.xtext.Assignment
+
 import static java.util.Objects.isNull
-import edu.uoc.som.jarvis.execution.ExecutionModel
-import edu.uoc.som.jarvis.platform.PlatformDefinition
-import edu.uoc.som.jarvis.utils.ImportRegistry
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist

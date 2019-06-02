@@ -1,4 +1,4 @@
-module edu.uoc.som.jarvis.language.common.GenerateCommon
+module com.xatkit.language.common.GenerateCommon
 
 import org.eclipse.xtext.xtext.generator.*
 import org.eclipse.xtext.xtext.generator.model.project.*
@@ -10,7 +10,7 @@ Workflow {
 	component = XtextGenerator {
 		configuration = {
 			project = StandardProjectConfig {
-				baseName = "edu.uoc.som.jarvis.language.common"
+				baseName = "com.xatkit.language.common"
 				rootPath = rootPath
 				runtimeTest = {
 					enabled = true
@@ -30,9 +30,9 @@ Workflow {
 			}
 		}
 		language = StandardLanguage {
-			name = "edu.uoc.som.jarvis.language.common.Common"
+			name = "com.xatkit.language.common.Common"
 			fileExtensions = "common"
-			referencedResource = "platform:/resource/edu.uoc.som.jarvis.common/model/common.xcore"
+			referencedResource = "platform:/resource/com.xatkit.common/model/common.xcore"
 
 			fragment = ecore2xtext.Ecore2XtextValueConverterServiceFragment2 auto-inject {}
 

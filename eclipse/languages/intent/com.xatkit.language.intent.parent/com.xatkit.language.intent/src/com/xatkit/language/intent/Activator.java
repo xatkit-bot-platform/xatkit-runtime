@@ -1,10 +1,10 @@
-package edu.uoc.som.jarvis.language.intent;
+package com.xatkit.language.intent;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import edu.uoc.som.jarvis.intent.IntentPackage;
+import com.xatkit.intent.IntentPackage;
 
 /**
  * Starts the intent plugin and registers the related metamodels.
@@ -26,7 +26,7 @@ public class Activator implements BundleActivator {
 	 */
 	@Override
 	public void start(BundleContext context) throws Exception {
-		System.out.println("Registering Jarvis Language EPackages");
+		System.out.println("Registering Xatkit Language EPackages");
 		EPackage.Registry.INSTANCE.put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
 	}
 

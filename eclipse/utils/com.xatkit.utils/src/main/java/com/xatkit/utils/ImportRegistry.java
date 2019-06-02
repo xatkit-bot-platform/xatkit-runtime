@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.utils;
+package com.xatkit.utils;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -38,17 +38,17 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.osgi.framework.Bundle;
 
-import edu.uoc.som.jarvis.common.ImportDeclaration;
-import edu.uoc.som.jarvis.common.LibraryImportDeclaration;
-import edu.uoc.som.jarvis.common.PlatformImportDeclaration;
-import edu.uoc.som.jarvis.core_resources.utils.LibraryLoaderUtils;
-import edu.uoc.som.jarvis.core_resources.utils.PlatformLoaderUtils;
-import edu.uoc.som.jarvis.execution.ExecutionModel;
-import edu.uoc.som.jarvis.execution.ExecutionPackage;
-import edu.uoc.som.jarvis.intent.IntentPackage;
-import edu.uoc.som.jarvis.intent.Library;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.platform.PlatformPackage;
+import com.xatkit.common.ImportDeclaration;
+import com.xatkit.common.LibraryImportDeclaration;
+import com.xatkit.common.PlatformImportDeclaration;
+import com.xatkit.core_resources.utils.LibraryLoaderUtils;
+import com.xatkit.core_resources.utils.PlatformLoaderUtils;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.ExecutionPackage;
+import com.xatkit.intent.IntentPackage;
+import com.xatkit.intent.Library;
+import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.platform.PlatformPackage;
 
 /**
  * A registry managing Platform and Library imports.
@@ -135,7 +135,7 @@ public class ImportRegistry {
 		/*
 		 * Load the core Platforms and Library in the constructor, they should not be reloaded later.
 		 */
-		loadJarvisCore();
+		loadXatkitCore();
 		ExecutionPackage.eINSTANCE.eClass();
 		PlatformPackage.eINSTANCE.eClass();
 		IntentPackage.eINSTANCE.eClass();
@@ -271,22 +271,22 @@ public class ImportRegistry {
 	/**
 	 * Loads the core {@link Platform}s and {@link Library} instances.
 	 * <p>
-	 * The {@link Platform}s and {@link Library} instances are retrieved from the {@code jarvis.jar} file in the
+	 * The {@link Platform}s and {@link Library} instances are retrieved from the {@code xatkit.jar} file in the
 	 * classpath. Note that this method should only be called once: the classpath is not supposed to change during the
 	 * execution.
 	 * 
-	 * @see #loadJarvisCorePlatforms()
-	 * @see #loadJarvisCoreLibraries()
+	 * @see #loadXatkitCorePlatforms()
+	 * @see #loadXatkitCoreLibraries()
 	 */
-	private void loadJarvisCore() {
+	private void loadXatkitCore() {
 		try {
-			loadJarvisCorePlatforms();
+			loadXatkitCorePlatforms();
 		} catch (IOException | URISyntaxException e) {
 			System.out.println("An error occurred when loading core platforms");
 			e.printStackTrace();
 		}
 		try {
-			loadJarvisCoreLibraries();
+			loadXatkitCoreLibraries();
 		} catch (IOException | URISyntaxException e) {
 			System.out.println("An error occurred when loading core libraries");
 			e.printStackTrace();
@@ -573,14 +573,14 @@ public class ImportRegistry {
 	/**
 	 * Loads the core {@link Library} instances.
 	 * <p>
-	 * These {@link Library} instances are retrieved from the {@code jarvis.jar} file in the classpath.
+	 * These {@link Library} instances are retrieved from the {@code xatkit.jar} file in the classpath.
 	 * 
 	 * @throws IOException if the registry cannot find one of the core {@link Library} files
 	 * @throws URISyntaxException if an error occurred when building one of the {@link Library}'s {@link URI}s
 	 * 
 	 * @see #getCoreResourcesPath(String)
 	 */
-	private void loadJarvisCoreLibraries() throws IOException, URISyntaxException {
+	private void loadXatkitCoreLibraries() throws IOException, URISyntaxException {
 		incrementLoadCalls();
 		Path libraryPath = getCoreResourcesPath("libraries/xmi/");
 		System.out.println(MessageFormat.format("Crawling libraries in {0}", libraryPath));
@@ -607,14 +607,14 @@ public class ImportRegistry {
 	/**
 	 * Loads the core {@link Platform}s.
 	 * <p>
-	 * These {@link Platform}s are retrieved from the {@code jarvis.jar} file in the classpath.
+	 * These {@link Platform}s are retrieved from the {@code xatkit.jar} file in the classpath.
 	 * 
 	 * @throws IOException if the registry cannot find one of the core {@link Platform} files
 	 * @throws URISyntaxException if an error occurred when building one of the {@link Platform}'s {@link URI}s
 	 * 
 	 * @see #getCoreResourcesPath(String)
 	 */
-	private void loadJarvisCorePlatforms() throws IOException, URISyntaxException {
+	private void loadXatkitCorePlatforms() throws IOException, URISyntaxException {
 		incrementLoadCalls();
 		Path platformPath = getCoreResourcesPath("platforms/xmi/");
 		System.out.println(MessageFormat.format("Crawling platforms in {0}", platformPath));
@@ -647,7 +647,7 @@ public class ImportRegistry {
 	 * @throws URISyntaxException if an error occurred when building the URI associated to the resource location
 	 */
 	private Path getCoreResourcesPath(String resourceLocation) throws IOException, URISyntaxException {
-		String bundleName = "edu.uoc.som.jarvis.core_resources";
+		String bundleName = "com.xatkit.core_resources";
 		Bundle bundle = org.eclipse.core.runtime.Platform.getBundle(bundleName);
 		if (isNull(bundle)) {
 			throw new RuntimeException(MessageFormat.format("Cannot find the bundle {0}", bundleName));

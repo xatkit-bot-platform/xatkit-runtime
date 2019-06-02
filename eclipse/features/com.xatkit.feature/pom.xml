@@ -13,7 +13,7 @@
 
     <packaging>eclipse-feature</packaging>
 
-    <name>Jarvis Core Eclipse Feature</name>
+    <name>Xatkit DSL Eclipse Feature</name>
 
     <dependencies>
 

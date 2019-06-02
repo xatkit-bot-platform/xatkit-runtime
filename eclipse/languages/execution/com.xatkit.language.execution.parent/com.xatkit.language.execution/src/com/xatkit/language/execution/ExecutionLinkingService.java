@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.language.execution;
+package com.xatkit.language.execution;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -15,17 +15,17 @@ import org.eclipse.xtext.linking.impl.DefaultLinkingService;
 import org.eclipse.xtext.linking.impl.IllegalNodeException;
 import org.eclipse.xtext.nodemodel.INode;
 
-import edu.uoc.som.jarvis.execution.ActionInstance;
-import edu.uoc.som.jarvis.execution.ExecutionModel;
-import edu.uoc.som.jarvis.execution.ExecutionPackage;
-import edu.uoc.som.jarvis.execution.ExecutionRule;
-import edu.uoc.som.jarvis.execution.ParameterValue;
-import edu.uoc.som.jarvis.intent.EventDefinition;
-import edu.uoc.som.jarvis.platform.ActionDefinition;
-import edu.uoc.som.jarvis.platform.EventProviderDefinition;
-import edu.uoc.som.jarvis.platform.Parameter;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.utils.ImportRegistry;
+import com.xatkit.execution.ActionInstance;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.ExecutionPackage;
+import com.xatkit.execution.ExecutionRule;
+import com.xatkit.execution.ParameterValue;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.platform.ActionDefinition;
+import com.xatkit.platform.EventProviderDefinition;
+import com.xatkit.platform.Parameter;
+import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.utils.ImportRegistry;
 
 public class ExecutionLinkingService extends DefaultLinkingService {
 
@@ -143,7 +143,7 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 			}
 			/*
 			 * First look for the parameters in the defined containing Action. For platform containing multiple Actions
-			 * with the same name (i.e. same JarvisAction but different constructors) this iteration can fail, because
+			 * with the same name (i.e. same XatkitAction but different constructors) this iteration can fail, because
 			 * the inferred Action was not right.
 			 */
 			for (Parameter p : actionDefinition.getParameters()) {

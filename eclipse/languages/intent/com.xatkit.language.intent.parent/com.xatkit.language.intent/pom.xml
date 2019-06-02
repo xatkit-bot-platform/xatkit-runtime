@@ -84,7 +84,7 @@
 				<configuration>
 					<mainClass>org.eclipse.emf.mwe2.launch.runtime.Mwe2Launcher</mainClass>
 					<arguments>
-						<argument>/${project.basedir}/src/edu/uoc/som/jarvis/language/intent/GenerateIntent.mwe2</argument>
+						<argument>/${project.basedir}/src/com/xatkit/language/intent/GenerateIntent.mwe2</argument>
 						<argument>-p</argument>
 						<argument>rootPath=/${project.basedir}/..</argument>
 					</arguments>

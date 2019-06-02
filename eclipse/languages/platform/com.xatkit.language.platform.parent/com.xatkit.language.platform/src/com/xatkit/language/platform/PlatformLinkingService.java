@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.language.platform;
+package com.xatkit.language.platform;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,9 +10,9 @@ import org.eclipse.xtext.linking.impl.DefaultLinkingService;
 import org.eclipse.xtext.linking.impl.IllegalNodeException;
 import org.eclipse.xtext.nodemodel.INode;
 
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.platform.PlatformPackage;
-import edu.uoc.som.jarvis.utils.ImportRegistry;
+import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.platform.PlatformPackage;
+import com.xatkit.utils.ImportRegistry;
 
 public class PlatformLinkingService extends DefaultLinkingService {
 

@@ -1,4 +1,4 @@
-package edu.uoc.som.jarvis.language.execution;
+package com.xatkit.language.execution;
 
 import static java.util.Objects.nonNull;
 
@@ -10,13 +10,13 @@ import java.util.Optional;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.emf.ecore.EObject;
 
-import edu.uoc.som.jarvis.execution.ExecutionModel;
-import edu.uoc.som.jarvis.intent.Context;
-import edu.uoc.som.jarvis.intent.EventDefinition;
-import edu.uoc.som.jarvis.intent.Library;
-import edu.uoc.som.jarvis.platform.EventProviderDefinition;
-import edu.uoc.som.jarvis.platform.PlatformDefinition;
-import edu.uoc.som.jarvis.utils.ImportRegistry;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.Library;
+import com.xatkit.platform.EventProviderDefinition;
+import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.utils.ImportRegistry;
 
 /**
  * A set of utility methods to manipulate Execution models.

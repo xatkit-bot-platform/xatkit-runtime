@@ -1,10 +1,10 @@
-package edu.uoc.som.jarvis.language.common;
+package com.xatkit.language.common;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import edu.uoc.som.jarvis.common.CommonPackage;
+import com.xatkit.common.CommonPackage;
 
 /**
  * Starts the common plugin and registers the related metamodel.
@@ -25,7 +25,7 @@ public class Activator implements BundleActivator {
 	 */
 	@Override
 	public void start(BundleContext context) throws Exception {
-		System.out.println("Registering Jarvis Language EPackages");
+		System.out.println("Registering Xatkit Language EPackages");
 		EPackage.Registry.INSTANCE.put(CommonPackage.eNS_URI, CommonPackage.eINSTANCE);
 	}
 

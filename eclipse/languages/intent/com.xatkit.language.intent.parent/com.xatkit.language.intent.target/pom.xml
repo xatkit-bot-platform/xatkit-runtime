@@ -13,7 +13,7 @@
 
 	<dependencies>
 
-        <!-- jarvis Internal -->
+        <!-- Xatkit Internal -->
 
 		<dependency>
 			<groupId>com.xatkit</groupId>

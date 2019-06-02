@@ -1,12 +1,7 @@
-package edu.uoc.som.jarvis.utils;
+package com.xatkit.utils;
 
-import org.eclipse.emf.ecore.EPackage;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-
-import edu.uoc.som.jarvis.execution.ExecutionPackage;
-import edu.uoc.som.jarvis.intent.IntentPackage;
-import edu.uoc.som.jarvis.platform.PlatformPackage;
 
 public class Activator implements BundleActivator {
 

@@ -1,6 +1,6 @@
-grammar edu.uoc.som.jarvis.language.common.Common with org.eclipse.xtext.common.Terminals
+grammar com.xatkit.language.common.Common with org.eclipse.xtext.common.Terminals
 
-import "edu.uoc.som.jarvis.common"
+import "com.xatkit.common"
 
 Program:
 	(instructions += Instruction)*
