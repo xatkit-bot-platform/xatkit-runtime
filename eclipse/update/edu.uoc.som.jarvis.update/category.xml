@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<site>
-   <feature url="features/edu.uoc.som.jarvis.feature_1.0.1.qualifier.jar" id="edu.uoc.som.jarvis.feature" version="1.0.1.qualifier">
-      <category name="Jarvis"/>
-   </feature>
-   <category-def name="Jarvis" label="Jarvis"/>
-</site>
