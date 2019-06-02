@@ -452,7 +452,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      */
     private void loadConfiguration(Configuration configuration) {
         this.projectId = configuration.getString(PROJECT_ID_KEY);
-        checkNotNull(projectId, "Cannot construct a jarvis instance from a null projectId");
+        checkNotNull(projectId, "Cannot construct a Xatkit instance from a null projectId");
         this.languageCode = configuration.getString(LANGUAGE_CODE_KEY);
         if (isNull(languageCode)) {
             Log.warn("No language code provided, using the default one ({0})", DEFAULT_LANGUAGE_CODE);
