@@ -1,4 +1,4 @@
-import library "JarvisTutorial/TutorialIntentLibrary.xmi"
+import library "XatkitTutorial/TutorialIntentLibrary.xmi"
 import platform "SlackPlatform"
 
 use provider SlackPlatform.SlackIntentProvider
