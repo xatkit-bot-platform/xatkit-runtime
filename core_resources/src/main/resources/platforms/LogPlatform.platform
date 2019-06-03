@@ -1,6 +1,6 @@
 Platform LogPlatform
 
-path "LogPlatform"
+path "com.xatkit.plugins.log.platform.LogPlatform"
 
 actions {
 	LogInfo(message)

@@ -1,6 +1,6 @@
 Platform GiphyPlatform 
 
-path "GiphyPlatform"
+path "com.xatkit.plugins.giphy.platform.GiphyPlatform"
 
 actions {
 	

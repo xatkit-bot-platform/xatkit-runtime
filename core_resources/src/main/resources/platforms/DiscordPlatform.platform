@@ -2,7 +2,7 @@ import platform "ChatPlatform"
 
 Platform DiscordPlatform extends ChatPlatform
 
-path "DiscordPlatform"
+path "com.xatkit.plugins.discord.platform.DiscordPlatform"
 
 providers {
 	input DiscordIntentProvider {

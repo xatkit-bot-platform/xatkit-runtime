@@ -1,5 +1,5 @@
 Platform GithubPlatform
-path "GithubPlatform"
+path "com.xatkit.plugins.github.paltform.GithubPlatform"
 
 
 providers {

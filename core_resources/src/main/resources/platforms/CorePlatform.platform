@@ -1,6 +1,6 @@
 Platform CorePlatform
 
-path "CorePlatform"
+path "com.xatkit.plugins.core.platform.CorePlatform"
 
 actions {
 	GetTime
