@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>edu.uoc.som.jarvis</groupId>
+        <groupId>com.xatkit</groupId>
         <artifactId>metamodels</artifactId>
         <version>1.0.1-SNAPSHOT</version>
     </parent>
@@ -14,7 +14,7 @@
 
     <packaging>bundle</packaging>
 
-    <name>jarvis execution model</name>
+    <name>Xatkit execution model</name>
 
     <properties>
         <generated-sources.location>${project.basedir}/src/main/java-gen/</generated-sources.location>
@@ -24,16 +24,16 @@
 
     <dependencies>
 
-        <!-- jarvis Internal -->
+        <!-- Xatkit Internal -->
 
         <dependency>
-            <groupId>edu.uoc.som.jarvis</groupId>
+            <groupId>com.xatkit</groupId>
             <artifactId>intent</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>edu.uoc.som.jarvis</groupId>
+            <groupId>com.xatkit</groupId>
             <artifactId>platform</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -74,7 +74,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.execution</Bundle-SymbolicName>
                         <Export-Package>
-                            edu.uoc.som.jarvis.execution.*
+                            com.xatkit.execution.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;
@@ -84,8 +84,8 @@
                             artifactId=!org.eclipse.emf.common|org.eclipse.emf.ecore
                         </Embed-Dependency>
                         <Require-Bundle>
-                            edu.uoc.som.jarvis.intent;visibility:=reexport,
-                            edu.uoc.som.jarvis.platform;visibility:=reexport,
+                            com.xatkit.intent;visibility:=reexport,
+                            com.xatkit.platform;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>

@@ -3,8 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>edu.uoc.som.jarvis</groupId>
-		<artifactId>jarvis</artifactId>
+		<groupId>com.xatkit</groupId>
+		<artifactId>xatkit</artifactId>
 		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 
@@ -14,7 +14,7 @@
 	<!-- tycho-versions will remove the version after an update, put it back to ease the next release -->
 	<version>1.0.1-SNAPSHOT</version>
 
-	<name>Jarvis Eclipse Components</name>
+	<name>Xatkit Eclipse Components</name>
 
 	<properties>
 		<maven.test.skip>true</maven.test.skip>
@@ -36,9 +36,9 @@
 
 	<modules>
 		<module>languages</module>
-		<module>features/edu.uoc.som.jarvis.feature</module>
-		<module>update/edu.uoc.som.jarvis.update</module>
-		<module>utils/edu.uoc.som.jarvis.utils</module>
+		<module>features/com.xatkit.feature</module>
+		<module>update/com.xatkit.update</module>
+		<module>utils/com.xatkit.utils</module>
 	</modules>
 
 	<dependencyManagement>

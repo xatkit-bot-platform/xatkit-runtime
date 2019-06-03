@@ -1,6 +1,6 @@
 Platform LogPlatform
 
-path "edu.uoc.som.jarvis.plugins.log.platform.LogPlatform"
+path "com.xatkit.plugins.log.platform.LogPlatform"
 
 actions {
 	LogInfo(message)

@@ -1,10 +1,10 @@
-@Ecore(nsURI="edu.uoc.som.jarvis.platform")
+@Ecore(nsURI="com.xatkit.platform")
 @GenModel(modelDirectory="/platform/src/main/java-gen", importerID="org.eclipse.emf.importer.ecore", complianceLevel="8.0")
-package edu.uoc.som.jarvis.platform
+package com.xatkit.platform
 
-import edu.uoc.som.jarvis.intent.EventDefinition
-import edu.uoc.som.jarvis.common.PlatformImportDeclaration
-import edu.uoc.som.jarvis.intent.Context
+import com.xatkit.intent.EventDefinition
+import com.xatkit.common.PlatformImportDeclaration
+import com.xatkit.intent.Context
 
 class PlatformDefinition {
     String name

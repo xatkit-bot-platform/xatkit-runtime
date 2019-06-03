@@ -1,5 +1,5 @@
 Platform GithubPlatform
-path "edu.uoc.som.jarvis.plugins.github.platform.GithubPlatform"
+path "com.xatkit.plugins.github.paltform.GithubPlatform"
 
 
 providers {

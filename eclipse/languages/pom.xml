@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
     <parent>
-	    <groupId>edu.uoc.som.jarvis</groupId>
+	    <groupId>com.xatkit</groupId>
 	    <artifactId>eclipse</artifactId>
 	    <version>1.0.1-SNAPSHOT</version>
     </parent>
@@ -25,10 +25,10 @@
     </properties>
 
     <modules>
-    	<module>common/edu.uoc.som.jarvis.language.common.parent</module>
-        <module>platform/edu.uoc.som.jarvis.language.platform.parent</module>
-        <module>execution/edu.uoc.som.jarvis.language.execution.parent</module>
-        <module>intent/edu.uoc.som.jarvis.language.intent.parent</module>
+    	<module>common/com.xatkit.language.common.parent</module>
+        <module>platform/com.xatkit.language.platform.parent</module>
+        <module>execution/com.xatkit.language.execution.parent</module>
+        <module>intent/com.xatkit.language.intent.parent</module>
     </modules>
 
     <repositories>

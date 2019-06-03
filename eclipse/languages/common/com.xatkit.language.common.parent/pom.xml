@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.xatkit</groupId>
+		<artifactId>languages</artifactId>
+		<version>1.0.1-SNAPSHOT</version>
+		<relativePath>../..</relativePath>
+	</parent>
+
+	<groupId>com.xatkit.language.common</groupId>
+	<artifactId>com.xatkit.language.common.parent</artifactId>
+	
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>com.xatkit.language.common</module>
+		<module>com.xatkit.language.common.ide</module>
+		<module>com.xatkit.language.common.ui</module>
+		<module>com.xatkit.language.common.target</module>
+		<module>com.xatkit.language.common.tests</module>
+		<module>com.xatkit.language.common.ui.tests</module>
+	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>target-platform-configuration</artifactId>
+					<configuration>
+						<target>
+							<artifact>
+								<groupId>com.xatkit.language.common</groupId>
+								<artifactId>com.xatkit.language.common.target</artifactId>
+								<version>${project.version}</version>
+							</artifact>
+						</target>
+					</configuration>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>

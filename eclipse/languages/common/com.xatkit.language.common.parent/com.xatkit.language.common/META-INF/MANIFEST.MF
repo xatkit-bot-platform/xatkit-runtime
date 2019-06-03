@@ -1,0 +1,31 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: com.xatkit.language.common
+Bundle-ManifestVersion: 2
+Bundle-Name: com.xatkit.language.common
+Bundle-Vendor: SOM Research Lab
+Bundle-Version: 1.0.1.qualifier
+Bundle-SymbolicName: com.xatkit.language.common; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.eclipse.xtext,
+ org.eclipse.xtext.xbase,
+ org.eclipse.equinox.common;bundle-version="3.5.0",
+ org.eclipse.emf.ecore,
+ org.eclipse.xtext.xbase.lib,
+ org.eclipse.xtext.util,
+ org.eclipse.emf.common,
+ org.eclipse.xtend.lib,
+ org.antlr.runtime,
+ com.xatkit.common;bundle-version="1.0.1",
+ org.eclipse.core.runtime;bundle-version="3.13.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: com.xatkit.language.common.services,
+ com.xatkit.language.common.validation,
+ com.xatkit.language.common.generator,
+ com.xatkit.language.common.parser.antlr.internal,
+ com.xatkit.language.common.parser.antlr,
+ com.xatkit.language.common.serializer,
+ com.xatkit.language.common,
+ com.xatkit.language.common.scoping,
+ com.xatkit.language.common.formatting2
+Import-Package: org.apache.log4j
+Bundle-Activator: com.xatkit.language.common.Activator

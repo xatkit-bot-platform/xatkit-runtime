@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: com.xatkit.language.common.ide
+Bundle-ManifestVersion: 2
+Bundle-Name: com.xatkit.language.common.ide
+Bundle-Vendor: SOM Research Lab
+Bundle-Version: 1.0.1.qualifier
+Bundle-SymbolicName: com.xatkit.language.common.ide; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: com.xatkit.language.common,
+ org.eclipse.xtext.ide,
+ org.eclipse.xtext.xbase.ide,
+ org.antlr.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: com.xatkit.language.common.ide.contentassist.antlr.internal,
+ com.xatkit.language.common.ide.contentassist.antlr
+

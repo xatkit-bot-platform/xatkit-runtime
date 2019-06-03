@@ -3,13 +3,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>edu.uoc.som.jarvis</groupId>
-    <artifactId>jarvis</artifactId>
+    <groupId>com.xatkit</groupId>
+    <artifactId>xatkit</artifactId>
     <version>1.0.1-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
-    <name>jarvis</name>
+    <name>Xatkit</name>
     <description>A generic bot platform</description>
 
     <organization>
@@ -192,15 +192,15 @@
                         <groups>
                             <group>
                                 <title>Core</title>
-                                <packages>edu.uoc.som.jarvis.core:edu.uoc.som.jarvis.core.*</packages>
+                                <packages>com.xatkit.core:com.xatkit.core.*</packages>
                             </group>
                             <group>
                                 <title>Plugins</title>
-                                <packages>edu.uoc.som.jarvis.plugins*</packages>
+                                <packages>com.xatkit.plugins*</packages>
                             </group>
                             <group>
                                 <title>Models</title>
-                                <packages>edu.uoc.som.jarvis.intent*:edu.uoc.som.jarvis.platform*:edu.uoc.som.jarvis.execution*</packages>
+                                <packages>com.xatkit.intent*:com.xatkit.platform*:com.xatkit.execution*</packages>
                             </group>
                         </groups>
                         <tags>

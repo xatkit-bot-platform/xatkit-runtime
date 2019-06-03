@@ -2,7 +2,7 @@ import platform "ChatPlatform"
 
 Platform SlackPlatform extends ChatPlatform
 
-path "edu.uoc.som.jarvis.plugins.slack.platform.SlackPlatform"
+path "com.xatkit.plugins.slack.platform.SlackPlatform"
 
 providers {
 	input SlackIntentProvider {

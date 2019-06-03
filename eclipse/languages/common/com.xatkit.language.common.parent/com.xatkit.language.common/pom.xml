@@ -1,0 +1,122 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+		<groupId>com.xatkit.language.common</groupId>
+		<artifactId>com.xatkit.language.common.parent</artifactId>
+		<version>1.0.1-SNAPSHOT</version>
+	</parent>
+	
+	<artifactId>com.xatkit.language.common</artifactId>
+	<packaging>eclipse-plugin</packaging>
+
+	<dependencies>
+
+		<!-- xcore -->
+
+		<dependency>
+			<groupId>org.eclipse.emf</groupId>
+			<artifactId>org.eclipse.emf.ecore.xcore</artifactId>
+		</dependency>
+
+        <!-- Xtext -->
+
+		<dependency>
+			<groupId>org.eclipse.xtext</groupId>
+			<artifactId>org.eclipse.xtext.ecore</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.emf</groupId>
+			<artifactId>org.eclipse.emf.codegen.ecore.xtext</artifactId>
+		</dependency>
+		
+		<!-- Eclipse -->
+		<!-- This dependency is only required to dynamically load the core Platforms -->
+		<!-- There are other alternatives that could be used to get rid of this dependency (see #161) -->
+		<dependency>
+		    <groupId>org.eclipse.platform</groupId>
+		    <artifactId>org.eclipse.core.runtime</artifactId>
+		</dependency>
+
+        <!-- Xatkit Internal -->
+
+		<dependency>
+			<groupId>com.xatkit</groupId>
+			<artifactId>common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>org.eclipse.emf.mwe2.launch.runtime.Mwe2Launcher</mainClass>
+					<arguments>
+						<argument>/${project.basedir}/src/com/xatkit/language/common/GenerateCommon.mwe2</argument>
+						<argument>-p</argument>
+						<argument>rootPath=/${project.basedir}/..</argument>
+					</arguments>
+					<classpathScope>compile</classpathScope>
+					<includePluginDependencies>true</includePluginDependencies>
+					<cleanupDaemonThreads>false</cleanupDaemonThreads><!-- see https://bugs.eclipse.org/bugs/show_bug.cgi?id=475098#c3 -->
+				</configuration>
+			</plugin>
+				
+			<plugin>
+				<groupId>org.eclipse.xtend</groupId>
+				<artifactId>xtend-maven-plugin</artifactId>
+			</plugin>
+	
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<filesets combine.children="append">
+						<fileset>
+							<directory>${basedir}/../com.xatkit.language.common/src-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/../com.xatkit.language.common.tests/src-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/../com.xatkit.language.common.ide/src-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/../com.xatkit.language.common.ui/src-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/../com.xatkit.language.common.ui.tests/src-gen/</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/model/generated/</directory>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			
+		</plugins>
+	</build>
+
+</project>

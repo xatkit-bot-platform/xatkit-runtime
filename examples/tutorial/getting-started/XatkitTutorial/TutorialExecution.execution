@@ -1,0 +1,9 @@
+import library "XatkitTutorial/TutorialIntentLibrary.xmi"
+import platform "SlackPlatform"
+
+use provider SlackPlatform.SlackIntentProvider
+
+on intent HowAreYou do
+	action SlackPlatform.Reply(message : "Hi! I am fine and you?")
+	
+	

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>edu.uoc.som.jarvis</groupId>
+        <groupId>com.xatkit</groupId>
         <artifactId>metamodels</artifactId>
         <version>1.0.1-SNAPSHOT</version>
     </parent>
@@ -14,7 +14,7 @@
 
     <packaging>bundle</packaging>
 
-    <name>jarvis intent model</name>
+    <name>Xatkit intent model</name>
 
     <properties>
         <generated-sources.location>${project.basedir}/src/main/java-gen/</generated-sources.location>
@@ -49,10 +49,10 @@
             <artifactId>org.eclipse.xtext.xbase.lib</artifactId>
         </dependency>
 
-        <!-- jarvis Internal -->
+        <!-- Xatkit Internal -->
 
         <dependency>
-            <groupId>edu.uoc.som.jarvis</groupId>
+            <groupId>com.xatkit</groupId>
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -83,7 +83,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.intent</Bundle-SymbolicName>
                         <Export-Package>
-                            edu.uoc.som.jarvis.intent.*
+                            com.xatkit.intent.*
                         </Export-Package>
                         <Embed-Dependency><!-- Inherited -->
                             *;
@@ -95,7 +95,7 @@
                             artifactId=!org.eclipse.emf.common|org.eclipse.emf.ecore
                         </Embed-Dependency>
                         <Require-Bundle>
-                            edu.uoc.som.jarvis.common;visibility:=reexport,
+                            com.xatkit.common;visibility:=reexport,
                             org.eclipse.emf.ecore;visibility:=reexport
                         </Require-Bundle>
                     </instructions>
