@@ -8,6 +8,7 @@ import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.plugins.giphy.platform.GiphyPlatform;
 
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,11 +63,12 @@ public class GetGif extends RestGetAction<GiphyPlatform> {
      *
      * @param headers     the response's {@link Headers}
      * @param status      the response status code
-     * @param jsonElement the response {@link JsonElement} containing the GIF url.
+     * @param body the response {@link JsonElement} containing the GIF url.
      * @return the retrieve GIF url
      */
     @Override
-    protected Object handleResponse(Headers headers, int status, JsonElement jsonElement) {
+    protected Object handleResponse(Headers headers, int status, InputStream body) {
+        JsonElement jsonElement = getJsonBody(body);
         JsonObject object = jsonElement.getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
         JsonObject images = object.getAsJsonObject("images");
         JsonObject original = images.getAsJsonObject("original");

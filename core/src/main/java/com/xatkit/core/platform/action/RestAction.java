@@ -38,6 +38,40 @@ import static java.util.Objects.nonNull;
 public abstract class RestAction<T extends RuntimePlatform> extends RuntimeAction<T> {
 
     /**
+     * Extracts the {@link JsonElement} contained in the provided {@code is}.
+     *
+     * @param is the {@link InputStream} to extract the {@link JsonElement} from
+     * @return the extracted {@link JsonElement}
+     */
+    public static JsonElement getJsonBody(InputStream is) throws JsonSyntaxException {
+        JsonParser jsonParser = new JsonParser();
+        String stringBody = getStringBody(is);
+        JsonElement jsonElement = jsonParser.parse(stringBody);
+        return jsonElement;
+    }
+
+    /**
+     * Extracts the {@link String} contained in the provided {@code is}.
+     *
+     * @param is the {@link InputStream} to extract the {@link String} from
+     * @return the extracted {@link String}
+     */
+    public static String getStringBody(InputStream is) {
+        StringBuilder sb = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader(is,
+                Charset.forName(StandardCharsets.UTF_8.name())))) {
+            int c = 0;
+            while ((c = reader.read()) != -1) {
+                sb.append((char) c);
+            }
+        } catch (IOException e) {
+            Log.error("Cannot extract the {0} of the provided {1}", String.class.getSimpleName(),
+                    InputStream.class.getSimpleName());
+        }
+        return sb.toString();
+    }
+
+    /**
      * The {@link Gson} instance used to print the provided {@link JsonElement} content in a {@link String}.
      * <p>
      * This {@link String} is embedded in the REST POST request body.
@@ -114,11 +148,11 @@ public abstract class RestAction<T extends RuntimePlatform> extends RuntimeActio
      * Computes the REST request and returned the handled result.
      * <p>
      * This method performs the request over the defined REST API, and delegates the result computation to the
-     * {@link #handleResponse(Headers, int, JsonElement)} method.
+     * {@link #handleResponse(Headers, int, InputStream)} method.
      *
      * @return the result of handling the REST API response
      * @throws Exception if an error occurred when executing the REST request
-     * @see #handleResponse(Headers, int, JsonElement)
+     * @see #handleResponse(Headers, int, InputStream)
      */
     @Override
     protected final Object compute() throws Exception {
@@ -147,36 +181,7 @@ public abstract class RestAction<T extends RuntimePlatform> extends RuntimeActio
                         this.getClass().getSimpleName(), this.method.name()));
         }
         HttpResponse<InputStream> response = request.asBinary();
-        JsonParser jsonParser = new JsonParser();
-        JsonElement jsonElement = null;
-        String responseBodyString = getBodyString(response.getBody());
-        try {
-            jsonElement = jsonParser.parse(responseBodyString);
-        } catch (JsonSyntaxException e) {
-            Log.error("Cannot parse the response body \"{0}\"", responseBodyString);
-        }
-        return this.handleResponse(response.getHeaders(), response.getStatus(), jsonElement);
-    }
-
-    /**
-     * Extracts the {@link String} contained in the provided {@code is}.
-     *
-     * @param is the {@link InputStream} to extract the {@link String} from
-     * @return the extracted {@link String}
-     */
-    private String getBodyString(InputStream is) {
-        StringBuilder sb = new StringBuilder();
-        try (Reader reader = new BufferedReader(new InputStreamReader(is,
-                Charset.forName(StandardCharsets.UTF_8.name())))) {
-            int c = 0;
-            while ((c = reader.read()) != -1) {
-                sb.append((char) c);
-            }
-        } catch (IOException e) {
-            Log.error("Cannot extract the {0} of the provided {1}", String.class.getSimpleName(),
-                    InputStream.class.getSimpleName());
-        }
-        return sb.toString();
+        return this.handleResponse(response.getHeaders(), response.getStatus(), response.getBody());
     }
 
     /**
@@ -186,10 +191,10 @@ public abstract class RestAction<T extends RuntimePlatform> extends RuntimeActio
      *
      * @param headers     the {@link Headers} returned by the REST API
      * @param status      the status code returned by the REST API
-     * @param jsonElement the optional {@link JsonElement} returned by the REST API
+     * @param body the {@link InputStream} containing the response body
      * @return the action's result
      */
-    protected abstract Object handleResponse(Headers headers, int status, @Nullable JsonElement jsonElement);
+    protected abstract Object handleResponse(Headers headers, int status, InputStream body);
 
     /**
      * The kind of REST methods supported by this class.

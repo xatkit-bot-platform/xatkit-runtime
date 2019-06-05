@@ -6,6 +6,7 @@ import com.xatkit.core.session.XatkitSession;
 import com.xatkit.stubs.StubRuntimePlatform;
 import org.junit.Test;
 
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 
@@ -86,7 +87,8 @@ public class RestGetActionTest extends RestActionTest {
         }
 
         @Override
-        protected Object handleResponse(Headers headers, int status, JsonElement jsonElement) {
+        protected Object handleResponse(Headers headers, int status, InputStream body) {
+            JsonElement jsonElement = getJsonBody(body);
             this.responseHeaders = headers;
             this.responseStatus = status;
             this.responseJsonElement = jsonElement;

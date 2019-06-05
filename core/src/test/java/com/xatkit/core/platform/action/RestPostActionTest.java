@@ -8,6 +8,7 @@ import com.xatkit.stubs.StubRuntimePlatform;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 
@@ -97,7 +98,8 @@ public class RestPostActionTest extends RestActionTest {
         }
 
         @Override
-        protected Object handleResponse(Headers headers, int status, JsonElement jsonElement) {
+        protected Object handleResponse(Headers headers, int status, InputStream body) {
+            JsonElement jsonElement = getJsonBody(body);
             this.responseHeaders = headers;
             this.responseStatus = status;
             this.responseJsonElement = jsonElement;
