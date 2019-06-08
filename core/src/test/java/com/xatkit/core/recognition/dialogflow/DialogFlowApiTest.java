@@ -380,6 +380,74 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         boolean foundParentTrainingPhrase = hasTrainingPhrase(foundParentIntent, parentTrainingSentence);
         assertThat(foundParentTrainingPhrase).as("The parent IntentDefinition training phrase has been registered")
                 .isTrue();
+        assertThat(foundParentIntent.getOutputContextsCount()).as("The parent IntentDefinition has 1 out context").isEqualTo(1);
+        /*
+         * Use endsWith here because there is no display name for contexts.
+         */
+        assertThat(foundParentIntent.getOutputContexts(0).getName()).as("The parent IntentDefinition out context name" +
+                " is valid").endsWith(parentIntentName + "_followUp");
+        assertThat(foundParentIntent.getOutputContexts(0).getLifespanCount()).as("The parent IntentDefinition out " +
+                "context lifespan is the custom one").isEqualTo(2);
+        assertThat(foundFollowUpIntent).as("Registered Intent list contains the follow-up IntentDefinition")
+                .isNotNull();
+        assertThat(foundFollowUpIntent.getTrainingPhrasesList()).as("Follow-up Intent training phrase list is not " +
+                "empty").isNotEmpty();
+        boolean foundFollowUpTrainingPhrase = hasTrainingPhrase(foundFollowUpIntent, followUpTrainingSentence);
+        assertThat(foundFollowUpTrainingPhrase).as("The follow-up IntentDefinition training phrase has been " +
+                "registered").isTrue();
+        assertThat(foundParentIntent.getFollowupIntentInfoCount()).as("Parent Intent has 1 follow-up Intent")
+                .isEqualTo(1);
+        Intent.FollowupIntentInfo followUpIntentInfo = foundParentIntent.getFollowupIntentInfo(0);
+        assertThat(followUpIntentInfo).as("Not null follow-up info").isNotNull();
+        assertThat(followUpIntentInfo.getFollowupIntentName()).as("Valid follow-up Intent name").isEqualTo
+                (foundFollowUpIntent.getName());
+        assertThat(foundFollowUpIntent.getParentFollowupIntentName()).as("Valid parent Intent for follow-up Intent")
+                .isEqualTo(foundParentIntent.getName());
+    }
+
+    @Test
+    public void registerIntentDefinitionFollowUpIntentDefinitionCustomFollowUpValue() {
+        Configuration configuration = buildConfiguration();
+        configuration.addProperty(DialogFlowApi.CUSTOM_FOLLOWUP_LIFESPAN, 3);
+        api = new DialogFlowApi(xatkitCore, configuration);
+        /*
+         * Put the parent as the registered one, so all the follow-up intents will be deleted after the test case.
+         */
+        registeredIntentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
+        String parentIntentName = "TestRegisterParent2";
+        String parentTrainingSentence = "test parent";
+        registeredIntentDefinition.setName(parentIntentName);
+        registeredIntentDefinition.getTrainingSentences().add(parentTrainingSentence);
+        IntentDefinition followUpIntent = ElementFactory.createFollowUpIntent(registeredIntentDefinition);
+        String followUpIntentName = followUpIntent.getName();
+        String followUpTrainingSentence = followUpIntent.getTrainingSentences().get(0);
+        api.registerIntentDefinition(followUpIntent);
+        List<Intent> registeredIntents = api.getRegisteredIntentsFullView();
+        assertThat(registeredIntents).as("Registered Intent list is not null").isNotNull();
+        softly.assertThat(registeredIntents).as("Registered Intent list is not empty").isNotEmpty();
+        Intent foundParentIntent = null;
+        Intent foundFollowUpIntent = null;
+        for (Intent intent : registeredIntents) {
+            if (intent.getDisplayName().equals(parentIntentName)) {
+                foundParentIntent = intent;
+            } else if (intent.getDisplayName().equals(followUpIntentName)) {
+                foundFollowUpIntent = intent;
+            }
+        }
+        assertThat(foundParentIntent).as("Registered Intent list contains the parent IntentDefinition").isNotNull();
+        assertThat(foundParentIntent.getTrainingPhrasesList()).as("Parent Intent training phrase list is not empty")
+                .isNotEmpty();
+        boolean foundParentTrainingPhrase = hasTrainingPhrase(foundParentIntent, parentTrainingSentence);
+        assertThat(foundParentTrainingPhrase).as("The parent IntentDefinition training phrase has been registered")
+                .isTrue();
+        assertThat(foundParentIntent.getOutputContextsCount()).as("The parent IntentDefinition has 1 out context").isEqualTo(1);
+        /*
+         * Use endsWith here because there is no display name for contexts.
+         */
+        assertThat(foundParentIntent.getOutputContexts(0).getName()).as("The parent IntentDefinition out context name" +
+                " is valid").endsWith(parentIntentName + "_followUp");
+        assertThat(foundParentIntent.getOutputContexts(0).getLifespanCount()).as("The parent IntentDefinition out " +
+                "context lifespan is the custom one").isEqualTo(3);
         assertThat(foundFollowUpIntent).as("Registered Intent list contains the follow-up IntentDefinition")
                 .isNotNull();
         assertThat(foundFollowUpIntent.getTrainingPhrasesList()).as("Follow-up Intent training phrase list is not " +

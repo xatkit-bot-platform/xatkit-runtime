@@ -39,8 +39,8 @@ import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.RecognitionMonitor;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinitionEntry;
@@ -173,6 +173,15 @@ public class DialogFlowApi implements IntentRecognitionProvider {
     public static String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "xatkit.dialogflow.context.merge";
 
     /**
+     * The {@link Configuration} key to store the lifespan value to use when creating followup intents.
+     * <p>
+     * This option is set to {@code 2} by default (which corresponds to the DialogFlow default value). Changing it to
+     * a higher value allows to match followup intents after multiple inputs. Note that changing it to a smaller
+     * value may result in unmatched intents.
+     */
+    public static String CUSTOM_FOLLOWUP_LIFESPAN = "xatkit.dialogflow.followup.lifespan";
+
+    /**
      * The DialogFlow Default Fallback Intent that is returned when the user input does not match any registered Intent.
      *
      * @see #convertDialogFlowIntentToIntentDefinition(Intent)
@@ -257,6 +266,15 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
     private boolean enableContextMerge;
+
+    /**
+     * The custom lifespan value to use when creating followup intents.
+     * <p>
+     * This option is set to {@code 2} by default (which corresponds to the DialogFlow default value). Changing it to
+     * a higher value allows to match followup intents after multiple inputs. Note that changing it to a smaller
+     * value may result in unmatched intents.
+     */
+    private int customFollowupLifespan;
 
     /**
      * Represents the DialogFlow project name.
@@ -462,6 +480,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         this.enableIntentLoader = configuration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
         this.enableEntityLoader = configuration.getBoolean(ENABLE_ENTITY_LOADING_KEY, true);
         this.enableContextMerge = configuration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
+        this.customFollowupLifespan = configuration.getInt(CUSTOM_FOLLOWUP_LIFESPAN, 2);
     }
 
     /**
@@ -1178,7 +1197,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 IntentDefinition.class.getSimpleName(), parentIntentDefinition, parentIntentDefinition.getName());
         ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
                 parentIntentDefinition.getName() + "_followUp");
-        return Context.newBuilder().setName(contextName.toString()).setLifespanCount(2).build();
+        return Context.newBuilder().setName(contextName.toString()).setLifespanCount(customFollowupLifespan).build();
     }
 
     /**
