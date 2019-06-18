@@ -2,10 +2,10 @@ package com.xatkit.plugins.github.platform.action;
 
 import com.jcabi.github.Comment;
 import com.jcabi.github.Issue;
-import com.xatkit.core.session.XatkitSession;
-import com.xatkit.plugins.github.platform.GithubPlatform;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.session.XatkitSession;
+import com.xatkit.plugins.github.platform.GithubPlatform;
 
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * <p>
  * This class relies on the {@link GithubPlatform} to access the Github API and authenticate the bot.
  * <p>
- * <b>Note: </b> this class requires that its containing {@link GithubPlatform} has been loaded with valid Github
+ * <b>Note:</b> this class requires that its containing {@link GithubPlatform} has been loaded with valid Github
  * credentials in order to authenticate the bot and access the Github API.
  *
  * @see GithubPlatform
@@ -36,8 +36,8 @@ public class CommentIssue extends RuntimeAction<GithubPlatform> {
 
 
     /**
-     * Constructs a new {@link CommentIssue} with the provided {@code runtimePlatform}, {@code session}, {@code user},
-     * {@code repository}, and {@code issueNumber}.
+     * Constructs a new {@link CommentIssue} with the provided {@code runtimePlatform}, {@code session}, {@code issue
+     * }, and {@code commentContent).
      *
      * @param runtimePlatform the {@link GithubPlatform} containing this action
      * @param session         the {@link XatkitSession} associated to this action
@@ -54,19 +54,15 @@ public class CommentIssue extends RuntimeAction<GithubPlatform> {
         checkNotNull(commentContent, "Cannot construct a %s action with the provided comment %s",
                 this.getClass().getSimpleName(), commentContent);
         checkArgument(!commentContent.isEmpty(), "Cannot construct a %s action with the provided comment, expected a " +
-                "non-empty comment, found %s", commentContent);
+                "non-empty comment, found %s", this.getClass().getSimpleName(), commentContent);
         this.issue = issue;
         this.commentContent = commentContent;
     }
 
     /**
-     * Retrieve the issue on the given {@code repository} with the provided {@code issueNumber}.
-     * <p>
-     * This method relies on the containing {@link GithubPlatform} to access the Github API, and will throw a
-     * {@link XatkitException} if the Xatkit {@link org.apache.commons.configuration2.Configuration} does not define
-     * valid Github authentication credentials.
+     * Creates a new comment on the provided {@link Issue} with the given {@code commentContent}.
      *
-     * @return the retrieved {@link Issue}
+     * @return the created {@link Comment}
      * @throws XatkitException if the {@link GithubPlatform} does not hold a valid Github API client (i.e. if the
      *                         Xatkit {@link org.apache.commons.configuration2.Configuration} does not define valid
      *                         Github authentication credentials)
