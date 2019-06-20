@@ -22,7 +22,7 @@ ExecutionModel returns ExecutionModel:
 
 ExecutionRule returns ExecutionRule:
 	{ExecutionRule}
-		'on intent' event=[intent::EventDefinition|ID] 'do'
+		('on intent' | 'on event') event=[intent::EventDefinition|ID] 'do'
 		instructions+=Instruction (instructions+=Instruction)*
 	;
 	
