@@ -1,5 +1,5 @@
 Platform GithubPlatform
-path "com.xatkit.plugins.github.paltform.GithubPlatform"
+path "com.xatkit.plugins.github.platform.GithubPlatform"
 
 
 providers {
@@ -6778,4 +6778,6 @@ actions {
 	OpenIssue(user, repository, issueTitle, issueContent)
 	GetIssue(user, repository, issueNumber)
 	CommentIssue(issue, comment)
+	SetLabel(issue, label)
+	AssignUser(issue, username)
 }
