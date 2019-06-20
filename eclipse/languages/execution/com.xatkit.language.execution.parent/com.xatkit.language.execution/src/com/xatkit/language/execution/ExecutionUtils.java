@@ -25,19 +25,68 @@ public class ExecutionUtils {
 
 	/**
 	 * Returns the {@link ExecutionModel} containing the provided {@code element}.
-	 * <p>
-	 * This method returns the first {@link ExecutionModel} instance in the provided {@code element}'s
-	 * {@code eContainer} hierarchy.
 	 * 
-	 * @param element the {@link EObject} to retrieve the containing {@link ExecutionModel} from
-	 * @return the containing {@link ExecutionModel} if it exists, {@code null} otherwise
+	 * @param element the {@link EObject} to retrieve the containing {@link ExecutionModel} of
+	 * @return the retrieved {@link ExecutionModel} if it exists, {@code null} otherwise
+	 * 
+	 * @see #getContaining(EObject, Class)
 	 */
 	public static ExecutionModel getContainingExecutionModel(EObject element) {
+		return getContaining(element, ExecutionModel.class);
+	}
+
+	/**
+	 * Returns the {@link EventDefinition} containing the provided {@code element}.
+	 * 
+	 * @param element the {@link EObject} to retrieve the containing {@link EventDefinition} of
+	 * @return the retrieved {@link EventDefinition} if it exists, {@code null} otherwise
+	 * 
+	 * @see #getContaining(EObject, Class)
+	 */
+	public static EventDefinition getContainingEventDefinition(EObject element) {
+		return getContaining(element, EventDefinition.class);
+	}
+
+	/**
+	 * Returns the {@link Library} containing the provided {@code element}.
+	 * 
+	 * @param element the {@link EObject} to retrieve the containing {@link Library} of
+	 * @return the retrieved {@link Library} if it exists, {@code null} otherwise
+	 * 
+	 * @see #getContaining(EObject, Class)
+	 */
+	public static Library getContainingLibrary(EObject element) {
+		return getContaining(element, Library.class);
+	}
+
+	/**
+	 * Returns the {@link PlatformDefinition} containing the provided {@code element}.
+	 * 
+	 * @param element the {@link EObject} to retrieve the containing {@link PlatformDefinition} of
+	 * @return the retrieved {@link PlatformDefinition} if it exists, {@code null} otherwise
+	 * 
+	 * @see #getContaining(EObject, Class)
+	 */
+	public static PlatformDefinition getContainingPlatform(EObject element) {
+		return getContaining(element, PlatformDefinition.class);
+	}
+
+	/**
+	 * Returns the {@code containerType} element containing the provided {@code element}.
+	 * <p>
+	 * This method returns the first {@code containerType} instance in the provided {@code element}'s {@code eContainer}
+	 * hierarchy.
+	 * 
+	 * @param element the {@link EObject} to retrieve the containing {@code containerType} of
+	 * @param containerType the type of the container element to retrieve
+	 * @return the containing {@code containerType} instance if it exists, {@code null} otherwise
+	 */
+	private static <T> T getContaining(EObject element, Class<T> containerType) {
 		EObject currentObject = element;
 		while (nonNull(currentObject)) {
 			currentObject = currentObject.eContainer();
-			if (currentObject instanceof ExecutionModel) {
-				return (ExecutionModel) currentObject;
+			if (containerType.isInstance(currentObject)) {
+				return (T) currentObject;
 			}
 		}
 		return null;
@@ -98,7 +147,7 @@ public class ExecutionUtils {
 	 * Returns the {@link EventDefinition} from the imported {@link Library} instances matching the provided
 	 * {@code eventDefinitionName}.
 	 * 
-	 * @param executionModel      the {@link ExecutionModel} containing the imports to look at
+	 * @param executionModel the {@link ExecutionModel} containing the imports to look at
 	 * @param eventDefinitionName the name of the {@link EventDefinition} to retrieve
 	 * @return the retrieved {@link EventDefinition} if it exists, {@code null} otherwise
 	 */
@@ -113,7 +162,7 @@ public class ExecutionUtils {
 	 * Returns the {@link EventDefinition} from the imported {@link Platform}s matching the provided
 	 * {@code eventDefinitionName}.
 	 * 
-	 * @param executionModel      the {@link ExecutionModel} containing the imports to look at
+	 * @param executionModel the {@link ExecutionModel} containing the imports to look at
 	 * @param eventDefinitionName the name of the {@link EventDefinition} to retrieve
 	 * @return the retrieved {@link EventDefinition} if it exists, {@code null} otherwise
 	 */
