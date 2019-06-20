@@ -66,6 +66,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1562,12 +1563,12 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 Log.info("Processing context {0}", context.getName());
                 Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
                 for (String key : parameterValues.keySet()) {
-                    Log.info("Processing context value {0} ({1})", key, parameterValues.get(key).getStringValue());
+                    String parameterValue = convertParameterValueToString(parameterValues.get(key));
+                    Log.info("Processing context value {0} ({1})", key, parameterValue);
                     /*
                      * Ignore original: this variable contains the raw parsed value, we don't need this.
                      */
                     if (!key.contains(".original")) {
-                        String parameterValue = parameterValues.get(key).getStringValue();
                         ContextParameter contextParameter = contextDefinition.getContextParameter(key);
                         if (nonNull(contextParameter)) {
                             ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
@@ -1583,6 +1584,34 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             }
         }
         return recognizedIntent;
+    }
+
+    /**
+     * Converts the provided {@code value} into a {@link String}.
+     * <p>
+     * This method converts protobuf's {@link Value}s returned by DialogFlow into {@link String}s that can be
+     * assigned to {@link ContextParameterValue}s.
+     *
+     * @param value the protobuf {@link Value} to convert
+     * @return the {@link String} representation of the provided {@code value}.
+     */
+    protected String convertParameterValueToString(Value value) {
+        switch (value.getKindCase()) {
+            case STRING_VALUE:
+                return value.getStringValue();
+            case NUMBER_VALUE:
+                return new DecimalFormat("0.###").format(value.getNumberValue());
+            case BOOL_VALUE:
+                return Boolean.toString(value.getBoolValue());
+            case NULL_VALUE:
+                return "null";
+            default:
+                /*
+                 * Includes LIST_VALUE and STRUCT_VALUE
+                 */
+                Log.error("Cannot convert the provided value {0}", value);
+                return "";
+        }
     }
 
     /**

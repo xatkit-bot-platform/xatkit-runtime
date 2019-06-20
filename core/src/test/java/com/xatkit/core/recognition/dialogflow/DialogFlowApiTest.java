@@ -1,6 +1,8 @@
 package com.xatkit.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.Intent;
+import com.google.protobuf.NullValue;
+import com.google.protobuf.Value;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.session.XatkitSession;
@@ -1172,6 +1174,49 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
+    }
+
+    @Test
+    public void convertStringParameterValueToString() {
+        api = getValidDialogFlowApi();
+        Value value = Value.newBuilder().setStringValue("xatkit").build();
+        String result = api.convertParameterValueToString(value);
+        assertThat(result).as("Valid result from String").isEqualTo("xatkit");
+    }
+
+    @Test
+    public void convertDoubleParameterValueToString() {
+        api = getValidDialogFlowApi();
+        Value value = Value.newBuilder().setNumberValue(1.234).build();
+        String result = api.convertParameterValueToString(value);
+        assertThat(result).as("Valid result from Double").isEqualTo("1,234");
+    }
+
+    @Test
+    public void convertIntParameterValueToString() {
+        api = getValidDialogFlowApi();
+        Value value = Value.newBuilder().setNumberValue(1.0).build();
+        String result = api.convertParameterValueToString(value);
+        /*
+         * The '.' should be removed
+         */
+        assertThat(result).as("Valid result from Int").isEqualTo("1");
+    }
+
+    @Test
+    public void convertBoolParameterValueToString() {
+        api = getValidDialogFlowApi();
+        Value value = Value.newBuilder().setBoolValue(true).build();
+        String result = api.convertParameterValueToString(value);
+        assertThat(result).as("Valid result from Bool").isEqualTo("true");
+    }
+
+    @Test
+    public void convertNullParameterValueToString() {
+        api = getValidDialogFlowApi();
+        Value value = Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build();
+        String result = api.convertParameterValueToString(value);
+        assertThat(result).as("Valid result from Null").isEqualTo("null");
     }
 
     private boolean hasTrainingPhrase(Intent intent, String trainingPhrase) {
