@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: com.xatkit.language.platform
 Bundle-Vendor: SOM Research Lab
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: com.xatkit.language.platform;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext,
@@ -12,11 +12,11 @@ Require-Bundle: org.eclipse.xtext,
  org.antlr.runtime,
  org.eclipse.xtext.util,
  org.eclipse.xtend.lib,
- com.xatkit.intent;bundle-version="1.0.1",
+ com.xatkit.intent,
  org.eclipse.osgi,
- com.xatkit.platform;bundle-version="1.0.1",
- com.xatkit.language.intent;bundle-version="1.0.1",
- com.xatkit.utils;bundle-version="1.0.1"
+ com.xatkit.platform,
+ com.xatkit.language.intent,
+ com.xatkit.utils
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: com.xatkit.language.platform,
  com.xatkit.language.platform.formatting2,

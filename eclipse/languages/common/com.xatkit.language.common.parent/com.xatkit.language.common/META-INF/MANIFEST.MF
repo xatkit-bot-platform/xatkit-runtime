@@ -3,7 +3,7 @@ Automatic-Module-Name: com.xatkit.language.common
 Bundle-ManifestVersion: 2
 Bundle-Name: com.xatkit.language.common
 Bundle-Vendor: SOM Research Lab
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: com.xatkit.language.common; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext,
@@ -15,7 +15,7 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.emf.common,
  org.eclipse.xtend.lib,
  org.antlr.runtime,
- com.xatkit.common;bundle-version="1.0.1",
+ com.xatkit.common,
  org.eclipse.core.runtime;bundle-version="3.13.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: com.xatkit.language.common.services,

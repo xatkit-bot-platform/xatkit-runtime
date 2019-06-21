@@ -96,6 +96,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
             Log.info("Merging {0} session to the client one", this.getClass().getSimpleName());
             try {
                 clientSession.getRuntimeContexts().merge(session.getRuntimeContexts());
+                clientSession.merge(session);
             } catch (XatkitException e) {
                 throw new XatkitException("Cannot construct the action {0}, the action session cannot be merged in " +
                         "the client one", e);

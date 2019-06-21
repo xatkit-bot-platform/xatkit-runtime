@@ -3,7 +3,7 @@ Automatic-Module-Name: com.xatkit.language.common.ui
 Bundle-ManifestVersion: 2
 Bundle-Name: com.xatkit.language.common.ui
 Bundle-Vendor: SOM Research Lab
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: com.xatkit.language.common.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: com.xatkit.language.common,

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: com.xatkit.language.platform.ui
 Bundle-Vendor: SOM Research Lab
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: com.xatkit.language.platform.ui;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext.ui,
@@ -15,12 +15,12 @@ Require-Bundle: org.eclipse.xtext.ui,
  org.eclipse.xtext.builder,
  org.eclipse.xtend.lib;resolution:=optional,
  org.eclipse.xtext.xbase.lib,
- com.xatkit.intent;bundle-version="1.0.1",
- com.xatkit.language.platform;bundle-version="1.0.1",
- com.xatkit.language.platform.ide;bundle-version="1.0.1",
- com.xatkit.platform;bundle-version="1.0.1",
- com.xatkit.language.intent.ui;bundle-version="1.0.1",
- com.xatkit.utils;bundle-version="1.0.1"
+ com.xatkit.intent,
+ com.xatkit.language.platform,
+ com.xatkit.language.platform.ide,
+ com.xatkit.platform,
+ com.xatkit.language.intent.ui,
+ com.xatkit.utils
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: com.xatkit.language.platform.ui.contentassist,

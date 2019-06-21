@@ -155,6 +155,13 @@ public class XatkitSession {
         list.add(value);
     }
 
+    // Ugly fix
+    // This is clearly not good, but it allows to manipulate github session from events and access its content in
+    // user-specific actions
+    public void merge(XatkitSession other) {
+        sessionVariables = other.sessionVariables;
+    }
+
     /**
      * Retrieves the session value associated to the provided {@code key}.
      *

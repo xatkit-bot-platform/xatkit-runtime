@@ -3,7 +3,7 @@ Automatic-Module-Name: com.xatkit.language.common.tests
 Bundle-ManifestVersion: 2
 Bundle-Name: com.xatkit.language.common.tests
 Bundle-Vendor: SOM Research Lab
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: com.xatkit.language.common.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: com.xatkit.language.common,
@@ -11,7 +11,7 @@ Require-Bundle: com.xatkit.language.common,
  org.eclipse.xtext.testing,
  org.eclipse.xtext.xbase.testing,
  org.eclipse.xtext.xbase.lib,
- com.xatkit.common;bundle-version="1.0.1"
+ com.xatkit.common
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: com.xatkit.language.common.tests;x-internal=true
 Import-Package: org.hamcrest.core,

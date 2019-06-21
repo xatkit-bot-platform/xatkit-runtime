@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: com.xatkit.language.intent.ui
 Bundle-Vendor: SOM Research Lab
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: com.xatkit.language.intent.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: com.xatkit.language.intent;bundle-version="1.0.1",
- com.xatkit.language.intent.ide;bundle-version="1.0.1",
- com.xatkit.intent;bundle-version="1.0.1",
+Require-Bundle: com.xatkit.language.intent,
+ com.xatkit.language.intent.ide,
+ com.xatkit.intent,
  org.eclipse.xtext.ui,
  org.eclipse.xtext.ui.shared,
  org.eclipse.xtext.ui.codetemplates.ui,

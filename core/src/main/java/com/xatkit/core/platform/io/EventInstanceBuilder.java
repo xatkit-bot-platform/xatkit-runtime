@@ -9,6 +9,7 @@ import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentFactory;
+import fr.inria.atlanmod.commons.log.Log;
 
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -186,8 +187,10 @@ public class EventInstanceBuilder {
                 }
             }
             if (isNull(context)) {
-                throw new XatkitException(MessageFormat.format("Cannot retrieve the out context associated to the " +
-                        "context parameter {0}", contextKey));
+//                throw new XatkitException(MessageFormat.format("Cannot retrieve the out context associated to the " +
+//                        "context parameter {0}", contextKey));
+                Log.warn("Cannot retrieve the out context associated to the context parameter {0}", contextKey);
+                continue;
             }
             /*
              * Retrieve the context instance bound to the retrieved context. Create it if it does not exist.
