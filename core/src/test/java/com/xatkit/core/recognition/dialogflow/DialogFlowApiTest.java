@@ -1187,9 +1187,9 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
     @Test
     public void convertDoubleParameterValueToString() {
         api = getValidDialogFlowApi();
-        Value value = Value.newBuilder().setNumberValue(1.234).build();
+        Value value = Value.newBuilder().setNumberValue(1234.567).build();
         String result = api.convertParameterValueToString(value);
-        assertThat(result).as("Valid result from Double").isEqualTo("1,234");
+        assertThat(result).as("Valid result from Double").isEqualTo("1234.567");
     }
 
     @Test
