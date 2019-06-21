@@ -5,6 +5,8 @@ import com.xatkit.common.CommonPackage;
 import com.xatkit.common.Program;
 import com.xatkit.core.interpreter.operation.OperationException;
 import com.xatkit.core.session.XatkitSession;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -551,6 +553,23 @@ public class CommonInterpreterTest {
     public void string_literal_not_equals_number_literal() {
         Object result = interpreter.compute(getProgram("string_literal_not_equals_number_literal"));
         assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void config_access_key_in_config() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty("test.test", "value");
+        XatkitSession session = new XatkitSession("sessionID", configuration);
+        ExecutionContext executionContext = new ExecutionContext();
+        executionContext.setSession(session);
+        Object result = interpreter.compute(getProgram("config_access"), executionContext);
+        assertThat(result).as("Result retrieved from Configuration").isEqualTo("value");
+    }
+
+    @Test
+    public void config_access_key_not_in_config() {
+        Object result = interpreter.compute(getProgram("config_access"));
+        assertThat(result).as("Result is null").isNull();
     }
 
     private Resource getProgram(String fileName) {

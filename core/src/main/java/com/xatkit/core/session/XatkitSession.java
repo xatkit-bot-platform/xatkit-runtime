@@ -43,6 +43,14 @@ public class XatkitSession {
     private Map<String, Object> sessionVariables;
 
     /**
+     * The {@link Configuration} used to define the session behavior.
+     * <p>
+     * This {@link Configuration} can be accessed by {@code config()} operations in execution models to retrieve
+     * user-defined configuration values.
+     */
+    private Configuration configuration;
+
+    /**
      * Constructs a new, empty {@link XatkitSession} with the provided {@code sessionId}.
      * See {@link #XatkitSession(String, Configuration)} to construct a {@link XatkitSession} with a given
      * {@link Configuration}.
@@ -71,6 +79,7 @@ public class XatkitSession {
         this.sessionId = sessionId;
         this.runtimeContexts = new RuntimeContexts(configuration);
         this.sessionVariables = new HashMap<>();
+        this.configuration = configuration;
     }
 
     /**
@@ -89,6 +98,15 @@ public class XatkitSession {
      */
     public RuntimeContexts getRuntimeContexts() {
         return runtimeContexts;
+    }
+
+    /**
+     * Returns the {@link Configuration} defining the session behavior.
+     *
+     * @return the {@link Configuration} defining the session behavior
+     */
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
     /**

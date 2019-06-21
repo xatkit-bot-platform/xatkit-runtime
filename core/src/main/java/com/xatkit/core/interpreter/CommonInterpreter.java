@@ -1,6 +1,20 @@
 package com.xatkit.core.interpreter;
 
-import com.xatkit.common.*;
+import com.xatkit.common.BooleanLiteral;
+import com.xatkit.common.ConfigAccess;
+import com.xatkit.common.ContextAccess;
+import com.xatkit.common.Expression;
+import com.xatkit.common.IfExpression;
+import com.xatkit.common.ImportDeclaration;
+import com.xatkit.common.Instruction;
+import com.xatkit.common.Literal;
+import com.xatkit.common.NumberLiteral;
+import com.xatkit.common.OperationCall;
+import com.xatkit.common.Program;
+import com.xatkit.common.SessionAccess;
+import com.xatkit.common.StringLiteral;
+import com.xatkit.common.VariableAccess;
+import com.xatkit.common.VariableDeclaration;
 import com.xatkit.core.interpreter.operation.Operation;
 import com.xatkit.core.interpreter.operation.object.ObjectOperationProvider;
 import com.xatkit.core.session.XatkitSession;
@@ -212,6 +226,8 @@ public class CommonInterpreter {
             return evaluate((ContextAccess) e, context);
         } else if (e instanceof SessionAccess) {
             return evaluate((SessionAccess) e, context);
+        } else if (e instanceof ConfigAccess) {
+            return evaluate((ConfigAccess) e, context);
         } else if (e instanceof Literal) {
             return evaluate((Literal) e, context);
         } else if (e instanceof OperationCall) {
@@ -258,6 +274,21 @@ public class CommonInterpreter {
      */
     public Object evaluate(SessionAccess s, ExecutionContext context) {
         return context.getSession();
+    }
+
+    /**
+     * Evaluates the provided {@link ConfigAccess} {@link Expression} and returns the corresponding
+     * {@link org.apache.commons.configuration2.Configuration} value.
+     *
+     * @param c       the {@link ConfigAccess} to evaluate
+     * @param context the {@link ExecutionContext} to use along the evaluation
+     * @return the {@link org.apache.commons.configuration2.Configuration} value if it exists, {@code null} otherwise
+     */
+    public Object evaluate(ConfigAccess c, ExecutionContext context) {
+        if(isNull(context.getSession()) || isNull(context.getSession().getConfiguration())) {
+            return null;
+        }
+        return context.getSession().getConfiguration().getProperty(c.getKeyName());
     }
 
     /**

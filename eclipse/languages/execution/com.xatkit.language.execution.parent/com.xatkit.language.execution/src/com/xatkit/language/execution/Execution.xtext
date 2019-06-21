@@ -41,8 +41,7 @@ ParameterValue returns ParameterValue:
 	parameter=[platform::Parameter|ID] ':' expression=Expression
 ;
 
-QualifiedName returns ecore::EString:
-ID ('.'ID)*;
+
 
 @Override 
 Expression returns common::Expression:
