@@ -102,12 +102,16 @@ public class EventInstanceBuilderTest extends AbstractXatkitTest {
         softly.assertThat(builder.getOutContextValues()).as("Builder OutContextValues cleared").isEmpty();
     }
 
-    @Test(expected = XatkitException.class)
+    @Test
     public void buildRegisteredEventDefinitionNotRegisteredOutContext() {
         EventDefinition eventDefinition = createAndRegisterEventDefinitionWithOutContextParameter("EventName",
                 "OutContext", "key");
         builder = EventInstanceBuilder.newBuilder(registry);
         builder.setEventDefinitionName("EventName").setOutContextValue("key2", "value").build();
+        /*
+         * This should not throw an exception: the EventDefinition should define the context, but it may not be the
+         * case if the API recently evolved.
+         */
     }
 
     @Test

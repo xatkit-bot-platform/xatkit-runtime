@@ -187,8 +187,10 @@ public class EventInstanceBuilder {
                 }
             }
             if (isNull(context)) {
-//                throw new XatkitException(MessageFormat.format("Cannot retrieve the out context associated to the " +
-//                        "context parameter {0}", contextKey));
+                /*
+                 * Better log a warning than failing: the EventDefinition should contain the context parameter, but
+                 * it may not be the case if the API recently evolved for example.
+                 */
                 Log.warn("Cannot retrieve the out context associated to the context parameter {0}", contextKey);
                 continue;
             }

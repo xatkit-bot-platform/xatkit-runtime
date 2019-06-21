@@ -308,6 +308,10 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
         matcher = new JsonEventMatcher(builder, new BaseConfiguration());
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, validEventTypeName);
         matcher.match(validHeaders, validPayload);
+        /*
+         * This should not throw an exception: the EventDefinition should define the context, but it may not be the
+         * case if the API recently evolved.
+         */
     }
 
     @Test
