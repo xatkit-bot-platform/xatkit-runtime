@@ -33,11 +33,11 @@ There are several benefits in using this modular architecture to specify chatbot
 - Each sub-language is totally independent of the concrete *intent recognition provider*, and Xatkit allows to define messaging actions that are independent of the targeted messaging platforms (more information [here](Generic_ChatPlatform), easing the maintenance and evolution of the chatbot.
 - The **Xatkit Runtime** architecture can be easily extended to support new platform connections and computable actions.  Learn more on custom platform and actions definition [here]().
 
-You are now ready to start using Xatkit and [create your first chatbot](https://github.com/jarvis-bot-platform/jarvis/wiki/Getting-Started)! You can also have a look at the [installation instructions](https://github.com/jarvis-bot-platform/jarvis/wiki/Installation) to get setup the Xatkit modeling environment. 
+You are now ready to start using Xatkit and [create your first chatbot](https://github.com/xatkit-bot-platform/xatkit/wiki/Getting-Started)! You can also have a look at the [installation instructions](https://github.com/xatkit-bot-platform/xatkit/wiki/Installation) to get setup the Xatkit modeling environment. 
 
 # Intent Recognition Providers
 
-Xatkit relies on *intent recognition providers* to translate user inputs into *intents* that can be used by the runtime component to trigger actions. Note that the runtime itself embeds a [DialogFlow](https://github.com/SOM-Research/jarvis/wiki/DialogFlow) connector that can be used out of the box to match user intents, but the engine's architecture is generic and can be extended to support new alternatives such as IBM Watson Assistant or Amazon Lex.
+Xatkit relies on *intent recognition providers* to translate user inputs into *intents* that can be used by the runtime component to trigger actions. Note that the runtime itself embeds a DialogFlow connector that can be used out of the box to match user intents, but the engine's architecture is generic and can be extended to support new alternatives such as IBM Watson Assistant or Amazon Lex.
 
 # Packaged Platforms
 
