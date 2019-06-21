@@ -67,6 +67,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1600,7 +1601,11 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             case STRING_VALUE:
                 return value.getStringValue();
             case NUMBER_VALUE:
-                return new DecimalFormat("0.###").format(value.getNumberValue());
+                DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+                decimalFormatSymbols.setDecimalSeparator('.');
+                DecimalFormat decimalFormat = new DecimalFormat("0.###", decimalFormatSymbols);
+                decimalFormat.setGroupingUsed(false);
+                return decimalFormat.format(value.getNumberValue());
             case BOOL_VALUE:
                 return Boolean.toString(value.getBoolValue());
             case NULL_VALUE:
