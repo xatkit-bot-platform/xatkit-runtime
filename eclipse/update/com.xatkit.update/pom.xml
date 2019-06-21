@@ -13,7 +13,7 @@
 
     <packaging>eclipse-repository</packaging>
 
-    <name>Javis Update Site</name>
+    <name>Xatkit Update Site</name>
 
 	<properties>
 		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
