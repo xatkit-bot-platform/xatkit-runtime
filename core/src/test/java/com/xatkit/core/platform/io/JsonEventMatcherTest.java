@@ -292,7 +292,7 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
         matcher.match(validHeaders, validPayload);
     }
 
-    @Test(expected = XatkitException.class)
+    @Test
     public void matchValidRegisteredEventDefinitionMissingOutContext() {
         EventDefinitionRegistry registry = new EventDefinitionRegistry();
         EventDefinition eventDefinition = IntentFactory.eINSTANCE.createEventDefinition();
