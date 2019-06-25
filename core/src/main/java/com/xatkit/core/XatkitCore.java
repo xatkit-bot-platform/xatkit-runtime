@@ -727,10 +727,10 @@ public class XatkitCore {
         /*
          * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
          */
-        if(!resourceFile.isAbsolute() && path.charAt(0) != '/') {
+        if (!resourceFile.isAbsolute() && path.charAt(0) != '/') {
             resourceFile = new File(baseConfigurationPath + File.separator + path);
         }
-        if(resourceFile.exists() && resourceFile.isFile()) {
+        if (resourceFile.exists() && resourceFile.isFile()) {
             URI resourceFileURI = URI.createFileURI(resourceFile.getAbsolutePath());
             executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
             Resource resource = executionResourceSet.getResource(resourceFileURI, true);

@@ -1,8 +1,8 @@
 package com.xatkit.core.server;
 
 import com.google.gson.JsonElement;
-import com.xatkit.core.platform.io.WebhookEventProvider;
 import com.xatkit.core.XatkitException;
+import com.xatkit.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
@@ -16,7 +16,13 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.SocketTimeoutException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -119,7 +125,7 @@ public class XatkitServer {
                 .setServerInfo("Xatkit/1.1")
                 .setSocketConfig(socketConfig)
                 .setExceptionLogger(e -> {
-                    if(e instanceof SocketTimeoutException) {
+                    if (e instanceof SocketTimeoutException) {
                         /*
                          * SocketTimeoutExceptions are thrown after each query, we can log them as debug to avoid
                          * polluting the application log.
