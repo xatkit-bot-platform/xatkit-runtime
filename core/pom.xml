@@ -18,7 +18,7 @@
 
     <properties>
         <dialogflow.version>0.53.0-alpha</dialogflow.version>
-        <jslack.version>1.1.2</jslack.version>
+        <jslack.version>1.7.2</jslack.version>
         <javax.websocket-api.version>1.1</javax.websocket-api.version>
         <tyrus.version>1.13</tyrus.version>
         <jda.version>3.6.0_376</jda.version>
