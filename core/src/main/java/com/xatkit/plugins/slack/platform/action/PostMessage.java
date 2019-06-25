@@ -66,7 +66,7 @@ public class PostMessage extends RuntimeMessageAction<SlackPlatform> {
     public Object compute() throws IOException {
         ChatPostMessageRequest request = ChatPostMessageRequest.builder()
                 .token(runtimePlatform.getSlackToken())
-                .channel(channel)
+                .channel(this.runtimePlatform.getChannelId(channel))
                 .text(message)
                 .unfurlLinks(true)
                 .unfurlMedia(true)

@@ -1,17 +1,31 @@
 package com.xatkit.plugins.slack.platform;
 
 import com.github.seratch.jslack.Slack;
+import com.github.seratch.jslack.api.methods.request.conversations.ConversationsListRequest;
+import com.github.seratch.jslack.api.methods.request.users.UsersInfoRequest;
+import com.github.seratch.jslack.api.methods.response.conversations.ConversationsListResponse;
+import com.github.seratch.jslack.api.methods.response.users.UsersInfoResponse;
+import com.github.seratch.jslack.api.model.Conversation;
+import com.github.seratch.jslack.api.model.ConversationType;
 import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitException;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.plugins.chat.platform.ChatPlatform;
 import com.xatkit.plugins.slack.SlackUtils;
 import com.xatkit.plugins.slack.platform.action.PostMessage;
 import com.xatkit.plugins.slack.platform.action.Reply;
-import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.plugins.chat.platform.ChatPlatform;
+import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -45,6 +59,8 @@ public class SlackPlatform extends ChatPlatform {
      */
     private Slack slack;
 
+    private Map<String, String> channelNames;
+
     /**
      * Constructs a new {@link SlackPlatform} from the provided {@link XatkitCore} and {@link Configuration}.
      * <p>
@@ -66,6 +82,7 @@ public class SlackPlatform extends ChatPlatform {
                 "provided token %s, please ensure that the Xatkit configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SlackUtils.SLACK_TOKEN_KEY);
         slack = new Slack();
+        this.loadChannelNames();
     }
 
     /**
@@ -93,6 +110,74 @@ public class SlackPlatform extends ChatPlatform {
      * @return the {@link XatkitSession} associated to the provided {@code channel}
      */
     public XatkitSession createSessionFromChannel(String channel) {
-        return this.xatkitCore.getOrCreateXatkitSession(channel);
+        return this.xatkitCore.getOrCreateXatkitSession(this.getChannelId(channel));
+    }
+
+    /**
+     * Retrieves the ID of the provided {@code channelName}.
+     * <p>
+     * This method supports channel IDs, names, as well as user names, real names, and display names (in this case
+     * the private {@code im} channel ID between the bot and the user is returned). The returned ID can be used to
+     * send messages to the channel.
+     *
+     * @param channelName the name of the channel to retrieve the ID from
+     * @return the channel ID if it exists
+     * @throws XatkitException if the provided {@code channelName} does not correspond to any channel accessible by
+     *                         the bot
+     */
+    public String getChannelId(String channelName) {
+        String id = this.channelNames.get(channelName);
+        if (isNull(id)) {
+            throw new XatkitException(MessageFormat.format("Cannot find the channel {0}, please ensure that the " +
+                    "provided channel is either a valid channel ID, name, or a valid user name, real name, or display" +
+                    " name", channelName));
+        }
+        return id;
+    }
+
+    /**
+     * Loads and store the names of each channel the bot can access.
+     * <p>
+     * This method allows to use channel IDs, names, as well as user names, real names, and display names as channels
+     * in execution model.
+     *
+     * @see #getChannelId(String)
+     */
+    private void loadChannelNames() {
+        this.channelNames = new HashMap<>();
+        try {
+            ConversationsListResponse response =
+                    slack.methods().conversationsList(ConversationsListRequest.builder()
+                            .token(slackToken)
+                            .types(Arrays.asList(ConversationType.PUBLIC_CHANNEL, ConversationType.PUBLIC_CHANNEL,
+                                    ConversationType.IM, ConversationType.MPIM))
+                            .build());
+            for (Conversation conversation : response.getChannels()) {
+                String conversationId = conversation.getId();
+                /*
+                 * Store the conversation ID as an entry for itself, this is because we cannot differentiate IDs from
+                 * regular strings when retrieving a channel ID.
+                 */
+                this.channelNames.put(conversationId, conversationId);
+                if (nonNull(conversation.getName())) {
+                    this.channelNames.put(conversation.getName(), conversation.getId());
+                    Log.debug("Conversation name: {0}, ID: {1}", conversation.getName(), conversationId);
+                } else {
+                    String userId = conversation.getUser();
+                    UsersInfoResponse userResponse = slack.methods().usersInfo(UsersInfoRequest.builder()
+                            .token(slackToken)
+                            .user(userId)
+                            .build());
+                    this.channelNames.put(userResponse.getUser().getName(), conversationId);
+                    this.channelNames.put(userResponse.getUser().getRealName(), conversationId);
+                    this.channelNames.put(userResponse.getUser().getProfile().getDisplayName(), conversationId);
+                    Log.debug("User name: {0}", userResponse.getUser().getName());
+                    Log.debug("User real name: {0}", userResponse.getUser().getRealName());
+                    Log.debug("User display name: {0}", userResponse.getUser().getProfile().getDisplayName());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

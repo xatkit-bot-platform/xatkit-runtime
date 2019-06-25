@@ -118,7 +118,7 @@ public class PostFileMessage extends PostMessage {
     public Object compute() {
         FilesUploadRequest.FilesUploadRequestBuilder builder = FilesUploadRequest.builder();
         builder.token(runtimePlatform.getSlackToken())
-                .channels(Arrays.asList(channel))
+                .channels(Arrays.asList(this.runtimePlatform.getChannelId(channel)))
                 .initialComment(message);
         if (nonNull(file)) {
             /*
