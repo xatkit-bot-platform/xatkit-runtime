@@ -30,6 +30,7 @@ import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.platform.PlatformPackage;
+import com.xatkit.plugins.react.platform.ReactPlatform;
 import com.xatkit.util.EMFUtils;
 import com.xatkit.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
@@ -229,12 +230,39 @@ public class XatkitCore {
             this.loadExecutionModel(executionModel);
             xatkitServer.start();
             Log.info("Xatkit bot started");
+            if (this.isReactBot()) {
+                Log.info("You can test your chatbot here {0} (note that the bot's behavior can be slightly " +
+                        "different on the test page than when it is deployed on a server)","http://localhost:" +
+                        this.xatkitServer.getPort() + "/admin");
+            }
         } catch (Throwable t) {
             Log.error("An error occurred when starting the {0}, trying to close started services", this.getClass()
                     .getSimpleName());
             stopServices();
             throw t;
         }
+    }
+
+    /**
+     * Returns whether the bot uses the {@link ReactPlatform}.
+     * <p>
+     * A react bot uses (not exclusively) the {@link ReactPlatform} in its execution model. This method is used to
+     * deploy a web-page with the bot that can be used to test the modeled bot through its React actions and events.
+     * This means that bots using multiple ChatPlatform as their input may work differently on the test page and when
+     * deployed.
+     *
+     * @return {@code true} if the modeled bot uses the {@link ReactPlatform}, {@code false} otherwise
+     */
+    private boolean isReactBot() {
+        for (RuntimePlatform runtimePlatform : this.runtimePlatformRegistry.getRuntimePlatforms()) {
+            if (runtimePlatform instanceof ReactPlatform) {
+                return true;
+            }
+            /*
+             * Do not test the ChatPlatform, if it is bound to ReactPlatform it has been initialized already.
+             */
+        }
+        return false;
     }
 
     /**

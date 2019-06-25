@@ -129,8 +129,18 @@ public class XatkitServer {
                         Log.error(e);
                     }
                 })
+                .registerHandler("/admin*", new AdminHttpHandler())
                 .registerHandler("*", new HttpHandler(this))
                 .create();
+    }
+
+    /**
+     * Returns the port the server is listening to.
+     *
+     * @return the port the server is listening to
+     */
+    public int getPort() {
+        return this.port;
     }
 
     /**
