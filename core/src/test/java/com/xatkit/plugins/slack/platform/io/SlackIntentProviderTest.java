@@ -11,7 +11,11 @@ import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.text.MessageFormat;
 import java.util.Map;
@@ -27,7 +31,7 @@ public class SlackIntentProviderTest extends AbstractXatkitTest {
 
     private SlackPlatform slackPlatform;
 
-    private static String SLACK_CHANNEL = "test";
+    private String SLACK_CHANNEL;
 
     private static EventDefinition VALID_EVENT_DEFINITION;
 
@@ -43,6 +47,7 @@ public class SlackIntentProviderTest extends AbstractXatkitTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(SlackUtils.SLACK_TOKEN_KEY, VariableLoaderHelper.getXatkitSlackToken());
         slackPlatform = new SlackPlatform(stubXatkitCore, configuration);
+        SLACK_CHANNEL = slackPlatform.getChannelId("général");
     }
 
     @After
@@ -50,10 +55,10 @@ public class SlackIntentProviderTest extends AbstractXatkitTest {
         if (nonNull(slackIntentProvider)) {
             slackIntentProvider.close();
         }
-        if(nonNull(slackPlatform)) {
+        if (nonNull(slackPlatform)) {
             slackPlatform.shutdown();
         }
-        if(nonNull(stubXatkitCore)) {
+        if (nonNull(stubXatkitCore)) {
             stubXatkitCore.shutdown();
         }
     }
@@ -96,7 +101,8 @@ public class SlackIntentProviderTest extends AbstractXatkitTest {
                 (VALID_EVENT_DEFINITION.getName());
         XatkitSession session = stubXatkitCore.getXatkitSession(SLACK_CHANNEL);
         assertThat(session).as("Not null session").isNotNull();
-        Map<String, Object> slackContext = session.getRuntimeContexts().getContextVariables(SlackUtils.SLACK_CONTEXT_KEY);
+        Map<String, Object> slackContext =
+                session.getRuntimeContexts().getContextVariables(SlackUtils.SLACK_CONTEXT_KEY);
         assertThat(slackContext).as("Not null slack context").isNotNull();
         softly.assertThat(slackContext).as("Not empty slack context").isNotEmpty();
         Object contextChannel = slackContext.get(SlackUtils.CHAT_CHANNEL_CONTEXT_KEY);
@@ -157,17 +163,17 @@ public class SlackIntentProviderTest extends AbstractXatkitTest {
 
     private String getValidMessage() {
         return MessageFormat.format("'{'\"type\":\"message\",\"text\":\"hello\", \"channel\":\"{0}\", " +
-                        "\"user\":\"UBD4Z7SKH\"'}'", SLACK_CHANNEL);
+                "\"user\":\"UBD4Z7SKH\"'}'", SLACK_CHANNEL);
     }
 
     private String getMessageInvalidType() {
         return MessageFormat.format("'{'\"type\":\"invalid\",\"text\":\"hello\", \"channel\":\"{0}\", " +
-                        "\"user\":\"123\"'}'", SLACK_CHANNEL);
+                "\"user\":\"123\"'}'", SLACK_CHANNEL);
     }
 
     private String getMessageNullText() {
         return MessageFormat.format("'{'\"type\":\"message\", \"channel\":\"{0}\", \"user\":\"123\"'}'",
-                 SLACK_CHANNEL);
+                SLACK_CHANNEL);
     }
 
     private String getMessageNullChannel() {
@@ -179,7 +185,7 @@ public class SlackIntentProviderTest extends AbstractXatkitTest {
     }
 
     private String getMessageEmptyText() {
-        return MessageFormat.format( "'{'\"type\":\"message\",\"text\":\"\", \"channel\":\"{0}\", " +
+        return MessageFormat.format("'{'\"type\":\"message\",\"text\":\"\", \"channel\":\"{0}\", " +
                 "\"user\":\"123\"'}'", SLACK_CHANNEL);
     }
 
