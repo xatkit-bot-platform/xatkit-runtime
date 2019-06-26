@@ -116,9 +116,12 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 					 * Get the first one here, if there are multiple ActionDefinitions with the same name it will be rebound
 					 * when setting its parameters.
 					 */
-					ActionDefinition actionDefinition = platformDefinition.getActions(actionName).get(0);
-					if (nonNull(actionDefinition)) {
-						return Arrays.asList(actionDefinition);
+					List<ActionDefinition> actionDefinitions = platformDefinition.getActions(actionName);
+					if(!actionDefinitions.isEmpty()) {
+						ActionDefinition actionDefinition = actionDefinitions.get(0);
+						if(nonNull(actionDefinition)) {
+							return Arrays.asList(actionDefinition);
+						}
 					}
 				}
 			}
