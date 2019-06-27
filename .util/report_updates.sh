@@ -1,11 +1,5 @@
 #!/bin/bash
 
-JDK="oraclejdk8"
-
-TYPE="Javadoc"
-
-DOCS_REPO="$TRAVIS_REPO_SLUG-docs"
-
 # Print a message
 e() {
     echo -e "$1"
