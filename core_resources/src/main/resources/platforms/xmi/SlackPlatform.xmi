@@ -46,6 +46,19 @@
     <parameters key="attchColor"/>
     <parameters key="timestamp"/>
   </actions>
+  <actions name="PostAttachmentsMessage">
+    <parameters key="pretext"/>
+    <parameters key="title"/>
+    <parameters key="text"/>
+    <parameters key="attchColor"/>
+    <parameters key="channel"/>
+  </actions>
+  <actions name="ReplyAttachmentsMessage">
+    <parameters key="pretext"/>
+    <parameters key="title"/>
+    <parameters key="text"/>
+    <parameters key="attchColor"/>
+  </actions>
   <actions name="PostMessage">
     <parameters key="message"/>
     <parameters key="channel"/>

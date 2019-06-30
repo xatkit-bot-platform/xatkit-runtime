@@ -22,4 +22,6 @@ actions {
 	ReplyAttachmentsMessage(attachments)
 	PostAttachmentsMessage(pretext, title, text, attchColor, timestamp, channel)
 	ReplyAttachmentsMessage(pretext, title, text, attchColor, timestamp)
+	PostAttachmentsMessage(pretext, title, text, attchColor, channel)
+	ReplyAttachmentsMessage(pretext, title, text, attchColor)
 }
