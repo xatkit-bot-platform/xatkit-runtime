@@ -59,7 +59,7 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				String eventProviderName = qualifiedName.getLocalName();
 				PlatformDefinition platformDefinition = ImportRegistry.getInstance()
 						.getImportedPlatform((ExecutionModel) context, platformName);
-				if(nonNull(platformDefinition)) {
+				if (nonNull(platformDefinition)) {
 					EventProviderDefinition eventProviderDefinition = platformDefinition
 							.getEventProviderDefinition(eventProviderName);
 					if (nonNull(eventProviderDefinition)) {
@@ -79,7 +79,8 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 			/*
 			 * Trying to retrieve an Event from a loaded Library
 			 */
-			EventDefinition foundEvent = ExecutionUtils.getEventDefinitionFromImportedLibraries(executionModel, node.getText());
+			EventDefinition foundEvent = ExecutionUtils.getEventDefinitionFromImportedLibraries(executionModel,
+					node.getText());
 			if (isNull(foundEvent)) {
 				/*
 				 * Cannot retrieve the Event from a loaded Library, trying to retrieve it from a loaded Platform
@@ -111,17 +112,22 @@ public class ExecutionLinkingService extends DefaultLinkingService {
 				String actionName = qualifiedName.getLocalName();
 				PlatformDefinition platformDefinition = ImportRegistry.getInstance().getImportedPlatform(executionModel,
 						platformName);
-				if(nonNull(platformDefinition)) {
+				if (nonNull(platformDefinition)) {
 					/*
-					 * Get the first one here, if there are multiple ActionDefinitions with the same name it will be rebound
-					 * when setting its parameters.
+					 * If there are multiple actions with the same name (e.g. multiple constructors for the same action)
+					 * we first try to find the one with the same amount of parameters. If this fails we return the
+					 * first one, it will be updated later.
 					 */
 					List<ActionDefinition> actionDefinitions = platformDefinition.getActions(actionName);
-					if(!actionDefinitions.isEmpty()) {
-						ActionDefinition actionDefinition = actionDefinitions.get(0);
-						if(nonNull(actionDefinition)) {
-							return Arrays.asList(actionDefinition);
+					if (!actionDefinitions.isEmpty()) {
+						if (actionDefinitions.size() > 1) {
+							for (ActionDefinition actionDefinition : actionDefinitions) {
+								if (actionDefinition.getParameters().size() == context.getValues().size()) {
+									return Arrays.asList(actionDefinition);
+								}
+							}
 						}
+						return Arrays.asList(actionDefinitions.get(0));
 					}
 				}
 			}

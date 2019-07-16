@@ -18,4 +18,10 @@ actions {
 	PostFileMessage(message, file, channel)
 	PostFileMessage(title, message, content, channel)
 	ReplyFileMessage(message, file)
+	PostAttachmentsMessage(attachments, channel)
+	ReplyAttachmentsMessage(attachments)
+	PostAttachmentsMessage(pretext, title, text, attchColor, timestamp, channel)
+	ReplyAttachmentsMessage(pretext, title, text, attchColor, timestamp)
+	PostAttachmentsMessage(pretext, title, text, attchColor, channel)
+	ReplyAttachmentsMessage(pretext, title, text, attchColor)
 }

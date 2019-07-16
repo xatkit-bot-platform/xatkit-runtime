@@ -8,13 +8,7 @@
       <parameters name="rawMessage"/>
     </outContexts>
   </eventProviderDefinitions>
-  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="ChatProvider">
-    <outContexts name="chat" lifeSpan="1">
-      <parameters name="channel"/>
-      <parameters name="username"/>
-      <parameters name="rawMessage"/>
-    </outContexts>
-  </eventProviderDefinitions>
+  <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="ChatProvider"/>
   <actions name="PostFileMessage">
     <parameters key="message"/>
     <parameters key="file"/>
@@ -29,6 +23,41 @@
   <actions name="ReplyFileMessage">
     <parameters key="message"/>
     <parameters key="file"/>
+  </actions>
+  <actions name="PostAttachmentsMessage">
+    <parameters key="attachments"/>
+    <parameters key="channel"/>
+  </actions>
+  <actions name="ReplyAttachmentsMessage">
+    <parameters key="attachments"/>
+  </actions>
+  <actions name="PostAttachmentsMessage">
+    <parameters key="pretext"/>
+    <parameters key="title"/>
+    <parameters key="text"/>
+    <parameters key="attchColor"/>
+    <parameters key="timestamp"/>
+    <parameters key="channel"/>
+  </actions>
+  <actions name="ReplyAttachmentsMessage">
+    <parameters key="pretext"/>
+    <parameters key="title"/>
+    <parameters key="text"/>
+    <parameters key="attchColor"/>
+    <parameters key="timestamp"/>
+  </actions>
+  <actions name="PostAttachmentsMessage">
+    <parameters key="pretext"/>
+    <parameters key="title"/>
+    <parameters key="text"/>
+    <parameters key="attchColor"/>
+    <parameters key="channel"/>
+  </actions>
+  <actions name="ReplyAttachmentsMessage">
+    <parameters key="pretext"/>
+    <parameters key="title"/>
+    <parameters key="text"/>
+    <parameters key="attchColor"/>
   </actions>
   <actions name="PostMessage">
     <parameters key="message"/>
