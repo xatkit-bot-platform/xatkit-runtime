@@ -66,11 +66,14 @@ public class Loader {
      * @param parameters the concrete parameters of the constructor to call
      * @param <T>        the type of the {@link Class} to construct an instance of
      * @return the constructed instance
-     * @throws NoSuchMethodException if the provided {@code clazz} does not define a constructor matching the provided
-     *                               {@code parameters}
+     * @throws NoSuchMethodException     if the provided {@code clazz} does not define a constructor matching the
+     * provided
+     *                                   {@code parameters}
+     * @throws InvocationTargetException if the called constructor throws an exception
      * @see #construct(Class, List, List)
      */
-    public static <T> T construct(Class<T> clazz, Object[] parameters) throws NoSuchMethodException {
+    public static <T> T construct(Class<T> clazz, Object[] parameters) throws NoSuchMethodException,
+            InvocationTargetException {
         Log.info("Constructing {0} with the parameters ({1})", clazz.getSimpleName(), printArray(parameters));
         Constructor<?>[] constructors = clazz.getConstructors();
         for (int i = 0; i < constructors.length; i++) {
@@ -81,8 +84,7 @@ public class Loader {
                  */
                 try {
                     return (T) constructor.newInstance(parameters);
-                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
-                        InvocationTargetException e) {
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException e) {
                     /*
                      * The constructor does not accept the provided parameters, or an error occurred when calling it.
                      * In any case, we need to continue the iteration to try to find a suitable constructor.
@@ -214,15 +216,16 @@ public class Loader {
      * utility method.
      *
      * @param runtimePlatformClass the {@link RuntimePlatform} {@link Class} to construct a new instance of
-     * @param xatkitCore        the {@link XatkitCore} instance used to construct the {@link RuntimePlatform}
-     * @param configuration     the {@link Configuration} instance used to construct the {@link RuntimePlatform}
+     * @param xatkitCore           the {@link XatkitCore} instance used to construct the {@link RuntimePlatform}
+     * @param configuration        the {@link Configuration} instance used to construct the {@link RuntimePlatform}
      * @return the constructed {@link RuntimePlatform}
      * @throws XatkitException if the {@link RuntimePlatform} does not define a constructor matching the provided
      *                         parameters.
      * @see #construct(Class, Class, Class, Object, Object)
      * @see #loadClass(String, Class)
      */
-    public static RuntimePlatform constructRuntimePlatform(Class<? extends RuntimePlatform> runtimePlatformClass, XatkitCore
+    public static RuntimePlatform constructRuntimePlatform(Class<? extends RuntimePlatform> runtimePlatformClass,
+                                                           XatkitCore
             xatkitCore, Configuration configuration) {
         RuntimePlatform platform;
         try {
@@ -250,14 +253,15 @@ public class Loader {
      * {@code configuration}.
      * <p>
      * This method first tries to construct an instance of the provided {@code eventProviderClass} with the provided
-     * {@code xatkitCore} and {@code configuration}. If the {@link RuntimeEventProvider} does not define such constructor,
+     * {@code xatkitCore} and {@code configuration}. If the {@link RuntimeEventProvider} does not define such
+     * constructor,
      * the method logs a warning and tries to construct an instance with only the {@code xatkitCore} parameter.
      * <p>
      * The {@code eventProviderClass} parameter can be loaded by using this class" {@link #loadClass(String, Class)}
      * utility method.
      *
      * @param eventProviderClass the {@link RuntimeEventProvider} {@link Class} to construct a new instance of
-     * @param runtimePlatform       the {@link RuntimePlatform} instance used to construct the {@link RuntimeEventProvider}
+     * @param runtimePlatform    the {@link RuntimePlatform} instance used to construct the {@link RuntimeEventProvider}
      * @param configuration      the {@link Configuration} instance used to construct the {@link RuntimeEventProvider}
      * @return the constructed {@link RuntimeEventProvider}
      * @throws XatkitException if the {@link RuntimeEventProvider} does not define a constructor matching the provided
@@ -277,10 +281,12 @@ public class Loader {
                     "{0}({1}) constructor", eventProviderClass.getSimpleName(), runtimePlatform.getClass()
                     .getSimpleName(), Configuration.class.getSimpleName());
             try {
-                runtimeEventProvider = Loader.construct(eventProviderClass, runtimePlatform.getClass(), runtimePlatform);
+                runtimeEventProvider = Loader.construct(eventProviderClass, runtimePlatform.getClass(),
+                        runtimePlatform);
             } catch (NoSuchMethodException e1) {
                 throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", eventProviderClass.getSimpleName(), runtimePlatform.getClass().getSimpleName()), e1);
+                        "not exist", eventProviderClass.getSimpleName(), runtimePlatform.getClass().getSimpleName()),
+                        e1);
             }
         }
         return runtimeEventProvider;

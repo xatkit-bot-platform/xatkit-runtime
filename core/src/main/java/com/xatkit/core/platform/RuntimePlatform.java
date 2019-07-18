@@ -22,6 +22,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -290,6 +291,10 @@ public abstract class RuntimePlatform {
         } catch (NoSuchMethodException e) {
             throw new XatkitException(MessageFormat.format("Cannot find a {0} constructor for the provided parameter " +
                     "types ({1})", runtimeActionClass.getSimpleName(), printClassArray(fullParameters)), e);
+        } catch(InvocationTargetException e) {
+            throw new XatkitException(MessageFormat.format("An error occurred when calling the {0} constructor for " +
+                    "the provided parameter types ({1}), see attached exception", runtimeActionClass.getSimpleName(),
+                    printClassArray(fullParameters)), e);
         }
         runtimeAction.init();
         return runtimeAction;
