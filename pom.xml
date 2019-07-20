@@ -163,7 +163,7 @@
                         <instructions>
                             <Bundle-Vendor>${project.organization.name}</Bundle-Vendor>
                             <Bundle-Version>
-                                1.0.2.${maven.build.timestamp}
+                                2.0.0.${maven.build.timestamp}
                             </Bundle-Version>
                             <Bundle-ClassPath>.,{maven-dependencies}</Bundle-ClassPath>
                             <Import-Package />
