@@ -4,48 +4,48 @@
 	<extension
 		point="org.eclipse.ui.editors">
 		<editor
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
 			contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
 			default="true"
-			extensions="common"
-			id="com.xatkit.language.common.Common"
-			name="Common Editor">
+			extensions="intent"
+			id="com.xatkit.language.intent.Intent"
+			name="Intent Editor">
 		</editor>
 	</extension>
 	<extension
 		point="org.eclipse.ui.handlers">
 		<handler
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
 			commandId="org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclaration">
 			<activeWhen>
 				<reference
-					definitionId="com.xatkit.language.common.Common.Editor.opened">
+					definitionId="com.xatkit.language.intent.Intent.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
 		<handler
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
-			commandId="com.xatkit.language.common.Common.validate">
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
+			commandId="com.xatkit.language.intent.Intent.validate">
 		<activeWhen>
 			<reference
-					definitionId="com.xatkit.language.common.Common.Editor.opened">
+					definitionId="com.xatkit.language.intent.Intent.Editor.opened">
 			</reference>
 		</activeWhen>
 		</handler>
 		<!-- copy qualified name -->
 		<handler
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler"
 			commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName">
 			<activeWhen>
-				<reference definitionId="com.xatkit.language.common.Common.Editor.opened" />
+				<reference definitionId="com.xatkit.language.intent.Intent.Editor.opened" />
 			</activeWhen>
 		</handler>
 		<handler
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler"
 			commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedName">
 			<activeWhen>
 				<and>
-					<reference definitionId="com.xatkit.language.common.Common.XtextEditor.opened" />
+					<reference definitionId="com.xatkit.language.intent.Intent.XtextEditor.opened" />
 					<iterate>
 						<adapt type="org.eclipse.xtext.ui.editor.outline.IOutlineNode" />
 					</iterate>
@@ -54,22 +54,22 @@
 		</handler>
 	</extension>
 	<extension point="org.eclipse.core.expressions.definitions">
-		<definition id="com.xatkit.language.common.Common.Editor.opened">
+		<definition id="com.xatkit.language.intent.Intent.Editor.opened">
 			<and>
 				<reference definitionId="isActiveEditorAnInstanceOfXtextEditor"/>
 				<with variable="activeEditor">
 					<test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName"
-						value="com.xatkit.language.common.Common"
+						value="com.xatkit.language.intent.Intent"
 						forcePluginActivation="true"/>
 				</with>
 			</and>
 		</definition>
-		<definition id="com.xatkit.language.common.Common.XtextEditor.opened">
+		<definition id="com.xatkit.language.intent.Intent.XtextEditor.opened">
 			<and>
 				<reference definitionId="isXtextEditorActive"/>
 				<with variable="activeEditor">
 					<test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName"
-						value="com.xatkit.language.common.Common"
+						value="com.xatkit.language.intent.Intent"
 						forcePluginActivation="true"/>
 				</with>
 			</and>
@@ -78,33 +78,33 @@
 	<extension
 			point="org.eclipse.ui.preferencePages">
 		<page
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
-			id="com.xatkit.language.common.Common"
-			name="Common">
-			<keywordReference id="com.xatkit.language.common.ui.keyword_Common"/>
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+			id="com.xatkit.language.intent.Intent"
+			name="Intent">
+			<keywordReference id="com.xatkit.language.intent.ui.keyword_Intent"/>
 		</page>
 		<page
-			category="com.xatkit.language.common.Common"
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
-			id="com.xatkit.language.common.Common.coloring"
+			category="com.xatkit.language.intent.Intent"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
+			id="com.xatkit.language.intent.Intent.coloring"
 			name="Syntax Coloring">
-			<keywordReference id="com.xatkit.language.common.ui.keyword_Common"/>
+			<keywordReference id="com.xatkit.language.intent.ui.keyword_Intent"/>
 		</page>
 		<page
-			category="com.xatkit.language.common.Common"
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
-			id="com.xatkit.language.common.Common.templates"
+			category="com.xatkit.language.intent.Intent"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
+			id="com.xatkit.language.intent.Intent.templates"
 			name="Templates">
-			<keywordReference id="com.xatkit.language.common.ui.keyword_Common"/>
+			<keywordReference id="com.xatkit.language.intent.ui.keyword_Intent"/>
 		</page>
 	</extension>
 	<extension
 			point="org.eclipse.ui.propertyPages">
 		<page
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
-			id="com.xatkit.language.common.Common"
-			name="Common">
-			<keywordReference id="com.xatkit.language.common.ui.keyword_Common"/>
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+			id="com.xatkit.language.intent.Intent"
+			name="Intent">
+			<keywordReference id="com.xatkit.language.intent.ui.keyword_Intent"/>
 			<enabledWhen>
 				<adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
@@ -114,14 +114,14 @@
 	<extension
 		point="org.eclipse.ui.keywords">
 		<keyword
-			id="com.xatkit.language.common.ui.keyword_Common"
-			label="Common"/>
+			id="com.xatkit.language.intent.ui.keyword_Intent"
+			label="Intent"/>
 	</extension>
 	<extension
 		point="org.eclipse.ui.commands">
 	<command
 			description="Trigger expensive validation"
-			id="com.xatkit.language.common.Common.validate"
+			id="com.xatkit.language.intent.Intent.validate"
 			name="Validate">
 	</command>
 	<!-- copy qualified name -->
@@ -142,12 +142,12 @@
 		<menuContribution
 			locationURI="popup:#TextEditorContext?after=group.edit">
 			 <command
-				 commandId="com.xatkit.language.common.Common.validate"
+				 commandId="com.xatkit.language.intent.Intent.validate"
 				 style="push"
 				 tooltip="Trigger expensive validation">
 			<visibleWhen checkEnabled="false">
 				<reference
-					definitionId="com.xatkit.language.common.Common.Editor.opened">
+					definitionId="com.xatkit.language.intent.Intent.Editor.opened">
 				</reference>
 			</visibleWhen>
 		</command>
@@ -157,7 +157,7 @@
 			<command commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName"
 				style="push" tooltip="Copy Qualified Name">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="com.xatkit.language.common.Common.Editor.opened" />
+					<reference definitionId="com.xatkit.language.intent.Intent.Editor.opened" />
 				</visibleWhen>
 			</command>
 		</menuContribution>
@@ -165,7 +165,7 @@
 			<command commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName"
 				style="push" tooltip="Copy Qualified Name">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="com.xatkit.language.common.Common.Editor.opened" />
+					<reference definitionId="com.xatkit.language.intent.Intent.Editor.opened" />
 				</visibleWhen>
 			</command>
 		</menuContribution>
@@ -174,7 +174,7 @@
 				style="push" tooltip="Copy Qualified Name">
 				<visibleWhen checkEnabled="false">
 					<and>
-						<reference definitionId="com.xatkit.language.common.Common.XtextEditor.opened" />
+						<reference definitionId="com.xatkit.language.intent.Intent.XtextEditor.opened" />
 						<iterate>
 							<adapt type="org.eclipse.xtext.ui.editor.outline.IOutlineNode" />
 						</iterate>
@@ -187,7 +187,7 @@
 		<menuContribution locationURI="popup:#TextEditorContext?endof=group.find">
 			<command commandId="org.eclipse.xtext.ui.editor.FindReferences">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="com.xatkit.language.common.Common.Editor.opened">
+					<reference definitionId="com.xatkit.language.intent.Intent.Editor.opened">
 					</reference>
 				</visibleWhen>
 			</command>
@@ -195,11 +195,11 @@
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 		<handler
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
 			commandId="org.eclipse.xtext.ui.editor.FindReferences">
 			<activeWhen>
 				<reference
-					definitionId="com.xatkit.language.common.Common.Editor.opened">
+					definitionId="com.xatkit.language.intent.Intent.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
@@ -207,9 +207,9 @@
 	<extension point="org.eclipse.core.contenttype.contentTypes">
 		<content-type
 			base-type="org.eclipse.core.runtime.text"
-			file-extensions="common"
-			id="com.xatkit.language.common.Common.contenttype"
-			name="Common File"
+			file-extensions="intent"
+			id="com.xatkit.language.intent.Intent.contenttype"
+			name="Intent File"
 			priority="normal">
 		</content-type>
 	</extension>
@@ -217,59 +217,59 @@
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
-			type="common">
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			type="intent">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 		<resourceServiceProvider
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
-			uriExtension="common">
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+			uriExtension="intent">
 		</resourceServiceProvider>
 	</extension>
-	<!-- marker definitions for com.xatkit.language.common.Common -->
+	<!-- marker definitions for com.xatkit.language.intent.Intent -->
 	<extension
-			id="common.check.fast"
-			name="Common Problem"
+			id="intent.check.fast"
+			name="Intent Problem"
 			point="org.eclipse.core.resources.markers">
 		<super type="org.eclipse.xtext.ui.check.fast"/>
 		<persistent value="true"/>
 	</extension>
 	<extension
-			id="common.check.normal"
-			name="Common Problem"
+			id="intent.check.normal"
+			name="Intent Problem"
 			point="org.eclipse.core.resources.markers">
 		<super type="org.eclipse.xtext.ui.check.normal"/>
 		<persistent value="true"/>
 	</extension>
 	<extension
-			id="common.check.expensive"
-			name="Common Problem"
+			id="intent.check.expensive"
+			name="Intent Problem"
 			point="org.eclipse.core.resources.markers">
 		<super type="org.eclipse.xtext.ui.check.expensive"/>
 		<persistent value="true"/>
 	</extension>
 	<extension point="org.eclipse.xtext.builder.participant">
 		<participant
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
-			fileExtensions="common"/>
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
+			fileExtensions="intent"/>
 	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
-			category="com.xatkit.language.common.Common"
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
-			id="com.xatkit.language.common.Common.compiler.preferencePage"
+			category="com.xatkit.language.intent.Intent"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+			id="com.xatkit.language.intent.Intent.compiler.preferencePage"
 			name="Compiler">
-			<keywordReference id="com.xatkit.language.common.ui.keyword_Common"/>
+			<keywordReference id="com.xatkit.language.intent.ui.keyword_Intent"/>
 		</page>
 	</extension>
 	<extension point="org.eclipse.ui.propertyPages">
 		<page
-			category="com.xatkit.language.common.Common"
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
-			id="com.xatkit.language.common.Common.compiler.propertyPage"
+			category="com.xatkit.language.intent.Intent"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+			id="com.xatkit.language.intent.Intent.compiler.propertyPage"
 			name="Compiler">
-			<keywordReference id="com.xatkit.language.common.ui.keyword_Common"/>
+			<keywordReference id="com.xatkit.language.intent.ui.keyword_Intent"/>
 			<enabledWhen>
 				<adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
@@ -280,20 +280,20 @@
 		<menuContribution locationURI="popup:#TextEditorContext?after=xtext.ui.openDeclaration">
 			<command
 				commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand"
-				id="com.xatkit.language.common.Common.OpenGeneratedCode"
+				id="com.xatkit.language.intent.Intent.OpenGeneratedCode"
 				style="push">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="com.xatkit.language.common.Common.Editor.opened" />
+					<reference definitionId="com.xatkit.language.intent.Intent.Editor.opened" />
 				</visibleWhen>
 			</command>
 		</menuContribution>
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 		<handler
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.generator.trace.OpenGeneratedFileHandler"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.generator.trace.OpenGeneratedFileHandler"
 			commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
 			<activeWhen>
-				<reference definitionId="com.xatkit.language.common.Common.Editor.opened" />
+				<reference definitionId="com.xatkit.language.intent.Intent.Editor.opened" />
 			</activeWhen>
 		</handler>
 	</extension>
@@ -301,11 +301,11 @@
 	<extension
 		point="org.eclipse.ui.handlers">
 		<handler 
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
 			commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
 			<activeWhen>
 				<reference
-					definitionId="com.xatkit.language.common.Common.Editor.opened">
+					definitionId="com.xatkit.language.intent.Intent.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
@@ -325,33 +325,33 @@
 				style="push"
 				tooltip="Open Quick Outline">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="com.xatkit.language.common.Common.Editor.opened"/>
+					<reference definitionId="com.xatkit.language.intent.Intent.Editor.opened"/>
 				</visibleWhen>
 			</command>
 		</menuContribution>
 	</extension>
-	<!-- quickfix marker resolution generator for com.xatkit.language.common.Common -->
+	<!-- quickfix marker resolution generator for com.xatkit.language.intent.Intent -->
 	<extension
 			point="org.eclipse.ui.ide.markerResolution">
 		<markerResolutionGenerator
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-			markerType="com.xatkit.language.common.ui.common.check.fast">
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+			markerType="com.xatkit.language.intent.ui.intent.check.fast">
 			<attribute
 				name="FIXABLE_KEY"
 				value="true">
 			</attribute>
 		</markerResolutionGenerator>
 		<markerResolutionGenerator
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-			markerType="com.xatkit.language.common.ui.common.check.normal">
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+			markerType="com.xatkit.language.intent.ui.intent.check.normal">
 			<attribute
 				name="FIXABLE_KEY"
 				value="true">
 			</attribute>
 		</markerResolutionGenerator>
 		<markerResolutionGenerator
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-			markerType="com.xatkit.language.common.ui.common.check.expensive">
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+			markerType="com.xatkit.language.intent.ui.intent.check.expensive">
 			<attribute
 				name="FIXABLE_KEY"
 				value="true">
@@ -361,11 +361,11 @@
 	<!-- Rename Refactoring -->
 	<extension point="org.eclipse.ui.handlers">
 		<handler 
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
 			commandId="org.eclipse.xtext.ui.refactoring.RenameElement">
 			<activeWhen>
 				<reference
-					definitionId="com.xatkit.language.common.Common.Editor.opened">
+					definitionId="com.xatkit.language.intent.Intent.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
@@ -377,7 +377,7 @@
 				style="push">
 				<visibleWhen checkEnabled="false">
 					<reference
-						definitionId="com.xatkit.language.common.Common.Editor.opened">
+						definitionId="com.xatkit.language.intent.Intent.Editor.opened">
 					</reference>
 				</visibleWhen>
 			</command>
@@ -385,40 +385,40 @@
 	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
-			category="com.xatkit.language.common.Common"
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
-			id="com.xatkit.language.common.Common.refactoring"
+			category="com.xatkit.language.intent.Intent"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
+			id="com.xatkit.language.intent.Intent.refactoring"
 			name="Refactoring">
-			<keywordReference id="com.xatkit.language.common.ui.keyword_Common"/>
+			<keywordReference id="com.xatkit.language.intent.ui.keyword_Intent"/>
 		</page>
 	</extension>
 	<extension point="org.eclipse.compare.contentViewers">
-		<viewer id="com.xatkit.language.common.Common.compare.contentViewers"
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-			extensions="common">
+		<viewer id="com.xatkit.language.intent.Intent.compare.contentViewers"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
+			extensions="intent">
 		</viewer>
 		<contentTypeBinding
-			contentTypeId="com.xatkit.language.common.Common.contenttype"
-			contentViewerId="com.xatkit.language.common.Common.compare.contentViewers" />
+			contentTypeId="com.xatkit.language.intent.Intent.contenttype"
+			contentViewerId="com.xatkit.language.intent.Intent.compare.contentViewers" />
 	</extension>
 	<extension point="org.eclipse.compare.contentMergeViewers">
-		<viewer id="com.xatkit.language.common.Common.compare.contentMergeViewers"
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-			extensions="common" label="Common Compare">
+		<viewer id="com.xatkit.language.intent.Intent.compare.contentMergeViewers"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
+			extensions="intent" label="Intent Compare">
 		</viewer>
 		<contentTypeBinding
-			contentTypeId="com.xatkit.language.common.Common.contenttype"
-			contentMergeViewerId="com.xatkit.language.common.Common.compare.contentMergeViewers" />
+			contentTypeId="com.xatkit.language.intent.Intent.contenttype"
+			contentMergeViewerId="com.xatkit.language.intent.Intent.compare.contentMergeViewers" />
 	</extension>
 	<extension point="org.eclipse.ui.editors.documentProviders">
-		<provider id="com.xatkit.language.common.Common.editors.documentProviders"
-			class="com.xatkit.language.common.ui.CommonExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
-			extensions="common">
+		<provider id="com.xatkit.language.intent.Intent.editors.documentProviders"
+			class="com.xatkit.language.intent.ui.IntentExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
+			extensions="intent">
 		</provider>
 	</extension>
 	<extension point="org.eclipse.team.core.fileTypes">
 		<fileTypes
-			extension="common"
+			extension="intent"
 			type="text">
 		</fileTypes>
 	</extension>

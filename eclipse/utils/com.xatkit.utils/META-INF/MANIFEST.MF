@@ -5,11 +5,11 @@ Bundle-SymbolicName: com.xatkit.utils;singleton:=true
 Bundle-Version: 2.0.0.qualifier
 Bundle-Activator: com.xatkit.utils.Activator
 Require-Bundle: org.eclipse.core.runtime,
- com.xatkit.intent;visibility:=reexport,
- com.xatkit.platform;visibility:=reexport,
- com.xatkit.execution;visibility:=reexport,
- com.xatkit.core_resources,
- org.eclipse.emf.ecore.xmi;bundle-version="2.12.0"
+ com.xatkit.intent;bundle-version="2.0.0";visibility:=reexport,
+ com.xatkit.platform;bundle-version="2.0.0";visibility:=reexport,
+ com.xatkit.execution;bundle-version="2.0.0";visibility:=reexport,
+ com.xatkit.core_resources;bundle-version="2.0.0",
+ org.eclipse.emf.ecore.xmi;bundle-version="2.15.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: com.xatkit.utils
 Bundle-ActivationPolicy: lazy

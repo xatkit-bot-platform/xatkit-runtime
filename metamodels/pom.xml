@@ -18,10 +18,13 @@
     <properties>
         <!-- Dependency versions -->
         <eclipse.text.version>3.5.101</eclipse.text.version>
-        <emf.codegen.ecore.xtext.version>1.2.0</emf.codegen.ecore.xtext.version>
         <guava.version>20.0</guava.version>
         <!-- Plugin versions -->
-        <xtext-maven-plugin.version>2.9.2</xtext-maven-plugin.version>
+        <xtext-maven-plugin.version>2.15.0</xtext-maven-plugin.version>
+        <!-- Downgrade the codegen version to 1.2.0. For whatever reason xtext-maven-plugin -->
+        <!-- fails with 1.4.0 -->
+        <!-- Related issues: https://github.com/eclipse/xtext/issues/1233 -->
+        <emf.codegen.ecore.xtext.version>1.2.0</emf.codegen.ecore.xtext.version>
     </properties>
 
     <modules>
@@ -119,6 +122,12 @@
                             <artifactId>org.eclipse.emf.codegen.ecore.xtext</artifactId>
                             <version>${emf.codegen.ecore.xtext.version}</version>
                         </dependency>
+                        <!-- Fix ecore.xmi version to avoid this bug https://github.com/eclipse/xtext-maven/issues/71 -->
+                        <dependency>
+                            <groupId>org.eclipse.emf</groupId>
+                            <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+                            <version>${emf.version}</version>
+                        </dependency>
                         <dependency>
                             <groupId>org.eclipse.emf</groupId>
                             <artifactId>org.eclipse.emf.ecore.xcore</artifactId>
@@ -128,6 +137,30 @@
                             <groupId>org.eclipse.emf</groupId>
                             <artifactId>org.eclipse.emf.ecore.xcore.lib</artifactId>
                             <version>${xcore-lib.version}</version>
+                        </dependency>
+                        <!-- Fix the xtext version, the latest one is used by default with the plugin -->
+                        <!-- and clashes with the one used in eclipse/languages -->
+                        <dependency>
+                            <groupId>org.eclipse.xtext</groupId>
+                            <artifactId>org.eclipse.xtext</artifactId>
+                            <version>${emf.version}</version>
+                        </dependency>
+                        <!-- Fix the JDT version to avoid version mismatch issues: see -->
+                        <!-- https://github.com/eclipse/xtext/issues/1373 -->
+                        <dependency>
+                            <groupId>org.eclipse.jdt</groupId>
+                            <artifactId>org.eclipse.jdt.core</artifactId>
+                            <version>3.13.102</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.eclipse.jdt</groupId>
+                            <artifactId>org.eclipse.jdt.compiler.apt</artifactId>
+                            <version>1.3.110</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.eclipse.jdt</groupId>
+                            <artifactId>org.eclipse.jdt.compiler.tool</artifactId>
+                            <version>1.2.101</version>
                         </dependency>
                     </dependencies>
                 </plugin>

@@ -23,8 +23,9 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Dependency versions -->
-        <emf.version>2.12.0</emf.version>
-        <xtext.version>2.12.0</xtext.version>
+        <emf.version>2.15.0</emf.version>
+        <xtext.version>2.15.0</xtext.version>
+        <emf.codegen.ecore.xtext.version>1.4.0</emf.codegen.ecore.xtext.version>
         <atlanmod-commons.version>1.0.1</atlanmod-commons.version>
         <log4j.version>2.9.1</log4j.version>
         <junit.version>4.12</junit.version>

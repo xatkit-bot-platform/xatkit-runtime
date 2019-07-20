@@ -5,11 +5,12 @@ Bundle-Vendor: SOM Research Lab
 Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: com.xatkit.language.execution.ide; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: com.xatkit.language.execution,
- org.eclipse.xtext.ide,
- org.eclipse.xtext.xbase.ide,
- org.antlr.runtime,
- com.xatkit.execution
+Require-Bundle: com.xatkit.language.execution;bundle-version="2.0.0",
+ org.eclipse.xtext.ide;bundle-version="2.15.0",
+ org.eclipse.xtext.xbase.ide;bundle-version="2.15.0",
+ org.antlr.runtime;bundle-version="[3.2.0,3.2.1)",
+ com.xatkit.execution;bundle-version="2.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: com.xatkit.language.execution.ide.contentassist.antlr,
  com.xatkit.language.execution.ide.contentassist.antlr.internal
+

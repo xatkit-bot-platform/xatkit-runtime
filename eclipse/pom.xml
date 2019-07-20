@@ -19,9 +19,9 @@
 	<properties>
 		<maven.test.skip>true</maven.test.skip>
 		<!-- Dependency versions -->
-		<eclipse.runtime.version>3.13.0</eclipse.runtime.version>
+		<eclipse.runtime.version>3.15.0</eclipse.runtime.version>
 		<!-- Plugin versions -->
-		<tycho-maven-plugin.version>1.1.0</tycho-maven-plugin.version>
+		<tycho-maven-plugin.version>1.4.0</tycho-maven-plugin.version>
 		<lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
 	</properties>
 
@@ -30,7 +30,7 @@
         <repository>
             <id>eclipse</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/oxygen</url>
+            <url>http://download.eclipse.org/releases/2018-09</url>
         </repository>
 	</repositories>
 

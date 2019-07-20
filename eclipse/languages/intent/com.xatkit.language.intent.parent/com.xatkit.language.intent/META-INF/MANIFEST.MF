@@ -5,16 +5,16 @@ Bundle-Vendor: SOM Research Lab
 Bundle-Version: 2.0.0.qualifier
 Bundle-SymbolicName: com.xatkit.language.intent; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext,
- org.eclipse.xtext.xbase,
+Require-Bundle: org.eclipse.xtext;bundle-version="2.15.0",
+ org.eclipse.xtext.xbase;bundle-version="2.15.0",
  org.eclipse.equinox.common;bundle-version="3.5.0",
- com.xatkit.intent,
- org.eclipse.xtext.xbase.lib,
- org.antlr.runtime,
- org.eclipse.xtext.util,
- org.eclipse.xtend.lib,
+ com.xatkit.intent;bundle-version="2.0.0",
+ org.eclipse.xtext.xbase.lib;bundle-version="2.15.0",
+ org.antlr.runtime;bundle-version="[3.2.0,3.2.1)",
+ org.eclipse.xtext.util;bundle-version="2.15.0",
+ org.eclipse.xtend.lib;bundle-version="2.15.0",
  org.eclipse.core.runtime;bundle-version="3.13.0",
- com.xatkit.utils
+ com.xatkit.utils;bundle-version="2.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: com.xatkit.language.intent.formatting2,
  com.xatkit.language.intent.serializer,
