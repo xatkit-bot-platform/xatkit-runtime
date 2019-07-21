@@ -18,31 +18,8 @@
 		<module>com.xatkit.language.platform</module>
 		<module>com.xatkit.language.platform.ide</module>
 		<module>com.xatkit.language.platform.ui</module>
-		<module>com.xatkit.language.platform.target</module>
 		<module>com.xatkit.language.platform.tests</module>
 		<module>com.xatkit.language.platform.ui.tests</module>
 	</modules>
-
-	<build>
-		<pluginManagement>
-			<plugins>
-
-				<plugin>
-					<groupId>org.eclipse.tycho</groupId>
-					<artifactId>target-platform-configuration</artifactId>
-					<configuration>
-						<target>
-							<artifact>
-								<groupId>com.xatkit.language.platform</groupId>
-								<artifactId>com.xatkit.language.platform.target</artifactId>
-								<version>${project.version}</version>
-							</artifact>
-						</target>
-					</configuration>
-				</plugin>
-
-			</plugins>
-		</pluginManagement>
-	</build>
 
 </project>

@@ -35,6 +35,7 @@
 	</repositories>
 
 	<modules>
+		<module>target-platform</module>
 		<module>languages</module>
 		<module>features/com.xatkit.feature</module>
 		<module>update/com.xatkit.update</module>
@@ -92,6 +93,15 @@
 	                <configuration>
 	                    <pomDependencies>consider</pomDependencies>
 	                    <!-- <target> needs to be specified in child projects -->
+	                    <configuration>
+	                        <target>
+	                            <artifact>
+	                                <groupId>com.xatkit</groupId>
+	                                <artifactId>com.xatkit.target</artifactId>
+	                                <version>${project.version}</version>
+	                            </artifact>
+	                        </target>
+	                    </configuration>
 	                    <environments>
 	                        <environment>
 	                            <os>macosx</os>
