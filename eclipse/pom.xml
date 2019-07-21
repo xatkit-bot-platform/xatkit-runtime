@@ -93,15 +93,13 @@
 	                <configuration>
 	                    <pomDependencies>consider</pomDependencies>
 	                    <!-- <target> needs to be specified in child projects -->
-	                    <configuration>
-	                        <target>
-	                            <artifact>
-	                                <groupId>com.xatkit</groupId>
-	                                <artifactId>com.xatkit.target</artifactId>
-	                                <version>${project.version}</version>
-	                            </artifact>
-	                        </target>
-	                    </configuration>
+                        <target>
+                            <artifact>
+                                <groupId>com.xatkit</groupId>
+                                <artifactId>com.xatkit.target</artifactId>
+                                <version>${project.version}</version>
+                            </artifact>
+                        </target>
 	                    <environments>
 	                        <environment>
 	                            <os>macosx</os>
