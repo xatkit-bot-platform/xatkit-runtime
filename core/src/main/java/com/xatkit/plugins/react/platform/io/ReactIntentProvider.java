@@ -37,8 +37,16 @@ public class ReactIntentProvider extends ChatIntentProvider<ReactPlatform> {
     @Override
     public void run() {
         /*
-         * Do nothing, the work is done by the internal webhook provider.
+         * Required because the ReactWebhook is started in another thread, and if this thread terminates the main
+         * application terminates.
          */
+        synchronized (this) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+
+            }
+        }
     }
 
 }
