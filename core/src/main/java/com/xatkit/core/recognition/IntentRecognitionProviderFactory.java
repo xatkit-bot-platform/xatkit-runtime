@@ -89,7 +89,7 @@ public class IntentRecognitionProviderFactory {
         boolean enableRecognitionAnalytics = configuration.getBoolean(ENABLE_RECOGNITION_ANALYTICS, true);
         RecognitionMonitor monitor = null;
         if (enableRecognitionAnalytics) {
-            monitor = new RecognitionMonitor(xatkitCore.getXatkitServer());
+            monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration);
         }
         return monitor;
     }

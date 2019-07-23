@@ -8,6 +8,7 @@ import com.google.gson.JsonPrimitive;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.intent.IntentDefinition;
 import fr.inria.atlanmod.commons.log.Log;
+import org.apache.commons.configuration2.Configuration;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
@@ -41,17 +42,31 @@ import static java.util.Objects.isNull;
 public class RecognitionMonitor {
 
     /**
-     * The path of the folder containing the analytics data.
+     * The {@link Configuration} key to specify a custom data directory to store the analytics.
+     * <p>
+     * This property is optional, and is set with the value {@code ./data} if it is not specified.
      */
-    static final String ANALYTICS_DB_FOLDER = "data" + File.separator + "analytics";
+    static final String DATA_DIRECTORY_KEY = "xatkit.data.directory";
 
     /**
-     * The path of the analytics database.
-     * <p>
-     * This database is located in the {@link #ANALYTICS_DB_FOLDER}, and represents the concrete database storing the
-     * analytics results.
+     * The default directory used to store data when no {@link #DATA_DIRECTORY_KEY} is provided in the
+     * {@link Configuration}.
      */
-    static final String ANALYTICS_DB_FILE = ANALYTICS_DB_FOLDER + File.separator + "analytics.db";
+    static final String DEFAULT_DATA_DIRECTORY = "data";
+
+    /**
+     * The directory used to store analytics-related data within the specified {@code data} directory.
+     * <p>
+     * This value cannot be changed in the Xatkit {@link Configuration}.
+     */
+    static final String ANALYTICS_DIRECTORY = "analytics";
+
+    /**
+     * The file used to store analytics-related data.
+     * <p>
+     * This value cannot be changed in the Xatkit {@link Configuration}.
+     */
+    static final String ANALYTICS_DB_FILE = "analytics.db";
 
     /**
      * The {@link List} of inputs that haven't been matched to any intent.
@@ -76,7 +91,7 @@ public class RecognitionMonitor {
     private DB db;
 
     /**
-     * Constructs a {@link RecognitionMonitor} with the provided {@code xatkitServer}.
+     * Constructs a {@link RecognitionMonitor} with the provided {@code xatkitServer} and {@code configuration}.
      * <p>
      * This constructor loads the stored information from the <i>analytics</i> database and create the in-memory
      * data structures used to monitor intent recognition providers.
@@ -95,14 +110,21 @@ public class RecognitionMonitor {
      * <p>
      * This method also registers a shutdown hook which ensures that the database is closed properly when the JVM is
      * stopped.
+     * <p>
+     * If the provided {@link Configuration} specifies a value for the {@code xatkit.data.directory} key it will be
+     * used as the base location to create the analytics database (in {@code <xatkit.data.directory>/analytics
+     * /analytics.db}.
      *
-     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
+     * @param xatkitServer  the {@link XatkitServer} instance used to register the REST endpoints
+     * @param configuration the Xatkit {@link Configuration}
      */
-    public RecognitionMonitor(XatkitServer xatkitServer) {
+    public RecognitionMonitor(XatkitServer xatkitServer, Configuration configuration) {
         Log.info("Starting intent recognition monitoring");
-        File analyticsDbFolder = new File(ANALYTICS_DB_FOLDER);
+        String analyticsDbFolderPath = configuration.getString(DATA_DIRECTORY_KEY, DEFAULT_DATA_DIRECTORY);
+        analyticsDbFolderPath += File.separator + ANALYTICS_DIRECTORY;
+        File analyticsDbFolder = new File(analyticsDbFolderPath);
         analyticsDbFolder.mkdirs();
-        db = DBMaker.fileDB(new File(ANALYTICS_DB_FILE)).make();
+        db = DBMaker.fileDB(new File(analyticsDbFolderPath + File.separator + ANALYTICS_DB_FILE)).make();
         this.unmatchedInputs = db.indexTreeList("unmatched_inputs", Serializer.STRING).createOrOpen();
         this.matchedIntents = (Map<String, MatchedIntentInfos>) db.hashMap("matched_intents").createOrOpen();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
