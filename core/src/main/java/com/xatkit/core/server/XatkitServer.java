@@ -135,7 +135,7 @@ public class XatkitServer {
                         Log.error(e);
                     }
                 })
-                .registerHandler("/admin*", new AdminHttpHandler())
+                .registerHandler("/admin*", new AdminHttpHandler(configuration))
                 .registerHandler("*", new HttpHandler(this))
                 .create();
     }
