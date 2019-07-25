@@ -128,9 +128,20 @@ public class SlackPlatform extends ChatPlatform {
     public String getChannelId(String channelName) {
         String id = this.channelNames.get(channelName);
         if (isNull(id)) {
-            throw new XatkitException(MessageFormat.format("Cannot find the channel {0}, please ensure that the " +
-                    "provided channel is either a valid channel ID, name, or a valid user name, real name, or display" +
-                    " name", channelName));
+            /*
+             * Check if the channel has been created since the previous lookup. This is not done by default because
+             * it reloads all the channel and may take some time.
+             */
+            loadChannelNames();
+            id = this.channelNames.get(channelName);
+            if(isNull(id)) {
+                /*
+                 * Cannot find the channel after a fresh lookup.
+                 */
+                throw new XatkitException(MessageFormat.format("Cannot find the channel {0}, please ensure that the " +
+                        "provided channel is either a valid channel ID, name, or a valid user name, real name, or display" +
+                        " name", channelName));
+            }
         }
         return id;
     }
