@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ASCII"?>
 <platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:platform="com.xatkit.platform" name="ReactPlatform" runtimePath="com.xatkit.plugins.react.platform.ReactPlatform">
-  <extends href="ChatPlatform.xmi#/"/>
+  <extends href="pathmap://XATKIT_CORE_PLATFORM/ChatPlatform.xmi#/"/>
   <eventProviderDefinitions xsi:type="platform:InputProviderDefinition" name="ReactIntentProvider">
     <outContexts name="react" lifeSpan="1">
       <parameters name="channel"/>
@@ -17,6 +17,12 @@
   </eventProviderDefinitions>
   <actions name="Reply">
     <parameters key="message"/>
+  </actions>
+  <actions name="ItemizeList">
+    <parameters key="list"/>
+  </actions>
+  <actions name="EnumerateList">
+    <parameters key="list"/>
   </actions>
   <actions name="PostMessage">
     <parameters key="message"/>

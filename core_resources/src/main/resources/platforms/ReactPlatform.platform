@@ -16,4 +16,9 @@ providers {
 
 actions {
 	Reply(message)
+	
+	// Formatting actions
+	// These actions do not perform operations on the React client, but return Strings that can be displayed as messages.
+	ItemizeList(list)
+	EnumerateList(list)
 }

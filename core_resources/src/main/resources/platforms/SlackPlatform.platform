@@ -24,4 +24,9 @@ actions {
 	ReplyAttachmentsMessage(pretext, title, text, attchColor, timestamp)
 	PostAttachmentsMessage(pretext, title, text, attchColor, channel)
 	ReplyAttachmentsMessage(pretext, title, text, attchColor)
+	
+	// Formatting actions
+	// These actions do not perform operations on the Slack API, but return Strings that can be displayed as messages.
+	ItemizeList(list)
+	EnumerateList(list)
 }
