@@ -81,7 +81,7 @@ PropertyAccess returns Expression:
 ;
 
 Access returns Expression:
-	VariableAccess | ContextAccess | SessionAccess | ConfigAccess
+	VariableAccess | ContextAccess | SessionAccess | ConfigAccess | MatchedEventAccess | MatchedIntentAccess
 ;
 
 VariableAccess:
@@ -97,7 +97,16 @@ SessionAccess:
 ;
 
 ConfigAccess:
-	{ConfigAccess}'config' '(' keyName=QualifiedName ')';
+	{ConfigAccess}'config' '(' keyName=QualifiedName ')'
+;
+
+MatchedEventAccess:
+	{MatchedEventAccess}'event'
+;
+
+MatchedIntentAccess:
+	{MatchedIntentAccess}'intent'
+;
 
 
 Literal:

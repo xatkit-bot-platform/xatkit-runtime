@@ -48,6 +48,13 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 public class ExecutionService extends CommonInterpreter {
 
     /**
+     * The {@link XatkitSession} key used to store the matched event.
+     * <p>
+     * The value associated to this key is an {@link EventInstance}.
+     */
+    public static final String MATCHED_EVENT_SESSION_KEY = "xatkit.matched_event";
+
+    /**
      * The {@link ExecutionModel} used to retrieve the {@link RuntimeAction}s to compute from the handled
      * {@link EventInstance}s.
      */
@@ -135,7 +142,7 @@ public class ExecutionService extends CommonInterpreter {
     }
 
     /**
-     * Handles the provided {@code eventInstance} and executed the corresponding {@link RuntimeAction}s defined in the
+     * Handles the provided {@code eventInstance} and executes the corresponding {@link RuntimeAction}s defined in the
      * {@link ExecutionModel}.
      * <p>
      * This method creates an asynchronous task that retrieves the {@link RuntimeAction}s to execute from the
@@ -176,7 +183,7 @@ public class ExecutionService extends CommonInterpreter {
              * Store the event that triggered the rule execution in the session, it can be useful to some actions (e
              * .g. analytics)
              */
-            session.store("event", eventInstance.getDefinition());
+            session.store(MATCHED_EVENT_SESSION_KEY, eventInstance.getDefinition());
             List<ExecutionRule> executionRules = this.getExecutionRulesFromEvent(eventInstance);
             for (ExecutionRule rule : executionRules) {
                 executeExecutionRule(rule, session);

@@ -3,8 +3,12 @@ package com.xatkit.core.interpreter;
 import com.xatkit.common.CommonFactory;
 import com.xatkit.common.CommonPackage;
 import com.xatkit.common.Program;
+import com.xatkit.core.ExecutionService;
 import com.xatkit.core.interpreter.operation.OperationException;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.test.util.ElementFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
@@ -29,6 +33,10 @@ public class CommonInterpreterTest {
     private static String baseURI = "interpreter_inputs/";
 
     private static ResourceSet rSet;
+
+    private static EventInstance TEST_EVENT_INSTANCE = ElementFactory.createEventInstance();
+
+    private static RecognizedIntent TEST_RECOGNIZED_INTENT = ElementFactory.createRecognizedIntent();
 
     private CommonInterpreter interpreter;
 
@@ -570,6 +578,86 @@ public class CommonInterpreterTest {
     public void config_access_key_not_in_config() {
         Object result = interpreter.compute(getProgram("config_access"));
         assertThat(result).as("Result is null").isNull();
+    }
+
+    @Test
+    public void event_access_no_event_in_session() {
+        Object result = interpreter.compute(getProgram("event_access"));
+        assertThat(result).as("Result is null").isNull();
+    }
+
+    @Test
+    public void event_access_event_in_session() {
+        ExecutionContext context = createContextWithEventInstance();
+        Object result = interpreter.compute(getProgram("event_access"), context);
+        assertThat(result).as("Correct result").isEqualTo(TEST_EVENT_INSTANCE);
+    }
+
+    @Test
+    public void event_access_get_definition() {
+        ExecutionContext context = createContextWithEventInstance();
+        Object result = interpreter.compute(getProgram("event_access_get_definition"), context);
+        assertThat(result).as("Correct EventDefinition").isEqualTo(TEST_EVENT_INSTANCE.getDefinition());
+    }
+
+    @Test
+    public void intent_access_no_intent_in_session() {
+        Object result = interpreter.compute(getProgram("intent_access"));
+        assertThat(result).as("Result is null").isNull();
+    }
+
+    @Test
+    public void intent_access_event_in_session() {
+        /*
+         * Should return null, EventInstance is not a RecognizedIntent
+         */
+        ExecutionContext context = createContextWithEventInstance();
+        Object result = interpreter.compute(getProgram("intent_access"), context);
+        assertThat(result).as("Result is null").isNull();
+    }
+
+    @Test
+    public void intent_access_intent_in_session() {
+        ExecutionContext context = createContextWithRecognizedIntent();
+        Object result = interpreter.compute(getProgram("intent_access"), context);
+        assertThat(result).as("Correct result").isEqualTo(TEST_RECOGNIZED_INTENT);
+    }
+
+    @Test
+    public void intent_access_get_definition() {
+        ExecutionContext context = createContextWithRecognizedIntent();
+        Object result = interpreter.compute(getProgram("intent_access_get_definition"), context);
+        assertThat(result).as("Correct IntentDefinition").isEqualTo(TEST_RECOGNIZED_INTENT.getDefinition());
+    }
+
+    @Test
+    public void intent_access_get_matched_input() {
+        ExecutionContext context = createContextWithRecognizedIntent();
+        Object result = interpreter.compute(getProgram("intent_access_get_matched_input"), context);
+        assertThat(result).as("Correct matched input").isEqualTo(TEST_RECOGNIZED_INTENT.getMatchedInput());
+    }
+
+    @Test
+    public void intent_access_get_recognition_confidence() {
+        ExecutionContext context = createContextWithRecognizedIntent();
+        Object result = interpreter.compute(getProgram("intent_access_get_recognition_confidence"), context);
+        assertThat(result).as("Correct recognition confidence").isEqualTo(TEST_RECOGNIZED_INTENT.getRecognitionConfidence());
+    }
+
+    private ExecutionContext createContextWithEventInstance() {
+        XatkitSession session = new XatkitSession("sessionID");
+        session.store(ExecutionService.MATCHED_EVENT_SESSION_KEY, TEST_EVENT_INSTANCE);
+        ExecutionContext context = new ExecutionContext();
+        context.setSession(session);
+        return context;
+    }
+
+    private ExecutionContext createContextWithRecognizedIntent() {
+        XatkitSession session = new XatkitSession("sessionID");
+        session.store(ExecutionService.MATCHED_EVENT_SESSION_KEY, TEST_RECOGNIZED_INTENT);
+        ExecutionContext context = new ExecutionContext();
+        context.setSession(session);
+        return context;
     }
 
     private Resource getProgram(String fileName) {

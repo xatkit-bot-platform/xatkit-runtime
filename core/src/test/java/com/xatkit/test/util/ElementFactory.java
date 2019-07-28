@@ -1,7 +1,24 @@
 package com.xatkit.test.util;
 
 
-import com.xatkit.intent.*;
+import com.xatkit.intent.BaseEntityDefinition;
+import com.xatkit.intent.BaseEntityDefinitionReference;
+import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.CompositeEntityDefinitionEntry;
+import com.xatkit.intent.CustomEntityDefinition;
+import com.xatkit.intent.CustomEntityDefinitionReference;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.EntityDefinitionReference;
+import com.xatkit.intent.EntityTextFragment;
+import com.xatkit.intent.EntityType;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
+import com.xatkit.intent.LiteralTextFragment;
+import com.xatkit.intent.MappingEntityDefinition;
+import com.xatkit.intent.MappingEntityDefinitionEntry;
+import com.xatkit.intent.RecognizedIntent;
 
 import java.text.MessageFormat;
 
@@ -139,6 +156,7 @@ public class ElementFactory {
      * <p>
      * This method modifies the provided {@code parentIntentDefinition} and sets the created {@link IntentDefinition}
      * in its {@code followedBy} list.
+     *
      * @param parentIntentDefinition the {@link IntentDefinition} to create a follow-up intent for
      * @return the created {@link IntentDefinition}
      */
@@ -148,5 +166,48 @@ public class ElementFactory {
         followUpIntent.getTrainingSentences().add("test followUp");
         followUpIntent.setFollows(parentIntentDefinition);
         return followUpIntent;
+    }
+
+    /**
+     * Creates an {@link EventDefinition} with the name {@code Event}.
+     *
+     * @return the created {@link EventDefinition}
+     */
+    public static EventDefinition createEventDefinition() {
+        EventDefinition eventDefinition = IntentFactory.eINSTANCE.createEventDefinition();
+        eventDefinition.setName("Event");
+        return eventDefinition;
+    }
+
+    /**
+     * Creates a {@link RecognizedIntent} with recognition confidence {@code 0.5f} and matched input {@code test}.
+     * <p>
+     * The created {@link RecognizedIntent#getDefinition()} value is the {@link IntentDefinition} returned by
+     * {@link #createIntentDefinitionNoOutContext()}.
+     *
+     * @return the created {@link RecognizedIntent}
+     */
+    public static RecognizedIntent createRecognizedIntent() {
+        IntentDefinition intentDefinition = createIntentDefinitionNoOutContext();
+        RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+        recognizedIntent.setDefinition(intentDefinition);
+        recognizedIntent.setMatchedInput("test");
+        recognizedIntent.setRecognitionConfidence(0.5f);
+        return recognizedIntent;
+    }
+
+    /**
+     * Creates an {@link EventInstance}.
+     * <p>
+     * The created {@link EventInstance#getDefinition()} value is the {@link EventDefinition} returned by
+     * {@link #createEventDefinition()}.
+     *
+     * @return the created {@link EventInstance}
+     */
+    public static EventInstance createEventInstance() {
+        EventDefinition eventDefinition = createEventDefinition();
+        EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
+        eventInstance.setDefinition(eventDefinition);
+        return eventInstance;
     }
 }

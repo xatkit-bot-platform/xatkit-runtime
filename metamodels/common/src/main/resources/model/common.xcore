@@ -62,6 +62,14 @@ class SessionAccess extends Expression {
 
 }
 
+class MatchedIntentAccess extends Expression {
+
+}
+
+class MatchedEventAccess extends Expression {
+
+}
+
 abstract class Literal extends Expression {
     
 }

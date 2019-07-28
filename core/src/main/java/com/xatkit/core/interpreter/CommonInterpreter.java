@@ -8,6 +8,8 @@ import com.xatkit.common.IfExpression;
 import com.xatkit.common.ImportDeclaration;
 import com.xatkit.common.Instruction;
 import com.xatkit.common.Literal;
+import com.xatkit.common.MatchedEventAccess;
+import com.xatkit.common.MatchedIntentAccess;
 import com.xatkit.common.NumberLiteral;
 import com.xatkit.common.OperationCall;
 import com.xatkit.common.Program;
@@ -15,9 +17,12 @@ import com.xatkit.common.SessionAccess;
 import com.xatkit.common.StringLiteral;
 import com.xatkit.common.VariableAccess;
 import com.xatkit.common.VariableDeclaration;
+import com.xatkit.core.ExecutionService;
 import com.xatkit.core.interpreter.operation.Operation;
 import com.xatkit.core.interpreter.operation.object.ObjectOperationProvider;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.RecognizedIntent;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import java.text.MessageFormat;
@@ -228,6 +233,10 @@ public class CommonInterpreter {
             return evaluate((SessionAccess) e, context);
         } else if (e instanceof ConfigAccess) {
             return evaluate((ConfigAccess) e, context);
+        } else if (e instanceof MatchedEventAccess) {
+            return evaluate((MatchedEventAccess) e, context);
+        } else if (e instanceof MatchedIntentAccess) {
+            return evaluate((MatchedIntentAccess) e, context);
         } else if (e instanceof Literal) {
             return evaluate((Literal) e, context);
         } else if (e instanceof OperationCall) {
@@ -285,10 +294,55 @@ public class CommonInterpreter {
      * @return the {@link org.apache.commons.configuration2.Configuration} value if it exists, {@code null} otherwise
      */
     public Object evaluate(ConfigAccess c, ExecutionContext context) {
-        if(isNull(context.getSession()) || isNull(context.getSession().getConfiguration())) {
+        if (isNull(context.getSession()) || isNull(context.getSession().getConfiguration())) {
             return null;
         }
         return context.getSession().getConfiguration().getProperty(c.getKeyName());
+    }
+
+    /**
+     * Evaluates the provided {@link MatchedEventAccess} {@link Expression} and returns the corresponding
+     * {@link EventInstance}.
+     * <p>
+     * This method looks in the {@link XatkitSession} for a value stored with the key
+     * {@link ExecutionService#MATCHED_EVENT_SESSION_KEY} and returns it. If the {@link XatkitSession} is not defined
+     * in the {@link ExecutionContext} this method returns {@code null}.
+     *
+     * @param e       the {@link MatchedEventAccess} to evaluate
+     * @param context the {@link ExecutionContext} to use along the evaluation
+     * @return the retrieved {@link EventInstance}
+     */
+    public Object evaluate(MatchedEventAccess e, ExecutionContext context) {
+        if (isNull(context.getSession())) {
+            return null;
+        }
+        return context.getSession().get(ExecutionService.MATCHED_EVENT_SESSION_KEY);
+    }
+
+    /**
+     * Evaluates the provided {@link MatchedIntentAccess} {@link Expression} and returns the corresponding
+     * {@link RecognizedIntent}.
+     * <p>
+     * This method looks in the {@link XatkitSession} for a {@link RecognizedIntent} stored with the key
+     * {@link ExecutionService#MATCHED_EVENT_SESSION_KEY} and returns it. If the {@link XatkitSession} is not defined
+     * in the {@link ExecutionContext} or if it doesn't contain a {@link RecognizedIntent} (e.g. in case of an
+     * {@link EventInstance} match) this method returns {@code null}.
+     *
+     * @param i       the {@link MatchedIntentAccess} to evaluate
+     * @param context the {@link ExecutionContext} to use along the evaluation
+     * @return the retrieved {@link RecognizedIntent}
+     */
+    public Object evaluate(MatchedIntentAccess i, ExecutionContext context) {
+        if (isNull(context.getSession())) {
+            return null;
+        }
+        EventInstance eventInstance =
+                (EventInstance) context.getSession().get(ExecutionService.MATCHED_EVENT_SESSION_KEY);
+        if (eventInstance instanceof RecognizedIntent) {
+            return eventInstance;
+        } else {
+            return null;
+        }
     }
 
     /**
