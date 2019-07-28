@@ -183,7 +183,7 @@ public class ExecutionService extends CommonInterpreter {
              * Store the event that triggered the rule execution in the session, it can be useful to some actions (e
              * .g. analytics)
              */
-            session.store(MATCHED_EVENT_SESSION_KEY, eventInstance.getDefinition());
+            session.store(MATCHED_EVENT_SESSION_KEY, eventInstance);
             List<ExecutionRule> executionRules = this.getExecutionRulesFromEvent(eventInstance);
             for (ExecutionRule rule : executionRules) {
                 executeExecutionRule(rule, session);
