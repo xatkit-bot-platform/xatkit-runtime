@@ -87,13 +87,13 @@ public class CommonInterpreterTest {
 
     @Test
     public void int_literal() {
-        Object result = interpreter.compute(getProgram("number_literal"));
+        Object result = interpreter.compute(getProgram("int_literal"));
         assertThat(result).as("correct Number result").isEqualTo(2);
     }
 
     @Test
     public void int_literal_toString() {
-        Object result = interpreter.compute(getProgram("number_literal_toString"));
+        Object result = interpreter.compute(getProgram("int_literal_toString"));
         assertThat(result).as("correct result type").isInstanceOf(String.class);
         assertThat(result).as("correct String result").isEqualTo("2");
     }
@@ -115,9 +115,9 @@ public class CommonInterpreterTest {
     }
 
     @Test
-    public void variable_declaration_number_value() {
+    public void variable_declaration_int_value() {
         ExecutionContext context = new ExecutionContext();
-        Object result = interpreter.compute(getProgram("variable_declaration_number_value"), context);
+        Object result = interpreter.compute(getProgram("variable_declaration_int_value"), context);
         assertThat(result).as("correct Number value").isEqualTo(2);
         assertThat(context.getValueCount()).as("context contains a single variable").isEqualTo(1);
         assertThat(context.getValue("myVar")).as("context contains the declared variable with the correrct Number " +
@@ -236,14 +236,14 @@ public class CommonInterpreterTest {
     }
 
     @Test
-    public void number_literal_plus_number_literal() {
-        Object result = interpreter.compute(getProgram("number_literal_+_number_literal"));
+    public void int_literal_plus_int_literal() {
+        Object result = interpreter.compute(getProgram("int_literal_+_int_literal"));
         assertThat(result).as("valid sum").isEqualTo(6);
     }
 
     @Test
-    public void number_literal_minus_number_literal() {
-        Object result = interpreter.compute(getProgram("number_literal_-_number_literal"));
+    public void int_literal_minus_int_literal() {
+        Object result = interpreter.compute(getProgram("int_literal_-_int_literal"));
         assertThat(result).as("valid substraction").isEqualTo(2);
     }
 
@@ -392,114 +392,114 @@ public class CommonInterpreterTest {
     }
 
     @Test
-    public void number_literal_greater_number_literal_true() {
-        Object result = interpreter.compute(getProgram("number_literal_greater_number_literal_true"));
+    public void int_literal_greater_int_literal_true() {
+        Object result = interpreter.compute(getProgram("int_literal_greater_int_literal_true"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test
-    public void number_literal_greater_number_literal_false() {
-        Object result = interpreter.compute(getProgram("number_literal_greater_number_literal_false"));
+    public void int_literal_greater_int_literal_false() {
+        Object result = interpreter.compute(getProgram("int_literal_greater_int_literal_false"));
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void number_literal_greater_string_literal() {
-        interpreter.compute(getProgram("number_literal_greater_string_literal"));
+    public void int_literal_greater_string_literal() {
+        interpreter.compute(getProgram("int_literal_greater_string_literal"));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void string_literal_greater_number_literal() {
-        interpreter.compute(getProgram("string_literal_greater_number_literal"));
+    public void string_literal_greater_int_literal() {
+        interpreter.compute(getProgram("string_literal_greater_int_literal"));
     }
 
     @Test
-    public void number_literal_geq_number_literal_true() {
-        Object result = interpreter.compute(getProgram("number_literal_geq_number_literal_true"));
+    public void int_literal_geq_int_literal_true() {
+        Object result = interpreter.compute(getProgram("int_literal_geq_int_literal_true"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test
-    public void number_literal_geq_number_literal_false() {
-        Object result = interpreter.compute(getProgram("number_literal_geq_number_literal_false"));
+    public void int_literal_geq_int_literal_false() {
+        Object result = interpreter.compute(getProgram("int_literal_geq_int_literal_false"));
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
     @Test
-    public void number_literal_geq_number_literal_equals() {
-        Object result = interpreter.compute(getProgram("number_literal_geq_number_literal_equals"));
+    public void int_literal_geq_int_literal_equals() {
+        Object result = interpreter.compute(getProgram("int_literal_geq_int_literal_equals"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void number_literal_geq_string_literal() {
-        interpreter.compute(getProgram("number_literal_geq_string_literal"));
+    public void int_literal_geq_string_literal() {
+        interpreter.compute(getProgram("int_literal_geq_string_literal"));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void string_literal_geq_number_literal() {
-        interpreter.compute(getProgram("string_literal_geq_number_literal"));
+    public void string_literal_geq_int_literal() {
+        interpreter.compute(getProgram("string_literal_geq_int_literal"));
     }
 
     @Test
-    public void number_literal_lesser_number_literal_true() {
-        Object result = interpreter.compute(getProgram("number_literal_lesser_number_literal_true"));
+    public void int_literal_lesser_int_literal_true() {
+        Object result = interpreter.compute(getProgram("int_literal_lesser_int_literal_true"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test
-    public void number_literal_lesser_number_literal_false() {
-        Object result = interpreter.compute(getProgram("number_literal_lesser_number_literal_false"));
+    public void int_literal_lesser_int_literal_false() {
+        Object result = interpreter.compute(getProgram("int_literal_lesser_int_literal_false"));
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void number_literal_lesser_string_literal() {
-        interpreter.compute(getProgram("number_literal_lesser_string_literal"));
+    public void int_literal_lesser_string_literal() {
+        interpreter.compute(getProgram("int_literal_lesser_string_literal"));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void string_literal_lesser_number_literal() {
-        interpreter.compute(getProgram("string_literal_lesser_number_literal"));
+    public void string_literal_lesser_int_literal() {
+        interpreter.compute(getProgram("string_literal_lesser_int_literal"));
     }
 
     @Test
-    public void number_literal_leq_number_literal_true() {
-        Object result = interpreter.compute(getProgram("number_literal_leq_number_literal_true"));
+    public void int_literal_leq_int_literal_true() {
+        Object result = interpreter.compute(getProgram("int_literal_leq_int_literal_true"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test
-    public void number_literal_leq_number_literal_false() {
-        Object result = interpreter.compute(getProgram("number_literal_leq_number_literal_false"));
+    public void int_literal_leq_int_literal_false() {
+        Object result = interpreter.compute(getProgram("int_literal_leq_int_literal_false"));
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
     @Test
-    public void number_literal_leq_number_literal_equals() {
-        Object result = interpreter.compute(getProgram("number_literal_leq_number_literal_equals"));
+    public void int_literal_leq_int_literal_equals() {
+        Object result = interpreter.compute(getProgram("int_literal_leq_int_literal_equals"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void number_literal_leq_string_literal() {
-        interpreter.compute(getProgram("number_literal_leq_string_literal"));
+    public void int_literal_leq_string_literal() {
+        interpreter.compute(getProgram("int_literal_leq_string_literal"));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void string_literal_leq_number_literal() {
-        interpreter.compute(getProgram("string_literal_leq_number_literal"));
+    public void string_literal_leq_int_literal() {
+        interpreter.compute(getProgram("string_literal_leq_int_literal"));
     }
 
     @Test
-    public void number_literal_equals_number_literal_true() {
-        Object result = interpreter.compute(getProgram("number_literal_equals_number_literal_true"));
+    public void int_literal_equals_int_literal_true() {
+        Object result = interpreter.compute(getProgram("int_literal_equals_int_literal_true"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test
-    public void number_literal_equals_number_literal_false() {
-        Object result = interpreter.compute(getProgram("number_literal_equals_number_literal_false"));
+    public void int_literal_equals_int_literal_false() {
+        Object result = interpreter.compute(getProgram("int_literal_equals_int_literal_false"));
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
@@ -516,26 +516,26 @@ public class CommonInterpreterTest {
     }
 
     @Test
-    public void number_literal_equals_string_literal() {
-        Object result = interpreter.compute(getProgram("number_literal_equals_string_literal"));
+    public void int_literal_equals_string_literal() {
+        Object result = interpreter.compute(getProgram("int_literal_equals_string_literal"));
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
     @Test
-    public void string_literal_equals_number_literal() {
-        Object result = interpreter.compute(getProgram("string_literal_equals_number_literal"));
+    public void string_literal_equals_int_literal() {
+        Object result = interpreter.compute(getProgram("string_literal_equals_int_literal"));
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
     @Test
-    public void number_literal_not_equals_number_literal_true() {
-        Object result = interpreter.compute(getProgram("number_literal_not_equals_number_literal_true"));
+    public void int_literal_not_equals_int_literal_true() {
+        Object result = interpreter.compute(getProgram("int_literal_not_equals_int_literal_true"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test
-    public void number_literal_not_equals_number_literal_false() {
-        Object result = interpreter.compute(getProgram("number_literal_not_equals_number_literal_false"));
+    public void int_literal_not_equals_int_literal_false() {
+        Object result = interpreter.compute(getProgram("int_literal_not_equals_int_literal_false"));
         assertThat(result).as("Result is false").isEqualTo(false);
     }
 
@@ -552,14 +552,14 @@ public class CommonInterpreterTest {
     }
 
     @Test
-    public void number_literal_not_equals_string_literal() {
-        Object result = interpreter.compute(getProgram("number_literal_not_equals_string_literal"));
+    public void int_literal_not_equals_string_literal() {
+        Object result = interpreter.compute(getProgram("int_literal_not_equals_string_literal"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
     @Test
-    public void string_literal_not_equals_number_literal() {
-        Object result = interpreter.compute(getProgram("string_literal_not_equals_number_literal"));
+    public void string_literal_not_equals_int_literal() {
+        Object result = interpreter.compute(getProgram("string_literal_not_equals_int_literal"));
         assertThat(result).as("Result is true").isEqualTo(true);
     }
 
@@ -642,6 +642,60 @@ public class CommonInterpreterTest {
         ExecutionContext context = createContextWithRecognizedIntent();
         Object result = interpreter.compute(getProgram("intent_access_get_recognition_confidence"), context);
         assertThat(result).as("Correct recognition confidence").isEqualTo(TEST_RECOGNIZED_INTENT.getRecognitionConfidence());
+    }
+
+    @Test
+    public void float_literal() {
+        Object result = interpreter.compute(getProgram("float_literal"));
+        assertThat(result).as("Valid result").isEqualTo(2.5f);
+    }
+
+    @Test
+    public void float_literal_equals_int_literal_true() {
+        Object result = interpreter.compute(getProgram("float_literal_equals_int_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void float_literal_equals_int_literal_false() {
+        Object result = interpreter.compute(getProgram("float_literal_equals_int_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void float_literal_not_equals_int_literal_true() {
+        Object result = interpreter.compute(getProgram("float_literal_not_equals_int_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void float_literal_not_equals_int_literal_false() {
+        Object result = interpreter.compute(getProgram("float_literal_not_equals_int_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void float_literal_geq_int_literal_true() {
+        Object result = interpreter.compute(getProgram("float_literal_geq_int_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void float_literal_geq_int_literal_false() {
+        Object result = interpreter.compute(getProgram("float_literal_geq_int_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
+    }
+
+    @Test
+    public void float_literal_leq_int_literal_true() {
+        Object result = interpreter.compute(getProgram("float_literal_leq_int_literal_true"));
+        assertThat(result).as("Result is true").isEqualTo(true);
+    }
+
+    @Test
+    public void float_literal_leq_int_literal_false() {
+        Object result = interpreter.compute(getProgram("float_literal_leq_int_literal_false"));
+        assertThat(result).as("Result is false").isEqualTo(false);
     }
 
     private ExecutionContext createContextWithEventInstance() {

@@ -28,6 +28,8 @@ public class SubstractionOperation implements Operation {
         checkArgument(args.size() == 1, "Cannot compute - operation, expected 1 argument, found %s", args.size());
         if (source instanceof Integer) {
             return (Integer) source - (Integer) args.get(0);
+        } else if(source instanceof Float) {
+            return (Float) source - (Float) args.get(0);
         } else {
             throw new IllegalArgumentException(MessageFormat.format("Cannot compute - operation on {0}, {1}", source,
                     args.get(0)));

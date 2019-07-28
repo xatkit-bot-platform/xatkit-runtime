@@ -118,8 +118,19 @@ StringLiteral:
 ;
 
 NumberLiteral:
-	value = INT
+	IntegerLiteral | FloatLiteral
 ;
+
+IntegerLiteral:
+	value=INT
+;
+
+FloatLiteral: 
+	value=Float
+;
+
+
+Float returns ecore::EFloat: INT '.' INT;
 
 BooleanLiteral:
 	{BooleanLiteral} (value?='true' | 'false')

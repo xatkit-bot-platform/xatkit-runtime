@@ -6,6 +6,6 @@
   <instructions xsi:type="common:OperationCall" name="equals">
     <source xsi:type="common:VariableAccess" referredVariable="//@instructions.0"/>
     <args xsi:type="common:StringLiteral" value="test"/>
-    <args xsi:type="common:NumberLiteral" value="2"/>
+    <args xsi:type="common:IntegerLiteral" value="2"/>
   </instructions>
 </common:Program>

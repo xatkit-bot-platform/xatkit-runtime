@@ -3,6 +3,6 @@
   <instructions xsi:type="common:IfExpression">
     <condition xsi:type="common:BooleanLiteral"/>
     <thenInstructions xsi:type="common:StringLiteral" value="Value"/>
-    <elseInstructions xsi:type="common:NumberLiteral" value="2"/>
+    <elseInstructions xsi:type="common:IntegerLiteral" value="2"/>
   </instructions>
 </common:Program>

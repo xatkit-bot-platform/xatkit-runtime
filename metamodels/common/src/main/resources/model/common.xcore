@@ -78,8 +78,15 @@ class StringLiteral extends Literal {
     String value
 }
 
-class NumberLiteral extends Literal {
+abstract class NumberLiteral extends Literal {
+}
+
+class IntegerLiteral extends NumberLiteral {
     int value
+}
+
+class FloatLiteral extends NumberLiteral {
+    float value
 }
 
 class BooleanLiteral extends Literal {

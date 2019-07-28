@@ -4,9 +4,11 @@ import com.xatkit.common.BooleanLiteral;
 import com.xatkit.common.ConfigAccess;
 import com.xatkit.common.ContextAccess;
 import com.xatkit.common.Expression;
+import com.xatkit.common.FloatLiteral;
 import com.xatkit.common.IfExpression;
 import com.xatkit.common.ImportDeclaration;
 import com.xatkit.common.Instruction;
+import com.xatkit.common.IntegerLiteral;
 import com.xatkit.common.Literal;
 import com.xatkit.common.MatchedEventAccess;
 import com.xatkit.common.MatchedIntentAccess;
@@ -383,8 +385,15 @@ public class CommonInterpreter {
      * @param context the {@link ExecutionContext} to use along the evaluation
      * @return the {@link Integer} value of the literal
      */
-    public Integer evaluate(NumberLiteral l, ExecutionContext context) {
-        return l.getValue();
+    public Object evaluate(NumberLiteral l, ExecutionContext context) {
+        if (l instanceof IntegerLiteral) {
+            return ((IntegerLiteral) l).getValue();
+        } else if (l instanceof FloatLiteral) {
+            return ((FloatLiteral) l).getValue();
+        } else {
+            throw new IllegalArgumentException(MessageFormat.format("Cannot evaluate the expression {0}, unknown " +
+                    "{1} type {2}", l, NumberLiteral.class.getSimpleName(), l.getClass().getSimpleName()));
+        }
     }
 
     /**

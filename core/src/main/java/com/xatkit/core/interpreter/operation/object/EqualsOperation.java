@@ -25,6 +25,13 @@ public class EqualsOperation implements Operation {
     @Override
     public Object invoke(Object source, List<Object> args) {
         checkArgument(args.size() == 1, "Cannot compute and operation, expected 1 argument, found %s", args.size());
+        /*
+         * Float comparisons are strange: 2.0f == 2 is true, but new Float(2.0f).equals(new Integer(2)) is false, we
+         * box everything in Floats if one of the operand is a Float to be sure the comparison is correct.
+         */
+        if ((source instanceof Float && args.get(0) instanceof Number) || (source instanceof Number && args.get(0) instanceof Float)) {
+            return Float.compare(((Number) source).floatValue(), ((Number) args.get(0)).floatValue()) == 0;
+        }
         return Objects.equals(source, args.get(0));
     }
 }
