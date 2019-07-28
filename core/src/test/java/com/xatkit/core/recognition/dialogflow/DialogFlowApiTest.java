@@ -984,6 +984,8 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         assertThat(intent.getDefinition()).as("IntentDefinition is not null").isNotNull();
         assertThat(intent.getDefinition().getName()).as("IntentDefinition is the Default Fallback Intent").isEqualTo
                 ("Default_Fallback_Intent");
+        assertThat(intent.getMatchedInput()).as("Correct matched input").isEqualTo("azerty");
+        assertThat(intent.getRecognitionConfidence()).as("Correct confidence level").isGreaterThan(0);
     }
 
     @Test
@@ -1023,6 +1025,8 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo(trainingSentence);
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isGreaterThan(0);
         /*
          * The ContextInstances are set, but they should not contain any value.
          */
@@ -1031,7 +1035,6 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
                 .isNotNull();
         softly.assertThat(recognizedIntent.getOutContextInstance("Context1").getValues()).as("ContextInstance 1 does " +
                 "not contain any value").isEmpty();
-        ;
         assertThat(recognizedIntent.getOutContextInstance("Context2")).as("RecognizedIntent contains Context2")
                 .isNotNull();
         softly.assertThat(recognizedIntent.getOutContextInstance("Context2").getValues()).as("ContextInstance 2 does " +
@@ -1093,6 +1096,8 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo(trainingSentence);
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isGreaterThan(0);
         assertThat(recognizedIntent.getOutContextInstances()).as("Valid out context instance list size").hasSize(2);
 
         /*
@@ -1174,6 +1179,8 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         assertThat(recognizedIntent.getDefinition()).as("Not null definition").isNotNull();
         softly.assertThat(recognizedIntent.getDefinition().getName()).as("Valid IntentDefinition").isEqualTo
                 (intentDefinition.getName());
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo(trainingSentence);
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isGreaterThan(0);
     }
 
     @Test

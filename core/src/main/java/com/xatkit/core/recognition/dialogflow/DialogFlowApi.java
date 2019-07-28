@@ -1540,6 +1540,14 @@ public class DialogFlowApi implements IntentRecognitionProvider {
          */
         IntentDefinition intentDefinition = convertDialogFlowIntentToIntentDefinition(intent);
         recognizedIntent.setDefinition(intentDefinition);
+
+        /*
+         * Reuse the QueryResult values to set the recognition confidence and the matched input, DialogFlow already
+         * provides confidence for each matched intent.
+         */
+        recognizedIntent.setRecognitionConfidence(result.getIntentDetectionConfidence());
+        recognizedIntent.setMatchedInput(result.getQueryText());
+
         /*
          * Set the output context values.
          */

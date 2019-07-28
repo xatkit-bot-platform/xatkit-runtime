@@ -455,6 +455,12 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     @Override
     public RecognizedIntent getIntent(String input, XatkitSession session) {
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+        /*
+         * The recognitionConfidence is always 1 with the DefaultIntentRecognitionProvider since it always returns
+         * exact matches or default fallback intent.
+         */
+        recognizedIntent.setRecognitionConfidence(1);
+        recognizedIntent.setMatchedInput(input);
         List<IntentDefinition> matchableIntents = getMatchableIntents(intentPatterns.keySet(), session);
         for (IntentDefinition intentDefinition : matchableIntents) {
             List<Pattern> patterns = intentPatterns.get(intentDefinition);

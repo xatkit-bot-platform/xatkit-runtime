@@ -1,9 +1,19 @@
 package com.xatkit.core.recognition;
 
 import com.xatkit.AbstractXatkitTest;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
-import com.xatkit.intent.*;
+import com.xatkit.core.session.XatkitSession;
+import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.ContextParameterValue;
+import com.xatkit.intent.EntityDefinitionReference;
+import com.xatkit.intent.EntityType;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
+import com.xatkit.intent.MappingEntityDefinition;
+import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.test.util.ElementFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -166,6 +176,9 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Unmatched input returns default fallback intent").
                 isEqualTo(DefaultIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("test test intent " +
+                "definition");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
@@ -182,6 +195,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         ContextParameterValue value = contextInstance.getValues().get(0);
         assertThat(value.getContextParameter()).as("Valid value context parameter").isEqualTo(VALID_OUT_CONTEXT.getParameters().get(0));
         assertThat(value.getValue()).as("Valid value").isEqualTo("Value");
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("Value intent definition");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
@@ -198,6 +213,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         ContextParameterValue value = contextInstance.getValues().get(0);
         assertThat(value.getContextParameter()).as("Valid value context parameter").isEqualTo(MAPPING_CONTEXT.getParameters().get(0));
         assertThat(value.getValue()).as("Valid value").isEqualTo("Person");
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a Person");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
@@ -215,6 +232,9 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         ContextParameterValue value = contextInstance.getValues().get(0);
         assertThat(value.getContextParameter()).as("Valid value context parameter").isEqualTo(COMPOSITE_CONTEXT.getParameters().get(0));
         assertThat(value.getValue()).as("Valid value").isEqualTo("Person with 23");
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a Person with " +
+                "23");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
@@ -223,6 +243,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Unmatched input returns default fallback intent")
                 .isEqualTo(DefaultIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("test");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
@@ -231,6 +253,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         RecognizedIntent recognizedIntent = provider.getIntent("this is a test", new XatkitSession("sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(VALID_INTENT_DEFINITION_NO_OUT_CONTEXT);
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a test");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
@@ -241,6 +265,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         RecognizedIntent recognizedIntent = provider.getIntent("$test", new XatkitSession("sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(intentDefinition);
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("$test");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
@@ -252,6 +278,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         XatkitSession session = new XatkitSession("sessionID");
         RecognizedIntent recognizedParent = provider.getIntent("this is a test", session);
         assertThat(recognizedParent.getDefinition()).as("Correct parent intent matched").isEqualTo(parentIntent);
+        assertThat(recognizedParent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a test");
+        assertThat(recognizedParent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
         ContextInstance parentFollowContextInstance =
                 recognizedParent.getOutContextInstance(parentIntent.getName() + DefaultIntentRecognitionProvider.FOLLOW_CONTEXT_NAME_SUFFIX);
         assertThat(parentFollowContextInstance).as("Follow context set").isNotNull();
@@ -260,6 +288,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
          */
         session.getRuntimeContexts().setContext(parentFollowContextInstance);
         RecognizedIntent recognizedChild = provider.getIntent("test followUp", session);
+        assertThat(recognizedChild.getMatchedInput()).as("Correct matched input").isEqualTo("test followUp");
+        assertThat(recognizedChild.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
         assertThat(recognizedChild.getDefinition()).as("Correct child intent matched").isEqualTo(childIntent);
     }
 
@@ -272,6 +302,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         provider.registerIntentDefinition(intentDefinition);
         RecognizedIntent recognizedIntent = provider.getIntent("this is a test", new XatkitSession("sessionID"));
         assertThat(recognizedIntent.getDefinition()).as("Default fallback intent matched").isEqualTo(DefaultIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a test");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
@@ -285,6 +317,8 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         session.getRuntimeContexts().setContext("InContext", 5);
         RecognizedIntent recognizedIntent = provider.getIntent("this is a test", session);
         assertThat(recognizedIntent.getDefinition()).as("Correct intent matched").isEqualTo(intentDefinition);
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a test");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
     @Test
