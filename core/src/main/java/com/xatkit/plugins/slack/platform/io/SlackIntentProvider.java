@@ -99,6 +99,11 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
     private JsonParser jsonParser;
 
     /**
+     * Specifies whether {@code DEFAULT_FALLBACK_INTENT}s should be ignored in group channel (default to {@code false}).
+     */
+    private boolean ignoreFallbackOnGroupChannels;
+
+    /**
      * Constructs a new {@link SlackIntentProvider} from the provided {@code runtimePlatform} and
      * {@code configuration}.
      * <p>
@@ -122,13 +127,15 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
         checkArgument(nonNull(slackToken) && !slackToken.isEmpty(), "Cannot construct a SlackIntentProvider from the " +
                 "provided token %s, please ensure that the Xatkit configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SlackUtils.SLACK_TOKEN_KEY);
+        this.ignoreFallbackOnGroupChannels = configuration.getBoolean(SlackUtils.IGNORE_FALLBACK_ON_GROUP_CHANNELS_KEY,
+                SlackUtils.DEFAULT_IGNORE_FALLBACK_ON_GROUP_CHANNELS_KEY);
         this.slack = new Slack();
         this.botId = getSelfId();
         try {
             this.rtmClient = slack.rtm(slackToken);
         } catch (IOException e) {
             String errorMessage = MessageFormat.format("Cannot connect SlackIntentProvider, please ensure that the " +
-                    "bot API token is valid and stored in Xatkit configuration with the key {0}",
+                            "bot API token is valid and stored in Xatkit configuration with the key {0}",
                     SlackUtils.SLACK_TOKEN_KEY);
             Log.error(errorMessage);
             throw new XatkitException(errorMessage, e);
@@ -319,7 +326,26 @@ public class SlackIntentProvider extends ChatIntentProvider<SlackPlatform> {
                                                 ChatUtils.CHAT_USERNAME_CONTEXT_KEY, getUsernameFromUserId(user));
                                         session.getRuntimeContexts().setContextValue(ChatUtils.CHAT_CONTEXT_KEY, 1,
                                                 ChatUtils.CHAT_RAW_MESSAGE_CONTEXT_KEY, text);
-                                        SlackIntentProvider.this.sendEventInstance(recognizedIntent, session);
+
+                                        if (recognizedIntent.getDefinition().getName().equals(
+                                                "Default_Fallback_Intent") && ignoreFallbackOnGroupChannels) {
+                                            /*
+                                             * First check the property, if fallback intents are not ignored no need to
+                                             * check if this is a group channel or not (this may trigger additional
+                                             * Slack
+                                             * API calls).
+                                             */
+                                            if (!SlackIntentProvider.this.runtimePlatform.isGroupChannel(channel)) {
+                                                SlackIntentProvider.this.sendEventInstance(recognizedIntent, session);
+                                            } else {
+                                                /*
+                                                 * Do nothing, fallback intents are ignored in group channels and
+                                                 * this is a group channel.
+                                                 */
+                                            }
+                                        } else {
+                                            SlackIntentProvider.this.sendEventInstance(recognizedIntent, session);
+                                        }
                                     } else {
                                         Log.warn("Received an empty message, skipping it");
                                     }

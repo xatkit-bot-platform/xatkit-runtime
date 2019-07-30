@@ -20,8 +20,10 @@ import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -59,7 +61,40 @@ public class SlackPlatform extends ChatPlatform {
      */
     private Slack slack;
 
+    /**
+     * A {@link Map} containing the names of all the channels in the workspace.
+     * <p>
+     * This map contains entries for conversation name, user name, user display name, and IDs, allowing fast lookups
+     * to retrieve a channel identifier from a given name.
+     * <p>
+     * This {@link Map} is populated by {@link #loadChannels()}.
+     *
+     * @see #loadChannels()
+     */
     private Map<String, String> channelNames;
+
+    /**
+     * A {@link List} containing the IDs of all the group channels in the workspace.
+     * <p>
+     * A group channel correspond to any conversation that can be joined by multiple users (typically everything
+     * excepted user channels).
+     * <p>
+     * This {@link List} is populated by {@link #loadChannels()}.
+     *
+     * @see #loadChannels()
+     */
+    private List<String> groupChannels;
+
+    /**
+     * A {@link List} containing the IDs of all the user channels in the workspace.
+     * <p>
+     * A user channel is a direct message channel between an user and the bot.
+     * <p>
+     * This {@link List} is populated by {@link #loadChannels()}
+     *
+     * @see #loadChannels()
+     */
+    private List<String> userChannels;
 
     /**
      * Constructs a new {@link SlackPlatform} from the provided {@link XatkitCore} and {@link Configuration}.
@@ -82,7 +117,10 @@ public class SlackPlatform extends ChatPlatform {
                 "provided token %s, please ensure that the Xatkit configuration contains a valid Slack bot API token " +
                 "associated to the key %s", slackToken, SlackUtils.SLACK_TOKEN_KEY);
         slack = new Slack();
-        this.loadChannelNames();
+        this.channelNames = new HashMap<>();
+        this.groupChannels = new ArrayList<>();
+        this.userChannels = new ArrayList<>();
+        this.loadChannels();
     }
 
     /**
@@ -132,30 +170,58 @@ public class SlackPlatform extends ChatPlatform {
              * Check if the channel has been created since the previous lookup. This is not done by default because
              * it reloads all the channel and may take some time.
              */
-            loadChannelNames();
+            loadChannels();
             id = this.channelNames.get(channelName);
-            if(isNull(id)) {
+            if (isNull(id)) {
                 /*
                  * Cannot find the channel after a fresh lookup.
                  */
                 throw new XatkitException(MessageFormat.format("Cannot find the channel {0}, please ensure that the " +
-                        "provided channel is either a valid channel ID, name, or a valid user name, real name, or display" +
-                        " name", channelName));
+                        "provided channel is either a valid channel ID, name, or a valid user name, real name, or " +
+                        "display name", channelName));
             }
         }
         return id;
     }
 
     /**
-     * Loads and store the names of each channel the bot can access.
+     * Returns whether the provided {@code channelId} is a group channel (that can contain multiple users) or not.
+     *
+     * @param channelId the identifier of the Slack channel to check
+     * @return {@code true} if the channel is a group channel, {@code false} otherwise
+     */
+    public boolean isGroupChannel(String channelId) {
+        /*
+         * First check if it's a user channel, if so no need to do additional calls on the Slack API, we know it's
+         * not a group channel.
+         */
+        if (this.userChannels.contains(channelId)) {
+            return false;
+        } else {
+            if (this.groupChannels.contains(channelId)) {
+                return true;
+            } else {
+                /*
+                 * Reload the channels in case the group channel has been created since the last check.
+                 */
+                loadChannels();
+                return this.groupChannels.contains(channelId);
+            }
+        }
+    }
+
+    /**
+     * Loads the channels associated to the workspace and store channel-related information.
      * <p>
-     * This method allows to use channel IDs, names, as well as user names, real names, and display names as channels
-     * in execution model.
+     * The stored information can be retrieved with dedicated methods, and reduce the number of calls to the Slack API.
      *
      * @see #getChannelId(String)
+     * @see #isGroupChannel(String)
      */
-    private void loadChannelNames() {
+    private void loadChannels() {
         this.channelNames = new HashMap<>();
+        this.groupChannels = new ArrayList<>();
+        this.userChannels = new ArrayList<>();
         try {
             ConversationsListResponse response =
                     slack.methods().conversationsList(ConversationsListRequest.builder()
@@ -172,6 +238,7 @@ public class SlackPlatform extends ChatPlatform {
                 this.channelNames.put(conversationId, conversationId);
                 if (nonNull(conversation.getName())) {
                     this.channelNames.put(conversation.getName(), conversation.getId());
+                    this.groupChannels.add(conversation.getId());
                     Log.debug("Conversation name: {0}, ID: {1}", conversation.getName(), conversationId);
                 } else {
                     String userId = conversation.getUser();
@@ -182,6 +249,7 @@ public class SlackPlatform extends ChatPlatform {
                     this.channelNames.put(userResponse.getUser().getName(), conversationId);
                     this.channelNames.put(userResponse.getUser().getRealName(), conversationId);
                     this.channelNames.put(userResponse.getUser().getProfile().getDisplayName(), conversationId);
+                    this.userChannels.add(conversationId);
                     Log.debug("User name: {0}", userResponse.getUser().getName());
                     Log.debug("User real name: {0}", userResponse.getUser().getRealName());
                     Log.debug("User display name: {0}", userResponse.getUser().getProfile().getDisplayName());
