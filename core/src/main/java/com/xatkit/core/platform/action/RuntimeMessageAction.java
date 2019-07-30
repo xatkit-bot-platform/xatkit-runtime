@@ -11,8 +11,8 @@ import static java.util.Objects.nonNull;
  * An abstract {@link RuntimeAction} processing a message.
  * <p>
  * This class takes a {@link String} message as its constructor parameter, and relies on
- * {@link RuntimeContexts#fillContextValues(String)} to pre-process it and replace context variable
- * accesses by their concrete value.
+ * {@link RuntimeContexts#fillContextValues(String)} to pre-process it and replace context variable accesses by their
+ * concrete value.
  * <p>
  * This class is only responsible of the pre-processing of the provided message, and does not provide any method to
  * print it to the end user.
