@@ -1,16 +1,5 @@
 package com.xatkit.plugins.slack.platform.action;
 
-import com.github.seratch.jslack.api.methods.SlackApiException;
-import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
-import com.github.seratch.jslack.api.methods.response.chat.ChatPostMessageResponse;
-import com.github.seratch.jslack.api.model.Attachment;
-
-import com.xatkit.core.XatkitException;
-import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.XatkitSession;
-import com.xatkit.plugins.slack.platform.SlackPlatform;
-import fr.inria.atlanmod.commons.log.Log;
-
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;
 
@@ -20,8 +9,21 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import com.github.seratch.jslack.api.methods.SlackApiException;
+import com.github.seratch.jslack.api.methods.request.chat.ChatPostMessageRequest;
+import com.github.seratch.jslack.api.methods.response.chat.ChatPostMessageResponse;
+import com.github.seratch.jslack.api.model.Attachment;
+import com.xatkit.core.XatkitException;
+import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.platform.action.RuntimeArtifactAction;
+import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.core.session.XatkitSession;
+import com.xatkit.plugins.slack.platform.SlackPlatform;
+
+import fr.inria.atlanmod.commons.log.Log;
+
 /**
- * A {@link RuntimeAction} that posts a {@code message} to a given Slack
+ * A {@link RuntimeAction} that posts {@code Attachment} to a given Slack
  * {@code channel}.
  * <p>
  * This class relies on the {@link SlackPlatform}'s
@@ -32,8 +34,16 @@ import java.util.List;
  * has been loaded with a valid Slack bot API token in order to authenticate the
  * bot and post messages.
  */
-public class PostAttachmentsMessage extends PostMessage {
+public class PostAttachmentsMessage extends RuntimeArtifactAction<SlackPlatform> {
 
+	/**
+	 * The Slack channel to post the attachments to.
+	 */
+	protected String channel;
+
+	/**
+	 * The attachments to post to Slack channel.
+	 */
 	protected List<Attachment> attachments;
 
 	/**
@@ -55,19 +65,19 @@ public class PostAttachmentsMessage extends PostMessage {
 	 */
 	public PostAttachmentsMessage(SlackPlatform runtimePlatform, XatkitSession session, List<Attachment> attachments,
 			String channel) {
-		/**
-		 * TODO: add method to {@link RuntimeMessageAction} to allow being called
-		 * without defining a message parameter
-		 */
-		super(runtimePlatform, session, "no_messge_required", channel);
+		super(runtimePlatform, session);
+
+		checkArgument(nonNull(channel) && !channel.isEmpty(),
+				"Cannot construct a %s action with the provided channel %s, expected a non-null and not empty String",
+				this.getClass().getSimpleName(), channel);
+		this.channel = channel;
 
 		for (Attachment attch : attachments) {
 			checkArgument(nonNull(attch.getText()) && !attch.getText().isEmpty(),
-					"Cannot construct a %s action with the provided content"
-							+ " %s, expected a non-null and not empty String for the attachment text",
+					"Cannot construct a %s action with the provided text %s, expected a non-null and not empty String "
+							+ "for the attachment text",
 					this.getClass().getSimpleName(), attch.getText());
 		}
-
 		this.attachments = attachments;
 	}
 
@@ -94,15 +104,16 @@ public class PostAttachmentsMessage extends PostMessage {
 	 */
 	public PostAttachmentsMessage(SlackPlatform runtimePlatform, XatkitSession session, String pretext, String title,
 			String text, String attchColor, String timestamp, String channel) {
-		/**
-		 * TODO: add method to {@link RuntimeMessageAction} to allow being called
-		 * without defining a message parameter
-		 */
-		super(runtimePlatform, session, "no_messge_required", channel);
+		super(runtimePlatform, session);
+
+		checkArgument(nonNull(channel) && !channel.isEmpty(),
+				"Cannot construct a %s action with the provided channel %s, expected a non-null and not empty String",
+				this.getClass().getSimpleName(), channel);
+		this.channel = channel;
 
 		checkArgument(nonNull(text) && !text.isEmpty(),
-				"Cannot construct a %s action with the provided content"
-						+ " %s, expected a non-null and not empty String for the attachment text",
+				"Cannot construct a %s action with the provided text %s, expected a non-null and not empty String for "
+						+ "the attachment text",
 				this.getClass().getSimpleName(), text);
 
 		Attachment attachment = createAttachment(pretext, title, text, attchColor, timestamp);
@@ -133,18 +144,19 @@ public class PostAttachmentsMessage extends PostMessage {
 	 */
 	public PostAttachmentsMessage(SlackPlatform runtimePlatform, XatkitSession session, String pretext, String title,
 			String text, String attchColor, String channel) {
-		/**
-		 * TODO: add method to {@link RuntimeMessageAction} to allow being called
-		 * without defining a message parameter
-		 */
-		super(runtimePlatform, session, "no_messge_required", channel);
+		super(runtimePlatform, session);
+
+		checkArgument(nonNull(channel) && !channel.isEmpty(),
+				"Cannot construct a %s action with the provided channel %s, expected a non-null and not empty String",
+				this.getClass().getSimpleName(), channel);
+		this.channel = channel;
 
 		checkArgument(nonNull(text) && !text.isEmpty(),
-				"Cannot construct a %s action with the provided content"
-						+ " %s, expected a non-null and not empty String for the attachment text",
+				"Cannot construct a %s action with the provided text %s, expected a non-null and not empty String for "
+						+ "the attachment text",
 				this.getClass().getSimpleName(), text);
 
-		String timestamp = String.valueOf(Calendar.getInstance().getTime().getTime()/1000);
+		String timestamp = String.valueOf(Calendar.getInstance().getTime().getTime() / 1000);
 		Attachment attachment = createAttachment(pretext, title, text, attchColor, timestamp);
 		this.attachments = new ArrayList<>();
 		this.attachments.add(attachment);
@@ -199,5 +211,10 @@ public class PostAttachmentsMessage extends PostMessage {
 		attachmentBuilder.ts(timestamp);
 
 		return attachmentBuilder.build();
+	}
+
+	@Override
+	protected XatkitSession getClientSession() {
+		return this.runtimePlatform.createSessionFromChannel(channel);
 	}
 }
