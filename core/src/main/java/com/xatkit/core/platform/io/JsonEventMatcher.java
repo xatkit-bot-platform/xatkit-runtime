@@ -29,8 +29,17 @@ public class JsonEventMatcher {
     /**
      * The {@link Configuration} key to store whether to print the {@link EventInstanceBuilder} content before
      * building the matched {@link EventInstance}.
+     * <p>
+     * This value is set to {@code false} if not specified.
+     *
+     * @see #DEFAULT_PRINT_BUILDER_CONTENT
      */
-    public static String PRINT_BUILDER_CONTENT_KEY = "xatkit.event.matcher.print_builder";
+    public static final String PRINT_BUILDER_CONTENT_KEY = "xatkit.event.matcher.print_builder";
+
+    /**
+     * The default value of the {@link #PRINT_BUILDER_CONTENT_KEY} configuration key.
+     */
+    private static final boolean DEFAULT_PRINT_BUILDER_CONTENT = false;
 
     /**
      * The internal {@link Map} used to store the header and field values to match.
@@ -62,7 +71,7 @@ public class JsonEventMatcher {
         Log.info("Starting {0}", this.getClass().getSimpleName());
         this.matchableEvents = new HashMap<>();
         this.eventInstanceBuilder = eventInstanceBuilder;
-        printBuilder = configuration.getBoolean(PRINT_BUILDER_CONTENT_KEY, false);
+        this.printBuilder = configuration.getBoolean(PRINT_BUILDER_CONTENT_KEY, DEFAULT_PRINT_BUILDER_CONTENT);
         if (printBuilder) {
             Log.info("{0} will print the builder content before building the matched {1}", this.getClass()
                     .getSimpleName(), EventInstance.class.getSimpleName());
