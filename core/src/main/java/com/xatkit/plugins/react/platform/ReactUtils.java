@@ -11,5 +11,5 @@ public interface ReactUtils extends ChatUtils {
     /**
      * The {@link RuntimeContexts} key used to store React-related information.
      */
-    public static final String REACT_CONTEXT_KEY = "react";
+    String REACT_CONTEXT_KEY = "react";
 }
