@@ -31,11 +31,11 @@ public class AdditionOperation implements Operation {
     @Override
     public Object invoke(Object source, List<Object> args) {
         checkArgument(args.size() == 1, "Cannot compute + operation, expected 1 argument, found %s", args.size());
-        if (source instanceof String) {
+        if (source instanceof String || args.get(0) instanceof String) {
             /*
              * Perform a concatenation (use Objects.toString to avoid NPEs)
              */
-            return ((String) source).concat(Objects.toString(args.get(0)));
+            return Objects.toString(source).concat(Objects.toString(args.get(0)));
         } else if (source instanceof Integer) {
             return (Integer) source + (Integer) args.get(0);
         } else {
