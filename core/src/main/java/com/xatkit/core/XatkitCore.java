@@ -2,6 +2,7 @@ package com.xatkit.core;
 
 import com.xatkit.Xatkit;
 import com.xatkit.common.Instruction;
+import com.xatkit.core.platform.Formatter;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
@@ -193,6 +194,11 @@ public class XatkitCore {
     private XatkitServer xatkitServer;
 
     /**
+     * The {@link Formatter}s used to format execution-level {@link Object}s into {@link String}.
+     */
+    private Map<String, Formatter> formatters;
+
+    /**
      * Constructs a new {@link XatkitCore} instance from the provided {@code configuration}.
      * <p>
      * The provided {@code configuration} must provide values for the following key (note that additional values may
@@ -216,6 +222,8 @@ public class XatkitCore {
             ExecutionModel executionModel = getExecutionModel(configuration);
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
                     .getSimpleName(), ExecutionModel.class.getSimpleName());
+            this.formatters = new HashMap<>();
+            this.registerFormatter("Default", new Formatter());
             /*
              * Start the server before creating the IntentRecognitionProvider, we need a valid XatkitServer instance
              * to register the analytics REST endpoints (this is also required to start the EventProviderDefinition).
@@ -244,7 +252,35 @@ public class XatkitCore {
     }
 
     /**
-     * Returns whether the bot uses the {@link ReactPlatform}.
+     * Registers the provided {@code formatter} with the given {@code formatterName}.
+     *
+     * @param formatterName the name of the formatter
+     * @param formatter     the {@link Formatter} to register
+     */
+    public void registerFormatter(String formatterName, Formatter formatter) {
+        if (formatters.containsKey(formatterName)) {
+            Log.warn("A formatter is already registered with the name {0}, erasing it", formatterName);
+        }
+        formatters.put(formatterName, formatter);
+    }
+
+    /**
+     * Returns the {@link Formatter} associated to the provided {@code formatterName}.
+     *
+     * @param formatterName the name of the {@link Formatter} to retrieve
+     * @return the {@link Formatter}
+     * @throws XatkitException if there is no {@link Formatter} associated to the provided {@code formatterName}.
+     */
+    public Formatter getFormatter(String formatterName) {
+        Formatter formatter = formatters.get(formatterName);
+        if (nonNull(formatter)) {
+            return formatter;
+        } else {
+            throw new XatkitException(MessageFormat.format("Cannot find formatter {0}", formatterName));
+        }
+    }
+
+    /**
      * <p>
      * A react bot uses (not exclusively) the {@link ReactPlatform} in its execution model. This method is used to
      * deploy a web-page with the bot that can be used to test the modeled bot through its React actions and events.

@@ -68,8 +68,16 @@
   <actions name="ItemizeList">
     <parameters key="list"/>
   </actions>
+  <actions name="ItemizeList">
+    <parameters key="list"/>
+    <parameters key="formatter"/>
+  </actions>
   <actions name="EnumerateList">
     <parameters key="list"/>
+  </actions>
+  <actions name="EnumerateList">
+    <parameters key="list"/>
+    <parameters key="formatter"/>
   </actions>
   <actions name="PostMessage">
     <parameters key="message"/>

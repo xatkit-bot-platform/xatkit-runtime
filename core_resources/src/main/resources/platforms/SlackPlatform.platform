@@ -28,5 +28,7 @@ actions {
 	// Formatting actions
 	// These actions do not perform operations on the Slack API, but return Strings that can be displayed as messages.
 	ItemizeList(list)
+	ItemizeList(list, formatter)
 	EnumerateList(list)
+	EnumerateList(list, formatter)
 }
