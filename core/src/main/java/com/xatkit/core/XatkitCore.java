@@ -31,7 +31,6 @@ import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.platform.PlatformPackage;
-import com.xatkit.plugins.react.platform.ReactPlatform;
 import com.xatkit.util.EMFUtils;
 import com.xatkit.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
@@ -240,7 +239,7 @@ public class XatkitCore {
             Log.info("Xatkit bot started");
             if (this.isReactBot()) {
                 Log.info("You can test your chatbot here {0} (note that the bot's behavior can be slightly " +
-                        "different on the test page than when it is deployed on a server)","http://localhost:" +
+                        "different on the test page than when it is deployed on a server)", "http://localhost:" +
                         this.xatkitServer.getPort() + "/admin");
             }
         } catch (Throwable t) {
@@ -281,17 +280,22 @@ public class XatkitCore {
     }
 
     /**
+     * Returns whether the bot uses the React platform.
      * <p>
-     * A react bot uses (not exclusively) the {@link ReactPlatform} in its execution model. This method is used to
+     * A react bot uses (not exclusively) the {@code ReactPlatform} in its execution model. This method is used to
      * deploy a web-page with the bot that can be used to test the modeled bot through its React actions and events.
      * This means that bots using multiple ChatPlatform as their input may work differently on the test page and when
      * deployed.
      *
-     * @return {@code true} if the modeled bot uses the {@link ReactPlatform}, {@code false} otherwise
+     * @return {@code true} if the modeled bot uses the React platform, {@code false} otherwise
      */
     private boolean isReactBot() {
         for (RuntimePlatform runtimePlatform : this.runtimePlatformRegistry.getRuntimePlatforms()) {
-            if (runtimePlatform instanceof ReactPlatform) {
+            /*
+             * Check the name instead of the type because ReactPlatform is not part of the main project anymore.
+             * TODO this method should be moved in the <i>react-platform</i> project
+             */
+            if (runtimePlatform.getName().equals("ReactPlatform")) {
                 return true;
             }
             /*
