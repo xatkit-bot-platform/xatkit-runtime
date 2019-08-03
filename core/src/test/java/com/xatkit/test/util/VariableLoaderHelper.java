@@ -27,8 +27,6 @@ public class VariableLoaderHelper {
 
     private static String XATKIT_DIALOGFLOW_CREDENTIALS_PATH = "XATKIT_DIALOGFLOW_CREDENTIALS_PATH";
 
-    private static String XATKIT_SLACK_TOKEN_KEY = "XATKIT_SLACK_TOKEN";
-
     private static String XATKIT_DISCORD_TOKEN = "XATKIT_DISCORD_TOKEN";
 
     public static String getXatkitDialogFlowProject() {
@@ -43,15 +41,11 @@ public class VariableLoaderHelper {
         return getVariable(XATKIT_DIALOGFLOW_CREDENTIALS_PATH);
     }
 
-    public static String getXatkitSlackToken() {
-        return getVariable(XATKIT_SLACK_TOKEN_KEY);
-    }
-
     public static String getXatkitDiscordToken() {
         return getVariable(XATKIT_DISCORD_TOKEN);
     }
 
-    private static String getVariable(String key) {
+    public static String getVariable(String key) {
         String token = System.getenv(key);
         if (isNull(token) || token.isEmpty()) {
             Log.debug("Cannot retrieve Xatkit variable {0} from the environment variables, using local file {1} ",
