@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="ASCII"?>
-<platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="com.xatkit.platform" name="GiphyPlatform" runtimePath="com.xatkit.plugins.giphy.platform.GiphyPlatform">
-  <actions name="GetGif">
-    <parameters key="search"/>
-  </actions>
-</platform:PlatformDefinition>
