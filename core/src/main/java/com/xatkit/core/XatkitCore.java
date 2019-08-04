@@ -639,8 +639,8 @@ public class XatkitCore {
      */
     private void loadCorePlatforms() {
         Log.info("Loading Xatkit core platforms");
-        Path platformsPath = getPath("platforms/xmi/");
-        loadCoreResources(platformsPath, PlatformLoaderUtils.CORE_PLATFORM_PATHMAP, PlatformDefinition.class);
+//        Path platformsPath = getPath("platforms/xmi/");
+//        loadCoreResources(platformsPath, PlatformLoaderUtils.CORE_PLATFORM_PATHMAP, PlatformDefinition.class);
     }
 
     /**
