@@ -385,10 +385,6 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         URI corePlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "CorePlatform.xmi");
         assertThat(xatkitCore.executionResourceSet.getResource(corePlatformPathmapURI, false)).as("CorePlatform " +
                 "pathmap resolved").isNotNull();
-        URI discordPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "DiscordPlatform" +
-                ".xmi");
-        assertThat(xatkitCore.executionResourceSet.getResource(discordPlatformPathmapURI, false)).as("DiscordPlatform" +
-                " pathmap resolved").isNotNull();
         URI logPlatformPathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + "LogPlatform.xmi");
         assertThat(xatkitCore.executionResourceSet.getResource(logPlatformPathmapURI, false)).as("LogPlatform " +
                 "pathmap resolved").isNotNull();

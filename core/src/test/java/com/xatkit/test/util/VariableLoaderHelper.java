@@ -27,8 +27,6 @@ public class VariableLoaderHelper {
 
     private static String XATKIT_DIALOGFLOW_CREDENTIALS_PATH = "XATKIT_DIALOGFLOW_CREDENTIALS_PATH";
 
-    private static String XATKIT_DISCORD_TOKEN = "XATKIT_DISCORD_TOKEN";
-
     public static String getXatkitDialogFlowProject() {
         return getVariable(XATKIT_DIALOGFLOW_PROJECT);
     }
@@ -39,10 +37,6 @@ public class VariableLoaderHelper {
 
     public static String getXatkitDialogflowCredentialsPath() {
         return getVariable(XATKIT_DIALOGFLOW_CREDENTIALS_PATH);
-    }
-
-    public static String getXatkitDiscordToken() {
-        return getVariable(XATKIT_DISCORD_TOKEN);
     }
 
     public static String getVariable(String key) {
