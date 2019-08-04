@@ -3,6 +3,11 @@ sudo: false
 dist: trusty
 language: java
 jdk: oraclejdk8
+
+cache:
+  directories:
+    - '~/.m2/repository'
+
 script:
 - mvn -B jacoco:prepare-agent test jacoco:report jacoco:report-aggregate
 after_success:
