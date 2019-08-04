@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="ASCII"?>
-<platform:PlatformDefinition xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:platform="com.xatkit.platform" name="CorePlatform" runtimePath="com.xatkit.plugins.core.platform.CorePlatform">
-  <actions name="GetTime"/>
-  <actions name="GetDate"/>
-  <actions name="Random">
-    <parameters key="bound"/>
-  </actions>
-</platform:PlatformDefinition>

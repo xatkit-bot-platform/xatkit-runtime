@@ -1,9 +1,0 @@
-Platform CorePlatform
-
-path "com.xatkit.plugins.core.platform.CorePlatform"
-
-actions {
-	GetTime
-	GetDate
-	Random(bound)
-}
