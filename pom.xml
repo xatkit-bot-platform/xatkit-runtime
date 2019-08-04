@@ -44,6 +44,7 @@
         <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <maven-compiler-plugin.version>3.6.0</maven-compiler-plugin.version>
+        <maven-help-plugin.version>3.2.0</maven-help-plugin.version>
         <!-- Used in the Javadoc profile -->
         <commons-configuration.version>2.2</commons-configuration.version>
     </properties>
@@ -306,8 +307,34 @@
                     <version>${maven-compiler-plugin.version}</version>
                 </plugin>
 
+                <!-- display active profile in compile phase -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-help-plugin</artifactId>
+                    <version>${maven-help-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>show-profiles</id>
+                            <phase>compile</phase>
+                            <goals>
+                                <goal>active-profiles</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
             </plugins>
         </pluginManagement>
+
+        <plugins>
+
+            <!-- display active profile in compile phase -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+            </plugin>
+
+        </plugins>
     </build>
 
     <profiles>

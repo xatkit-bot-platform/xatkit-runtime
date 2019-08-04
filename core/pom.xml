@@ -231,23 +231,29 @@
 
     </dependencyManagement>
 
-    <build>
-        <plugins>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.xatkit.Xatkit</mainClass>
-                        </manifest>
-                    </archive>
-                    <finalName>xatkit-nodep</finalName>
-                </configuration>
-            </plugin>
+    <profiles>
+        <profile>
+            <id>build-product</id>
+            <build>
+                <plugins>
 
-        </plugins>
-    </build>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.xatkit.Xatkit</mainClass>
+                                </manifest>
+                            </archive>
+                            <finalName>xatkit-nodep</finalName>
+                        </configuration>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
