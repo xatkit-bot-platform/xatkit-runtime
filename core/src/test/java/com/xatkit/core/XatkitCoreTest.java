@@ -3,8 +3,6 @@ package com.xatkit.core;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.recognition.DefaultIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
-import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
-import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core_resources.utils.LibraryLoaderUtils;
 import com.xatkit.core_resources.utils.PlatformLoaderUtils;
@@ -78,7 +76,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     }
 
     public static Configuration buildConfiguration(Object executionModel) {
-        Configuration configuration = DialogFlowApiTest.buildConfiguration();
+        Configuration configuration = new BaseConfiguration();
         configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, executionModel);
         configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
         return configuration;
@@ -368,14 +366,11 @@ public class XatkitCoreTest extends AbstractXatkitTest {
          * a NullPointerException in the following assertions.
          */
         assertThat(xatkitCore.getIntentRecognitionProvider()).as("Not null IntentRecognitionProvider").isNotNull();
+        /*
+         * The provider should be the default one, any other provider is tested in its own class.
+         */
         assertThat(xatkitCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a " +
-                "DialogFlowApi " +
-                "instance").isInstanceOf(DialogFlowApi.class);
-        DialogFlowApi dialogFlowApi = (DialogFlowApi) xatkitCore.getIntentRecognitionProvider();
-        softly.assertThat(dialogFlowApi.getProjectId()).as("Valid DialogFlowAPI project ID").isEqualTo
-                (DialogFlowApiTest.VALID_PROJECT_ID);
-        softly.assertThat(dialogFlowApi.getLanguageCode()).as("Valid DialogFlowAPI language code").isEqualTo
-                (DialogFlowApiTest.VALID_LANGUAGE_CODE);
+                "DefaultIntentRecognitionProvider instance").isInstanceOf(DefaultIntentRecognitionProvider.class);
         assertThat(xatkitCore.getExecutionService().getExecutionModel()).as("Not null ExecutionModel")
                 .isNotNull();
         softly.assertThat(xatkitCore.getExecutionService().getExecutionModel()).as("Valid " +
