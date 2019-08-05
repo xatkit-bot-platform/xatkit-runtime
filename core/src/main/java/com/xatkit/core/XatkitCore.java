@@ -639,8 +639,42 @@ public class XatkitCore {
      */
     private void loadCorePlatforms() {
         Log.info("Loading Xatkit core platforms");
-//        Path platformsPath = getPath("platforms/xmi/");
-//        loadCoreResources(platformsPath, PlatformLoaderUtils.CORE_PLATFORM_PATHMAP, PlatformDefinition.class);
+        String xatkitPath = System.getenv("XATKIT");
+        if(isNull(xatkitPath) || xatkitPath.isEmpty()) {
+            Log.warn("XATKIT environment variable not set, no core platforms to import. If this is not expected set " +
+                    "the XATKIT environment variable to your Xatkit installation directory");
+            return;
+        }
+        try {
+            Files.walk(Paths.get(xatkitPath + "plugins" + File.separator + "platforms"), Integer.MAX_VALUE)
+                .filter(filePath ->
+                        !Files.isDirectory(filePath) && filePath.toString().endsWith(".xmi")
+                ).forEach(resourcePath -> {
+                    try {
+                        InputStream is = Files.newInputStream(resourcePath);
+                        URI resourceURI = URI.createURI(resourcePath.getFileName().toString());
+                        URI resourcePathmapURI = URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + resourcePath.getFileName());
+                        executionResourceSet.getURIConverter().getURIMap().put(resourcePathmapURI, resourceURI);
+                        Resource resource = executionResourceSet.createResource(resourcePathmapURI);
+                        resource.load(is, Collections.emptyMap());
+                        /*
+                         * Check that the top level element in the resource is an instance of the provided
+                         * topLevelElementType.
+                         */
+                        PlatformDefinition platformDefinition = (PlatformDefinition) resource.getContents().get(0);
+                        is.close();
+                        Log.info("\t{0} loaded", EMFUtils.getName(platformDefinition));
+                        Log.debug("\tPath: {0}", resourcePath);
+                    } catch (IOException e) {
+                        throw new XatkitException(MessageFormat.format("An error occurred when loading the {0}, see " +
+                                "attached exception", resourcePath), e);
+                    }
+
+                });
+        } catch (IOException e) {
+            throw new XatkitException(MessageFormat.format("An error occurred when crawling the core {0} at the " +
+                    "location {1}, see attached exception", PlatformDefinition.class.getSimpleName(), xatkitPath), e);
+        }
     }
 
     /**
