@@ -616,9 +616,15 @@ public class ImportRegistry {
 	 */
 	private void loadXatkitCorePlatforms() throws IOException, URISyntaxException {
 		incrementLoadCalls();
-		Path platformPath = getCoreResourcesPath("platforms/xmi/");
-		System.out.println(MessageFormat.format("Crawling platforms in {0}", platformPath));
-		Files.walk(platformPath, 1).filter(filePath -> !Files.isDirectory(filePath)).forEach(modelPath -> {
+		String xatkitPath = System.getenv("XATKIT");
+		if(isNull(xatkitPath) || xatkitPath.isEmpty()) {
+			System.out.println("XATKIT environment variable not set, no core platforms to import");
+			return;
+		}
+		Files.walk(Paths.get(xatkitPath + "plugins" + File.separator + "platforms"), Integer.MAX_VALUE)
+			.filter(filePath -> 
+				!Files.isDirectory(filePath) && filePath.toString().endsWith(".xmi")
+		).forEach(modelPath -> {
 			try {
 				InputStream is = Files.newInputStream(modelPath);
 				rSet.getURIConverter().getURIMap().put(
