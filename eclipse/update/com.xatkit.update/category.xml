@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<site>
-   <feature url="features/com.xatkit.feature_2.0.0.qualifier.jar" id="com.xatkit.feature" version="2.0.0.qualifier">
-      <category name="Xatkit"/>
-   </feature>
-   <category-def name="Xatkit" label="Xatkit"/>
-</site>
