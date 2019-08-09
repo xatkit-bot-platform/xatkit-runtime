@@ -645,8 +645,13 @@ public class XatkitCore {
                     "the XATKIT environment variable to your Xatkit installation directory");
             return;
         }
+        /*
+         * Wrap in a File to uniformize trailing '/' between Windows and Linux.
+         */
+        File xatkitFile = new File(xatkitPath);
         try {
-            Files.walk(Paths.get(xatkitPath + "plugins" + File.separator + "platforms"), Integer.MAX_VALUE)
+            Files.walk(Paths.get(xatkitFile.getAbsolutePath() + File.separator + "plugins" + File.separator + "platforms"),
+                    Integer.MAX_VALUE)
                 .filter(filePath ->
                         !Files.isDirectory(filePath) && filePath.toString().endsWith(".xmi")
                 ).forEach(resourcePath -> {
