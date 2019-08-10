@@ -2,4 +2,4 @@ exclude:
 - /.util/.*
 - /core_resources/.*
 - /metamodels/.*
-component_depth: 9
+component_depth: 8
