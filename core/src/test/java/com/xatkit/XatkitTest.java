@@ -1,45 +1,19 @@
 package com.xatkit;
 
-import com.xatkit.core.XatkitCore;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.test.appender.ListAppender;
+import com.xatkit.util.XatkitEnvironmentConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.text.MessageFormat;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class XatkitTest extends AbstractXatkitTest {
 
-    private static String EXECUTION_MODEL_LOADING_MESSAGE = MessageFormat.format("Cannot retrieve the ExecutionModel " +
-            "from the property null, please ensure it is set in the {0} property of the Xatkit configuration",
-            XatkitCore.EXECUTION_MODEL_KEY);
-
-    private static final String ERROR_PREFIX = "[ERROR]";
-
-    protected ListAppender listAppender;
-
-    @Before
-    public void setUp() throws InterruptedException {
-        LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
-        listAppender = loggerContext.getConfiguration().getAppender("List");
-        /*
-         * Clear before the test, this logger is used by all the test cases and may contain messages before the first
-         * test of this class. We also need to wait in case some messages are pending in the logger.
-         */
-        Thread.sleep(200);
-        listAppender.clear();
-    }
-
     @After
     public void tearDown() {
-        listAppender.clear();
         if (nonNull(Xatkit.getXatkitCore()) && !Xatkit.getXatkitCore().isShutdown()) {
             Xatkit.getXatkitCore().shutdown();
         }
@@ -48,57 +22,40 @@ public class XatkitTest extends AbstractXatkitTest {
     @Test
     public void mainNullArgs() {
         Xatkit.main(null);
-        assertThat(getLastMessage()).as("Logger message is an error").contains(ERROR_PREFIX);
-        /*
-         * Do not check the content, it may change later and the important point is to ensure we log an error
-         */
+        assertThat(Xatkit.getConfiguration()).as("Using XatkitEnvironmentConfiguration")
+                .isInstanceOf(XatkitEnvironmentConfiguration.class);
     }
 
     @Test
     public void mainEmptyArgs() {
         Xatkit.main(new String[0]);
-        assertThat(getLastMessage()).as("Logger message is an error").contains(ERROR_PREFIX);
+        assertThat(Xatkit.getConfiguration()).as("Using XatkitEnvironmentConfiguration")
+                .isInstanceOf(XatkitEnvironmentConfiguration.class);
     }
 
     @Test
     public void mainInvalidConfigurationPath() {
-        String[] args = {"/test"};
-        Xatkit.main(args);
-        assertThat(getLastMessage()).as("Logger message is an error").contains(ERROR_PREFIX);
-
+        Xatkit.main(new String[]{"/test"});
+        assertThat(Xatkit.getConfiguration()).as("Configuration not loaded").isNull();
     }
 
     @Test
     public void mainValidRelativePath() {
-        String[] args = {"src/test/resources/empty-configuration.properties"};
-        assertThatThrownBy(() -> Xatkit.main(args)).isInstanceOf(NullPointerException.class)
-                .hasMessage(EXECUTION_MODEL_LOADING_MESSAGE);
+        Xatkit.main(new String[]{"src/test/resources/empty-configuration.properties"});
+        assertThat(Xatkit.getConfiguration()).as("Configuration loaded").isInstanceOf(PropertiesConfiguration.class);
     }
 
     @Test
     public void mainValidRelativePathFolderPrefix() {
-        String[] args = {"./src/test/resources/empty-configuration.properties"};
-        assertThatThrownBy(() -> Xatkit.main(args)).isInstanceOf(NullPointerException.class)
-                .hasMessage(EXECUTION_MODEL_LOADING_MESSAGE);
+        Xatkit.main(new String[]{"./src/test/resources/empty-configuration.properties"});
+        assertThat(Xatkit.getConfiguration()).as("Configuration loaded").isInstanceOf(PropertiesConfiguration.class);
     }
 
     @Test
     public void mainValidAbsolutePath() {
         File f = new File("/src/test/resources/empty-configuration.properties");
-        assertThatThrownBy(() -> Xatkit.main(new String[]{f.getAbsolutePath()})).isInstanceOf(NullPointerException.class)
-                .hasMessage(EXECUTION_MODEL_LOADING_MESSAGE);
-    }
-
-    private String getLastMessage() {
-        /*
-         * Wait before looking at the messages, they are asynchronously sent to the logger.
-         */
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return listAppender.getMessages().get(listAppender.getMessages().size() - 1);
+        Xatkit.main(new String[]{f.getAbsolutePath()});
+        assertThat(Xatkit.getConfiguration()).as("Configuration loaded").isInstanceOf(PropertiesConfiguration.class);
     }
 
     /*

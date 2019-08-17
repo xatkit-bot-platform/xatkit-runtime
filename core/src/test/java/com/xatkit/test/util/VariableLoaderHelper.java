@@ -1,10 +1,13 @@
 package com.xatkit.test.util;
 
-import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.text.MessageFormat;
 
@@ -40,31 +43,25 @@ public class VariableLoaderHelper {
     }
 
     public static String getVariable(String key) {
-        String token = System.getenv(key);
-        if (isNull(token) || token.isEmpty()) {
-            Log.debug("Cannot retrieve Xatkit variable {0} from the environment variables, using local file {1} ",
-                    key, LOCAL_FILE_PATH);
-            URL resource = VariableLoaderHelper.class.getClassLoader().getResource(LOCAL_FILE_PATH);
-            if (isNull(resource)) {
-                throw new RuntimeException(MessageFormat.format("Cannot retrieve Xatkit bot variables from local " +
-                        "file: the file {0} does not exist", LOCAL_FILE_PATH));
-            }
-            String fileString = resource.getFile();
-            FileInputStream fileInputStream;
-            try {
-                fileInputStream = new FileInputStream(fileString);
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            Reader reader = new InputStreamReader(fileInputStream);
-            PropertiesConfiguration configuration = new PropertiesConfiguration();
-            try {
-                configuration.read(reader);
-            } catch (ConfigurationException | IOException e) {
-                throw new RuntimeException(e);
-            }
-            return configuration.getString(key);
+        URL resource = VariableLoaderHelper.class.getClassLoader().getResource(LOCAL_FILE_PATH);
+        if (isNull(resource)) {
+            throw new RuntimeException(MessageFormat.format("Cannot retrieve Xatkit bot variables from local " +
+                    "file: the file {0} does not exist", LOCAL_FILE_PATH));
         }
-        return token;
+        String fileString = resource.getFile();
+        FileInputStream fileInputStream;
+        try {
+            fileInputStream = new FileInputStream(fileString);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        Reader reader = new InputStreamReader(fileInputStream);
+        PropertiesConfiguration configuration = new PropertiesConfiguration();
+        try {
+            configuration.read(reader);
+        } catch (ConfigurationException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return configuration.getString(key);
     }
 }
