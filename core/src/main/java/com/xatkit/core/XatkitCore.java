@@ -745,8 +745,17 @@ public class XatkitCore {
     private void loadCustomLibraries() {
         Log.info("Loading Xatkit custom libraries");
         configuration.getKeys().forEachRemaining(key -> {
-            if (key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX)) {
+            /*
+             * Also accept upper case with '.' replaced by '_', this is the case when running Xatkit from environment
+             * variables.
+             */
+            if (key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX)
+                    || key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX.toUpperCase().replaceAll("\\.", "_"))) {
                 String libraryPath = configuration.getString(key);
+                /*
+                 * This works with XatkitEnvironmentConfiguration because the key length is preserved.
+                 * TODO find a better fix
+                 */
                 String libraryName = key.substring(CUSTOM_LIBRARIES_KEY_PREFIX.length());
                 URI pathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + libraryName);
                 loadCustomResource(libraryPath, pathmapURI, Library.class);
@@ -766,8 +775,17 @@ public class XatkitCore {
     private void loadCustomPlatforms() {
         Log.info("Loading Xatkit custom platforms");
         configuration.getKeys().forEachRemaining(key -> {
-            if (key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)) {
+            /*
+             * Also accept upper case with '.' replaced by '_', this is the case when running Xatkit from environment
+             * variables.
+             */
+            if(key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)
+                || key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX.toUpperCase().replaceAll("\\.", "_"))) {
                 String platformPath = configuration.getString(key);
+                /*
+                 * This works with XatkitEnvironmentConfiguration because the key length is preserved.
+                 * TODO find a better fix
+                 */
                 String platformName = key.substring(CUSTOM_PLATFORMS_KEY_PREFIX.length());
                 URI pathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + platformName);
                 loadCustomResource(platformPath, pathmapURI, PlatformDefinition.class);
