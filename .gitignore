@@ -34,9 +34,8 @@ target
 .settings
 
 # Google App
-jarvis-secret.json
-jarvis-test2-secret.json
-jarvis-secrets.tar
+xatkit-secret.json
+xatkit-secrets.tar
 gmail_secret.json
 credentials
 
