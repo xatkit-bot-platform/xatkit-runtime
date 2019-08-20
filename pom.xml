@@ -58,6 +58,16 @@
 
     <developers>
         <developer>
+            <name>Jordi CABOT</name>
+            <id>jordi.cabot</id>
+            <email>jordi.cabot@icrea.cat</email>
+            <roles>
+                <role>admin</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+2</timezone>
+        </developer>
+        <developer>
             <name>Gwendal DANIEL</name>
             <id>gwendal.daniel</id>
             <email>gwendal.daniel@gmail.com</email>
