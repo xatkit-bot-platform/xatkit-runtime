@@ -171,8 +171,9 @@ class HttpHandler implements HttpRequestHandler {
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
                 StringBuilder contentBuilder = new StringBuilder();
-                while (reader.ready()) {
-                    contentBuilder.append(reader.readLine());
+                String currentLine;
+                while (nonNull(currentLine = reader.readLine())) {
+                    contentBuilder.append(currentLine);
                 }
                 String content = contentBuilder.toString();
                 if (content.isEmpty()) {
