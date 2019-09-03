@@ -102,4 +102,5 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
     public void close() {
 
     }
+
 }
