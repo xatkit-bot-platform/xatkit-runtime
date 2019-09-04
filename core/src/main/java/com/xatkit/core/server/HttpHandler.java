@@ -192,14 +192,8 @@ class HttpHandler implements HttpRequestHandler {
                 // WARNING: this is probably wrong: the target can probably contain also the parameters. If this is
                 // true we need to build a new URI(target) and retrieve the raw query
                 if (this.xatkitServer.isRestEndpoint(target)) {
-                    RestHandler handler = this.xatkitServer.getRegisteredRestHandler(target);
-                    accessControlAllowHeaders.addAll(handler.getAccessControlAllowHeaders());
-                    JsonElement jsonContent = null;
-                    if (!content.isEmpty()) {
-                        jsonContent = parser.parse(content);
-                    }
                     Object result = xatkitServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
-                            jsonContent, contentType);
+                            content, contentType);
                     if (nonNull(result)) {
                         HttpEntity resultEntity = HttpEntityHelper.createHttpEntity(result);
                         response.setEntity(resultEntity);
@@ -213,6 +207,9 @@ class HttpHandler implements HttpRequestHandler {
             }
         }
         response.setHeader(CORS_HEADER, CORS_VALUE);
+        for(RestHandler handler : xatkitServer.getRegisteredRestHandlers()) {
+            accessControlAllowHeaders.addAll(handler.getAccessControlAllowHeaders());
+        }
         String stringAccessControlAllowHeaders = String.join(",", accessControlAllowHeaders);
         response.setHeader(ACCESS_CONTROL_ALLOW_HEADERS, stringAccessControlAllowHeaders);
         response.setStatusCode(HttpStatus.SC_OK);
