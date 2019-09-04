@@ -219,10 +219,10 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         xatkitCore = new XatkitCore(buildConfiguration(executionModel));
         checkXatkitCore(xatkitCore, executionModel);
-        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders()).as("Server " +
-                "WebhookEventProvider collection is not empty").isNotEmpty();
-        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders().iterator().next()).as("Valid " +
-                "registered WebhookEventProvider").isInstanceOf(StubJsonWebhookEventProvider.class);
+        assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers()).as("Server RestHandler collection is not" +
+                " empty").isNotEmpty();
+        assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers().iterator().next()).as("Valid " +
+                "registered RestHandler").isEqualTo(StubJsonWebhookEventProvider.handler);
     }
 
     @Test

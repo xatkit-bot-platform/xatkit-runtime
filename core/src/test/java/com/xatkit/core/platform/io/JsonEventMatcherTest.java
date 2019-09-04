@@ -5,7 +5,13 @@ import com.google.gson.JsonObject;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitException;
-import com.xatkit.intent.*;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.ContextParameterValue;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.IntentFactory;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
@@ -15,6 +21,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +35,7 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
 
     private static String validEventTypeName = "EventName";
 
-    private static Header[] validHeaders;
+    private static List<Header> validHeaders;
 
     private static JsonElement validPayload;
 
@@ -48,8 +56,8 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
         JsonObject innerObject = new JsonObject();
         innerObject.addProperty("inner-field", "inner-value");
         ((JsonObject) validPayload).add("top-level", innerObject);
-        validHeaders = new Header[1];
-        validHeaders[0] = new BasicHeader(validHeaderValue.getKey(), validHeaderValue.getValue());
+        validHeaders = new ArrayList<>();
+        validHeaders.add(new BasicHeader(validHeaderValue.getKey(), validHeaderValue.getValue()));
         eventRegistry = new EventDefinitionRegistry();
         validEventDefinition = IntentFactory.eINSTANCE.createEventDefinition();
         validEventDefinition.setName(validEventTypeName);

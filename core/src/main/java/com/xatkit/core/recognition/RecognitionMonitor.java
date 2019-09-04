@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.intent.IntentDefinition;
 import fr.inria.atlanmod.commons.log.Log;
@@ -165,7 +166,7 @@ public class RecognitionMonitor {
      */
     private void registerUnmatchedEndpoint(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint("/analytics/unmatched",
-                (headers, param, content) -> {
+                RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
                     JsonObject result = new JsonObject();
                     JsonArray array = new JsonArray();
                     result.add("inputs", array);
@@ -173,7 +174,7 @@ public class RecognitionMonitor {
                         array.add(new JsonPrimitive(unmatchedInput));
                     }
                     return result;
-                });
+                }));
     }
 
     /**
@@ -211,7 +212,7 @@ public class RecognitionMonitor {
      */
     private void registerMatchedEndpoint(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint("/analytics/matched",
-                (headers, param, content) -> {
+                RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
                     JsonObject result = new JsonObject();
                     JsonArray array = new JsonArray();
                     result.add("intents", array);
@@ -232,7 +233,7 @@ public class RecognitionMonitor {
                     Gson gson = new GsonBuilder().setPrettyPrinting().create();
                     Log.info(gson.toJson(result));
                     return result;
-                });
+                }));
     }
 
     /**

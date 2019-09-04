@@ -1,22 +1,37 @@
 package com.xatkit.stubs.io;
 
-import com.google.gson.JsonElement;
-import com.xatkit.core.platform.io.JsonWebhookEventProvider;
+import com.xatkit.core.platform.io.WebhookEventProvider;
+import com.xatkit.core.server.JsonRestHandler;
+import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.stubs.EmptyRuntimePlatform;
-import org.apache.http.Header;
 
-public class StubJsonWebhookEventProvider extends JsonWebhookEventProvider<EmptyRuntimePlatform> {
+public class StubJsonWebhookEventProvider extends WebhookEventProvider<EmptyRuntimePlatform, JsonRestHandler> {
 
-    private boolean eventReceived;
+    private static boolean eventReceived;
+
+    /**
+     * Use a public static handler to ease testing (the handler can be quickly compared to the registered ones from
+     * {@link com.xatkit.core.server.XatkitServer}.
+     */
+    public static JsonRestHandler handler =
+            RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
+                eventReceived = true;
+                return null;
+            });
 
     public StubJsonWebhookEventProvider(EmptyRuntimePlatform runtimePlatform) {
         super(runtimePlatform);
-        this.eventReceived = false;
+        eventReceived = false;
     }
 
     @Override
-    protected void handleParsedContent(JsonElement parsedContent, Header[] headers) {
-        eventReceived = true;
+    public String getEndpointURI() {
+        return "/stubJsonProvider";
+    }
+
+    @Override
+    protected JsonRestHandler createRestHandler() {
+        return handler;
     }
 
     @Override

@@ -19,10 +19,8 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -74,22 +72,14 @@ public class XatkitServer {
     private int port;
 
     /**
-     * The {@link WebhookEventProvider}s to notify when a request is received.
-     * <p>
-     * These {@link WebhookEventProvider}s are used to parse the input requests and create the corresponding
-     * {@link com.xatkit.intent.EventInstance}s that can be used to trigger actions.
-     */
-    private Set<WebhookEventProvider> webhookEventProviders;
-
-    /**
      * Stores the REST endpoint to notify when a request is received.
      * <p>
-     * This {@link Map} maps an URI (e.g. {@code /myEndpoint}) to a {@link JsonRestHandler} that takes care of the
+     * This {@link Map} maps an URI (e.g. {@code /myEndpoint}) to a {@link RestHandler} that takes care of the
      * REST service computation.
      *
-     * @see #notifyRestHandler(String, List, List, JsonElement)
+     * @see #notifyRestHandler(String, List, List, Object, String)
      */
-    private Map<String, JsonRestHandler> restEndpoints;
+    private Map<String, RestHandler> restEndpoints;
 
     /**
      * Constructs a new {@link XatkitServer} with the given {@link Configuration}.
@@ -113,7 +103,6 @@ public class XatkitServer {
         this.isStarted = false;
         this.port = configuration.getInt(SERVER_PORT_KEY, DEFAULT_SERVER_PORT);
         Log.info("{0} listening to port {1}", this.getClass().getSimpleName(), port);
-        webhookEventProviders = new HashSet<>();
         this.restEndpoints = new HashMap<>();
         SocketConfig socketConfig = SocketConfig.custom()
                 .setSoTimeout(15000)
@@ -213,7 +202,7 @@ public class XatkitServer {
      * Registers the provided {@code handler} as a REST endpoint for the provided {@code uri}.
      * <p>
      * The provided {@code handler} will receive the HTTP requests that are sent to the provided {@code uri} through
-     * the {@link #notifyRestHandler(String, List, List, JsonElement)} method.
+     * the {@link #notifyRestHandler(String, List, List, Object, String)} method.
      * <p>
      * <b>Note</b>: the provided {@code uri} must start with a leading {@code /}.
      *
@@ -222,7 +211,7 @@ public class XatkitServer {
      * @throws NullPointerException     if the provided {@code uri} or {@code handler} is {@code null}
      * @throws IllegalArgumentException if the provided {@code uri} does not start with a leading {@code /}
      */
-    public void registerRestEndpoint(String uri, JsonRestHandler handler) {
+    public void registerRestEndpoint(String uri, RestHandler handler) {
         checkNotNull(uri, "Cannot register a REST endpoint for the provided URI %s", uri);
         checkArgument(uri.startsWith("/"), "Cannot register a REST endpoint for the provided URI %s, the URI must " +
                 "start with a \"/\"", uri);
@@ -246,48 +235,82 @@ public class XatkitServer {
     }
 
     /**
+     * Returns the {@link RestHandler} associated to the provided {@code uri}.
+     *
+     * @param uri the URI to retrieve the handler for
+     * @return the retrieved {@link RestHandler} if it exists, {@code null} otherwise
+     */
+    public @Nullable
+    RestHandler getRegisteredRestHandler(String uri) {
+        return this.restEndpoints.get(uri);
+    }
+
+    /**
+     * Returns a {@link Collection} containing the registered {@link RestHandler}s.
+     *
+     * @return a {@link Collection} containing the registered {@link RestHandler}s
+     */
+    public Collection<RestHandler> getRegisteredRestHandlers() {
+        return Collections.unmodifiableCollection(this.restEndpoints.values());
+    }
+
+    /**
+     * Clears the registered {@link RestHandler}s.
+     * <p>
+     * This method only removes the {@code uri -> handler} bindings, and does not ensure the the {@link RestHandler}s
+     * have been properly stopped.
+     */
+    public void clearRegisteredRestHandlers() {
+        this.restEndpoints.clear();
+    }
+
+    /**
      * Notifies the REST endpoint associated with the provided {@code uri}.
      *
      * @param uri     the URI of the REST endpoint to notify
-     * @param header  the HTTP {@link Header}s of the request sent to the endpoint
+     * @param headers the HTTP {@link Header}s of the request sent to the endpoint
      * @param params  the HTTP parameters of the request sent to the endpoint
      * @param content the {@link JsonElement} representing the content of the request sent to the endpoint
      * @return the {@link JsonElement} returned by the endpoint, or {@code null} if the endpoint does not return
      * anything
      * @throws NullPointerException if the provided {@code uri}, {@code header}, or {@code params} is {@code null}
      * @throws XatkitException      if there is no REST endpoint registered for the provided {@code uri}
-     * @see #registerRestEndpoint(String, JsonRestHandler)
+     * @see #registerRestEndpoint(String, RestHandler)
      */
-    public JsonElement notifyRestHandler(String uri, List<Header> header, List<NameValuePair> params,
-                                         @Nullable JsonElement content) {
+    public Object notifyRestHandler(String uri, List<Header> headers, List<NameValuePair> params,
+                                    @Nullable Object content, String contentType) {
         checkNotNull(uri, "Cannot notify the REST endpoint %s, please provide a non-null URI", uri);
-        checkNotNull(header, "Cannot notify the REST endpoint %s, the headers list is null", uri);
+        checkNotNull(headers, "Cannot notify the REST endpoint %s, the headers list is null", uri);
         checkNotNull(params, "Cannot notify the REST endpoint %s, the parameters list is null", uri);
-        JsonRestHandler handler = this.restEndpoints.get(uri);
+        RestHandler handler = this.restEndpoints.get(uri);
         if (isNull(handler)) {
             throw new XatkitException(MessageFormat.format("Cannot notify the REST endpoint {0}, there is no handler " +
                     "registered for this URI", uri));
         }
-        return handler.handle(header, params, content);
+        if (handler.acceptContentType(contentType)) {
+            return handler.handleContent(headers, params, content);
+        } else {
+            return null;
+        }
     }
 
     /**
      * Register a {@link WebhookEventProvider}.
      * <p>
-     * The registered {@code webhookEventProvider} will be notified when a new request is received. If the provider
-     * supports the request content type (see {@link WebhookEventProvider#acceptContentType(String)}, it will receive
-     * the request content that will be used to create the associated {@link com.xatkit.intent.EventInstance}.
+     * The registered {@code webhookEventProvider}'s handler will be notified when a new request is received. If the
+     * provider's handler supports the request content type (see {@link RestHandler#acceptContentType(String)}, it will
+     * receive the request content that will be used to create the associated {@link com.xatkit.intent.EventInstance}.
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to register
      * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
-     * @see #notifyWebhookEventProviders(String, Object, Header[])
-     * @see WebhookEventProvider#acceptContentType(String)
-     * @see WebhookEventProvider#handleContent(Object, Header[])
+     * @see #notifyRestHandler(String, List, List, Object, String)
+     * @see RestHandler#acceptContentType(String)
+     * @see RestHandler#handleContent(List, List, Object)
      */
     public void registerWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
         checkNotNull(webhookEventProvider, "Cannot register the provided %s: %s", WebhookEventProvider.class
                 .getSimpleName(), webhookEventProvider);
-        this.webhookEventProviders.add(webhookEventProvider);
+        this.restEndpoints.put(webhookEventProvider.getEndpointURI(), webhookEventProvider.getRestHandler());
     }
 
     /**
@@ -302,36 +325,8 @@ public class XatkitServer {
     public void unregisterWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
         checkNotNull(webhookEventProvider, "Cannot unregister the provided %s: %s", WebhookEventProvider.class
                 .getSimpleName(), webhookEventProvider);
-        this.webhookEventProviders.remove(webhookEventProvider);
+
+        this.restEndpoints.remove(webhookEventProvider.getEndpointURI());
     }
 
-    /**
-     * Returns an unmodifiable {@link Collection} containing the registered {@link WebhookEventProvider}s.
-     *
-     * @return an unmodifiable {@link Collection} containiong the registered {@link WebhookEventProvider}
-     */
-    public Collection<WebhookEventProvider> getRegisteredWebhookEventProviders() {
-        return Collections.unmodifiableSet(this.webhookEventProviders);
-    }
-
-    /**
-     * Notifies the registered {@link WebhookEventProvider}s that a new request has been handled.
-     * <p>
-     * This method asks each registered {@link WebhookEventProvider} if it accepts the given {@code contentType}. If
-     * so, the provided {@code content} is sent to the {@link WebhookEventProvider} that will create the associated
-     * {@link com.xatkit.intent.EventInstance}.
-     *
-     * @param contentType the content type of the received request
-     * @param content     the content of the received request
-     * @see #registerWebhookEventProvider(WebhookEventProvider)
-     * @see WebhookEventProvider#acceptContentType(String)
-     * @see WebhookEventProvider#handleContent(Object, Header[])
-     */
-    public void notifyWebhookEventProviders(String contentType, Object content, Header[] headers) {
-        for (WebhookEventProvider webhookEventProvider : webhookEventProviders) {
-            if (webhookEventProvider.acceptContentType(contentType)) {
-                webhookEventProvider.handleContent(content, headers);
-            }
-        }
-    }
 }

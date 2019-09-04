@@ -17,20 +17,16 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -65,7 +61,7 @@ class HttpHandler implements HttpRequestHandler {
      * The HTTP header used to specify allowed headers.
      * <p>
      * This header is set to allow cross-origin calls from applications using the browser. It is initialized with the
-     * {@link WebhookEventProvider#getAccessControlAllowHeaders()} method.
+     * {@link RestHandler#getAccessControlAllowHeaders()} method.
      */
     private static String ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
 
@@ -75,7 +71,7 @@ class HttpHandler implements HttpRequestHandler {
      * The {@link XatkitServer} is used to notify the {@link WebhookEventProvider}s when a new
      * request is received.
      *
-     * @see XatkitServer#notifyWebhookEventProviders(String, Object, Header[])
+     * @see XatkitServer#notifyRestHandler(String, List, List, Object, String)
      */
     private XatkitServer xatkitServer;
 
@@ -83,13 +79,6 @@ class HttpHandler implements HttpRequestHandler {
      * The {@link JsonParser} used to pretty print {@code application/json} contents and provide readable debug logs.
      */
     private JsonParser parser;
-
-    /**
-     * The {@link Gson} instance used to transform {@link JsonElement} into {@link String}s.
-     *
-     * @see #createHttpEntityFromJsonElement(JsonElement)
-     */
-    private Gson gson;
 
     /**
      * The {@link Gson} instance used to pretty print {@code application/json} contents and provide readable debut logs.
@@ -108,7 +97,6 @@ class HttpHandler implements HttpRequestHandler {
                 (), XatkitServer.class.getSimpleName(), xatkitServer);
         this.xatkitServer = xatkitServer;
         this.parser = new JsonParser();
-        this.gson = new Gson();
         this.gsonPrinter = new GsonBuilder().setPrettyPrinting().create();
     }
 
@@ -121,7 +109,7 @@ class HttpHandler implements HttpRequestHandler {
      * @param request  the received {@link HttpRequest}
      * @param response the {@link HttpResponse} to send to the caller
      * @param context  the {@link HttpContext} associated to the received {@link HttpRequest}
-     * @see XatkitServer#notifyWebhookEventProviders(String, Object, Header[])
+     * @see XatkitServer#notifyRestHandler(String, List, List, Object, String)
      */
     public void handle(final HttpRequest request, final HttpResponse response, final HttpContext context) {
 
@@ -143,6 +131,13 @@ class HttpHandler implements HttpRequestHandler {
         }
 
         Log.info("Request type {0}", request.getClass().getSimpleName());
+
+        /*
+         * The access control headers that will be returned in the response.
+         */
+        Set<String> accessControlAllowHeaders = new HashSet<>();
+        accessControlAllowHeaders.add("content-type");
+
 
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
@@ -197,63 +192,34 @@ class HttpHandler implements HttpRequestHandler {
                 // WARNING: this is probably wrong: the target can probably contain also the parameters. If this is
                 // true we need to build a new URI(target) and retrieve the raw query
                 if (this.xatkitServer.isRestEndpoint(target)) {
+                    RestHandler handler = this.xatkitServer.getRegisteredRestHandler(target);
+                    accessControlAllowHeaders.addAll(handler.getAccessControlAllowHeaders());
                     JsonElement jsonContent = null;
                     if (!content.isEmpty()) {
                         jsonContent = parser.parse(content);
                     }
-                    JsonElement result = xatkitServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
-                            jsonContent);
+                    Object result = xatkitServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
+                            jsonContent, contentType);
                     if (nonNull(result)) {
-                        HttpEntity jsonEntity = createHttpEntityFromJsonElement(result);
-                        response.setEntity(jsonEntity);
+                        HttpEntity resultEntity = HttpEntityHelper.createHttpEntity(result);
+                        response.setEntity(resultEntity);
                     } else {
                         Log.warn("Cannot embed the provided json element {0}", result);
                     }
                     response.setHeader("Access-Control-Allow-Headers", "content-type");
-                } else {
-                    this.xatkitServer.notifyWebhookEventProviders(contentType, content, headers);
                 }
             } catch (IOException e) {
                 throw new XatkitException("An error occurred when handling the request content", e);
             }
         }
         response.setHeader(CORS_HEADER, CORS_VALUE);
-        Set<String> accessControlAllowHeaders = new HashSet<>();
-        for (WebhookEventProvider provider : this.xatkitServer.getRegisteredWebhookEventProviders()) {
-            accessControlAllowHeaders.addAll(provider.getAccessControlAllowHeaders());
-        }
-        accessControlAllowHeaders.add("content-type");
         String stringAccessControlAllowHeaders = String.join(",", accessControlAllowHeaders);
         response.setHeader(ACCESS_CONTROL_ALLOW_HEADERS, stringAccessControlAllowHeaders);
         response.setStatusCode(HttpStatus.SC_OK);
     }
 
-    /**
-     * Creates a {@link HttpEntity} from the provided {@link JsonElement}.
-     * <p>
-     * This method wraps the {@link String} representation of the provided {@code element} into an {@link HttpEntity}
-     * , allowing to embed it in {@link HttpResponse}.
-     *
-     * @param element the {@link JsonElement} to embed in a {@link HttpEntity}
-     * @return the created {@link HttpEntity}
-     * @throws NullPointerException if the provided element is {@code null}
-     * @see Gson#toJson(Object)
-     */
-    private HttpEntity createHttpEntityFromJsonElement(@Nullable JsonElement element) {
-        checkNotNull(element, "Cannot create an %s from the provided %s %s", HttpEntity.class.getSimpleName(),
-                JsonElement.class.getSimpleName(), element);
-        String rawJson = gson.toJson(element);
-        BasicHttpEntity entity = new BasicHttpEntity();
-        byte[] jsonBytes = rawJson.getBytes(Charset.forName("UTF-8"));
-        entity.setContent(new ByteArrayInputStream(jsonBytes));
-        /*
-         * Use the size of the byte array, it may be longer than the size of the string for special characters.
-         */
-        entity.setContentLength(jsonBytes.length);
-        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
-        entity.setContentEncoding(HTTP.UTF_8);
-        return entity;
-    }
+
+
 
     /**
      * An utility method that logs the names and values of the provided {@link Header} array.

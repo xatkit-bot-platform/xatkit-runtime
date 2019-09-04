@@ -9,7 +9,6 @@ import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.interpreter.ExecutionContext;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.platform.io.WebhookEventProvider;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ActionInstance;
@@ -28,7 +27,12 @@ import com.xatkit.stubs.io.StubInputProviderNoConfigurationConstructor;
 import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,12 +77,7 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
              * Unregister the WebhookEventProviders that may have been set as side effect of startEventProvider
              */
             XatkitServer xatkitServer = xatkitCore.getXatkitServer();
-            for (WebhookEventProvider eventProvider : xatkitServer.getRegisteredWebhookEventProviders()) {
-                xatkitServer.unregisterWebhookEventProvider(eventProvider);
-            }
-        }
-        if (!xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders().isEmpty()) {
-
+            xatkitServer.clearRegisteredRestHandlers();
         }
         /*
          * An empty execution context (not tested here)
@@ -129,8 +128,8 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubInputProvider.class);
         softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
-                "providers in XatkitServer").isEmpty();
+        assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers()).as("Empty registered handlers " +
+                "in XatkitServer").isEmpty();
     }
 
     @Test
@@ -146,8 +145,8 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubInputProviderNoConfigurationConstructor.class);
         softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders()).as("Empty registered webhook " +
-                "providers in XatkitServer").isEmpty();
+        assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers()).as("Empty registered handlers " +
+                "in XatkitServer").isEmpty();
     }
 
     @Test
@@ -163,10 +162,10 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubJsonWebhookEventProvider.class);
         softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders()).as("Webhook provider " +
+        assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers()).as("RestHandler provider " +
                 "registered" + "in XatkitServer").hasSize(1);
-        softly.assertThat(xatkitCore.getXatkitServer().getRegisteredWebhookEventProviders().iterator().next()).as
-                ("Valid Webhook registered in XatkitServer").isInstanceOf(StubJsonWebhookEventProvider.class);
+        softly.assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers().iterator().next()).as
+                ("Valid RestHandler registered in XatkitServer").isEqualTo(StubJsonWebhookEventProvider.handler);
     }
 
     @Test(expected = XatkitException.class)

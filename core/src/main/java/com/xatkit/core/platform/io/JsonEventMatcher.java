@@ -11,6 +11,7 @@ import org.apache.http.Header;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -158,19 +159,19 @@ public class JsonEventMatcher {
      * <p>
      * <p>Note:</p> the current implementation only check top-level field from the provided {@code content}. (see #139)
      *
-     * @param headers the array containing the {@link Header}s to match
+     * @param headers the list containing the {@link Header}s to match
      * @param content the {@link JsonElement} representing the content of the request
      * @return the matched {@link EventInstance} if it exists, {@code null} otherwise
      * @throws NullPointerException if the provided {@code headers} or {@code content} is {@code null}
      */
-    public EventInstance match(Header[] headers, JsonElement content) {
+    public EventInstance match(List<Header> headers, JsonElement content) {
         checkNotNull(headers, "Cannot match the provided headers %s", headers);
         checkNotNull(content, "Cannot match the provided content %s", content);
         /*
          * Iterate first on the request headers that are typically shorter than its content.
          */
-        for (int i = 0; i < headers.length; i++) {
-            HeaderValue headerValue = HeaderValue.of(headers[i].getName(), headers[i].getValue());
+        for(Header header : headers) {
+            HeaderValue headerValue = HeaderValue.of(header.getName(), header.getValue());
             if (matchableEvents.containsKey(headerValue)) {
                 Map<FieldValue, String> fields = matchableEvents.get(headerValue);
                 /*
@@ -320,7 +321,7 @@ public class JsonEventMatcher {
      * A pair representing a {@link Header} value to match.
      *
      * @see #addMatchableEvent(HeaderValue, FieldValue, String)
-     * @see #match(Header[], JsonElement)
+     * @see #match(List, JsonElement)
      */
     public static class HeaderValue {
 
@@ -432,7 +433,7 @@ public class JsonEventMatcher {
      * A pair representing a field value to match.
      *
      * @see #addMatchableEvent(HeaderValue, FieldValue, String)
-     * @see #match(Header[], JsonElement)
+     * @see #match(List, JsonElement)
      */
     public static class FieldValue {
 
@@ -468,7 +469,7 @@ public class JsonEventMatcher {
          * {@link #addMatchableEvent(HeaderValue, FieldValue, String)} is sufficient to uniquely identify an event.
          *
          * @see #addMatchableEvent(HeaderValue, FieldValue, String)
-         * @see #match(Header[], JsonElement)
+         * @see #match(List, JsonElement)
          */
         public static FieldValue EMPTY_FIELD_VALUE = of("", "");
 

@@ -2,27 +2,29 @@ package com.xatkit.core.platform.io;
 
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.server.RestHandler;
 import com.xatkit.core.server.XatkitServer;
-import fr.inria.atlanmod.commons.log.Log;
+import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.http.Header;
-
-import java.util.Collections;
-import java.util.List;
-
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
- * A specialised {@link RuntimeEventProvider} that handles HTTP requests sent by the
- * {@link XatkitServer}.
+ * A specialised {@link RuntimeEventProvider} that handles Rest requests sent by the {@link XatkitServer}.
  * <p>
- * This class defines primitives to handle raw HTTP request contents, manipulate the parsed content, and provides an
- * utility method that checks if the {@link WebhookEventProvider} accepts a given {@code contentType}.
+ * Concrete subclasses <b>must</b> implement the {@link #getEndpointURI()} that sets the URI to register the provider
+ * to, and {@link #createRestHandler()} that creates the concrete {@link RestHandler} instance handling incoming Rest
+ * requests.
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
- * @param <C> the type of the parsed HTTP request content
+ * @param <H> the {@link RestHandler} type processing incoming Rest requests
+ * @see RestHandler
+ * @see com.xatkit.core.server.RestHandlerFactory
  */
-public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends RuntimeEventProvider<T> {
+public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends RestHandler> extends RuntimeEventProvider<T> {
+
+    /**
+     * The {@link RestHandler} used to process incoming Rest requests.
+     */
+    private H restHandler;
 
     /**
      * Constructs a new {@link WebhookEventProvider} with the provided {@code runtimePlatform}.
@@ -34,7 +36,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends
      * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
      */
     public WebhookEventProvider(T runtimePlatform) {
-        super(runtimePlatform);
+        this(runtimePlatform, new BaseConfiguration());
     }
 
     /**
@@ -51,99 +53,50 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, C> extends
      */
     public WebhookEventProvider(T runtimePlatform, Configuration configuration) {
         super(runtimePlatform, configuration);
+        this.restHandler = createRestHandler();
     }
 
     /**
-     * Returns the {@code Access-Control-Allow-Headers} HTTP header values that must be set by the server when
-     * calling this provider.
+     * Returns the URI of the Rest endpoint to register the provider to.
      * <p>
-     * This method is used to ensure that cross-origin requests are accepted by client applications. Note that this
-     * headers can be empty if this provider is not intended to be accessed in the browser.
+     * The returned {@link String} must be prefixed by a {@code '/'}.
      *
-     * @return the HTTP headers to set
+     * @return the URI of the Rest endpoint to register the provider to
+     * @see XatkitServer#registerWebhookEventProvider(WebhookEventProvider)
      */
-    public List<String> getAccessControlAllowHeaders() {
-        return Collections.emptyList();
+    public abstract String getEndpointURI();
+
+    /**
+     * Returns the concrete {@link RestHandler} instance that handles incoming Rest requests.
+     * <p>
+     * This handler can be defined with the utility methods provided in
+     * {@link com.xatkit.core.server.RestHandlerFactory}.
+     *
+     * @return the concrete {@link RestHandler} instance that handles incoming Rest requests
+     * @see com.xatkit.core.server.RestHandlerFactory
+     */
+    protected abstract H createRestHandler();
+
+    /**
+     * Returns the {@link RestHandler} embedded in this provider.
+     *
+     * @return the {@link RestHandler} embedded in this provider
+     */
+    public final H getRestHandler() {
+        return this.restHandler;
     }
 
     /**
-     * Returns whether the {@link WebhookEventProvider} accepts the provided {@code contentType}.
-     *
-     * @param contentType the content type to check
-     * @return {@code true} if the {@link WebhookEventProvider} accepts the provided {@code contentType}, {@code
-     * false} otherwise
+     * Runs the provider.
      */
-    public abstract boolean acceptContentType(String contentType);
+    @Override
+    public void run() {
+        synchronized (this) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
 
-    /**
-     * Parses the provided raw HTTP request content.
-     * <p>
-     * This method is internally used to fill the {@link #handleParsedContent(Object, Header[])} parameter with a parsed
-     * representation of the raw request content.
-     *
-     * @param content the raw HTTP request content to parse
-     * @return a parsed representation of the raw request content
-     * @see #handleParsedContent(Object, Header[])
-     */
-    protected abstract C parseContent(Object content);
-
-    /**
-     * Handles the parsed request content and headers.
-     * <p>
-     * This method embeds the request content management that creates the associated
-     * {@link com.xatkit.intent.EventInstance}. The {@code parsedContent} parameter is set by an internal call
-     * to {@link #parseContent(Object)}.
-     *
-     * @param parsedContent the parsed request content to handle
-     * @param headers       the HTTP headers of the received request
-     * @see #parseContent(Object)
-     */
-    protected abstract void handleParsedContent(C parsedContent, Header[] headers);
-
-    /**
-     * Handles the raw HTTP request content and headers.
-     * <p>
-     * This method parses the provided {@code content} and internally calls
-     * {@link #handleParsedContent(Object, Header[])} to
-     * create the associated {@link com.xatkit.intent.EventInstance}s.
-     * <p>
-     * This method is part of the core API and cannot be reimplemented by concrete subclasses. Use
-     * {@link #handleParsedContent(Object, Header[])} to tune the request content processing.
-     *
-     * @param content the raw HTTP request content to handle
-     * @param headers the HTTP headers of the received request
-     * @see #parseContent(Object)
-     * @see #handleParsedContent(Object, Header[])
-     */
-    public final void handleContent(Object content, Header[] headers) {
-        C parsedContent = parseContent(content);
-        handleParsedContent(parsedContent, headers);
-    }
-
-    /**
-     * Returns the {@link Header} value associated to the provided {@code headerKey}.
-     * <p>
-     * This method is an utility method that can be called by subclasses'
-     * {@link #handleParsedContent(Object, Header[])} implementation to retrieve specific values from the request
-     * {@link Header}s.
-     *
-     * @param headers   the array of {@link Header} to retrieve the value from
-     * @param headerKey the {@link Header} key to retrieve the value of
-     * @return the {@link Header} value associated to the provided {@code headerKey} if it exists, {@code null}
-     * otherwise
-     */
-    protected String getHeaderValue(Header[] headers, String headerKey) {
-        checkNotNull(headerKey, "Cannot retrieve the header value %s", headerKey);
-        checkNotNull(headers, "Cannot retrieve the header value %s from the provided %s Array %s", headerKey, Header
-                .class.getSimpleName(), headers);
-        for (int i = 0; i < headers.length; i++) {
-            if (headerKey.equals(headers[i].getName())) {
-                return headers[i].getValue();
             }
         }
-        Log.warn("Unable to retrieve the value {0} from the provided {1} Array", headerKey, Header.class
-                .getSimpleName());
-        return null;
     }
-
 }
