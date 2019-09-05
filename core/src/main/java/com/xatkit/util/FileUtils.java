@@ -29,7 +29,7 @@ public class FileUtils {
              */
             return file;
         } else {
-            String configurationDirectoryPath = configuration.getString(XatkitCore.CONFIGURATION_FOLDER_PATH_KEY, "");
+            String configurationDirectoryPath = configuration.getString(XatkitCore.CONFIGURATION_FOLDER_PATH_KEY, ".");
             String relativePath = configurationDirectoryPath + File.separator + path;
             return new File(relativePath);
         }
