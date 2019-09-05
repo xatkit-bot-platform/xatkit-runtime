@@ -1,6 +1,5 @@
 package com.xatkit.core;
 
-import com.xatkit.Xatkit;
 import com.xatkit.common.Instruction;
 import com.xatkit.core.platform.Formatter;
 import com.xatkit.core.platform.RuntimePlatform;
@@ -88,6 +87,11 @@ public class XatkitCore {
      * @see #XatkitCore(Configuration)
      */
     public static String EXECUTION_MODEL_KEY = "xatkit.execution.model";
+
+    /**
+     * The {@link Configuration} key to store the configuration folder path.
+     */
+    public static String CONFIGURATION_FOLDER_PATH_KEY = "xatkit.core.configuration.path";
 
     /**
      * The {@link Configuration} key prefix to store the custom platform paths.
@@ -492,7 +496,7 @@ public class XatkitCore {
         checkNotNull(property, "Cannot retrieve the %s from the property %s, please ensure it is " +
                         "set in the %s property of the Xatkit configuration", ExecutionModel.class.getSimpleName(),
                 property, EXECUTION_MODEL_KEY);
-        String basePath = configuration.getString(Xatkit.CONFIGURATION_FOLDER_PATH, "");
+        String basePath = configuration.getString(CONFIGURATION_FOLDER_PATH_KEY, "");
         if (property instanceof ExecutionModel) {
             return (ExecutionModel) property;
         } else {
@@ -819,7 +823,7 @@ public class XatkitCore {
          * The provided path is handled as a File path. Loading custom resources from external jars is left for a
          * future release.
          */
-        String baseConfigurationPath = this.configuration.getString(Xatkit.CONFIGURATION_FOLDER_PATH, "");
+        String baseConfigurationPath = this.configuration.getString(CONFIGURATION_FOLDER_PATH_KEY, "");
         File resourceFile = new File(path);
         /*
          * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462

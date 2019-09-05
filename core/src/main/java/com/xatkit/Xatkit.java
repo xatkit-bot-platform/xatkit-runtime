@@ -24,11 +24,6 @@ import static java.util.Objects.isNull;
 public class Xatkit {
 
     /**
-     * The {@link org.apache.commons.configuration2.Configuration} key to store the configuration folder path.
-     */
-    public static String CONFIGURATION_FOLDER_PATH = "xatkit.core.configuration.path";
-
-    /**
      * The URL of the tutorial article describing Xatkit configuration.
      */
     private static String CONFIGURATION_TUTORIAL_URL = "https://github.com/xatkit-bot-platform/xatkit-runtime/wiki" +
@@ -79,7 +74,7 @@ public class Xatkit {
                  * Need to call getAbsoluteFile() in case the provided path only contains the file name, otherwise
                  * getParentFile() returns null (see #202)
                  */
-                configuration.addProperty(CONFIGURATION_FOLDER_PATH,
+                configuration.addProperty(XatkitCore.CONFIGURATION_FOLDER_PATH_KEY,
                         propertiesFile.getAbsoluteFile().getParentFile().getAbsolutePath());
             } catch (ConfigurationException e) {
                 Log.error("Cannot load the configuration file at the given location {0}, please ensure the provided " +
