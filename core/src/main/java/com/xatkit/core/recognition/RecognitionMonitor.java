@@ -8,6 +8,7 @@ import com.google.gson.JsonPrimitive;
 import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.intent.IntentDefinition;
+import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.mapdb.DB;
@@ -121,11 +122,11 @@ public class RecognitionMonitor {
      */
     public RecognitionMonitor(XatkitServer xatkitServer, Configuration configuration) {
         Log.info("Starting intent recognition monitoring");
-        String analyticsDbFolderPath = configuration.getString(DATA_DIRECTORY_KEY, DEFAULT_DATA_DIRECTORY);
-        analyticsDbFolderPath += File.separator + ANALYTICS_DIRECTORY;
-        File analyticsDbFolder = new File(analyticsDbFolderPath);
-        analyticsDbFolder.mkdirs();
-        db = DBMaker.fileDB(new File(analyticsDbFolderPath + File.separator + ANALYTICS_DB_FILE)).make();
+        String dataDirectoryPath = configuration.getString(DATA_DIRECTORY_KEY, DEFAULT_DATA_DIRECTORY);
+        File analyticsDbDirectory = FileUtils.getFile(dataDirectoryPath + File.separator + ANALYTICS_DIRECTORY,
+                configuration);
+        analyticsDbDirectory.mkdirs();
+        db = DBMaker.fileDB(new File(analyticsDbDirectory.getAbsolutePath() + File.separator + ANALYTICS_DB_FILE)).make();
         this.unmatchedInputs = db.indexTreeList("unmatched_inputs", Serializer.STRING).createOrOpen();
         this.matchedIntents = (Map<String, MatchedIntentInfos>) db.hashMap("matched_intents").createOrOpen();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

@@ -31,6 +31,7 @@ import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.platform.PlatformPackage;
 import com.xatkit.util.EMFUtils;
+import com.xatkit.util.FileUtils;
 import com.xatkit.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
@@ -496,21 +497,13 @@ public class XatkitCore {
         checkNotNull(property, "Cannot retrieve the %s from the property %s, please ensure it is " +
                         "set in the %s property of the Xatkit configuration", ExecutionModel.class.getSimpleName(),
                 property, EXECUTION_MODEL_KEY);
-        String basePath = configuration.getString(CONFIGURATION_FOLDER_PATH_KEY, "");
         if (property instanceof ExecutionModel) {
             return (ExecutionModel) property;
         } else {
             URI uri;
             if (property instanceof String) {
-                File executionModelFile = new File((String) property);
-                /*
-                 * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
-                 */
-                if (executionModelFile.isAbsolute() || ((String) property).charAt(0) == '/') {
-                    uri = URI.createFileURI((String) property);
-                } else {
-                    uri = URI.createFileURI(basePath + File.separator + (String) property);
-                }
+                File executionModelFile = FileUtils.getFile((String) property, configuration);
+                uri = URI.createFileURI(executionModelFile.getAbsolutePath());
             } else if (property instanceof URI) {
                 uri = (URI) property;
             } else {

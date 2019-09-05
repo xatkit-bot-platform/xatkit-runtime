@@ -32,7 +32,6 @@ import com.google.cloud.dialogflow.v2.TrainAgentRequest;
 import com.google.longrunning.Operation;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
-import com.xatkit.Xatkit;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
@@ -57,6 +56,7 @@ import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.intent.TextFragment;
+import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
@@ -554,14 +554,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             Log.info("Loading Google Credentials file {0}", credentialsPath);
             InputStream credentialsInputStream;
             try {
-                File credentialsFile = new File(credentialsPath);
-                /*
-                 * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
-                 */
-                if (!credentialsFile.isAbsolute() && !(credentialsPath.charAt(0) == '/')) {
-                    String configurationFolderPath = configuration.getString(Xatkit.CONFIGURATION_FOLDER_PATH, "");
-                    credentialsFile = new File(configurationFolderPath + File.separator + credentialsPath);
-                }
+                File credentialsFile = FileUtils.getFile(credentialsPath, configuration);
                 if (credentialsFile.exists()) {
                     credentialsInputStream = new FileInputStream(credentialsFile);
                 } else {
