@@ -362,8 +362,8 @@ public class JsonEventMatcher {
             checkNotNull(key, "Cannot build a %s with the provided key %s", HeaderValue.class.getSimpleName(), key);
             checkNotNull(value, "Cannot build a %s with the provided value %s", HeaderValue.class.getSimpleName(),
                     value);
-            this.key = key;
-            this.value = value;
+            this.key = key.toLowerCase();
+            this.value = value.toLowerCase();
         }
 
         /**
@@ -484,8 +484,8 @@ public class JsonEventMatcher {
         public FieldValue(String key, String value) {
             checkNotNull(key, "Cannot build a %s with the provided key", FieldValue.class.getSimpleName(), key);
             checkNotNull(value, "Cannot build a %s with the provided value", FieldValue.class.getSimpleName(), value);
-            this.key = key;
-            this.value = value;
+            this.key = key.toLowerCase();
+            this.value = value.toLowerCase();
         }
 
         /**
