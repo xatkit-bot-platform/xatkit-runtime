@@ -4,6 +4,10 @@ import com.xatkit.core.XatkitCore;
 import org.apache.commons.configuration2.Configuration;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.text.MessageFormat;
+
+import static java.util.Objects.isNull;
 
 /**
  * Utility methods to load Xatkit-related files.
@@ -31,10 +35,38 @@ public class FileUtils {
         } else {
             String relativePath = path;
             String configurationDirectoryPath = configuration.getString(XatkitCore.CONFIGURATION_FOLDER_PATH_KEY, "");
-            if(!configurationDirectoryPath.isEmpty()) {
+            if (!configurationDirectoryPath.isEmpty()) {
                 relativePath = configurationDirectoryPath + File.separator + path;
             }
             return new File(relativePath);
         }
+    }
+
+    /**
+     * Returns the Xatkit installation directory.
+     * <p>
+     * This method looks for the directory location stored in the {@code XATKIT} environment variable. If the
+     * directory does not exist a {@link FileNotFoundException} is thrown.
+     * <p>
+     * {@code XATKIT} environment variable can be set following this tutorial: https://github
+     * .com/xatkit-bot-platform/xatkit-releases/wiki/Installation.
+     *
+     * @return the Xatkit installation directory
+     * @throws FileNotFoundException if the Xatkit installation directory does not exist
+     */
+    public static File getXatkitDirectory() throws FileNotFoundException {
+        String xatkitDirectoryPath = System.getenv("XATKIT");
+        if (isNull(xatkitDirectoryPath) || xatkitDirectoryPath.isEmpty()) {
+            throw new FileNotFoundException("Cannot find the Xatkit installation directory, please check this " +
+                    "tutorial article to see how to install Xatkit: https://github" +
+                    ".com/xatkit-bot-platform/xatkit-releases/wiki/Installation");
+        }
+        File xatkitDirectoryFile = new File(xatkitDirectoryPath);
+        if (!xatkitDirectoryFile.exists()) {
+            throw new FileNotFoundException(MessageFormat.format("Cannot find the Xatkit installation directory ({0})" +
+                    ", please check this tutorial article to see how to install Xatkit: https://github" +
+                    ".com/xatkit-bot-platform/xatkit-releases/wiki/Installation", xatkitDirectoryPath));
+        }
+        return xatkitDirectoryFile;
     }
 }

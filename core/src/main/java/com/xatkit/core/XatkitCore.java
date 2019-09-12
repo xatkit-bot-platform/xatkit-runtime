@@ -36,14 +36,17 @@ import com.xatkit.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import sun.tools.jar.resources.jar;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -599,109 +602,66 @@ public class XatkitCore {
     /**
      * Loads the core <i>libraries</i> in this class' {@link ResourceSet}.
      * <p>
-     * <i>Core libraries</i> loading is done by searching in the classpath the {@code core_resources/libraries/xmi/}
-     * folder, and loads each {@code xmi} file it contains as a library {@link Resource}. Note that this method
-     * loads <b>all</b> the <i>core library</i> {@link Resource}s, even if they are not used in the application's
-     * {@link ExecutionModel}.
-     * <p>
-     * <b>Note:</b> this method loads the {@code libraries/xmi/} folder from the {@code core_resources} jar file if
-     * the application is executed in standalone mode. In a development environment (i.e. with all the project
-     * sources imported) this method will retrieve the {@code libraries/xmi/} folder from the local installation, if
-     * it exists.
+     * <i>Core libraries</i> are loaded from {@code <xatkit>/plugins/libraries}, where {@code <xatkit>} is the Xatkit
+     * installation directory. This method crawls the sub-directories and loads all the {@code .xmi} files as libraries.
      *
-     * @see #getPath(String)
-     * @see #loadCoreResources(Path, String, Class)
+     * @see #loadCoreResources(String, String, EClass)
      */
     private void loadCoreLibraries() {
         Log.info("Loading Xatkit core libraries");
-        Path librariesPath = getPath("libraries/xmi/");
-        loadCoreResources(librariesPath, LibraryLoaderUtils.CORE_LIBRARY_PATHMAP, Library.class);
+        loadCoreResources("plugins" + File.separator + "libraries", LibraryLoaderUtils.CORE_LIBRARY_PATHMAP,
+                IntentPackage.eINSTANCE.getLibrary());
     }
 
     /**
-     * Loads the core <i>platforms</i> in this class" {@link ResourceSet}.
+     * Loads the core <i>platforms</i>.
      * <p>
-     * <i>Core platforms</i> loading is done by searching in the classpath the {@code core_resources/platforms/xmi/}
-     * folder, and loads each {@code xmi} file it contains as a library {@link Resource}. Note that this method loads
-     * <b>all</b> the <i>core platform</i> {@link Resource}s, even if they are not used in the application's
-     * {@link ExecutionModel}.
-     * <p>
-     * <b>Note:</b> this method loads the {@code platforms/xmi/} folder from the {@code core_resources} jar file if
-     * the application is executed in standalone mode. In a development environment (i.e. with all the project
-     * sources imported) this method will retrieve the {@code platforms/xmi/} folder from the local installation, if
-     * it exists.
+     * <i>Core platforms</i> are loaded from {@code <xatkit>/plugins/platforms}, where {@code <xatkit>} is the Xatkit
+     * installation directory. This method crawls the sub-directories and loads all the {@code .xmi} files as platforms.
      *
-     * @see #getPath(String)
-     * @see #loadCoreResources(Path, String, Class)
+     * @see #loadCoreResources(String, String, EClass)
      */
     private void loadCorePlatforms() {
         Log.info("Loading Xatkit core platforms");
-        String xatkitPath = System.getenv("XATKIT");
-        if (isNull(xatkitPath) || xatkitPath.isEmpty()) {
-            Log.warn("XATKIT environment variable not set, no core platforms to import. If this is not expected set " +
-                    "the XATKIT environment variable to your Xatkit installation directory");
-            return;
-        }
-        /*
-         * Wrap in a File to uniformize trailing '/' between Windows and Linux.
-         */
-        File xatkitFile = new File(xatkitPath);
-        try {
-            Files.walk(Paths.get(xatkitFile.getAbsolutePath() + File.separator + "plugins" + File.separator +
-                    "platforms"), Integer.MAX_VALUE)
-                    .filter(filePath ->
-                            !Files.isDirectory(filePath) && filePath.toString().endsWith(".xmi")
-                    ).forEach(resourcePath -> {
-                try {
-                    InputStream is = Files.newInputStream(resourcePath);
-                    URI resourceURI = URI.createURI(resourcePath.getFileName().toString());
-                    URI resourcePathmapURI =
-                            URI.createURI(PlatformLoaderUtils.CORE_PLATFORM_PATHMAP + resourcePath.getFileName());
-                    executionResourceSet.getURIConverter().getURIMap().put(resourcePathmapURI, resourceURI);
-                    Resource resource = executionResourceSet.createResource(resourcePathmapURI);
-                    resource.load(is, Collections.emptyMap());
-                    /*
-                     * Check that the top level element in the resource is an instance of the provided
-                     * topLevelElementType.
-                     */
-                    PlatformDefinition platformDefinition = (PlatformDefinition) resource.getContents().get(0);
-                    is.close();
-                    Log.info("\t{0} loaded", EMFUtils.getName(platformDefinition));
-                    Log.debug("\tPath: {0}", resourcePath);
-                } catch (IOException e) {
-                    throw new XatkitException(MessageFormat.format("An error occurred when loading the {0}, see " +
-                            "attached exception", resourcePath), e);
-                }
-            });
-        } catch (IOException e) {
-            throw new XatkitException(MessageFormat.format("An error occurred when crawling the core {0} at the " +
-                    "location {1}, see attached exception", PlatformDefinition.class.getSimpleName(), xatkitPath), e);
-        }
+        loadCoreResources("plugins" + File.separator + "platforms", PlatformLoaderUtils.CORE_PLATFORM_PATHMAP,
+                PlatformPackage.eINSTANCE.getPlatformDefinition());
     }
 
     /**
-     * Loads the core {@link Resource}s in the provided {@code folderPath}, using the specified {@code pathmapPrefix}.
+     * Loads the core {@link Resource}s in the provided {@code directoryPath}, using the specified {@code
+     * pathmapPrefix}.
      * <p>
-     * This method crawls the direct contents of the provided {@code folderPath} (sub-folders are ignored), and tries
-     * to load each file as an EMF {@link Resource} using the specified {@code pathmapPrefix}. This method also
-     * verifies that the top-level element of the loaded {@link Resource} is an instance of the provided {@code
-     * topLevelElementType} in order to prevent invalid {@link Resource} loading.
+     * This method crawls the content of the provided {@code directoryPath} (including sub-folders), and tries to
+     * load each file as an EMF {@link Resource} using the specified {@code pathmapPrefix}. This method also verifies
+     * that the root element of the loaded {@link Resource} is an instance of the provided {@code rootElementEClass}
+     * in order to prevent invalid resource loading.
      * <p>
-     * The provided {@code pathmapPrefix} allows to load core {@link Resource}s independently of their concrete
-     * location. This allows to load core {@link Resource}s from {@link ExecutionModel}s designed in a different
-     * environment.
+     * <b>Note</b>: {@code directoryPath} is relative to the Xatkit installation directory, for example loading
+     * resources located in {@code xatkit/foo/bar} is done by using the {@code foo/bar} {@code directoryPath}.
      *
-     * @param folderPath          the {@link Path} of the folder containing the {@link Resource}s to load
-     * @param pathmapPrefix       the pathmap used to prefix the core {@link Resource}'s {@link URI}
-     * @param topLevelElementType the expected type of the top-level element of the loaded {@link Resource}
-     * @param <T>                 the type of the top-level element
-     * @throws XatkitException if an error occurred when crawling the folder's content or when loading a core
+     * @param directoryPath     the path of the directory containing the resources to load (<b>relative</b> to the
+     *                          Xatkit
+     *                          installation directory)
+     * @param pathmapPrefix     the pathmap used to prefix core {@link Resource}'s {@link URI}
+     * @param rootElementEClass the expected type of  the root element of the loaded {@link Resource}
+     * @throws XatkitException if an error occurred when crawling the directory's content or when loading a core
      *                         {@link Resource}
      */
-    private <T extends EObject> void loadCoreResources(Path folderPath, String pathmapPrefix, Class<T>
-            topLevelElementType) {
+    private void loadCoreResources(String directoryPath, String pathmapPrefix, EClass rootElementEClass) {
+        File xatkitDirectory;
         try {
-            Files.walk(folderPath, 1).filter(l -> !Files.isDirectory(l)).forEach(resourcePath -> {
+            xatkitDirectory = FileUtils.getXatkitDirectory();
+        } catch (FileNotFoundException e) {
+            Log.warn("Xatkit environment variable not set, no core {0} to import. If this is not expected check" +
+                    " this tutorial article to see how to install Xatkit: https://github" +
+                    ".com/xatkit-bot-platform/xatkit-releases/wiki/Installation", rootElementEClass.getName());
+            return;
+        }
+        try {
+            Files.walk(Paths.get(xatkitDirectory.getAbsolutePath() + File.separator + directoryPath), Integer.MAX_VALUE)
+                    .filter(filePath ->
+                            !Files.isDirectory(filePath) && filePath.toString().endsWith(".xmi")
+                    ).forEach(resourcePath -> {
                 try {
                     InputStream is = Files.newInputStream(resourcePath);
                     URI resourceURI = URI.createURI(resourcePath.getFileName().toString());
@@ -709,14 +669,20 @@ public class XatkitCore {
                     executionResourceSet.getURIConverter().getURIMap().put(resourcePathmapURI, resourceURI);
                     Resource resource = executionResourceSet.createResource(resourcePathmapURI);
                     resource.load(is, Collections.emptyMap());
+                    is.close();
                     /*
                      * Check that the top level element in the resource is an instance of the provided
-                     * topLevelElementType.
+                     * rootElementClass.
                      */
-                    T topLevelElement = (T) resource.getContents().get(0);
-                    is.close();
-                    Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
-                    Log.debug("\tPath: {0}", resourcePath);
+                    EObject rootElement = resource.getContents().get(0);
+                    if (rootElementEClass.isInstance(rootElement)) {
+                        Log.info("\t{0} loaded", EMFUtils.getName(rootElement));
+                        Log.debug("\tPath: {0}", resourcePath);
+                    } else {
+                        throw new XatkitException(MessageFormat.format("Cannot load the resource at {0}, expected" +
+                                        " a {1} root element but found {2}", resourcePath, rootElementEClass.getName(),
+                                rootElement.eClass().getName()));
+                    }
                 } catch (IOException e) {
                     throw new XatkitException(MessageFormat.format("An error occurred when loading the {0}, see " +
                             "attached exception", resourcePath), e);
@@ -724,7 +690,8 @@ public class XatkitCore {
             });
         } catch (IOException e) {
             throw new XatkitException(MessageFormat.format("An error occurred when crawling the core {0} at the " +
-                    "location {1}, see attached exception", topLevelElementType.getSimpleName(), folderPath), e);
+                            "location {1}, see attached exception", rootElementEClass.getName(),
+                    xatkitDirectory.getAbsolutePath()), e);
         }
     }
 
@@ -776,8 +743,8 @@ public class XatkitCore {
              * Also accept upper case with '.' replaced by '_', this is the case when running Xatkit from environment
              * variables.
              */
-            if(key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)
-                || key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX.toUpperCase().replaceAll("\\.", "_"))) {
+            if (key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)
+                    || key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX.toUpperCase().replaceAll("\\.", "_"))) {
                 String platformPath = configuration.getString(key);
                 /*
                  * This works with XatkitEnvironmentConfiguration because the key length is preserved.
@@ -835,54 +802,6 @@ public class XatkitCore {
             throw new XatkitException(MessageFormat.format("Cannot load the custom {0}, the provided path {1} is not " +
                     "a valid file", topLevelElementType.getSimpleName(), path));
         }
-    }
-
-    /**
-     * Computes the {@link Path} associated to the provided {@code resourceLocation}.
-     * <p>
-     * This method supports file system locations as well as locations within {@code jar} files from the classpath.
-     * Computing the {@link Path} for a resource located in a {@code jar} file will initialize a dedicated
-     * {@link FileSystem} enabling to navigate the {@code jar} contents.
-     *
-     * @param resourceLocation the location of the resource to retrieve the {@link Path} of
-     * @return the computed {@link Path}
-     * @throws XatkitException if an error occurred when computing the {@link Path}
-     */
-    private Path getPath(String resourceLocation) {
-        URL url = this.getClass().getClassLoader().getResource(resourceLocation);
-        java.net.URI uri;
-        try {
-            uri = url.toURI();
-        } catch (URISyntaxException e) {
-            throw new XatkitException(MessageFormat.format("An error occurred when loading the resource {0}, see " +
-                    "attached exception", resourceLocation), e);
-        }
-        /*
-         * Xatkit is imported as a jar, we need to setup a FileSystem that handles jar file loading.
-         */
-        if (uri.getScheme().equals("jar")) {
-            try {
-                /*
-                 * Try to get the FileSystem if it exists, this may be the case if this method has been called to
-                 * get the path of a resource stored in a jar file.
-                 */
-                FileSystems.getFileSystem(uri);
-            } catch (FileSystemNotFoundException e) {
-                Map<String, String> env = new HashMap<>();
-                env.put("create", "true");
-                try {
-                    /*
-                     * The FileSystem does not exist, try to create a new one with the provided URI. This is
-                     * typically the case when loading a resource from a jar file for the first time.
-                     */
-                    FileSystems.newFileSystem(uri, env);
-                } catch (IOException e1) {
-                    throw new XatkitException(MessageFormat.format("An error occurred when loading the resource {0}, " +
-                            "see attached exception", resourceLocation), e1);
-                }
-            }
-        }
-        return Paths.get(uri);
     }
 
     /**
