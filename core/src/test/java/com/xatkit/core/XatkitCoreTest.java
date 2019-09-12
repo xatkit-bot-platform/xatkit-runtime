@@ -377,10 +377,6 @@ public class XatkitCoreTest extends AbstractXatkitTest {
                 "ExecutionModel").isEqualTo(executionModel);
         softly.assertThat(xatkitCore.isShutdown()).as("Not shutdown").isFalse();
         assertThat(xatkitCore.getXatkitServer()).as("Not null XatkitServer").isNotNull();
-        URI coreLibraryPathmapURI = URI.createURI(LibraryLoaderUtils.CORE_LIBRARY_PATHMAP + "CoreLibrary.xmi");
-        assertThat(xatkitCore.executionResourceSet.getResource(coreLibraryPathmapURI, false)).as("CoreLibrary pathmap" +
-                " resolved").isNotNull();
-
     }
 
 }
