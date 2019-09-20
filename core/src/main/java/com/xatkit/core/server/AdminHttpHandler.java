@@ -32,38 +32,25 @@ import static java.util.Objects.isNull;
 class AdminHttpHandler implements HttpRequestHandler {
 
     /**
-     * The {@link Configuration} key used to specify the Xatkit server location (public URL).
-     * <p>
-     * This key is used to customize HTML templates and Javascript to connect them to the running
-     * {@link XatkitServer} instance.
-     *
-     * @see #DEFAULT_SERVER_LOCATION
-     */
-    private static final String SERVER_PUBLIC_URL_KEY = "xatkit.server.public_url";
-
-    /**
-     * The default Xatkit server location.
-     * <p>
-     * This value is used if the {@link Configuration} does not contain a server public url, and allows to test bots in
-     * a local development environment by connecting to {@code http://localhost:5000}.
-     *
-     * @see #SERVER_PUBLIC_URL_KEY
-     */
-    private static final String DEFAULT_SERVER_LOCATION = "http://localhost:5000";
-
-    /**
      * The pattern used to match and replace the server location template in the HTML file.
      */
     // Need to double single quotes, see https://docs.oracle.com/javase/7/docs/api/java/text/MessageFormat.html
     private static final String SERVER_LOCATION_PATTERN = "window.xatkit_server = ''{0}''";
 
     /**
-     * The Xatkit server location (public URL) to use from the returned HTML and Javascript files.
-     *
-     * @see #SERVER_PUBLIC_URL_KEY
-     * @see #DEFAULT_SERVER_LOCATION
+     * The placeholder used for the server location in the HTML file.
      */
-    private String serverLocation;
+    private static final String SERVER_LOCATION_PLACEHOLDER =
+            XatkitServerUtils.DEFAULT_SERVER_LOCATION + ":" + Integer.toString(5001);
+    // TODO This handler should be move to the react platform, where the default react port is defined.
+
+    /**
+     * The Xatkit server location (public URL and port) to use from the returned HTML and Javascript files.
+     *
+     * @see XatkitServerUtils#SERVER_PUBLIC_URL_KEY
+     * @see XatkitServerUtils#DEFAULT_SERVER_LOCATION
+     */
+    private String fullServerLocation;
 
     /**
      * Constructs an {@link AdminHttpHandler} with the provided {@code configuration}.
@@ -77,7 +64,11 @@ class AdminHttpHandler implements HttpRequestHandler {
         super();
         checkNotNull(configuration, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName(),
                 Configuration.class.getSimpleName(), configuration);
-        this.serverLocation = configuration.getString(SERVER_PUBLIC_URL_KEY, DEFAULT_SERVER_LOCATION);
+        // TODO This handler should probably go in the react platform.
+        int port = configuration.getInt("xatkit.react.port", 5001);
+        String serverLocation = configuration.getString(XatkitServerUtils.SERVER_PUBLIC_URL_KEY,
+                XatkitServerUtils.DEFAULT_SERVER_LOCATION);
+        this.fullServerLocation = serverLocation + ":" + Integer.toString(port);
     }
 
     /**
@@ -153,7 +144,7 @@ class AdminHttpHandler implements HttpRequestHandler {
      *
      * @param from the {@link InputStream} to replace the templates from
      * @return an {@link InputStream} containing {@code from}'s contents with its templates replaced
-     * @see #SERVER_PUBLIC_URL_KEY
+     * @see XatkitServerUtils#SERVER_PUBLIC_URL_KEY
      */
     private InputStream replaceHtmlTemplates(InputStream from) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(from));
@@ -167,8 +158,8 @@ class AdminHttpHandler implements HttpRequestHandler {
                     "attached exception", this.getClass().getSimpleName()), e);
         }
         String content = builder.toString();
-        content = content.replace(MessageFormat.format(SERVER_LOCATION_PATTERN, DEFAULT_SERVER_LOCATION),
-                MessageFormat.format(SERVER_LOCATION_PATTERN, serverLocation));
+        content = content.replace(MessageFormat.format(SERVER_LOCATION_PATTERN, SERVER_LOCATION_PLACEHOLDER),
+                MessageFormat.format(SERVER_LOCATION_PATTERN, fullServerLocation));
         try {
             return new ByteArrayInputStream(content.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {

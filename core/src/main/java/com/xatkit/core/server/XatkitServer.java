@@ -39,19 +39,6 @@ import static java.util.Objects.isNull;
 public class XatkitServer {
 
     /**
-     * The {@link Configuration} key to store the server port to use.
-     */
-    public static String SERVER_PORT_KEY = "xatkit.server.port";
-
-    /**
-     * The default port to use.
-     * <p>
-     * The server port can be customized in the constructor's {@link Configuration} using the {@link #SERVER_PORT_KEY}
-     * key.
-     */
-    protected static int DEFAULT_SERVER_PORT = 5000;
-
-    /**
      * The {@link HttpServer} used to receive input requests.
      */
     private HttpServer server;
@@ -67,7 +54,7 @@ public class XatkitServer {
      * The port the {@link XatkitServer} should listen to.
      * <p>
      * The {@link XatkitServer} port can be specified in the constructor's {@link Configuration} with the key
-     * {@link #SERVER_PORT_KEY}. The default value is {@code 5000}.
+     * {@link XatkitServerUtils#SERVER_PORT_KEY}. The default value is {@code 5000}.
      */
     private int port;
 
@@ -85,7 +72,7 @@ public class XatkitServer {
      * Constructs a new {@link XatkitServer} with the given {@link Configuration}.
      * <p>
      * The provided {@link Configuration} is used to specify the port the server should listen to (see
-     * {@link #SERVER_PORT_KEY}). If the {@link Configuration} does not specify a port the default value ({@code
+     * {@link XatkitServerUtils#SERVER_PORT_KEY}). If the {@link Configuration} does not specify a port the default value ({@code
      * 5000}) is used.
      * <p>
      * <b>Note:</b> this method does not start the underlying {@link HttpServer}. Use {@link #start()} to start the
@@ -101,7 +88,7 @@ public class XatkitServer {
                 (), Configuration.class.getSimpleName(), configuration);
         Log.info("Creating {0}", this.getClass().getSimpleName());
         this.isStarted = false;
-        this.port = configuration.getInt(SERVER_PORT_KEY, DEFAULT_SERVER_PORT);
+        this.port = configuration.getInt(XatkitServerUtils.SERVER_PORT_KEY, XatkitServerUtils.DEFAULT_SERVER_PORT);
         Log.info("{0} listening to port {1}", this.getClass().getSimpleName(), port);
         this.restEndpoints = new HashMap<>();
         SocketConfig socketConfig = SocketConfig.custom()

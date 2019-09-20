@@ -87,7 +87,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void constructConfigurationWithPort() {
         Configuration configuration = new BaseConfiguration();
-        configuration.setProperty(XatkitServer.SERVER_PORT_KEY, 1234);
+        configuration.setProperty(XatkitServerUtils.SERVER_PORT_KEY, 1234);
         this.server = new XatkitServer(configuration);
     }
 
@@ -95,15 +95,15 @@ public class XatkitServerTest extends AbstractXatkitTest {
     public void startEmptyConfiguration() {
         this.server = new XatkitServer(new BaseConfiguration());
         this.server.start();
-        softly.assertThat(server.getHttpServer().getLocalPort()).as("Valid port number").isEqualTo(XatkitServer
-                .DEFAULT_SERVER_PORT);
+        softly.assertThat(server.getHttpServer().getLocalPort()).as("Valid port number")
+                .isEqualTo(XatkitServerUtils.DEFAULT_SERVER_PORT);
         softly.assertThat(server.isStarted()).as("Server started").isTrue();
     }
 
     @Test
     public void startConfigurationWithPort() {
         Configuration configuration = new BaseConfiguration();
-        configuration.setProperty(XatkitServer.SERVER_PORT_KEY, 1234);
+        configuration.setProperty(XatkitServerUtils.SERVER_PORT_KEY, 1234);
         this.server = new XatkitServer(configuration);
         this.server.start();
         softly.assertThat(server.getHttpServer().getLocalPort()).as("Valid port number").isEqualTo(1234);
@@ -295,7 +295,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
      */
     private XatkitServer getValidXatkitServer() {
         Configuration configuration = new BaseConfiguration();
-        configuration.setProperty(XatkitServer.SERVER_PORT_KEY, 1234);
+        configuration.setProperty(XatkitServerUtils.SERVER_PORT_KEY, 1234);
         this.server = new XatkitServer(configuration);
         return this.server;
     }
