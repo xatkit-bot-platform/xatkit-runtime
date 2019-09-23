@@ -50,7 +50,7 @@ class AdminHttpHandler implements HttpRequestHandler {
      * @see XatkitServerUtils#SERVER_PUBLIC_URL_KEY
      * @see XatkitServerUtils#DEFAULT_SERVER_LOCATION
      */
-    private String fullServerLocation;
+    private String reactServerURL;
 
     /**
      * Constructs an {@link AdminHttpHandler} with the provided {@code configuration}.
@@ -65,10 +65,10 @@ class AdminHttpHandler implements HttpRequestHandler {
         checkNotNull(configuration, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName(),
                 Configuration.class.getSimpleName(), configuration);
         // TODO This handler should probably go in the react platform.
-        int port = configuration.getInt("xatkit.react.port", 5001);
+        int reactPort = configuration.getInt("xatkit.react.port", 5001);
         String serverLocation = configuration.getString(XatkitServerUtils.SERVER_PUBLIC_URL_KEY,
                 XatkitServerUtils.DEFAULT_SERVER_LOCATION);
-        this.fullServerLocation = serverLocation + ":" + Integer.toString(port);
+        this.reactServerURL = serverLocation + ":" + Integer.toString(reactPort);
     }
 
     /**
@@ -159,7 +159,7 @@ class AdminHttpHandler implements HttpRequestHandler {
         }
         String content = builder.toString();
         content = content.replace(MessageFormat.format(SERVER_LOCATION_PATTERN, SERVER_LOCATION_PLACEHOLDER),
-                MessageFormat.format(SERVER_LOCATION_PATTERN, fullServerLocation));
+                MessageFormat.format(SERVER_LOCATION_PATTERN, reactServerURL));
         try {
             return new ByteArrayInputStream(content.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
