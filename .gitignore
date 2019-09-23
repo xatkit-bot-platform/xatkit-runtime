@@ -47,3 +47,6 @@ jarvisdemo
 
 # Generated data/ folder
 data/
+
+# Generated public/ folder
+public/

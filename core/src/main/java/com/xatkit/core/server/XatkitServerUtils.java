@@ -42,4 +42,14 @@ public interface XatkitServerUtils {
      * @see #SERVER_PUBLIC_URL_KEY
      */
     String DEFAULT_SERVER_LOCATION = "http://localhost";
+
+    /**
+     * The URL fragment used to access Xatkit public content.
+     */
+    String PUBLIC_CONTENT_URL_FRAGMENT = "/content/";
+
+    /**
+     * The directory name used to store Xatkit public content.
+     */
+    String PUBLIC_DIRECTORY_NAME = "public";
 }

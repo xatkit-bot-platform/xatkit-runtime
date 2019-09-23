@@ -4,19 +4,25 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitException;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.stubs.EmptyRuntimePlatform;
 import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.entity.ContentType;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import static java.util.Objects.nonNull;
@@ -57,8 +63,16 @@ public class XatkitServerTest extends AbstractXatkitTest {
         });
     }
 
+    @Before
+    public void setUp() throws IOException {
+        File publicFile = new File(XatkitServerUtils.PUBLIC_DIRECTORY_NAME);
+        if(publicFile.exists()) {
+            FileUtils.forceDelete(publicFile);
+        }
+    }
+
     @After
-    public void tearDown() {
+    public void tearDown() throws IOException {
         if (nonNull(server) && server.isStarted()) {
             server.stop();
         }
@@ -67,6 +81,10 @@ public class XatkitServerTest extends AbstractXatkitTest {
         }
         if (nonNull(server2) && server2.isStarted()) {
             server2.stop();
+        }
+        File publicFile = new File(XatkitServerUtils.PUBLIC_DIRECTORY_NAME);
+        if (publicFile.exists()) {
+            FileUtils.forceDelete(publicFile);
         }
     }
 
@@ -283,6 +301,174 @@ public class XatkitServerTest extends AbstractXatkitTest {
         this.server = getValidXatkitServer();
         this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(), Collections.emptyList(), null,
                 ContentType.APPLICATION_JSON.getMimeType());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createOrReplacePublicFileNullSession() {
+        this.server = getValidXatkitServer();
+        this.server.createOrReplacePublicFile(null, "test.txt", "A test file");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createOrReplacePublicFileNullPath() {
+        this.server = getValidXatkitServer();
+        this.server.createOrReplacePublicFile(new XatkitSession("test"), null, "A test file");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createOrReplacePublicFileNullOrigin() {
+        this.server = getValidXatkitServer();
+        this.server.createOrReplacePublicFile(new XatkitSession("test"), "test.txt", (File) null);
+    }
+
+    @Test
+    public void createOrReplacePublicFileValidFile() throws IOException {
+        this.server = getValidXatkitServer();
+        File file = this.server.createOrReplacePublicFile(new XatkitSession("test"), "test.txt", "A test file");
+        assertThat(file).as("Not null file").isNotNull();
+        assertThat(file).as("File exists").exists();
+        String readContent = FileUtils.readFileToString(file);
+        assertThat(readContent).as("Valid content").isEqualTo("A test file");
+    }
+
+    @Test
+    public void createOrReplacePublicFileHierarchy() throws IOException {
+        this.server = getValidXatkitServer();
+        File file = this.server.createOrReplacePublicFile(new XatkitSession("test"), "/test2/test.txt", "A test file");
+        assertThat(file).as("Not null file").isNotNull();
+        assertThat(file).as("File exists").exists();
+        String readContent = FileUtils.readFileToString(file);
+        assertThat(readContent).as("Valid content").isEqualTo("A test file");
+    }
+
+    @Test
+    public void createOrReplacePublicFileReplaceExistingFile() throws IOException {
+        this.server = getValidXatkitServer();
+        XatkitSession session = new XatkitSession("test");
+        File file = this.server.createOrReplacePublicFile(session, "test.txt", "A test file");
+        File file2 = this.server.createOrReplacePublicFile(session, "test.txt", "Another test file");
+        assertThat(file2).as("File2 is not null").isNotNull();
+        assertThat(file2).as("File2 exists").exists();
+        String readContent = FileUtils.readFileToString(file2);
+        assertThat(readContent).as("Valid content").isEqualTo("Another test file");
+    }
+
+    @Test(expected = XatkitException.class)
+    public void createOrReplacePublicFileForbiddenPath() {
+        this.server = getValidXatkitServer();
+        XatkitSession session = new XatkitSession("test");
+        File file = this.server.createOrReplacePublicFile(session, "../../test.txt", "A forbidden test file");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getPublicFileNullSession() {
+        this.server = getValidXatkitServer();
+        server.getPublicFile(null, "test.txt");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getPublicFileNullFile() {
+        this.server = getValidXatkitServer();
+        server.getPublicFile(new XatkitSession("test"), null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getPublicFileNullPath() {
+        this.server = getValidXatkitServer();
+        server.getPublicFile(null);
+    }
+
+    @Test
+    public void getPublicFileValidFile() {
+        this.server = getValidXatkitServer();
+        XatkitSession session = new XatkitSession("test");
+        server.createOrReplacePublicFile(session, "test.txt", "A test file");
+        File file = server.getPublicFile(session, "test.txt");
+        assertThat(file).as("The file is not null").isNotNull();
+        assertThat(file).as("The file exists").exists();
+    }
+
+    @Test
+    public void getPublicFileValidFileHierarchy() {
+        this.server = getValidXatkitServer();
+        XatkitSession session = new XatkitSession("test");
+        server.createOrReplacePublicFile(session, "test2/test.txt", "A test file");
+        File file = server.getPublicFile(session, "test2/test.txt");
+        assertThat(file).as("File is not null").isNotNull();
+        assertThat(file).as("File exists").exists();
+    }
+
+    @Test
+    public void getPublicFileNotExist() {
+        this.server = getValidXatkitServer();
+        File file = server.getPublicFile("do-not-exist.png");
+        assertThat(file).as("Returned file is null").isNull();
+    }
+
+    @Test(expected = XatkitException.class)
+    public void getPublicFileIllegalPath() {
+        this.server = getValidXatkitServer();
+        /*
+         * Need to first create a dummy file, otherwise the path is not resolved at all.
+         */
+        XatkitSession session = new XatkitSession("test");
+        server.createOrReplacePublicFile(session, "test.txt", "A test file");
+        File file = server.getPublicFile(session, "../../pom.xml");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getPublicURLNullFile() {
+        this.server = getValidXatkitServer();
+        server.getPublicURL(null);
+    }
+
+    @Test
+    public void getPublicURLValidFile() {
+        this.server = getValidXatkitServer();
+        XatkitSession session = new XatkitSession("test");
+        server.createOrReplacePublicFile(session, "test.txt", "A test file");
+        File file = server.getPublicFile("test/test.txt");
+        String url = server.getPublicURL(file);
+        assertThat(url).as("URL not null").isNotNull();
+        assertThat(url).as("Valid URL").isEqualTo("http://localhost:1234/content/test/test.txt");
+    }
+
+    @Test
+    public void getPublicURLValidFileHierarchy() {
+        this.server = getValidXatkitServer();
+        XatkitSession session = new XatkitSession("test");
+        server.createOrReplacePublicFile(session, "test2/test.txt", "A test file");
+        File file = server.getPublicFile(session, "test2/test.txt");
+        String url = server.getPublicURL(file);
+        assertThat(url).as("URL is not null").isNotNull();
+        assertThat(url).as("Valid URL").isEqualTo("http://localhost:1234/content/test/test2/test.txt");
+    }
+
+    @Test
+    public void getPublicURLFileNotExist() {
+        this.server = getValidXatkitServer();
+        File file = new File("public/do-not-exist.png");
+        String url = this.server.getPublicURL(file);
+        assertThat(url).as("URL is null").isNull();
+    }
+
+    @Test(expected = XatkitException.class)
+    public void getPublicURLIllegalPath() {
+        this.server = getValidXatkitServer();
+        File file = new File("pom.xml");
+        String url = server.getPublicURL(file);
+    }
+
+    /*
+     * This test is used to start a XatkitServer and interact with it for debugging. The method does not exit, and
+     * needs to be killed manually.
+     */
+    @Ignore
+    @Test
+    public void testServer() throws InterruptedException {
+        this.server = getValidXatkitServer();
+        server.start();
+        Thread.sleep(Integer.MAX_VALUE);
     }
 
     /**
