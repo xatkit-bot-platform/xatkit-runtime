@@ -387,9 +387,9 @@ public class XatkitServer {
      */
     public File createOrReplacePublicFile(XatkitSession session, String path, File origin) {
         checkNotNull(origin, "Cannot create a public file from the provided origin file %s", origin);
-        String fileContent;
+        byte[] fileContent;
         try {
-            fileContent = org.apache.commons.io.FileUtils.readFileToString(origin);
+            fileContent = org.apache.commons.io.FileUtils.readFileToByteArray(origin);
         } catch (IOException e) {
             throw new XatkitException(e);
         }
@@ -415,6 +415,10 @@ public class XatkitServer {
         checkNotNull(session, "Cannot create a public file from the provided %s %s",
                 XatkitSession.class.getSimpleName(), session);
         checkNotNull(path, "Cannot create a public file with the provided path %s", path);
+        return this.createOrReplacePublicFile(session, path, content.getBytes());
+    }
+
+    public File createOrReplacePublicFile(XatkitSession session, String path, byte[] content) {
         File sessionFile = getOrCreateSessionFile(session);
 
         File file = new File(sessionFile, path);
@@ -451,7 +455,7 @@ public class XatkitServer {
         }
 
         try {
-            org.apache.commons.io.FileUtils.writeStringToFile(file, content);
+            org.apache.commons.io.FileUtils.writeByteArrayToFile(file, content);
         } catch (IOException e) {
             throw new XatkitException(e);
         }
