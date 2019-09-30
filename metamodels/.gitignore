@@ -1,8 +1,0 @@
-# Eclipse
-*.classpath
-*.project
-*.settings
-build.properties
-**/MANIFEST.MF
-plugin.properties
-plugin.xml
