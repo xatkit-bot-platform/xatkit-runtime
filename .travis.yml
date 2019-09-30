@@ -7,6 +7,7 @@ cache:
   directories:
   - "~/.m2/repository"
 before_install:
+- bash .util/build_xatkit.sh
 - openssl aes-256-cbc -K $encrypted_8e77b177e614_key -iv $encrypted_8e77b177e614_iv
   -in core/src/test/resources/xatkit-secrets.tar.enc -out core/src/test/resources/xatkit-secrets.tar
   -d
