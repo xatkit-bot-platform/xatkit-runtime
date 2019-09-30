@@ -14,6 +14,13 @@ main() {
     cd xatkit-releases
     mvn install -DskipTests > /dev/null
     e "Done"
+
+    e "Building Xatkit Metamodels"
+    cd /tmp
+    git clone https://github.com/xatkit-bot-platform/xatkit-metamodels.git > /dev/null
+    cd xatkit-metamodels
+    mvn install -DskipTests > /dev/null
+    e "Done"
 }
 
 main
