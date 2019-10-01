@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>com.xatkit</groupId>
-        <artifactId>xatkit</artifactId>
+        <artifactId>runtime</artifactId>
         <version>2.0.1-SNAPSHOT</version>
     </parent>
 
@@ -140,7 +140,7 @@
 
         <dependency>
             <groupId>com.xatkit</groupId>
-            <artifactId>core_resources</artifactId>
+            <artifactId>metamodels-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
 
