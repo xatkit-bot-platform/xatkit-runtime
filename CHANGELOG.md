@@ -34,7 +34,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 - Fixed an issue that caused `HttpHandler` to ignore single-line JSON payloads.
 
-## [1.0.0] - 2019-10-09 
+## [2.0.0] - 2019-10-09 
 
 See the release notes [here](https://github.com/xatkit-bot-platform/xatkit-runtime/releases).
 
