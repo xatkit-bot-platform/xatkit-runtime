@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.xatkit</groupId>
         <artifactId>runtime</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>core</artifactId>
@@ -117,31 +117,31 @@
         <dependency>
             <groupId>com.xatkit</groupId>
             <artifactId>common</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.xatkit</groupId>
             <artifactId>execution</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.xatkit</groupId>
             <artifactId>platform</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.xatkit</groupId>
             <artifactId>intent</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.xatkit</groupId>
             <artifactId>metamodels-utils</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
 
         <!-- Tests -->
