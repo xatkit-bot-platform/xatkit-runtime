@@ -6,10 +6,11 @@
     <parent>
     	<groupId>com.xatkit</groupId>
     	<artifactId>xatkit</artifactId>
-    	<version>2.0.1-SNAPSHOT</version>
+    	<version>3.0.0</version>
     </parent>
 
     <artifactId>runtime</artifactId>
+    <version>3.0.0</version>
 
     <packaging>pom</packaging>
 
