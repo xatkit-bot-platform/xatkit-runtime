@@ -8,6 +8,8 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 ## Unreleased
 
+## [3.0.0] - 2019-10-10
+
 ### Added
 
 - Class `XatkitServerUtils` containing the configuration keys and default values related to the Xatkit server.
