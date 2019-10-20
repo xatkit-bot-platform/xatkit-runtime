@@ -1,5 +1,6 @@
 package com.xatkit.core.interpreter;
 
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.common.CommonFactory;
 import com.xatkit.common.CommonPackage;
 import com.xatkit.common.Program;
@@ -28,7 +29,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CommonInterpreterTest {
+public class CommonInterpreterTest extends AbstractXatkitTest {
 
     private static String baseURI = "interpreter_inputs/";
 

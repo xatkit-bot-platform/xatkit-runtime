@@ -1,5 +1,6 @@
 package com.xatkit.core.platform.action;
 
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.session.XatkitSession;
@@ -17,7 +18,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RuntimeMessageActionTest {
+public class RuntimeMessageActionTest extends AbstractXatkitTest {
 
     private static String MESSAGE = "test message";
 
