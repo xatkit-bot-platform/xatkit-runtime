@@ -1,5 +1,6 @@
 package com.xatkit.core.util;
 
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.XatkitTest;
 import com.xatkit.core.util.stubs.ExceptionClass;
 import com.xatkit.core.util.stubs.LoadableClass;
@@ -10,7 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LoaderTest extends XatkitTest {
+public class LoaderTest extends AbstractXatkitTest {
 
     @Test
     public void constructValidParameters() throws Exception {

@@ -35,7 +35,7 @@ public abstract class AbstractXatkitTest {
         @Override
         protected void starting(Description description) {
             startingInstant = Instant.now();
-            Log.info("Starting test {0}", description.getMethodName());
+            Log.info("Starting test {0}.{1}", description.getClassName(), description.getMethodName());
         }
 
         /**
@@ -45,8 +45,8 @@ public abstract class AbstractXatkitTest {
         @Override
         protected void finished(Description description) {
             Instant finishedInstant = Instant.now();
-            Log.info("Test {0} completed in {1} ms", description.getMethodName(), Duration.between(startingInstant,
-                    finishedInstant).toMillis());
+            Log.info("Test {0}.{1} completed in {2} ms", description.getClassName(), description.getMethodName(),
+                    Duration.between(startingInstant, finishedInstant).toMillis());
         }
     };
 }

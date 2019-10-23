@@ -66,7 +66,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Before
     public void setUp() throws IOException {
         File publicFile = new File(XatkitServerUtils.PUBLIC_DIRECTORY_NAME);
-        if(publicFile.exists()) {
+        if (publicFile.exists()) {
             FileUtils.forceDelete(publicFile);
         }
     }
@@ -226,10 +226,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     public void registerRestEndpoint() {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        /*
-         * Don't test the method to access the endpoint, they have their own test methods. Here we only check that
-         * the method doesn't throw an exception.
-         */
+        assertThat(this.server.getRegisteredRestHandler(VALID_REST_URI)).as("Handler registered").isEqualTo(VALID_REST_HANDLER);
     }
 
     @Test(expected = NullPointerException.class)
