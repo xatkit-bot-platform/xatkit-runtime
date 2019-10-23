@@ -174,6 +174,7 @@ class HttpHandler implements HttpRequestHandler {
                 if (content.isEmpty()) {
                     Log.warn("Empty query content");
                 } else {
+                    // TODO check this, it shouldn't exist
                     if (ContentType.APPLICATION_JSON.getMimeType().equals(contentType)) {
                         Log.info("Parsing {0} content", ContentType.APPLICATION_JSON.getMimeType());
                         try {
