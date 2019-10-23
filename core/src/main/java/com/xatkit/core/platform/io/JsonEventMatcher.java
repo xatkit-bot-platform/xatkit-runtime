@@ -198,9 +198,14 @@ public class JsonEventMatcher {
             }
         }
         Log.warn("Cannot find an EventDefinition matching the provided headers and content");
-        /*
-         * We should probably provide some debug information here to help building the EventDefinition to match.
-         */
+        if(printBuilder) {
+            /*
+             * Try to convert the received JSON into out context to ease debugging and creation of new events.
+             */
+            convertJsonObjectToOutContext(content.getAsJsonObject(), eventInstanceBuilder);
+            Log.info("{0} content:\n{1}", EventInstanceBuilder.class.getSimpleName(),
+                    eventInstanceBuilder.prettyPrintEventDefinition());
+        }
         return null;
     }
 
@@ -232,7 +237,8 @@ public class JsonEventMatcher {
         eventInstanceBuilder.setEventDefinitionName(eventDefinitionName);
         convertJsonObjectToOutContext(content.getAsJsonObject(), eventInstanceBuilder);
         if (printBuilder) {
-            Log.info("{0}", eventInstanceBuilder.prettyPrintEventDefinition());
+            Log.info("{0} content:\n{1}", EventInstanceBuilder.class.getSimpleName(),
+                    eventInstanceBuilder.prettyPrintEventDefinition());
         }
         return eventInstanceBuilder.build();
     }

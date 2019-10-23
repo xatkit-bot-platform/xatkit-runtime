@@ -246,17 +246,16 @@ public class EventInstanceBuilder {
      */
     public String prettyPrintEventDefinition() {
         StringBuilder sb = new StringBuilder();
-        sb.append(this.eventDefinitionName).append("\n");
+        sb.append("event ");
+        sb.append(isNull(this.eventDefinitionName) ? "null" : this.eventDefinitionName).append("\n");
         /*
          * The out context name is not known in the builder, it is not required to set context parameter values.
          */
-        sb.append("outContext \"unknown\" {\n");
-        sb.append("\tparams {\n");
+        sb.append("creates context \"unknown\" {\n");
         for (String contextKey : contextValues.keySet()) {
-            sb.append("\t\t").append(contextKey).append("\n");
+            sb.append("\tsets parameter \"").append(contextKey).append("\"\n");
         }
-        sb.append("\t}\n");
-        sb.append("}");
+        sb.append("}\n");
         return sb.toString();
     }
 
