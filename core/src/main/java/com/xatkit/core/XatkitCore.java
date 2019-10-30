@@ -27,6 +27,8 @@ import com.xatkit.intent.Library;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.language.execution.ExecutionRuntimeModule;
 import com.xatkit.language.execution.ExecutionStandaloneSetup;
+import com.xatkit.language.intent.IntentStandaloneSetup;
+import com.xatkit.language.platform.PlatformStandaloneSetup;
 import com.xatkit.metamodels.utils.LibraryLoaderUtils;
 import com.xatkit.metamodels.utils.PlatformLoaderUtils;
 import com.xatkit.platform.ActionDefinition;
@@ -573,21 +575,24 @@ public class XatkitCore {
      * @see LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP
      */
     private void initializeExecutionResourceSet() {
+        EPackage.Registry.INSTANCE.put(XbasePackage.eINSTANCE.getNsURI(), XbasePackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(CommonPackage.eINSTANCE.getNsURI(), CommonPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
+
         executionResourceSet = new ResourceSetImpl();
+        IntentStandaloneSetup.doSetup();
+        PlatformStandaloneSetup.doSetup();
+        ExecutionStandaloneSetup.doSetup();
+        executionInjector = Guice.createInjector(new ExecutionRuntimeModule());
+        executionResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new
+                XMIResourceFactoryImpl());
         /*
          * Share the ResourceSet with the ImportRegistry. This way platforms loaded from both sides can be accessed
          * by the Xatkit runtime component.
          */
         ImportRegistry.getInstance().setResourceSet(executionResourceSet);
-        executionResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new
-                XMIResourceFactoryImpl());
-        executionResourceSet.getPackageRegistry().put(XbasePackage.eINSTANCE.getNsURI(), XbasePackage.eINSTANCE);
-        executionResourceSet.getPackageRegistry().put(CommonPackage.eINSTANCE.getNsURI(), CommonPackage.eINSTANCE);
-        executionResourceSet.getPackageRegistry().put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
-        executionResourceSet.getPackageRegistry().put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
-        executionResourceSet.getPackageRegistry().put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
-        ExecutionStandaloneSetup.doSetup();
-        executionInjector = Guice.createInjector(new ExecutionRuntimeModule());
         loadCoreLibraries();
         loadCustomLibraries();
         loadCorePlatforms();
@@ -600,12 +605,12 @@ public class XatkitCore {
      * <i>Core libraries</i> are loaded from {@code <xatkit>/plugins/libraries}, where {@code <xatkit>} is the Xatkit
      * installation directory. This method crawls the sub-directories and loads all the {@code .xmi} files as libraries.
      *
-     * @see #loadCoreResources(String, String, Class)
+     * @see #loadCoreResources(String, String, String, Class)
      */
     private void loadCoreLibraries() {
         Log.info("Loading Xatkit core libraries");
-        loadCoreResources("plugins" + File.separator + "libraries", LibraryLoaderUtils.CORE_LIBRARY_PATHMAP,
-                Library.class);
+        loadCoreResources("plugins" + File.separator + "libraries", LibraryLoaderUtils.CORE_LIBRARY_PATHMAP, ".intent"
+                , Library.class);
     }
 
     /**
@@ -614,12 +619,12 @@ public class XatkitCore {
      * <i>Core platforms</i> are loaded from {@code <xatkit>/plugins/platforms}, where {@code <xatkit>} is the Xatkit
      * installation directory. This method crawls the sub-directories and loads all the {@code .xmi} files as platforms.
      *
-     * @see #loadCoreResources(String, String, Class)
+     * @see #loadCoreResources(String, String, String, Class)
      */
     private void loadCorePlatforms() {
         Log.info("Loading Xatkit core platforms");
         Collection<PlatformDefinition> loadedPlatforms = loadCoreResources("plugins" + File.separator + "platforms",
-                PlatformLoaderUtils.CORE_PLATFORM_PATHMAP, PlatformDefinition.class);
+                PlatformLoaderUtils.CORE_PLATFORM_PATHMAP, ".platform", PlatformDefinition.class);
         for (PlatformDefinition platformDefinition : loadedPlatforms) {
             this.runtimePlatformRegistry.registerLoadedPlatformDefinition(platformDefinition);
         }
@@ -645,7 +650,8 @@ public class XatkitCore {
      * @throws XatkitException if an error occurred when crawling the directory's content or when loading a core
      *                         {@link Resource}
      */
-    private <T> Collection<T> loadCoreResources(String directoryPath, String pathmapPrefix, Class<T> rootElementClass) {
+    private <T> Collection<T> loadCoreResources(String directoryPath, String pathmapPrefix, String fileExtension,
+                                                Class<T> rootElementClass) {
         File xatkitDirectory;
         try {
             xatkitDirectory = FileUtils.getXatkitDirectory();
@@ -659,7 +665,7 @@ public class XatkitCore {
         try {
             Files.walk(Paths.get(xatkitDirectory.getAbsolutePath() + File.separator + directoryPath), Integer.MAX_VALUE)
                     .filter(filePath ->
-                            !Files.isDirectory(filePath) && filePath.toString().endsWith(".xmi")
+                            !Files.isDirectory(filePath) && filePath.toString().endsWith(fileExtension)
                     ).forEach(resourcePath -> {
                 try {
                     InputStream is = Files.newInputStream(resourcePath);
