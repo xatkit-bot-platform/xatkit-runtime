@@ -19,6 +19,14 @@ import com.xatkit.intent.LiteralTextFragment;
 import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
 import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.platform.ActionDefinition;
+import com.xatkit.util.EMFUtils;
+import org.eclipse.xtext.common.types.JvmGenericType;
+import org.eclipse.xtext.common.types.JvmOperation;
+import org.eclipse.xtext.common.types.TypesFactory;
+import org.eclipse.xtext.xbase.XFeatureCall;
+import org.eclipse.xtext.xbase.XMemberFeatureCall;
+import org.eclipse.xtext.xbase.XbaseFactory;
 
 import java.text.MessageFormat;
 
@@ -32,6 +40,21 @@ import java.text.MessageFormat;
  * different objects.
  */
 public class ElementFactory {
+
+    public static XMemberFeatureCall createXMemberFeatureCall(ActionDefinition actionDefinition) {
+        XMemberFeatureCall actionCall = XbaseFactory.eINSTANCE.createXMemberFeatureCall();
+        JvmGenericType jvmGenericType = TypesFactory.eINSTANCE.createJvmGenericType();
+        jvmGenericType.setSimpleName(EMFUtils.getName(actionDefinition.eContainer()));
+        JvmOperation jvmOperation = TypesFactory.eINSTANCE.createJvmOperation();
+        jvmOperation.setSimpleName(actionDefinition.getName());
+        jvmGenericType.getMembers().add(jvmOperation);
+        actionCall.setFeature(jvmOperation);
+        XFeatureCall feature = XbaseFactory.eINSTANCE.createXFeatureCall();
+        feature.setFeature(jvmGenericType);
+        actionCall.setMemberCallTarget(feature);
+        System.out.println(actionCall.getFeature().getQualifiedName());
+        return actionCall;
+    }
 
     /**
      * Creates an {@link EntityDefinitionReference} for the provided {@code entityDefinition}.
@@ -59,7 +82,7 @@ public class ElementFactory {
     }
 
     /**
-     * Creates an {@link EntityDefinitionReference} for the provided {@link entityType}.
+     * Creates an {@link EntityDefinitionReference} for the provided {@link EntityType}.
      * <p>
      * This method creates a new {@link BaseEntityDefinition} and initializes it with the provided {@code entityType}.
      *

@@ -17,7 +17,6 @@ import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -454,18 +453,6 @@ public class XatkitServerTest extends AbstractXatkitTest {
         this.server = getValidXatkitServer();
         File file = new File("pom.xml");
         String url = server.getPublicURL(file);
-    }
-
-    /*
-     * This test is used to start a XatkitServer and interact with it for debugging. The method does not exit, and
-     * needs to be killed manually.
-     */
-    @Ignore
-    @Test
-    public void testServer() throws InterruptedException {
-        this.server = getValidXatkitServer();
-        server.start();
-        Thread.sleep(Integer.MAX_VALUE);
     }
 
     /**

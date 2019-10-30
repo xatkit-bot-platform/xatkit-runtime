@@ -1,29 +1,34 @@
 package com.xatkit.core;
 
-import com.xatkit.common.Expression;
-import com.xatkit.common.Instruction;
-import com.xatkit.core.interpreter.CommonInterpreter;
-import com.xatkit.core.interpreter.ExecutionContext;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.action.RuntimeActionResult;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.execution.ActionInstance;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.ExecutionRule;
 import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
-import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.metamodels.utils.RuntimeModel;
+import com.xatkit.util.XbaseUtils;
 import fr.inria.atlanmod.commons.log.Log;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ConfigurationConverter;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.xtext.naming.QualifiedName;
+import org.eclipse.xtext.util.CancelIndicator;
+import org.eclipse.xtext.xbase.XExpression;
+import org.eclipse.xtext.xbase.XMemberFeatureCall;
+import org.eclipse.xtext.xbase.interpreter.IEvaluationContext;
+import org.eclipse.xtext.xbase.interpreter.impl.XbaseInterpreter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,11 +46,10 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * The {@link ExecutionService} is initialized by the {@link XatkitCore} instance, that loads the
  * {@link ExecutionModel} and initializes the {@link RuntimePlatformRegistry}.
  *
- * @see ActionInstance
  * @see EventInstance
  * @see XatkitCore
  */
-public class ExecutionService extends CommonInterpreter {
+public class ExecutionService extends XbaseInterpreter {
 
     /**
      * The {@link XatkitSession} key used to store the matched event.
@@ -53,6 +57,11 @@ public class ExecutionService extends CommonInterpreter {
      * The value associated to this key is an {@link EventInstance}.
      */
     public static final String MATCHED_EVENT_SESSION_KEY = "xatkit.matched_event";
+
+    /**
+     * The {@link IEvaluationContext} key used to store and access the current {@link XatkitSession}.
+     */
+    private static final QualifiedName EVALUATION_CONTEXT_SESSION_KEY = QualifiedName.create("com.xatkit.session");
 
     /**
      * The {@link ExecutionModel} used to retrieve the {@link RuntimeAction}s to compute from the handled
@@ -75,6 +84,19 @@ public class ExecutionService extends CommonInterpreter {
     private RuntimePlatformRegistry runtimePlatformRegistry;
 
     /**
+     * The Xatkit {@link Configuration}.
+     */
+    private Configuration configuration;
+
+    /**
+     * The {@link Map} representing the Xatkit {@link Configuration}.
+     * <p>
+     * This {@link Map} is initialized once when this class is constructed to avoid serialization overhead from
+     * {@link Configuration} to {@link Map} every time an execution rule is triggered.
+     */
+    private Map<Object, Object> configurationMap;
+
+    /**
      * The {@link ExecutorService} used to process {@link RuntimeAction}s.
      *
      * @see RuntimePlatform
@@ -93,16 +115,22 @@ public class ExecutionService extends CommonInterpreter {
      * @param executionModel          the {@link ExecutionModel} representing the intent-to-action bindings to use
      * @param runtimePlatformRegistry the {@link RuntimePlatformRegistry} used to create the {@link RuntimeAction}s
      *                                to execute
+     * @param configuration           the Xatkit configuration
      * @throws NullPointerException if the provided {@code executionModel} or {@code runtimePlatformRegistry} is
      *                              {@code null}
      */
-    public ExecutionService(ExecutionModel executionModel, RuntimePlatformRegistry runtimePlatformRegistry) {
+    public ExecutionService(ExecutionModel executionModel, RuntimePlatformRegistry runtimePlatformRegistry,
+                            Configuration configuration) {
         checkNotNull(executionModel, "Cannot construct a %s from the provided %s %s", this.getClass()
                 .getSimpleName(), ExecutionModel.class.getSimpleName(), executionModel);
         checkNotNull(runtimePlatformRegistry, "Cannot construct a %s from the provided %s %s", this.getClass()
                 .getSimpleName(), RuntimePlatformRegistry.class.getSimpleName(), runtimePlatformRegistry);
+        checkNotNull(configuration, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
+                Configuration.class.getSimpleName(), configuration);
         this.executionModel = executionModel;
         this.runtimePlatformRegistry = runtimePlatformRegistry;
+        this.configuration = configuration;
+        this.configurationMap = ConfigurationConverter.getMap(configuration);
         /*
          * Resolve all the proxies in the Resource: this should remove concurrent read issues on the model (see
          * https://www.eclipse.org/forums/index.php/t/1095731/)
@@ -202,83 +230,75 @@ public class ExecutionService extends CommonInterpreter {
     }
 
     /**
-     * Executes <b>synchronously</b> the actions defined in the provided {@code executionRule}.
+     * Sets the evaluation context associated to the provided {@code executionRule} and delegates its evaluation.
      * <p>
-     * This method creates a new {@link ExecutionContext} used to evaluate all the expressions within the provided
-     * {@code executionRule}. This {@link ExecutionContext} ensures that scoping is preserved, and that expressions
-     * in the provided {@code executionRule} cannot access variables that are defined in another {@link ExecutionRule}.
+     * This method also creates the {@link RuntimeModel} instance that will be used as {@code this} by the interpreter.
      *
      * @param executionRule the {@link ExecutionRule} to execute
-     * @param session       the {@link XatkitSession} used to define and access the rule's context variables
-     * @see #executeRuntimeAction(RuntimeAction, ActionInstance, XatkitSession, ExecutionContext)
+     * @param session       the {@link XatkitSession} associated to the {@link ExecutionRule}
+     * @see #evaluate(XExpression, IEvaluationContext, CancelIndicator)
      */
     private void executeExecutionRule(ExecutionRule executionRule, XatkitSession session) {
-        ExecutionContext context = new ExecutionContext();
-        context.setSession(session);
-        for (Instruction instruction : executionRule.getInstructions()) {
-            compute(instruction, context);
-        }
-    }
-
-    @Override
-    public Object evaluate(Expression e, ExecutionContext context) {
-        checkNotNull(e, "Cannot evaluate the provided %s %s", Expression.class.getSimpleName(), e);
-        if (e instanceof ActionInstance) {
-            return evaluate((ActionInstance) e, context);
-        } else {
-            return super.evaluate(e, context);
-        }
-    }
-
-    public Object evaluate(ActionInstance a, ExecutionContext context) {
-        RuntimeAction runtimeAction = getRuntimeActionFromActionInstance(a, context.getSession(), context);
-        RuntimeActionResult result = executeRuntimeAction(runtimeAction, a, context.getSession(), context);
-        /*
-         * Unwrap to avoid complex interpreter rules, should be fixed
-         */
-        return result.getResult();
+        IEvaluationContext evaluationContext = this.createContext();
+        RuntimeModel runtimeModel = new RuntimeModel(session.getRuntimeContexts().getContextMap(),
+                session.getSessionVariables(), configurationMap);
+        evaluationContext.newValue(QualifiedName.create("this"), runtimeModel);
+        evaluationContext.newValue(EVALUATION_CONTEXT_SESSION_KEY, session);
+        this.evaluate(executionRule, evaluationContext, CancelIndicator.NullImpl);
     }
 
     /**
-     * Executes the provided {@code action} with the provided {@code session}.
+     * Evaluates the provided {@code expression}.
+     * <p>
+     * This methods delegates to the {@link XbaseInterpreter} the computation of all {@link XExpression}s, excepted
+     * {@link XMemberFeatureCall}s representing platform's action call. For these specific expressions the
+     * interpreter takes care of constructing the corresponding {@link RuntimeAction}, evaluates its parameters, and
+     * invoke it.
+     *
+     * @param expression the {@link XExpression} to evaluate
+     * @param context    the {@link IEvaluationContext} containing the information already computed during the
+     *                   evaluation
+     * @param indicator  the indicator
+     * @return the result of the evaluation
+     * @see #executeRuntimeAction(RuntimeAction)
+     */
+    @Override
+    protected Object doEvaluate(XExpression expression, IEvaluationContext context, CancelIndicator indicator) {
+        if (expression instanceof XMemberFeatureCall) {
+            XMemberFeatureCall featureCall = (XMemberFeatureCall) expression;
+            if (XbaseUtils.isPlatformActionCall(featureCall, this.runtimePlatformRegistry)) {
+                XatkitSession session = (XatkitSession) context.getValue(EVALUATION_CONTEXT_SESSION_KEY);
+                List<Object> evaluatedArguments = new ArrayList<>();
+                for (XExpression xExpression : featureCall.getActualArguments()) {
+                    evaluatedArguments.add(internalEvaluate(xExpression, context, indicator));
+                }
+                RuntimeAction runtimeAction = this.getRuntimeActionFromXMemberFeatureCall(featureCall,
+                        evaluatedArguments,
+                        session);
+                RuntimeActionResult result = executeRuntimeAction(runtimeAction);
+                return result.getResult();
+            }
+        }
+        return super.doEvaluate(expression, context, indicator);
+    }
+
+    /**
+     * Executes the provided {@code action}.
      * <p>
      * This method executes the provided {@link RuntimeAction} in the calling {@link Thread}, and will block the
      * execution until the action completes. This method is called sequentially by the
      * {@link #handleEventInstance(EventInstance, XatkitSession)} method, that wraps all the computation in a single
      * asynchronous task.
-     * <p>
-     * This method processes the {@link RuntimeActionResult} returned by the computed {@code action}. If the {@code
-     * action} threw an exception an error message is logged and the {@code onError} {@link ActionInstance}s are
-     * retrieved and executed. If the {@code action} terminated successfully the corresponding context variables are
-     * set and the {@code onSuccess} {@link ActionInstance}s are retrieved and executed.
      *
-     * @param action         the {@link RuntimeAction} to execute
-     * @param actionInstance the {@link ActionInstance} representing the signature of the {@link RuntimeAction} to
-     *                       execute
-     * @param session        the {@link XatkitSession} used to define and access the context variables associated to the
-     *                       provided {@code action}
-     * @throws NullPointerException if the provided {@code action} or {@code session} is {@code null}
+     * @param action the {@link RuntimeAction} to execute
+     * @throws NullPointerException if the provided {@code action} is {@code null}
      */
-    private RuntimeActionResult executeRuntimeAction(RuntimeAction action, ActionInstance actionInstance,
-                                                     XatkitSession session,
-                                                     ExecutionContext context) {
+    private RuntimeActionResult executeRuntimeAction(RuntimeAction action) {
         checkNotNull(action, "Cannot execute the provided %s %s", RuntimeAction.class.getSimpleName(), action);
-        checkNotNull(session, "Cannot execute the provided %s with the provided %s %s", RuntimeAction.class
-                .getSimpleName(), XatkitSession.class.getSimpleName(), session);
         RuntimeActionResult result = action.call();
         if (result.isError()) {
             Log.error("An error occurred when executing the action {0}", action.getClass().getSimpleName());
             printStackTrace(result.getThrownException());
-            /*
-             * Retrieve the ActionInstances to execute when the computed ActionInstance returns an error and execute
-             * them.
-             */
-            for (ActionInstance onErrorActionInstance : actionInstance.getOnError()) {
-                Log.info("Executing fallback action {0}", onErrorActionInstance.getAction().getName());
-                RuntimeAction onErrorRuntimeAction = getRuntimeActionFromActionInstance(onErrorActionInstance,
-                        session, context);
-                result = executeRuntimeAction(onErrorRuntimeAction, onErrorActionInstance, session, context);
-            }
         }
         Log.info("Action {0} executed in {1} ms", action.getClass().getSimpleName(), result.getExecutionTime());
         return result;
@@ -297,21 +317,22 @@ public class ExecutionService extends CommonInterpreter {
     }
 
     /**
-     * Constructs a {@link RuntimeAction} instance corresponding to the provided {@code actionInstance}, initialized
-     * in the provided {@code session}.
+     * Constructs a {@link RuntimeAction} instance corresponding to the provided {@code actionCall}, initialized
+     * with the provided {@code arguments} and {@code session}.
      * <p>
-     * This method is used as a bridge between the {@link ActionInstance}s (from the execution model), and the
+     * This method is used as a bridge between the {@link XMemberFeatureCall}s (from the execution model), and the
      * {@link RuntimeAction}s (from the internal Xatkit execution engine).
      *
-     * @param actionInstance the {@link ActionInstance} to construct a {@link RuntimeAction} from
-     * @param session        the {@link XatkitSession} used to define and access context variables
+     * @param actionCall the {@link XMemberFeatureCall} representing the {@link RuntimeAction} to create
+     * @param arguments  the {@link List} of computed values used as arguments for the created {@link RuntimeAction}
+     * @param session    the {@link XatkitSession} associated to the action
      * @return the constructed {@link RuntimeAction}
      */
-    private RuntimeAction getRuntimeActionFromActionInstance(ActionInstance actionInstance, XatkitSession session,
-                                                             ExecutionContext context) {
-        RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform((PlatformDefinition)
-                actionInstance.getAction().eContainer());
-        return runtimePlatform.createRuntimeAction(actionInstance, session, context);
+    private RuntimeAction getRuntimeActionFromXMemberFeatureCall(XMemberFeatureCall actionCall, List<Object> arguments,
+                                                                 XatkitSession session) {
+        String platformName = XbaseUtils.getPlatformName(actionCall);
+        RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform(platformName);
+        return runtimePlatform.createRuntimeAction(actionCall, arguments, session);
     }
 
     /**

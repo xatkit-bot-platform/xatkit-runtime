@@ -3,14 +3,16 @@ package com.xatkit.stubs;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.execution.ActionInstance;
+import org.eclipse.xtext.xbase.XMemberFeatureCall;
+
+import java.util.List;
 
 /**
  * An empty {@link RuntimePlatform} used to test {@link RuntimePlatform}-related methods.
  * <p>
  * See {@link StubRuntimePlatform} to create a stub {@link RuntimePlatform} that provided preset
  * {@link StubRuntimePlatform#getAction()} and
- * {@link StubRuntimePlatform#createRuntimeAction(ActionInstance, XatkitSession)} methods.
+ * {@link StubRuntimePlatform#createRuntimeAction(XMemberFeatureCall, List, XatkitSession)} methods.
  */
 public class EmptyRuntimePlatform extends RuntimePlatform {
 

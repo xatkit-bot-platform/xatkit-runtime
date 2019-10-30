@@ -1,30 +1,30 @@
 package com.xatkit.core.platform;
 
-import com.xatkit.common.Expression;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.interpreter.ExecutionContext;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.platform.io.WebhookEventProvider;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.core.session.RuntimeContexts;
-import com.xatkit.execution.ActionInstance;
-import com.xatkit.execution.ParameterValue;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
-import com.xatkit.platform.Parameter;
 import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.util.Loader;
+import com.xatkit.util.XbaseUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.eclipse.xtext.xbase.XMemberFeatureCall;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -58,7 +58,7 @@ public abstract class RuntimePlatform {
      * {@link RuntimeAction}s.
      *
      * @see #startEventProvider(EventProviderDefinition)
-     * @see #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)
+     * @see #createRuntimeAction(XMemberFeatureCall, List, XatkitSession)
      */
     protected Configuration configuration;
 
@@ -69,7 +69,7 @@ public abstract class RuntimePlatform {
      *
      * @see #enableAction(ActionDefinition)
      * @see #disableAction(ActionDefinition)
-     * @see #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)
+     * @see #createRuntimeAction(XMemberFeatureCall, List, XatkitSession)
      */
     protected Map<String, Class<? extends RuntimeAction>> actionMap;
 
@@ -153,7 +153,7 @@ public abstract class RuntimePlatform {
      * {@link XatkitServer#registerWebhookEventProvider(WebhookEventProvider)}).
      *
      * @param eventProviderDefinition the {@link EventProviderDefinition} representing the
-     * {@link RuntimeEventProvider} to
+     *                                {@link RuntimeEventProvider} to
      *                                start
      * @throws NullPointerException if the provided {@code eventProviderDefinition} or {@code xatkitCore} is {@code
      *                              null}
@@ -207,9 +207,12 @@ public abstract class RuntimePlatform {
      * @see Loader#loadClass(String, Class)
      */
     public void enableAction(ActionDefinition actionDefinition) {
-        String actionQualifiedName = this.getClass().getPackage().getName() + ".action." + actionDefinition.getName();
-        Class<? extends RuntimeAction> runtimeAction = Loader.loadClass(actionQualifiedName, RuntimeAction.class);
-        actionMap.put(actionDefinition.getName(), runtimeAction);
+        if (!actionMap.containsKey(actionDefinition.getName())) {
+            String actionQualifiedName =
+                    this.getClass().getPackage().getName() + ".action." + actionDefinition.getName();
+            Class<? extends RuntimeAction> runtimeAction = Loader.loadClass(actionQualifiedName, RuntimeAction.class);
+            actionMap.put(actionDefinition.getName(), runtimeAction);
+        }
     }
 
     /**
@@ -232,73 +235,74 @@ public abstract class RuntimePlatform {
      * Returns all the {@link RuntimeAction} {@link Class}es associated to this {@link RuntimePlatform}.
      * <p>
      * This method returns the {@link Class}es describing the {@link RuntimeAction}s associated to this platform. To
-     * construct a new {@link RuntimeAction} from a {@link EventInstance} see
-     * {@link #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)} .
+     * construct a new {@link RuntimeAction} see {@link #createRuntimeAction(XMemberFeatureCall, List, XatkitSession)}.
      *
      * @return all the {@link RuntimeAction} {@link Class}es associated to this {@link RuntimePlatform}
-     * @see #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)
+     * @see #createRuntimeAction(XMemberFeatureCall, List, XatkitSession)
      */
     public final Collection<Class<? extends RuntimeAction>> getActions() {
         return actionMap.values();
     }
 
     /**
-     * Creates a new {@link RuntimeAction} instance from the provided {@link ActionInstance}.
+     * Creates a new {@link RuntimeAction} instance from the provided {@link XMemberFeatureCall}.
      * <p>
-     * This methods attempts to construct a {@link RuntimeAction} defined by the provided {@code actionInstance} by
-     * matching the {@code eventInstance} variables to the {@link ActionDefinition}'s parameters, and reusing the
-     * provided
-     * {@link ActionInstance#getValues()}.
+     * This methods attempts to construct a {@link RuntimeAction} defined by the provided {@code actionCall} by
+     * matching the provided {@code arguments} to the {@link ActionDefinition}'s parameters.
      *
-     * @param actionInstance the {@link ActionInstance} representing the {@link RuntimeAction} to create
-     * @param session        the {@link XatkitSession} associated to the action
-     * @param context        the execution context used to evaluate the action parameter values
-     * @return a new {@link RuntimeAction} instance from the provided {@link ActionInstance}
-     * @throws NullPointerException if the provided {@code actionInstance} or {@code session} is {@code null}
-     * @throws XatkitException      if the provided {@link ActionInstance} does not match any {@link RuntimeAction},
+     * @param actionCall the {@link XMemberFeatureCall} representing the {@link RuntimeAction} to create
+     * @param arguments  the {@link List} of computed values used as arguments for the created {@link RuntimeAction}
+     * @param session    the {@link XatkitSession} associated to the action
+     * @return a new {@link RuntimeAction} instance from the provided {@code actionCall}
+     * @throws NullPointerException if the provided {@code actionCall}, {@code arguments}, or {@code session} is
+     *                              {@code null}
+     * @throws XatkitException      if the provided {@code actionCall} does not match any {@link RuntimeAction},
      *                              or if an error occurred when building the {@link RuntimeAction}
-     * @see #getParameterValues(ActionInstance, RuntimeContexts, ExecutionContext)
      */
-    public RuntimeAction createRuntimeAction(ActionInstance actionInstance, XatkitSession
-            session, ExecutionContext context) {
-        checkNotNull(actionInstance, "Cannot construct a %s from the provided %s %s", RuntimeAction.class
-                .getSimpleName(), ActionInstance.class.getSimpleName(), actionInstance);
+    public RuntimeAction createRuntimeAction(XMemberFeatureCall actionCall, List<Object> arguments,
+                                             XatkitSession session) {
+        checkNotNull(actionCall, "Cannot construct a %s from the provided %s %s", RuntimeAction.class
+                .getSimpleName(), XMemberFeatureCall.class.getSimpleName(), actionCall);
+        checkNotNull(arguments, "Cannot construct a %s from the provided argument list %s",
+                RuntimeAction.class.getSimpleName(), arguments);
         checkNotNull(session, "Cannot construct a %s from the provided %s %s", RuntimeAction.class.getSimpleName(),
                 XatkitSession.class.getSimpleName(), session);
-        ActionDefinition actionDefinition = actionInstance.getAction();
-        Class<? extends RuntimeAction> runtimeActionClass = actionMap.get(actionDefinition.getName());
+        String actionName = XbaseUtils.getActionName(actionCall);
+
+        Class<? extends RuntimeAction> runtimeActionClass = actionMap.get(actionName);
         if (isNull(runtimeActionClass)) {
             throw new XatkitException(MessageFormat.format("Cannot create the {0} {1}, the action is not " +
-                    "loaded in the platform", RuntimeAction.class.getSimpleName(), actionDefinition.getName()));
+                    "loaded in the platform", RuntimeAction.class.getSimpleName(), actionName));
         }
-        Object[] parameterValues = getParameterValues(actionInstance, session.getRuntimeContexts(), context);
-        /*
-         * Append the mandatory parameters to the parameter values.
-         */
-        Object[] fullParameters = new Object[parameterValues.length + 2];
-        fullParameters[0] = this;
-        fullParameters[1] = session;
+
+        Object[] argumentValues = arguments.toArray();
+        Object[] fullArgumentValues = new Object[argumentValues.length + 2];
+        fullArgumentValues[0] = this;
+        fullArgumentValues[1] = session;
         RuntimeAction runtimeAction;
-        if (parameterValues.length > 0) {
-            System.arraycopy(parameterValues, 0, fullParameters, 2, parameterValues.length);
+
+        if (argumentValues.length > 0) {
+            System.arraycopy(argumentValues, 0, fullArgumentValues, 2, argumentValues.length);
         }
         try {
             /**
              * The types of the parameters are not known, use {@link Loader#construct(Class, Object[])} to try to
              * find a constructor that accepts them.
              */
-            runtimeAction = Loader.construct(runtimeActionClass, fullParameters);
+            runtimeAction = Loader.construct(runtimeActionClass, fullArgumentValues);
         } catch (NoSuchMethodException e) {
             throw new XatkitException(MessageFormat.format("Cannot find a {0} constructor for the provided parameter " +
-                    "types ({1})", runtimeActionClass.getSimpleName(), printClassArray(fullParameters)), e);
-        } catch(InvocationTargetException e) {
+                    "types ({1})", runtimeActionClass.getSimpleName(), printClassArray(fullArgumentValues)), e);
+        } catch (InvocationTargetException e) {
             throw new XatkitException(MessageFormat.format("An error occurred when calling the {0} constructor for " +
-                    "the provided parameter types ({1}), see attached exception", runtimeActionClass.getSimpleName(),
-                    printClassArray(fullParameters)), e);
+                            "the provided parameter types ({1}), see attached exception",
+                    runtimeActionClass.getSimpleName(),
+                    printClassArray(fullArgumentValues)), e);
         }
         runtimeAction.init();
         return runtimeAction;
     }
+
 
     /**
      * Shuts down the {@link RuntimePlatform}.
@@ -327,51 +331,6 @@ public abstract class RuntimePlatform {
          * before it is closed.
          */
         this.disableAllActions();
-    }
-
-    /**
-     * Retrieves the {@code actionInstance}'s parameter values from the provided {@code context}.
-     * <p>
-     * This method iterates through the {@link ActionInstance}'s {@link ParameterValue}s and matches them
-     * against the describing {@link ActionDefinition}'s {@link Parameter}s. The concrete value associated to the
-     * {@link ActionInstance}'s {@link ParameterValue}s are retrieved from the provided {@code context}.
-     * <p>
-     * The retrieved values are used by the {@link RuntimePlatform} to instantiate concrete {@link RuntimeAction}s (see
-     * {@link #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)}).
-     *
-     * @param actionInstance   the {@link ActionInstance} to match the parameters from
-     * @param context          the {@link RuntimeContexts} storing event contextual informations
-     * @param executionContext the {@link ExecutionContext} used to evaluate parameter's expressions
-     * @return an array containing the concrete {@link ActionInstance}'s parameters
-     * @throws XatkitException if one of the concrete value is not stored in the provided {@code context}, or if the
-     *                         {@link ActionInstance}'s {@link ParameterValue}s do not match the describing
-     *                         {@link ActionDefinition}'s {@link Parameter}s.
-     * @see #createRuntimeAction(ActionInstance, XatkitSession, ExecutionContext)
-     */
-    private Object[] getParameterValues(ActionInstance actionInstance, RuntimeContexts context,
-                                        ExecutionContext executionContext) {
-        ActionDefinition actionDefinition = actionInstance.getAction();
-        List<Parameter> actionParameters = actionDefinition.getParameters();
-        List<ParameterValue> actionInstanceParameterValues = actionInstance.getValues();
-        if ((actionParameters.size() == actionInstanceParameterValues.size())) {
-            Object[] actionInstanceParameterValuesArray = StreamSupport.stream(actionInstanceParameterValues
-                    .spliterator(), false).map(paramValue -> {
-
-                        Expression paramExpression = paramValue.getExpression();
-                        try {
-                            return xatkitCore.getExecutionService().evaluate(paramExpression, executionContext);
-                        } catch(Exception e) {
-                            throw new XatkitException(e);
-                        }
-                    }
-            ).toArray();
-            return actionInstanceParameterValuesArray;
-        }
-        String errorMessage = MessageFormat.format("The {0} action does not define the good amount of parameters: " +
-                        "expected {1}, found {2}", actionDefinition.getName(), actionParameters.size(),
-                actionInstanceParameterValues.size());
-        Log.error(errorMessage);
-        throw new XatkitException(errorMessage);
     }
 
     /**

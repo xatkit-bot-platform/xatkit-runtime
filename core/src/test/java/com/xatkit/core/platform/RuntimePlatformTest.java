@@ -2,31 +2,28 @@ package com.xatkit.core.platform;
 
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.common.CommonFactory;
-import com.xatkit.common.StringLiteral;
-import com.xatkit.common.VariableAccess;
-import com.xatkit.common.VariableDeclaration;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.interpreter.ExecutionContext;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.execution.ActionInstance;
 import com.xatkit.execution.ExecutionFactory;
-import com.xatkit.execution.ParameterValue;
 import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.Parameter;
+import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.platform.PlatformFactory;
 import com.xatkit.stubs.EmptyRuntimePlatform;
 import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.stubs.action.StubRuntimeActionNoParameter;
-import com.xatkit.stubs.action.StubRuntimeActionTwoConstructors;
 import com.xatkit.stubs.io.StubInputProvider;
 import com.xatkit.stubs.io.StubInputProviderNoConfigurationConstructor;
 import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
+import com.xatkit.test.util.ElementFactory;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.JUnitSoftAssertions;
+import org.assertj.core.util.Arrays;
+import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,10 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,8 +45,6 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     private RuntimePlatform runtimePlatform;
 
     private static XatkitCore xatkitCore;
-
-    private ExecutionContext executionContext;
 
     @BeforeClass
     public static void setUpBeforeClass() {
@@ -79,15 +71,11 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
             XatkitServer xatkitServer = xatkitCore.getXatkitServer();
             xatkitServer.clearRegisteredRestHandlers();
         }
-        /*
-         * An empty execution context (not tested here)
-         */
-        executionContext = new ExecutionContext();
     }
 
     @After
     public void tearDown() {
-        if(nonNull(runtimePlatform)) {
+        if (nonNull(runtimePlatform)) {
             runtimePlatform.shutdown();
         }
     }
@@ -121,7 +109,8 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         eventProviderDefinition.setName("StubInputProvider");
         runtimePlatform.startEventProvider(eventProviderDefinition);
         assertThat(runtimePlatform.getEventProviderMap()).as("Not empty RuntimeEventProvider map").isNotEmpty();
-        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid RuntimeEventProvider map " +
+        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid " +
+                "RuntimeEventProvider map " +
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
@@ -138,7 +127,8 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         eventProviderDefinition.setName("StubInputProviderNoConfigurationConstructor");
         runtimePlatform.startEventProvider(eventProviderDefinition);
         assertThat(runtimePlatform.getEventProviderMap()).as("Not empty RuntimeEventProvider map").isNotEmpty();
-        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid RuntimeEventProvider map " +
+        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid " +
+                "RuntimeEventProvider map " +
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
@@ -155,7 +145,8 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         eventProviderDefinition.setName("StubJsonWebhookEventProvider");
         runtimePlatform.startEventProvider(eventProviderDefinition);
         assertThat(runtimePlatform.getEventProviderMap()).as("Not empty RuntimeEventProvider map").isNotEmpty();
-        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid RuntimeEventProvider map " +
+        assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid " +
+                "RuntimeEventProvider map " +
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
@@ -209,175 +200,42 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
 
     @Test(expected = NullPointerException.class)
     public void createRuntimeActionNullActionInstance() {
-        runtimePlatform.createRuntimeAction(null, new XatkitSession("id"), executionContext);
+        runtimePlatform.createRuntimeAction(null, Collections.emptyList(), new XatkitSession("id"));
     }
 
     @Test(expected = XatkitException.class)
     public void createRuntimeActionNotEnabledAction() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
-        ActionInstance actionInstance = executionFactory.createActionInstance();
-        actionInstance.setAction(actionDefinition);
-        runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("id"), executionContext);
+        XMemberFeatureCall featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        runtimePlatform.createRuntimeAction(featureCall, Collections.emptyList(), new XatkitSession("id"));
     }
 
     @Test
     public void createRuntimeActionValidActionInstanceNoParameters() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("sessionID"), executionContext);
+        runtimePlatform.enableAction(actionDefinition);
+        XMemberFeatureCall featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(featureCall, Collections.emptyList(),
+                new XatkitSession("sessionID"));
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf(StubRuntimeActionNoParameter
                 .class);
     }
 
     @Test(expected = XatkitException.class)
-    public void createRuntimeActionTooManyParametersInAction() {
+    public void createRuntimeActionTooManyArguments() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        Parameter param = PlatformFactory.eINSTANCE.createParameter();
-        param.setKey("myParam");
-        actionDefinition.getParameters().add(param);
-        ParameterValue parameterValue = executionFactory.createParameterValue();
-        StringLiteral value = commonFactory.createStringLiteral();
-        parameterValue.setExpression(value);
-//        parameterValue.setParameter(param);
-        value.setValue("myValue");
-        actionInstance.getValues().add(parameterValue);
-        runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("sessionID"), executionContext);
+        runtimePlatform.enableAction(actionDefinition);
+        XMemberFeatureCall featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        runtimePlatform.createRuntimeAction(featureCall, Arrays.asList(new String[]{"a", "b", "c"}), new XatkitSession(
+                "sessionID"));
     }
 
     @Test(expected = XatkitException.class)
-    public void createRuntimeActionTooManyParametersInActionInstance() {
-        ActionDefinition actionDefinition = getNoParameterActionDefinition();
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        Parameter param = PlatformFactory.eINSTANCE.createParameter();
-        param.setKey("myParam");
-        // Do not attach the Parameter to the Action
-        ParameterValue parameterValue = executionFactory.createParameterValue();
-        StringLiteral value = commonFactory.createStringLiteral();
-        parameterValue.setExpression(value);
-//        parameterValue.setParameter(param);
-        value.setValue("myValue");
-        actionInstance.getValues().add(parameterValue);
-        runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("sessionID"), executionContext);
-    }
-
-    @Test
-    public void createRuntimeParameterActionConstructor1ValidActionInstanceVariableAccess() {
+    public void createRuntimeActionInvalidParameterType() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
-        paramVariable.setName("param");
-        StringLiteral paramValue = commonFactory.createStringLiteral();
-//        paramValue.setValue("test");
-        paramVariable.setValue(paramValue);
-        VariableAccess variableAccess = commonFactory.createVariableAccess();
-        variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = executionFactory.createParameterValue();
-        parameterValue.setExpression(variableAccess);
-        actionInstance.getValues().add(parameterValue);
-        // Register the variable in the context to allow its access
-        XatkitSession session = new XatkitSession("sessionID");
-//        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture("test"));
-        executionContext.setValue(paramVariable.getName(), "test");
-
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, session, executionContext);
-        assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf
-                (StubRuntimeActionTwoConstructors.class);
-        StubRuntimeActionTwoConstructors runtimeActionTwoConstructors = (StubRuntimeActionTwoConstructors)
-                runtimeAction;
-        softly.assertThat(runtimeActionTwoConstructors.getParam()).as("Constructor1 called").isEqualTo("test");
-        softly.assertThat(runtimeActionTwoConstructors.getListParam()).as("Constructor2 not called").isNull();
-    }
-
-    @Test
-    public void createRuntimeParameterActionConstructor2ValidActionInstanceVariableAccess() {
-        ActionDefinition actionDefinition = getParameterActionDefinition();
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
-        paramVariable.setName("param");
-        VariableAccess variableAccess = commonFactory.createVariableAccess();
-        variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = executionFactory.createParameterValue();
-        parameterValue.setExpression(variableAccess);
-        actionInstance.getValues().add(parameterValue);
-        /*
-         * Register manually the value in the execution context, this is handled by the ExecutionService.
-         */
-        executionContext.setValue("param", Collections.singletonList("test"));
-
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession(
-                "sessionID"),
-                executionContext);
-        assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf
-                (StubRuntimeActionTwoConstructors.class);
-        StubRuntimeActionTwoConstructors runtimeActionTwoConstructors = (StubRuntimeActionTwoConstructors) runtimeAction;
-        softly.assertThat(runtimeActionTwoConstructors.getListParam()).as("Constructor2 called").isNotNull();
-        softly.assertThat(runtimeActionTwoConstructors.getListParam()).as("List parameter set").contains("test");
-        softly.assertThat(runtimeActionTwoConstructors.getParam()).as("Constructor1 not called").isNull();
-    }
-
-    @Test(expected = XatkitException.class)
-    public void createRuntimeParameterActionConstructor1ValidActionInstanceVariableNotRegistered() {
-        ActionDefinition actionDefinition = getParameterActionDefinition();
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
-        paramVariable.setName("param");
-        VariableAccess variableAccess = commonFactory.createVariableAccess();
-        variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = executionFactory.createParameterValue();
-        parameterValue.setExpression(variableAccess);
-        actionInstance.getValues().add(parameterValue);
-        RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(actionInstance, new XatkitSession("sessionID"), executionContext);
-    }
-
-    @Test(expected = XatkitException.class)
-    public void createRuntimeParameterActionValidActionInstanceInvalidParameterType() {
-        ActionDefinition actionDefinition = getParameterActionDefinition();
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
-        paramVariable.setName("param");
-        VariableAccess variableAccess = commonFactory.createVariableAccess();
-        variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue = executionFactory.createParameterValue();
-        parameterValue.setExpression(variableAccess);
-        actionInstance.getValues().add(parameterValue);
-        // Register the variable in the context to allow its access
-        XatkitSession session = new XatkitSession("sessionID");
-        // Register an integer in the context, there is no constructor to handle it
-        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture(1));
-        runtimePlatform.createRuntimeAction(actionInstance, session, executionContext);
-    }
-
-    @Test(expected = XatkitException.class)
-    public void createRuntimeParameterActionTooManyParametersInActionInstance() {
-        ActionDefinition actionDefinition = getParameterActionDefinition();
-        Parameter param2 = PlatformFactory.eINSTANCE.createParameter();
-        param2.setKey("param2");
-        actionDefinition.getParameters().add(param2);
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
-        VariableDeclaration paramVariable = commonFactory.createVariableDeclaration();
-        paramVariable.setName("param");
-        VariableAccess variableAccess = commonFactory.createVariableAccess();
-        variableAccess.setReferredVariable(paramVariable);
-        ParameterValue parameterValue1 = executionFactory.createParameterValue();
-        parameterValue1.setExpression(variableAccess);
-        VariableDeclaration paramVariable2 = commonFactory.createVariableDeclaration();
-        paramVariable2.setName("param2");
-        VariableAccess variableAccess2 = commonFactory.createVariableAccess();
-        variableAccess2.setReferredVariable(paramVariable2);
-        ParameterValue parameterValue2 = executionFactory.createParameterValue();
-        parameterValue2.setExpression(variableAccess2);
-        actionInstance.getValues().add(parameterValue1);
-        actionInstance.getValues().add(parameterValue2);
-        // Register the variable in the context to allow its access
-        XatkitSession session = new XatkitSession("sessionID");
-        List<String> listParam = new ArrayList<>();
-        listParam.add("test");
-        session.getRuntimeContexts().setContextValue("variables", 5, "param", CompletableFuture.completedFuture
-                (listParam));
-        session.getRuntimeContexts().setContextValue("variables", 5, "param2", CompletableFuture.completedFuture
-                (listParam));
-        runtimePlatform.createRuntimeAction(actionInstance, session, executionContext);
+        XMemberFeatureCall featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        runtimePlatform.createRuntimeAction(featureCall, Arrays.asList(new Integer[]{1}), new XatkitSession(
+                "sessionId"));
     }
 
     @Test
@@ -387,7 +245,6 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         runtimePlatform.startEventProvider(eventProviderDefinition);
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         // Enables the actionDefinition in the RuntimePlatform
-        ActionInstance actionInstance = createActionInstanceFor(actionDefinition);
         runtimePlatform.shutdown();
         assertThat(runtimePlatform.getActions()).as("Empty Action map").isEmpty();
         assertThat(runtimePlatform.getEventProviderMap()).as("Empty RuntimeEventProvider map").isEmpty();
@@ -396,6 +253,9 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     private ActionDefinition getNoParameterActionDefinition() {
         ActionDefinition actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
         actionDefinition.setName("StubRuntimeActionNoParameter");
+        PlatformDefinition platformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
+        platformDefinition.setName("StubRuntimePlatform");
+        platformDefinition.getActions().add(actionDefinition);
         return actionDefinition;
     }
 
@@ -405,19 +265,18 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         Parameter param = PlatformFactory.eINSTANCE.createParameter();
         param.setKey("param");
         actionDefinition.getParameters().add(param);
+        PlatformDefinition platformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
+        platformDefinition.setName("StubRuntimePlatform");
+        platformDefinition.getActions().add(actionDefinition);
         return actionDefinition;
-    }
-
-    private ActionInstance createActionInstanceFor(ActionDefinition actionDefinition) {
-        ActionInstance instance = executionFactory.createActionInstance();
-        instance.setAction(actionDefinition);
-        runtimePlatform.enableAction(actionDefinition);
-        return instance;
     }
 
     private ActionDefinition getNotRegisteredActionDefinition() {
         ActionDefinition actionDefinition = PlatformFactory.eINSTANCE.createActionDefinition();
         actionDefinition.setName("NotRegisteredAction");
+        PlatformDefinition platformDefinition = PlatformFactory.eINSTANCE.createPlatformDefinition();
+        platformDefinition.setName("StubRuntimePlatform");
+        platformDefinition.getActions().add(actionDefinition);
         return actionDefinition;
     }
 }

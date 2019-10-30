@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="ASCII"?>
-<common:Program xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:common="com.xatkit.common">
-  <instructions xsi:type="common:BooleanLiteral"/>
-</common:Program>

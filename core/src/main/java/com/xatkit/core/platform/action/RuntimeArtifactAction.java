@@ -4,8 +4,8 @@ import com.xatkit.core.ExecutionService;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.core.session.XatkitSession;
 import fr.inria.atlanmod.commons.log.Log;
 
 import java.io.IOException;

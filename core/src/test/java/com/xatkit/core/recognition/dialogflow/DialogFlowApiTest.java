@@ -5,9 +5,22 @@ import com.google.protobuf.NullValue;
 import com.google.protobuf.Value;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitCore;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
-import com.xatkit.intent.*;
+import com.xatkit.core.session.XatkitSession;
+import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.ContextParameterValue;
+import com.xatkit.intent.CustomEntityDefinitionReference;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.EntityDefinitionReference;
+import com.xatkit.intent.EntityType;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
+import com.xatkit.intent.MappingEntityDefinition;
+import com.xatkit.intent.MappingEntityDefinitionEntry;
+import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.test.util.ElementFactory;
 import com.xatkit.test.util.VariableLoaderHelper;
 import com.xatkit.test.util.models.TestExecutionModel;
@@ -15,9 +28,19 @@ import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.xatkit.test.util.ElementFactory.createBaseEntityDefinitionReference;
@@ -946,7 +969,7 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         IntentDefinition intentDefinition = (IntentDefinition) intent.getDefinition();
         assertThat(intent).as("Null Intent").isNotNull();
         assertThat(intentDefinition).as("Null Intent Definition").isNotNull();
-        assertThat(intentDefinition.getName()).as("Valid Intent").isEqualTo("Default Welcome Intent");
+        assertThat(intentDefinition.getName()).as("Valid Intent").isEqualTo("Default_Welcome_Intent");
     }
 
     @Test(expected = DialogFlowException.class)

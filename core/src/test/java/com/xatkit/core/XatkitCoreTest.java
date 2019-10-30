@@ -1,32 +1,44 @@
 package com.xatkit.core;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.xatkit.AbstractXatkitTest;
+import com.xatkit.common.CommonPackage;
 import com.xatkit.core.recognition.DefaultIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.metamodels.utils.LibraryLoaderUtils;
-import com.xatkit.metamodels.utils.PlatformLoaderUtils;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.ExecutionPackage;
+import com.xatkit.intent.IntentPackage;
+import com.xatkit.language.execution.ExecutionRuntimeModule;
+import com.xatkit.language.execution.ExecutionStandaloneSetup;
+import com.xatkit.metamodels.utils.LibraryLoaderUtils;
+import com.xatkit.metamodels.utils.PlatformLoaderUtils;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.platform.PlatformFactory;
+import com.xatkit.platform.PlatformPackage;
 import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
 import com.xatkit.test.util.models.TestExecutionModel;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.xtext.resource.XtextResourceSet;
+import org.eclipse.xtext.xbase.XbasePackage;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -42,11 +54,18 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
         TestExecutionModel testExecutionModel = new TestExecutionModel();
-        VALID_EXECUTION_MODEL = testExecutionModel.getExecutionModel();
         /*
          * Create the Resource used to store the valid execution model.
          */
-        ResourceSet testResourceSet = new ResourceSetImpl();
+        EPackage.Registry.INSTANCE.put(XbasePackage.eINSTANCE.getNsURI(), XbasePackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(CommonPackage.eINSTANCE.getNsURI(), CommonPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
+        ExecutionStandaloneSetup.doSetup();
+        Injector injector = Guice.createInjector(new ExecutionRuntimeModule());
+
+        ResourceSet testResourceSet = injector.getInstance(XtextResourceSet.class);
         testResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
                 ());
 
@@ -62,11 +81,25 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         testPlatformResource.getContents().add(testExecutionModel.getTestPlatformModel().getPlatformDefinition());
         testPlatformResource.save(Collections.emptyMap());
 
-        Resource testExecutionResource = testResourceSet.createResource(URI.createURI
-                ("/tmp/xatkitTestExecutionResource.xmi"));
-        testExecutionResource.getContents().clear();
-        testExecutionResource.getContents().add(VALID_EXECUTION_MODEL);
-        testExecutionResource.save(Collections.emptyMap());
+        File executionFile = new File("/tmp/xatkitTestExecutionResource.execution");
+        if(executionFile.exists()) {
+            executionFile.delete();
+        }
+        executionFile.createNewFile();
+        BufferedWriter writer = new BufferedWriter(new FileWriter(executionFile));
+        writer.write("import library \"/tmp/xatkitTestIntentResource.xmi\"");
+        writer.newLine();
+        writer.write("import platform \"/tmp/xatkitTestPlatformResource.xmi\"\n");
+        writer.newLine();
+        writer.write("on intent Default_Welcome_Intent do\n");
+        writer.newLine();
+        writer.write("\tStubRuntimePlatform.StubRuntimeAction()\n");
+        writer.close();
+
+        Resource resource = testResourceSet.getResource(URI.createFileURI("/tmp/xatkitTestExecutionResource" +
+                ".execution"), true);
+        VALID_EXECUTION_MODEL = (ExecutionModel) resource.getContents().get(0);
+
     }
 
     protected XatkitCore xatkitCore;
@@ -169,17 +202,6 @@ public class XatkitCoreTest extends AbstractXatkitTest {
                 " contained in the ResourceSet's URI map").contains(expectedPathmapURI);
         assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as("Valid " +
                 "concrete URI associated to the registered pathmap URI").isEqualTo(expectedURI);
-    }
-
-    @Test(expected = XatkitException.class)
-    public void constructInvalidPlatformFromExecutionModel() {
-        TestExecutionModel testExecutionModel = new TestExecutionModel();
-        ExecutionModel executionModel = testExecutionModel.getExecutionModel();
-        PlatformDefinition platformDefinition = testExecutionModel.getTestPlatformModel().getPlatformDefinition();
-        platformDefinition.setName("InvalidPlatform");
-        platformDefinition.setRuntimePath("com.xatkit.stubs.InvalidPlatform");
-        Configuration configuration = buildConfiguration(executionModel);
-        xatkitCore = new XatkitCore(configuration);
     }
 
     @Test

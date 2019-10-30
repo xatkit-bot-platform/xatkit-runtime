@@ -1,10 +1,10 @@
 package com.xatkit.core.recognition;
 
+import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
 import com.xatkit.stubs.StubXatkitCore;
-import com.xatkit.AbstractXatkitTest;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.After;

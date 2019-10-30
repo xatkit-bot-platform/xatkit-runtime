@@ -1,6 +1,5 @@
 package com.xatkit.stubs;
 
-import com.xatkit.core.server.RestHandler;
 import com.xatkit.core.server.XatkitServer;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.http.Header;

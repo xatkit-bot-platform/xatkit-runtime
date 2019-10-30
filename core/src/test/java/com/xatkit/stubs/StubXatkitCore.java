@@ -13,6 +13,7 @@ import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
+import org.apache.commons.configuration2.BaseConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +83,7 @@ public class StubXatkitCore extends XatkitCore {
     private class StubExecutionService extends ExecutionService {
 
         public StubExecutionService(ExecutionModel executionModel, RuntimePlatformRegistry registry) {
-            super(executionModel, registry);
+            super(executionModel, registry, new BaseConfiguration());
         }
 
         /**

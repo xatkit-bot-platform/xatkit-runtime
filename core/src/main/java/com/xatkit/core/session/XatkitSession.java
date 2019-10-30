@@ -155,6 +155,15 @@ public class XatkitSession {
         list.add(value);
     }
 
+    /**
+     * Returns a {@link Map} containing the session variables.
+     *
+     * @return a {@link Map} containing the session variables
+     */
+    public Map<String, Object> getSessionVariables() {
+        return this.sessionVariables;
+    }
+
     // Ugly fix
     // This is clearly not good, but it allows to manipulate github session from events and access its content in
     // user-specific actions
