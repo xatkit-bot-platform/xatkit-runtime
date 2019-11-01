@@ -728,7 +728,7 @@ public class XatkitCore {
                  * TODO find a better fix
                  */
                 String libraryName = key.substring(CUSTOM_LIBRARIES_KEY_PREFIX.length());
-                URI pathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + libraryName);
+                URI pathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + libraryName + ".intent");
                 Library library = loadCustomResource(libraryPath, pathmapURI, Library.class);
                 ImportRegistry.getInstance().internalRegisterAlias(libraryName, library);
             }
@@ -759,7 +759,8 @@ public class XatkitCore {
                  * TODO find a better fix
                  */
                 String platformName = key.substring(CUSTOM_PLATFORMS_KEY_PREFIX.length());
-                URI pathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + platformName);
+                URI pathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + platformName +
+                        ".platform");
                 PlatformDefinition platformDefinition = loadCustomResource(platformPath, pathmapURI,
                         PlatformDefinition.class);
                 ImportRegistry.getInstance().internalRegisterAlias(platformName, platformDefinition);
