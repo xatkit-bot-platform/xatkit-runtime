@@ -48,7 +48,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.XbasePackage;
 
@@ -597,8 +596,6 @@ public class XatkitCore {
         PlatformStandaloneSetup.doSetup();
         ExecutionStandaloneSetup.doSetup();
         executionInjector = Guice.createInjector(new ExecutionRuntimeModule());
-        executionResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new
-                XMIResourceFactoryImpl());
         /*
          * Share the ResourceSet with the ImportRegistry. This way platforms loaded from both sides can be accessed
          * by the Xatkit runtime component.
