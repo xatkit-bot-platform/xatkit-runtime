@@ -451,11 +451,22 @@ public class XatkitCore {
                                 runtimePlatform = loadRuntimePlatformFromPlatformModel(platformDefinition,
                                         configuration);
                             }
-                            // Quick fix: enable all the actions here, but only for the platform (we cannot retrieve
-                            // the correct action definition from the XMemberFeatureCall)
+                            /*
+                             * Quick fix: enable all the actions here, but only for the platform (we cannot retrieve
+                             * the correct action definition from the XMemberFeatureCall)
+                             */
                             for (ActionDefinition actionDefinition :
                                     platformDefinition.getActions()) {
                                 runtimePlatform.enableAction(actionDefinition);
+                            }
+                            /*
+                             * Enable inherited actions, they are not defined in the platform file.
+                             */
+                            PlatformDefinition parent = platformDefinition.getExtends();
+                            if(nonNull(parent)) {
+                                for(ActionDefinition actionDefinition : parent.getActions()) {
+                                    runtimePlatform.enableAction(actionDefinition);
+                                }
                             }
 
                         }
