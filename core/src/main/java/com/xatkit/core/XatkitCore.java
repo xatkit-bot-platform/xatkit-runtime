@@ -25,6 +25,7 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentPackage;
 import com.xatkit.intent.Library;
 import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.language.common.CommonStandaloneSetup;
 import com.xatkit.language.execution.ExecutionRuntimeModule;
 import com.xatkit.language.execution.ExecutionStandaloneSetup;
 import com.xatkit.language.intent.IntentStandaloneSetup;
@@ -591,16 +592,16 @@ public class XatkitCore {
         EPackage.Registry.INSTANCE.put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
         EPackage.Registry.INSTANCE.put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
 
-        executionResourceSet = new ResourceSetImpl();
+        CommonStandaloneSetup.doSetup();
         IntentStandaloneSetup.doSetup();
         PlatformStandaloneSetup.doSetup();
         ExecutionStandaloneSetup.doSetup();
         executionInjector = Guice.createInjector(new ExecutionRuntimeModule());
+        executionResourceSet = executionInjector.getInstance(XtextResourceSet.class);
         /*
          * Share the ResourceSet with the ImportRegistry. This way platforms loaded from both sides can be accessed
          * by the Xatkit runtime component.
          */
-        ImportRegistry.getInstance().setResourceSet(executionResourceSet);
         loadCoreLibraries();
         loadCustomLibraries();
         loadCorePlatforms();
