@@ -814,7 +814,7 @@ public class XatkitCore {
         if (resourceFile.exists() && resourceFile.isFile()) {
             URI resourceFileURI = URI.createFileURI(resourceFile.getAbsolutePath());
             executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
-            Resource resource = executionResourceSet.getResource(resourceFileURI, true);
+            Resource resource = executionResourceSet.getResource(pathmapURI, true);
             T topLevelElement = (T) resource.getContents().get(0);
             Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
             Log.debug("\tPath: {0}", resourceFile.toString());
