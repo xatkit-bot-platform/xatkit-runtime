@@ -11,8 +11,11 @@ import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.ExecutionPackage;
 import com.xatkit.intent.IntentPackage;
+import com.xatkit.language.common.CommonStandaloneSetup;
 import com.xatkit.language.execution.ExecutionRuntimeModule;
 import com.xatkit.language.execution.ExecutionStandaloneSetup;
+import com.xatkit.language.intent.IntentStandaloneSetup;
+import com.xatkit.language.platform.PlatformStandaloneSetup;
 import com.xatkit.metamodels.utils.LibraryLoaderUtils;
 import com.xatkit.metamodels.utils.PlatformLoaderUtils;
 import com.xatkit.platform.EventProviderDefinition;
@@ -28,7 +31,6 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.eclipse.xtext.xbase.XbasePackage;
 import org.junit.After;
@@ -40,7 +42,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,24 +63,53 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         EPackage.Registry.INSTANCE.put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
         EPackage.Registry.INSTANCE.put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
         EPackage.Registry.INSTANCE.put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
+        CommonStandaloneSetup.doSetup();
+        IntentStandaloneSetup.doSetup();
+        PlatformStandaloneSetup.doSetup();
         ExecutionStandaloneSetup.doSetup();
         Injector injector = Guice.createInjector(new ExecutionRuntimeModule());
-
         ResourceSet testResourceSet = injector.getInstance(XtextResourceSet.class);
-        testResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl
-                ());
+        File libraryFile = new File("/tmp/xatkitTestIntentResource.intent");
+        if(libraryFile.exists()) {
+            libraryFile.delete();
+        }
+        libraryFile.createNewFile();
+        BufferedWriter libraryWriter = new BufferedWriter(new FileWriter(libraryFile));
+        libraryWriter.write("Library StubLibrary");
+        libraryWriter.newLine();
+        libraryWriter.write("intent Default_Welcome_Intent {");
+        libraryWriter.newLine();
+        libraryWriter.write("inputs {");
+        libraryWriter.newLine();
+        libraryWriter.write("\"\"");
+        libraryWriter.newLine();
+        libraryWriter.write("}");
+        libraryWriter.newLine();
+        libraryWriter.write("}");
+        libraryWriter.close();
 
-        Resource testIntentResource = testResourceSet.createResource(URI.createURI("/tmp/xatkitTestIntentResource" +
-                ".xmi"));
-        testIntentResource.getContents().clear();
-        testIntentResource.getContents().add(testExecutionModel.getTestIntentModel().getIntentLibrary());
-        testIntentResource.save(Collections.emptyMap());
-
-        Resource testPlatformResource = testResourceSet.createResource(URI.createURI("/tmp/xatkitTestPlatformResource" +
-                ".xmi"));
-        testPlatformResource.getContents().clear();
-        testPlatformResource.getContents().add(testExecutionModel.getTestPlatformModel().getPlatformDefinition());
-        testPlatformResource.save(Collections.emptyMap());
+        File platformFile = new File("/tmp/xatkitTestPlatformResource.platform");
+        if(platformFile.exists()) {
+            platformFile.delete();
+        }
+        platformFile.createNewFile();
+        BufferedWriter platformWriter = new BufferedWriter(new FileWriter(platformFile));
+        platformWriter.write("Platform StubRuntimePlatform");
+        platformWriter.newLine();
+        platformWriter.write("path \"com.xatkit.stubs.StubRuntimePlatform\"");
+        platformWriter.newLine();
+        platformWriter.write("providers {");
+        platformWriter.newLine();
+        platformWriter.write("input StubInputProvider");
+        platformWriter.newLine();
+        platformWriter.write("}");
+        platformWriter.newLine();
+        platformWriter.write("actions {");
+        platformWriter.newLine();
+        platformWriter.write("StubRuntimeAction");
+        platformWriter.newLine();
+        platformWriter.write("}");
+        platformWriter.close();
 
         File executionFile = new File("/tmp/xatkitTestExecutionResource.execution");
         if(executionFile.exists()) {

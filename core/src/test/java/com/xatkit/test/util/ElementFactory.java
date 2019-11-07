@@ -52,7 +52,6 @@ public class ElementFactory {
         XFeatureCall feature = XbaseFactory.eINSTANCE.createXFeatureCall();
         feature.setFeature(jvmGenericType);
         actionCall.setMemberCallTarget(feature);
-        System.out.println(actionCall.getFeature().getQualifiedName());
         return actionCall;
     }
 
