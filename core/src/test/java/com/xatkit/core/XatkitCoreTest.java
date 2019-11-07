@@ -160,17 +160,17 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     @Test
     public void constructValidCustomPlatformPathInConfiguration() {
         Configuration configuration = buildConfiguration();
-        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform.xmi")
-                .getFile());
+        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Platforms/ExamplePlatform" +
+                ".platform").getFile());
         configuration.addProperty(XatkitCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         xatkitCore = new XatkitCore(configuration);
         checkXatkitCore(xatkitCore);
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
         List<URI> registeredResourceURIs = xatkitCore.executionResourceSet.getResources().stream().map(r -> r.getURI
                 ()).collect(Collectors.toList());
+        URI expectedPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + "Example.platform");
         assertThat(registeredResourceURIs).as("Custom runtimePlatform URI contained in the registered resource URIs")
-                .contains(expectedURI);
-        URI expectedPathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + "Example");
+                .contains(expectedPathmapURI);
         assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom runtimePlatform" +
                 "pathmap contained in the ResourceSet's URI map").contains(expectedPathmapURI);
         assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as
@@ -185,9 +185,9 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void constructValidCustomPlatformFromPathInConfiguration() {
+    public void constructValidCustomLibraryFromPathInConfiguration() {
         Configuration configuration = buildConfiguration();
-        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Libraries/ExampleLibrary.xmi")
+        File validFile = new File(this.getClass().getClassLoader().getResource("Test_Libraries/ExampleLibrary.intent")
                 .getFile());
         configuration.addProperty(XatkitCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         xatkitCore = new XatkitCore(configuration);
@@ -195,9 +195,9 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
         List<URI> registeredResourceURIs = xatkitCore.executionResourceSet.getResources().stream().map(r -> r.getURI
                 ()).collect(Collectors.toList());
+        URI expectedPathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + "Example.intent");
         assertThat(registeredResourceURIs).as("Custom library URI contained in the registered resource URIs")
-                .contains(expectedURI);
-        URI expectedPathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + "Example");
+                .contains(expectedPathmapURI);
         assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().keySet()).as("Custom library pathmap" +
                 " contained in the ResourceSet's URI map").contains(expectedPathmapURI);
         assertThat(xatkitCore.executionResourceSet.getURIConverter().getURIMap().get(expectedPathmapURI)).as("Valid " +
