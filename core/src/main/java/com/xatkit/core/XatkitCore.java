@@ -40,7 +40,7 @@ import com.xatkit.util.EMFUtils;
 import com.xatkit.util.FileUtils;
 import com.xatkit.util.Loader;
 import com.xatkit.util.XbaseUtils;
-import com.xatkit.utils.ImportRegistry;
+import com.xatkit.utils.XatkitImportHelper;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.emf.common.util.URI;
@@ -48,7 +48,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.xtext.resource.XtextResourceSet;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.XbasePackage;
 
@@ -524,6 +525,7 @@ public class XatkitCore {
                         ExecutionModel.class.getSimpleName(), uri.toString()), e);
             }
             executionInjector.injectMembers(executionModelResource);
+            EcoreUtil.resolveAll(executionModelResource);
             if (isNull(executionModelResource)) {
                 throw new XatkitException(MessageFormat.format("Cannot load the provided {0} (uri: {1})",
                         ExecutionModel.class.getSimpleName(), uri));
@@ -739,7 +741,7 @@ public class XatkitCore {
                 String libraryName = key.substring(CUSTOM_LIBRARIES_KEY_PREFIX.length());
                 URI pathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + libraryName + ".intent");
                 Library library = loadCustomResource(libraryPath, pathmapURI, Library.class);
-                ImportRegistry.getInstance().internalRegisterAlias(libraryName, library);
+                XatkitImportHelper.getInstance().ignoreAlias(executionResourceSet, libraryName);
             }
         });
     }
@@ -772,7 +774,7 @@ public class XatkitCore {
                         ".platform");
                 PlatformDefinition platformDefinition = loadCustomResource(platformPath, pathmapURI,
                         PlatformDefinition.class);
-                ImportRegistry.getInstance().internalRegisterAlias(platformName, platformDefinition);
+                XatkitImportHelper.getInstance().ignoreAlias(executionResourceSet, platformName);
             }
         });
     }
