@@ -243,11 +243,12 @@ public class ExecutionService extends XbaseInterpreter {
     private void executeExecutionRule(ExecutionRule executionRule, XatkitSession session) {
         IEvaluationContext evaluationContext = this.createContext();
         RuntimeModel runtimeModel = new RuntimeModel(session.getRuntimeContexts().getContextMap(),
-                session.getSessionVariables(), configurationMap);
+                session.getSessionVariables(), configurationMap,
+                (EventInstance) session.get(MATCHED_EVENT_SESSION_KEY));
         evaluationContext.newValue(QualifiedName.create("this"), runtimeModel);
         evaluationContext.newValue(EVALUATION_CONTEXT_SESSION_KEY, session);
         IEvaluationResult evaluationResult = this.evaluate(executionRule, evaluationContext, CancelIndicator.NullImpl);
-        if(nonNull(evaluationResult.getException())) {
+        if (nonNull(evaluationResult.getException())) {
             throw new XatkitException(evaluationResult.getException());
         }
     }
