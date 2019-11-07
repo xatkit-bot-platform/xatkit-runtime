@@ -22,6 +22,7 @@ import org.eclipse.xtext.util.CancelIndicator;
 import org.eclipse.xtext.xbase.XExpression;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.interpreter.IEvaluationContext;
+import org.eclipse.xtext.xbase.interpreter.IEvaluationResult;
 import org.eclipse.xtext.xbase.interpreter.impl.XbaseInterpreter;
 
 import java.io.ByteArrayOutputStream;
@@ -34,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.nonNull;
 
 /**
  * A service that handles {@link EventInstance}s and executes the corresponding {@link RuntimeAction}s defined in the
@@ -244,7 +246,10 @@ public class ExecutionService extends XbaseInterpreter {
                 session.getSessionVariables(), configurationMap);
         evaluationContext.newValue(QualifiedName.create("this"), runtimeModel);
         evaluationContext.newValue(EVALUATION_CONTEXT_SESSION_KEY, session);
-        this.evaluate(executionRule, evaluationContext, CancelIndicator.NullImpl);
+        IEvaluationResult evaluationResult = this.evaluate(executionRule, evaluationContext, CancelIndicator.NullImpl);
+        if(nonNull(evaluationResult.getException())) {
+            throw new XatkitException(evaluationResult.getException());
+        }
     }
 
     /**
