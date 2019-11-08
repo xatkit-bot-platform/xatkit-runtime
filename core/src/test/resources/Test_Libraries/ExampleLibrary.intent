@@ -1,0 +1,7 @@
+Library ExampleLibrary
+
+intent TestIntent {
+	inputs {
+		"test"
+	}
+}

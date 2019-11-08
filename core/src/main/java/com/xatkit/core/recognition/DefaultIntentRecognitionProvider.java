@@ -1,8 +1,8 @@
 package com.xatkit.core.recognition;
 
 import com.xatkit.core.XatkitCore;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinitionEntry;

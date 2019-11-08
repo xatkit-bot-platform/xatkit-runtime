@@ -1,7 +1,6 @@
 package com.xatkit.core.util;
 
 import com.xatkit.AbstractXatkitTest;
-import com.xatkit.XatkitTest;
 import com.xatkit.core.util.stubs.ExceptionClass;
 import com.xatkit.core.util.stubs.LoadableClass;
 import com.xatkit.util.Loader;

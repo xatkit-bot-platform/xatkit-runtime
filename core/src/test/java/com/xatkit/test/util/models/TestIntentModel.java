@@ -14,7 +14,7 @@ public class TestIntentModel {
         intentLibrary = IntentFactory.eINSTANCE.createLibrary();
         intentLibrary.setName("StubLibrary");
         intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
-        intentDefinition.setName("Default Welcome Intent");
+        intentDefinition.setName("Default_Welcome_Intent");
         intentLibrary.getEventDefinitions().add(intentDefinition);
     }
 

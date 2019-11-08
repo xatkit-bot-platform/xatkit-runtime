@@ -1,8 +1,8 @@
 package com.xatkit.core.platform.action;
 
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.core.session.RuntimeContexts;
+import com.xatkit.core.session.XatkitSession;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;

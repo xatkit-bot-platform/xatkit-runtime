@@ -1,5 +1,0 @@
-if("condition") {
-	"Value"
-} else {
-	2
-}

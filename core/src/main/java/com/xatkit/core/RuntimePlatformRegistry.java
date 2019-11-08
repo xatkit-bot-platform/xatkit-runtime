@@ -21,14 +21,44 @@ public class RuntimePlatformRegistry {
      * @see #registerRuntimePlatform(RuntimePlatform)
      * @see #unregisterRuntimePlatform(RuntimePlatform)
      */
-    private Map<String, RuntimePlatform> platformMap;
+    private Map<String, RuntimePlatform> platformToRuntime;
 
     /**
-     * Constructs a new instance of the registry and initializes its {@link #platformMap}.
+     * The {@link Map} used to store the loaded {@link PlatformDefinition}s.
+     */
+    private Map<String, PlatformDefinition> loadedPlatforms;
+
+    /**
+     * Constructs a new instance of the registry and initializes its {@link #platformToRuntime}.
      */
     public RuntimePlatformRegistry() {
-        this.platformMap = new HashMap<>();
+        this.platformToRuntime = new HashMap<>();
+        this.loadedPlatforms = new HashMap<>();
     }
+
+    /**
+     * Registeres the provided {@code platformDefinition} using its {@code name}.
+     * <p>
+     * Registered {@link PlatformDefinition}s can be accessed using {@link #getLoadedPlatformDefinitions()}. Note that a
+     * registered {@link PlatformDefinition} does not imply that the corresponding {@link RuntimePlatform} has been
+     * loaded.
+     *
+     * @param platformDefinition the {@link PlatformDefinition} to register
+     * @see #getLoadedPlatformDefinitions()
+     */
+    public void registerLoadedPlatformDefinition(PlatformDefinition platformDefinition) {
+        this.loadedPlatforms.put(platformDefinition.getName(), platformDefinition);
+    }
+
+    /**
+     * Returns a {@link Collection} containing all the loaded {@link PlatformDefinition}s.
+     *
+     * @return a {@link Collection} containing all the loaded {@link PlatformDefinition}s
+     */
+    public Collection<PlatformDefinition> getLoadedPlatformDefinitions() {
+        return this.loadedPlatforms.values();
+    }
+
 
     /**
      * Registers the provided {@code platform} using its {@code name}.
@@ -51,7 +81,7 @@ public class RuntimePlatformRegistry {
      * @param platform     the {@link RuntimePlatform} to register
      */
     public void registerRuntimePlatform(String platformName, RuntimePlatform platform) {
-        this.platformMap.put(platformName, platform);
+        this.platformToRuntime.put(platformName, platform);
     }
 
     /**
@@ -60,13 +90,13 @@ public class RuntimePlatformRegistry {
      * @param platform the {@link RuntimePlatform} to unregister
      */
     public void unregisterRuntimePlatform(RuntimePlatform platform) {
-        RuntimePlatform runtimePlatform = this.platformMap.remove(platform.getName());
+        RuntimePlatform runtimePlatform = this.platformToRuntime.remove(platform.getName());
         if (isNull(runtimePlatform)) {
             /*
              * The platform may have been register with a different name, remove all the entries that have it as
              * their value.
              */
-            this.platformMap.entrySet().removeIf(entry -> entry.getValue().equals(platform));
+            this.platformToRuntime.entrySet().removeIf(entry -> entry.getValue().equals(platform));
         }
         runtimePlatform.disableAllActions();
     }
@@ -75,10 +105,14 @@ public class RuntimePlatformRegistry {
      * Unregisters all the {@link RuntimePlatform}s from this registry.
      */
     public void clearRuntimePlatforms() {
-        for (RuntimePlatform platform : this.platformMap.values()) {
+        for (RuntimePlatform platform : this.platformToRuntime.values()) {
             platform.disableAllActions();
         }
-        this.platformMap.clear();
+        this.platformToRuntime.clear();
+    }
+
+    public PlatformDefinition getPlatformDefinition(String platformName) {
+        return this.loadedPlatforms.get(platformName);
     }
 
     /**
@@ -90,7 +124,7 @@ public class RuntimePlatformRegistry {
      * @return the {@link RuntimePlatform} associated to the provided {@code platformName}
      */
     public RuntimePlatform getRuntimePlatform(String platformName) {
-        return this.platformMap.get(platformName);
+        return this.platformToRuntime.get(platformName);
     }
 
     /**
@@ -104,7 +138,7 @@ public class RuntimePlatformRegistry {
      * @return the {@link RuntimePlatform} associated to the provided {@code platformDefinition}
      */
     public RuntimePlatform getRuntimePlatform(PlatformDefinition platformDefinition) {
-        return this.platformMap.get(platformDefinition.getName());
+        return this.platformToRuntime.get(platformDefinition.getName());
     }
 
     /**
@@ -113,6 +147,6 @@ public class RuntimePlatformRegistry {
      * @return all the {@link RuntimePlatform}s stored in this registry
      */
     public Collection<RuntimePlatform> getRuntimePlatforms() {
-        return Collections.unmodifiableCollection(this.platformMap.values());
+        return Collections.unmodifiableCollection(this.platformToRuntime.values());
     }
 }

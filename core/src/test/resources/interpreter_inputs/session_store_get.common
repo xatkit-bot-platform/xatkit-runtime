@@ -1,2 +1,0 @@
-session.store("test", "value")
-session.get("test")

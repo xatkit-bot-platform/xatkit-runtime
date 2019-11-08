@@ -1,9 +1,12 @@
 package com.xatkit.test.util.models;
 
-import com.xatkit.execution.ActionInstance;
+//import com.xatkit.execution.ActionInstance;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.ExecutionRule;
+import com.xatkit.platform.ActionDefinition;
+import com.xatkit.test.util.ElementFactory;
+import org.eclipse.xtext.xbase.XMemberFeatureCall;
 
 public class TestExecutionModel {
 
@@ -15,7 +18,7 @@ public class TestExecutionModel {
 
     private ExecutionRule executionRule;
 
-    private ActionInstance ruleActionInstance;
+    private XMemberFeatureCall featureCall;
 
     public TestExecutionModel() {
         this.platformModel = new TestPlatformModel();
@@ -23,9 +26,9 @@ public class TestExecutionModel {
         executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
         executionRule = ExecutionFactory.eINSTANCE.createExecutionRule();
         executionRule.setEvent(intentModel.getIntentDefinition());
-        ruleActionInstance = ExecutionFactory.eINSTANCE.createActionInstance();
-        ruleActionInstance.setAction(platformModel.getActionDefinition());
-        executionRule.getInstructions().add(ruleActionInstance);
+        ActionDefinition actionDefinition = platformModel.getActionDefinition();
+        featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        executionRule.getExpressions().add(featureCall);
         executionModel.getExecutionRules().add(executionRule);
     }
 
@@ -45,8 +48,8 @@ public class TestExecutionModel {
         return executionRule;
     }
 
-    public ActionInstance getRuleActionInstance() {
-        return ruleActionInstance;
+    public XMemberFeatureCall getRuleFeatureCall() {
+        return featureCall;
     }
 
 
