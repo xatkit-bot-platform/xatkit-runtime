@@ -11,6 +11,8 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 ### Changed
 
 - `JsonEventMatcher` now logs the builder content even if the intent definition is not known. This allows to inspect the logs and copy-paste new events easily in the platform editor (the builder content is populated from the received JSON payload and is printed using the *platform language* syntax).
+- `XatkitCore` now loads `.execution` files instead of `.xmi`. **This change breaks the public API**: existing  `.properties` file need to be updated with the path to the `.execution` file.
+- `ExecutionService` now inherits from `XbaseInterpreter`, offering complete support for Xbase expressions in the execution models. **This change breaks the public API**: the interpreter public methods have changed to reflect this integration.
 
 ## [3.0.0] - 2019-10-10
 
