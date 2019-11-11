@@ -311,4 +311,33 @@ public class EntityMapperTest extends AbstractXatkitTest {
         assertThat(concrete).as("Mapped value is null").isNull();
     }
 
+    @Test (expected = NullPointerException.class)
+    public void removeEntityMappingNullEntity() {
+        mapper.removeMappingFor(null);
+    }
+
+    @Test
+    public void removeEntityMappingRegisteredCustomEntityDefinition() {
+        mapper.addCustomEntityMapping(VALID_CUSTOM_ENTITY_DEFINITION, CONCRETE_VALUE);
+        /*
+         * Sanity check, it is already tested above.
+         */
+        assertThat(mapper.getMappingFor(VALID_CUSTOM_ENTITY_DEFINITION)).as("Mapping registered").isEqualTo(CONCRETE_VALUE);
+        mapper.removeMappingFor(VALID_CUSTOM_ENTITY_DEFINITION);
+        assertThat(mapper.getMappingFor(VALID_CUSTOM_ENTITY_DEFINITION)).as("Mapping has been removed").isNull();
+    }
+
+    @Test
+    public void removeEntityMappingRegisteredBaseEntityDefinition() {
+        mapper.addEntityMapping(VALID_ENTITY, CONCRETE_VALUE);
+        /*
+         * Sanity check, it is already tested above.
+         */
+        assertThat(mapper.getMappingFor(VALID_ENTITY)).as("Mapping registered").isEqualTo(CONCRETE_VALUE);
+        mapper.removeMappingFor(VALID_ENTITY);
+        assertThat(mapper.getMappingFor(VALID_ENTITY)).as("Mapping has been removed").isNull();
+    }
+
+
+
 }

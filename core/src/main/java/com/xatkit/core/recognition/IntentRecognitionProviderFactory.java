@@ -2,6 +2,7 @@ package com.xatkit.core.recognition;
 
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
+import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
@@ -16,15 +17,15 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
  * <p>
  * This factory inspects the provided {@code configuration} and finds the concrete {@link IntentRecognitionProvider}
  * to construct. If the provided {@code configuration} does not define any {@link IntentRecognitionProvider}, a
- * {@link DefaultIntentRecognitionProvider} is returned, providing minimal support to
+ * {@link RegExIntentRecognitionProvider} is returned, providing minimal support to
  * {@link XatkitSession} management.
  * <p>
- * <b>Note:</b> {@link DefaultIntentRecognitionProvider} does not handle {@link IntentDefinition} and
+ * <b>Note:</b> {@link RegExIntentRecognitionProvider} does not handle {@link IntentDefinition} and
  * {@link RecognizedIntent} computation. If the bot application requires such features a valid
  * {@link IntentRecognitionProvider} must be specified in the provided configuration.
  *
  * @see IntentRecognitionProvider
- * @see DefaultIntentRecognitionProvider
+ * @see RegExIntentRecognitionProvider
  */
 public class IntentRecognitionProviderFactory {
 
@@ -41,7 +42,7 @@ public class IntentRecognitionProviderFactory {
      * Returns the {@link IntentRecognitionProvider} matching the provided {@code configuration}.
      * <p>
      * If the provided {@code configuration} does not define any {@link IntentRecognitionProvider}, a
-     * {@link DefaultIntentRecognitionProvider} is returned, providing minimal support to
+     * {@link RegExIntentRecognitionProvider} is returned, providing minimal support to
      * {@link XatkitSession} management.
      * <p>
      * The created {@link IntentRecognitionProvider} embeds a {@link RecognitionMonitor} that logs monitoring
@@ -68,9 +69,9 @@ public class IntentRecognitionProviderFactory {
         } else {
             /*
              * The provided configuration does not contain any IntentRecognitionProvider information, returning a
-             * DefaultIntentRecognitionProvider.
+             * RegExIntentRecognitionProvider.
              */
-            return new DefaultIntentRecognitionProvider(configuration, recognitionMonitor);
+            return new RegExIntentRecognitionProvider(configuration, recognitionMonitor);
         }
     }
 

@@ -1,6 +1,10 @@
-package com.xatkit.core.recognition;
+package com.xatkit.core.recognition.regex;
 
 import com.xatkit.core.XatkitCore;
+import com.xatkit.core.recognition.EntityMapper;
+import com.xatkit.core.recognition.IntentRecognitionProvider;
+import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
+import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.BaseEntityDefinition;
@@ -47,17 +51,17 @@ import static java.util.Objects.nonNull;
  * matching is case sensitive. You can check alternative {@link IntentRecognitionProvider}s if you need to
  * support advanced features such as partial matches.
  * <p>
- * <b>Note</b>: the {@link DefaultIntentRecognitionProvider} translates {@link EntityType}s into single-word
+ * <b>Note</b>: the {@link RegExIntentRecognitionProvider} translates {@link EntityType}s into single-word
  * patterns. This means that the {@code any} entity will match "test", but not "test test", you can check
  * alternative {@link IntentRecognitionProvider}s if you need to support such features.
  * <p>
- * The {@link DefaultIntentRecognitionProvider} will be used by Xatkit if the application's {@link Configuration}
+ * The {@link RegExIntentRecognitionProvider} will be used by Xatkit if the application's {@link Configuration}
  * file does not contain specific {@link IntentRecognitionProvider} properties (see
  * {@link IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitCore, Configuration)}).
  *
  * @see IntentRecognitionProviderFactory
  */
-public class DefaultIntentRecognitionProvider implements IntentRecognitionProvider {
+public class RegExIntentRecognitionProvider implements IntentRecognitionProvider {
 
     /**
      * The Default Fallback Intent that is returned when the user input does not match any registered Intent.
@@ -113,7 +117,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     /**
      * A boolean storing whether the provider has been shut down.
      * <p>
-     * The {@link DefaultIntentRecognitionProvider} is not connected to any remote API, and calling its
+     * The {@link RegExIntentRecognitionProvider} is not connected to any remote API, and calling its
      * {@link #shutdown()} method only sets this value (and the {@link #isShutdown()} return value) to {@code true},
      * allowing to properly close the application.
      */
@@ -139,37 +143,37 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     private RecognitionMonitor recognitionMonitor;
 
     /**
-     * Constructs a {@link DefaultIntentRecognitionProvider} with the provided {@link Configuration}.
+     * Constructs a {@link RegExIntentRecognitionProvider} with the provided {@link Configuration}.
      * <p>
      * This constructor is a placeholder for
-     * {@link #DefaultIntentRecognitionProvider(Configuration, RecognitionMonitor)} with a {@code null}
+     * {@link #RegExIntentRecognitionProvider(Configuration, RecognitionMonitor)} with a {@code null}
      * {@link RecognitionMonitor}.
      *
      * @param configuration the {@link Configuration} the {@link Configuration} used to customize the created
      *                      {@link XatkitSession}s
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
-     * @see #DefaultIntentRecognitionProvider(Configuration, RecognitionMonitor)
+     * @see #RegExIntentRecognitionProvider(Configuration, RecognitionMonitor)
      */
-    public DefaultIntentRecognitionProvider(Configuration configuration) {
+    public RegExIntentRecognitionProvider(Configuration configuration) {
         this(configuration, null);
     }
 
     /**
-     * Constructs a {@link DefaultIntentRecognitionProvider} with the provided {@code configuration}.
+     * Constructs a {@link RegExIntentRecognitionProvider} with the provided {@code configuration}.
      *
      * @param configuration the {@link Configuration} used to customize the created {@link XatkitSession}s
      *                      * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent
      *                      matching information
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
      */
-    public DefaultIntentRecognitionProvider(Configuration configuration,
-                                            @Nullable RecognitionMonitor recognitionMonitor) {
+    public RegExIntentRecognitionProvider(Configuration configuration,
+                                          @Nullable RecognitionMonitor recognitionMonitor) {
         checkNotNull(configuration, "Cannot create a %s with the provided %s %s", this.getClass().getSimpleName(),
                 Configuration.class.getSimpleName(), configuration);
         Log.info("Starting {0}", this.getClass().getSimpleName());
         this.configuration = configuration;
         this.isShutdown = false;
-        this.entityMapper = new DefaultEntityMapper();
+        this.entityMapper = new RegExEntityMapper();
         this.intentPatterns = new HashMap<>();
         this.recognitionMonitor = recognitionMonitor;
     }
@@ -246,7 +250,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * <p>
      * This method ensures that all the {@link CustomEntityDefinition}s used by the provided
      * {@link CompositeEntityDefinition} are registered before registering itself. Note that this method does not
-     * register {@link BaseEntityDefinition} since they are natively supported by the {@link DefaultEntityMapper}.
+     * register {@link BaseEntityDefinition} since they are natively supported by the {@link RegExEntityMapper}.
      *
      * @param entityDefinition the {@link CompositeEntityDefinition} to register the referenced entities from
      */
@@ -363,7 +367,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
         /*
          * Quick fix: should be done properly.
          */
-        this.entityMapper.entities.remove(entityDefinition.getName());
+        this.entityMapper.removeMappingFor(entityDefinition);
     }
 
     /**
@@ -437,14 +441,14 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
      * {@link #registerIntentDefinition(IntentDefinition)} to match the provided input. The provided {@code session}
      * is used to retrieve the intents that can be matched according to the current contexts.
      * <p>
-     * If the {@link DefaultIntentRecognitionProvider} cannot find a valid {@link IntentDefinition} for the provided
+     * If the {@link RegExIntentRecognitionProvider} cannot find a valid {@link IntentDefinition} for the provided
      * {@code input} the returned {@link RecognizedIntent}'s definition will be the {@link #DEFAULT_FALLBACK_INTENT}.
      * <p>
      * <b>Note</b>: this class uses strict patterns that perform <b>exact</b> matches of the input. This exact
      * matching is case sensitive. You can check alternative {@link IntentRecognitionProvider}s if you need to
      * support advanced features such as partial matches.
      * <p>
-     * <b>Note</b>: the {@link DefaultIntentRecognitionProvider} translates {@link EntityType}s into single-word
+     * <b>Note</b>: the {@link RegExIntentRecognitionProvider} translates {@link EntityType}s into single-word
      * patterns. This means that the {@code any} entity will match "test", but not "test test", you can check
      * alternative {@link IntentRecognitionProvider}s if you need to support such features.
      *
@@ -456,7 +460,7 @@ public class DefaultIntentRecognitionProvider implements IntentRecognitionProvid
     public RecognizedIntent getIntent(String input, XatkitSession session) {
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
         /*
-         * The recognitionConfidence is always 1 with the DefaultIntentRecognitionProvider since it always returns
+         * The recognitionConfidence is always 1 with the RegExIntentRecognitionProvider since it always returns
          * exact matches or default fallback intent.
          */
         recognizedIntent.setRecognitionConfidence(1);

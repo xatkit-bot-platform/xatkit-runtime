@@ -4,6 +4,7 @@ import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApiTest;
+import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
 import com.xatkit.stubs.StubXatkitCore;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -67,14 +68,14 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
     @Test
     public void getIntentRecognitionProviderEmptyConfiguration() {
         /*
-         * The factory should return a DefaultIntentRecognitionProvider if the provided configuration does not
+         * The factory should return a RegExIntentRecognitionProvider if the provided configuration does not
          * contain any IntentRecognitionProvider property.
          */
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
                 (stubXatkitCore, new BaseConfiguration());
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
-        assertThat(provider).as("IntentRecognitionProvider is a DefaultIntentRecognitionProvider").isInstanceOf
-                (DefaultIntentRecognitionProvider.class);
+        assertThat(provider).as("IntentRecognitionProvider is a RegExIntentRecognitionProvider").isInstanceOf
+                (RegExIntentRecognitionProvider.class);
         assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNotNull();
     }
 

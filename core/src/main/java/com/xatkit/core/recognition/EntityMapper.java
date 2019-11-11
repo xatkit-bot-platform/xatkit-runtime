@@ -254,4 +254,36 @@ public class EntityMapper {
     protected String getMappingForCustomEntity(CustomEntityDefinition customEntityDefinition) {
         return this.entities.get(customEntityDefinition.getName());
     }
+
+    /**
+     * Removes the {@code concreteEntity} mapped to the provided {@code abstractEntity}.
+     *
+     * @param abstractEntity the {@link EntityDefinition} representing the abstract entity to retrieve the concrete
+     *                       mapping from
+     * @throws NullPointerException     if the provided {@code abstractEntity} is {@code null}
+     * @throws IllegalArgumentException if the provided {@link EntityDefinition} is a
+     *                                  {@link BaseEntityDefinition}
+     *                                  and its {@code entityType} reference is {@code null}
+     * @throws XatkitException          if the provided {@code abstractEntity} is not supported
+     */
+    public void removeMappingFor(EntityDefinition abstractEntity) {
+        checkNotNull(abstractEntity, "Cannot remove the concrete mapping for the provided %s %s",
+                EntityDefinition.class.getSimpleName(), abstractEntity);
+        if (abstractEntity instanceof BaseEntityDefinition) {
+            BaseEntityDefinition coreEntity = (BaseEntityDefinition) abstractEntity;
+            /*
+             * Should not be triggered, null enums are set with their default value in Ecore.
+             */
+            checkArgument(nonNull(coreEntity.getEntityType()), "Cannot remove the concrete mapping for the provided " +
+                            "%s: %s needs to define a valid %s", BaseEntityDefinition.class.getSimpleName(),
+                    BaseEntityDefinition.class.getSimpleName(), EntityType.class.getSimpleName());
+            this.entities.remove(coreEntity.getEntityType().getLiteral());
+        } else if (abstractEntity instanceof CustomEntityDefinition) {
+            this.entities.remove(abstractEntity.getName());
+        } else {
+            throw new XatkitException(MessageFormat.format("{0} does not support the provided {1} {2}",
+                    this.getClass().getSimpleName(), EntityDefinition.class.getSimpleName(),
+                    abstractEntity.getClass().getSimpleName()));
+        }
+    }
 }

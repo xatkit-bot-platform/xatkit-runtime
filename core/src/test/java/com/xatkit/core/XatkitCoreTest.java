@@ -4,7 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.common.CommonPackage;
-import com.xatkit.core.recognition.DefaultIntentRecognitionProvider;
+import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ExecutionFactory;
@@ -278,23 +278,23 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void constructDefaultIntentRecognitionProviderEmptyExecutionModel() {
+    public void constructRegExIntentRecognitionProviderEmptyExecutionModel() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, ExecutionFactory.eINSTANCE.createExecutionModel());
         xatkitCore = new XatkitCore(configuration);
         assertThat(xatkitCore.getIntentRecognitionProvider()).as("XatkitCore uses " +
-                "DefaultIntentRecognitionProvider")
-                .isInstanceOf(DefaultIntentRecognitionProvider.class);
+                "RegExIntentRecognitionProvider")
+                .isInstanceOf(RegExIntentRecognitionProvider.class);
     }
 
     @Test
-    public void constructDefaultIntentRecognitionProviderIntentDefinitionInExecutionModel() {
+    public void constructRegExIntentRecognitionProviderIntentDefinitionInExecutionModel() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, VALID_EXECUTION_MODEL);
         xatkitCore = new XatkitCore(configuration);
         assertThat(xatkitCore.getIntentRecognitionProvider()).as("XatkitCore uses " +
-                "DefaultIntentRecognitionProvider")
-                .isInstanceOf(DefaultIntentRecognitionProvider.class);
+                "RegExIntentRecognitionProvider")
+                .isInstanceOf(RegExIntentRecognitionProvider.class);
     }
 
     @Test(expected = XatkitException.class)
@@ -422,7 +422,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
          * The provider should be the default one, any other provider is tested in its own class.
          */
         assertThat(xatkitCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a " +
-                "DefaultIntentRecognitionProvider instance").isInstanceOf(DefaultIntentRecognitionProvider.class);
+                "RegExIntentRecognitionProvider instance").isInstanceOf(RegExIntentRecognitionProvider.class);
         assertThat(xatkitCore.getExecutionService().getExecutionModel()).as("Not null ExecutionModel")
                 .isNotNull();
         softly.assertThat(xatkitCore.getExecutionService().getExecutionModel()).as("Valid " +

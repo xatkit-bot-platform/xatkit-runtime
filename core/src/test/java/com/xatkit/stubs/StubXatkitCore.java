@@ -40,7 +40,7 @@ public class StubXatkitCore extends XatkitCore {
     public StubXatkitCore() {
         /*
          * If the provided test-variables.properties file does not define DialogFlow credentials this class will use
-         * the DefaultIntentRecognitionProvider.
+         * the RegExIntentRecognitionProvider.
          */
         super(XatkitCoreTest.buildConfiguration(VALID_EXECUTION_MODEL));
         this.handledEvents = new ArrayList<>();

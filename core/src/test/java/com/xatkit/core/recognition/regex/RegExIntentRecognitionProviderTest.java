@@ -1,6 +1,7 @@
-package com.xatkit.core.recognition;
+package com.xatkit.core.recognition.regex;
 
 import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.recognition.regex.DefaultIntentRecognitionProvider;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.CompositeEntityDefinition;

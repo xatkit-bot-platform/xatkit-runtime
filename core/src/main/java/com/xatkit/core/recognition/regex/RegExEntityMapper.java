@@ -1,6 +1,7 @@
-package com.xatkit.core.recognition;
+package com.xatkit.core.recognition.regex;
 
 
+import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.intent.EntityDefinition;
 
 /**
@@ -12,12 +13,12 @@ import com.xatkit.intent.EntityDefinition;
  * Custom entities can be registered using {@link #addEntityMapping(EntityDefinition, String)} and associated to the
  * RegExp pattern that will be used to retrieve them.
  */
-public class DefaultEntityMapper extends EntityMapper {
+public class RegExEntityMapper extends EntityMapper {
 
     /**
-     * Constructs a {@link DefaultEntityMapper} that uses RegExp to match system entities.
+     * Constructs a {@link RegExEntityMapper} that uses RegExp to match system entities.
      */
-    public DefaultEntityMapper() {
+    public RegExEntityMapper() {
         super();
         this.setFallbackEntityMapping("(\\S)+");
     }
