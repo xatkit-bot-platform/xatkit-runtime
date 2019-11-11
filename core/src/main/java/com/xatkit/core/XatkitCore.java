@@ -775,6 +775,7 @@ public class XatkitCore {
                 PlatformDefinition platformDefinition = loadCustomResource(platformPath, pathmapURI,
                         PlatformDefinition.class);
                 XatkitImportHelper.getInstance().ignoreAlias(executionResourceSet, platformName);
+                this.runtimePlatformRegistry.registerLoadedPlatformDefinition(platformDefinition);
             }
         });
     }
