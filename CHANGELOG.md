@@ -8,6 +8,10 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 ## Unreleased
 
+### Added
+
+- Configuration option `xatkit.message.delay` that allows to specify a delay (in milliseconds) the bot should wait for before sending a message (`0` by default, meaning that the bots replies immediately). This option impacts all the `RuntimeActions` inheriting from `RuntimeArtifactMessage`.
+
 ### Changed
 
 - `JsonEventMatcher` now logs the builder content even if the intent definition is not known. This allows to inspect the logs and copy-paste new events easily in the platform editor (the builder content is populated from the received JSON payload and is printed using the *platform language* syntax).

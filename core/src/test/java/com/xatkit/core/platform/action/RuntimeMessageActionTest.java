@@ -11,6 +11,7 @@ import com.xatkit.stubs.action.StubRuntimeMessageAction;
 import com.xatkit.stubs.action.StubRuntimeMessageActionIOException;
 import com.xatkit.stubs.action.StubRuntimeMessageActionIOExceptionThenOk;
 import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -98,6 +99,23 @@ public class RuntimeMessageActionTest extends AbstractXatkitTest {
         assertThat(result).as("Not null result").isNotNull();
         assertThat(result.isError()).as("Result is not an error").isFalse();
         assertThat(result.getResult()).as("Valid result").isEqualTo(StubRuntimeMessageAction.RESULT);
+    }
+
+    @Test
+    public void callRuntimeMessageActionWithDelay() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(RuntimeArtifactAction.MESSAGE_DELAY_KEY, 2000);
+        RuntimePlatform stubPlatform = new StubRuntimePlatform(XATKIT_CORE, configuration);
+        StubRuntimeMessageAction action = new StubRuntimeMessageAction(stubPlatform, session, MESSAGE);
+        long before = System.currentTimeMillis();
+        RuntimeActionResult result = action.call();
+        long after = System.currentTimeMillis();
+        assertThat(after - before).as("The action waited the configured delay").isGreaterThan(2000);
+        assertThat(action.getAttempts()).as("Valid attempt number (1)").isEqualTo(1);
+        assertThat(result).as("Not null result").isNotNull();
+        assertThat(result.isError()).as("Result is not an error").isFalse();
+        assertThat(result.getResult()).as("Valid result").isEqualTo(StubRuntimeMessageAction.RESULT);
+        stubPlatform.shutdown();
     }
 
     @Test

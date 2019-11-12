@@ -15,7 +15,7 @@ import static java.util.Objects.nonNull;
 /**
  * An abstract {@link RuntimeAction}.
  * <p>
- * This class relies on {@link RuntimeContexts#fillContextValues(String)} to replace context 
+ * This class relies on {@link RuntimeContexts#fillContextValues(String)} to replace context
  * variable accesses by their concrete value.
  * <p>
  *
@@ -26,7 +26,25 @@ import static java.util.Objects.nonNull;
 public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends RuntimeAction<T> {
 
     /**
-     * The number of times the {@link RuntimeArtifactAction} tries to send the artifact if an {@link IOException} occurred.
+     * The {@link org.apache.commons.configuration2.Configuration} key used to specify the delay (in milliseconds)
+     * before sending a message.
+     * <p>
+     * This property is set by default to {@code 0}, meaning that the bot sends message directly when they are ready.
+     *
+     * @see #DEFAULT_MESSAGE_DELAY
+     */
+    public static String MESSAGE_DELAY_KEY = "xatkit.message.delay";
+
+    /**
+     * The default value of the {@link #MESSAGE_DELAY_KEY} configuration key ({@code 0}).
+     *
+     * @see #MESSAGE_DELAY_KEY
+     */
+    public static int DEFAULT_MESSAGE_DELAY = 0;
+
+    /**
+     * The number of times the {@link RuntimeArtifactAction} tries to send the artifact if an {@link IOException}
+     * occurred.
      */
     private static int IO_ERROR_RETRIES = 3;
 
@@ -40,17 +58,31 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
     private static int RETRY_WAIT_TIME = 500;
 
     /**
+     * The message delay to apply for this specific {@link RuntimeArtifactAction}.
+     * <p>
+     * This value is retrieved from the {@link RuntimePlatform}'s
+     * {@link org.apache.commons.configuration2.Configuration}, and can be configured with the
+     * {@link #MESSAGE_DELAY_KEY} configuration key.
+     *
+     * @see #MESSAGE_DELAY_KEY
+     * @see #DEFAULT_MESSAGE_DELAY
+     */
+    private int messageDelay;
+
+    /**
      * Constructs a new {@link RuntimeArtifactAction} with the provided {@code runtimePlatform} and {@code session}.
      * <p>
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session          the {@link XatkitSession} associated to this action
-     * @throws NullPointerException     if the provided {@code runtimePlatform} or {@code session} is {@code null}
+     * @param session         the {@link XatkitSession} associated to this action
+     * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @see XatkitSession
      * @see RuntimeContexts
      */
     public RuntimeArtifactAction(T runtimePlatform, XatkitSession session) {
         super(runtimePlatform, session);
+        this.messageDelay = this.runtimePlatform.getConfiguration().getInt(MESSAGE_DELAY_KEY, DEFAULT_MESSAGE_DELAY);
+        Log.info("{0} message delay: {1}", this.getClass().getSimpleName(), messageDelay);
     }
 
     /**
@@ -138,10 +170,12 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
                 }
             }
             try {
+                waitMessageDelay();
                 computationResult = compute();
             } catch (IOException e) {
-                if(attempts < IO_ERROR_RETRIES + 1) {
-                    Log.error("An {0} occurred when computing the action, trying to send the artifact again ({1}/{2})", e
+                if (attempts < IO_ERROR_RETRIES + 1) {
+                    Log.error("An {0} occurred when computing the action, trying to send the artifact again ({1}/{2})"
+                            , e
                             .getClass().getSimpleName(), attempts, IO_ERROR_RETRIES);
                 } else {
                     Log.error("Could not compute the action: {0}", e.getClass().getSimpleName());
@@ -167,6 +201,16 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
         } while (nonNull(thrownException) && attempts < IO_ERROR_RETRIES + 1);
         long after = System.currentTimeMillis();
         return new RuntimeActionResult(computationResult, thrownException, (after - before));
+    }
+
+    private void waitMessageDelay() {
+        if(this.messageDelay > 0) {
+            try {
+                Thread.sleep(messageDelay);
+            } catch(InterruptedException e) {
+                Log.error("An error occurred when waiting for the message delay, see attached exception", e);
+            }
+        }
     }
 
     /**
