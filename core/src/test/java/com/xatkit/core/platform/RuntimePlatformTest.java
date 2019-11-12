@@ -86,6 +86,17 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     }
 
     @Test
+    public void getConfiguration() {
+        assertThat(runtimePlatform.getConfiguration()).as("Not null Configuration").isNotNull();
+        assertThat(runtimePlatform.getConfiguration().containsKey(XatkitCore.EXECUTION_MODEL_KEY)).as("Configuration contains the " +
+                "execution model key").isTrue();
+        /*
+         * We don't check the instance of the Configuration because we can't get it from XatkitCore.
+         * TODO test the constructor and make sure the Configuration is the right one.
+         */
+    }
+
+    @Test
     public void getXatkitCore() {
         Assertions.assertThat(runtimePlatform.getXatkitCore()).as("Not null XatkitCore").isNotNull();
         Assertions.assertThat(runtimePlatform.getXatkitCore()).as("Valid XatkitCore").isEqualTo(xatkitCore);

@@ -144,6 +144,15 @@ public abstract class RuntimePlatform {
     }
 
     /**
+     * Returns the platform's {@link Configuration}.
+     *
+     * @return the platform's {@link Configuration}
+     */
+    public final Configuration getConfiguration() {
+        return this.configuration;
+    }
+
+    /**
      * Starts the {@link RuntimeEventProvider} corresponding to the provided {@code eventProviderDefinition}.
      * <p>
      * This method dynamically loads the {@link RuntimeEventProvider} corresponding to the provided {@code
