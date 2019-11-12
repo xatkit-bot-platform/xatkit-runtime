@@ -1,7 +1,6 @@
 package com.xatkit.core.recognition.regex;
 
 import com.xatkit.AbstractXatkitTest;
-import com.xatkit.core.recognition.regex.DefaultIntentRecognitionProvider;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.CompositeEntityDefinition;
@@ -25,9 +24,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
+public class RegExIntentRecognitionProviderTest extends AbstractXatkitTest {
 
-    private DefaultIntentRecognitionProvider provider;
+    private RegExIntentRecognitionProvider provider;
 
     private static Context VALID_OUT_CONTEXT;
 
@@ -98,7 +97,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
 
     @Before
     public void setUp() {
-        provider = new DefaultIntentRecognitionProvider(new BaseConfiguration());
+        provider = new RegExIntentRecognitionProvider(new BaseConfiguration());
     }
 
     @After
@@ -109,12 +108,12 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        provider = new DefaultIntentRecognitionProvider(null);
+        provider = new RegExIntentRecognitionProvider(null);
     }
 
     @Test
     public void constructValidConfiguration() {
-        provider = new DefaultIntentRecognitionProvider(new BaseConfiguration());
+        provider = new RegExIntentRecognitionProvider(new BaseConfiguration());
         assertThat(provider.isShutdown()).as("Provider not shut down").isFalse();
     }
 
@@ -176,7 +175,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
                 "sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Unmatched input returns default fallback intent").
-                isEqualTo(DefaultIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
+                isEqualTo(RegExIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
         assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("test test intent " +
                 "definition");
         assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
@@ -243,7 +242,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         RecognizedIntent recognizedIntent = provider.getIntent("test", new XatkitSession("sessionID"));
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Unmatched input returns default fallback intent")
-                .isEqualTo(DefaultIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
+                .isEqualTo(RegExIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
         assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("test");
         assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
@@ -282,7 +281,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         assertThat(recognizedParent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a test");
         assertThat(recognizedParent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
         ContextInstance parentFollowContextInstance =
-                recognizedParent.getOutContextInstance(parentIntent.getName() + DefaultIntentRecognitionProvider.FOLLOW_CONTEXT_NAME_SUFFIX);
+                recognizedParent.getOutContextInstance(parentIntent.getName() + RegExIntentRecognitionProvider.FOLLOW_CONTEXT_NAME_SUFFIX);
         assertThat(parentFollowContextInstance).as("Follow context set").isNotNull();
         /*
          * Manually set the context in the session, this is done at the ExecutionService level.
@@ -302,7 +301,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
         intentDefinition.getInContexts().add(inContext);
         provider.registerIntentDefinition(intentDefinition);
         RecognizedIntent recognizedIntent = provider.getIntent("this is a test", new XatkitSession("sessionID"));
-        assertThat(recognizedIntent.getDefinition()).as("Default fallback intent matched").isEqualTo(DefaultIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
+        assertThat(recognizedIntent.getDefinition()).as("Default fallback intent matched").isEqualTo(RegExIntentRecognitionProvider.DEFAULT_FALLBACK_INTENT);
         assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a test");
         assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
@@ -364,7 +363,7 @@ public class DefaultIntentRecognitionProviderTest extends AbstractXatkitTest {
     public void createSessionCustomTimeoutValue() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
-        provider = new DefaultIntentRecognitionProvider(configuration);
+        provider = new RegExIntentRecognitionProvider(configuration);
         XatkitSession session = provider.createSession("SessionID");
         assertThat(session).as("Not null session").isNotNull();
         assertThat(session.getSessionId()).as("Valid sessio id").isEqualTo("SessionID");
