@@ -83,6 +83,9 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
     /**
      * Sends the provided {@code eventInstance} and {@code session} for computation to the Xatkit core component.
      * <p>
+     * This method sets the <i>triggeredBy</i> field of the provided {@code eventInstance} with the name of the
+     * containing platform of this provider.
+     * <p>
      * This method can be extended to perform specific checks before triggering actions (e.g. ensure that a specific
      * context variable has been set).
      *
@@ -90,6 +93,7 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * @param session       the {@link XatkitSession} associated to the provided {@code eventInstance}
      */
     public void sendEventInstance(EventInstance eventInstance, XatkitSession session) {
+        eventInstance.setTriggeredBy(this.runtimePlatform.getName());
         this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, session);
     }
 

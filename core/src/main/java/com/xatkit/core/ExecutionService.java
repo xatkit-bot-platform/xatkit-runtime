@@ -357,7 +357,19 @@ public class ExecutionService extends XbaseInterpreter {
         List<ExecutionRule> result = new ArrayList<>();
         for (ExecutionRule rule : executionModel.getExecutionRules()) {
             if (rule.getEvent().getName().equals(eventDefinition.getName())) {
-                result.add(rule);
+                if(nonNull(rule.getFromPlatform())) {
+                    if(rule.getFromPlatform().getName().equals(eventInstance.getTriggeredBy())) {
+                        result.add(rule);
+                    } else {
+                        /*
+                         * Do nothing, we don't want to execute this rule because its from guard is not matched.
+                         * (keep the continue in case the method code evolves)
+                         */
+                        continue;
+                    }
+                } else {
+                    result.add(rule);
+                }
             }
         }
         return result;

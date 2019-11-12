@@ -11,6 +11,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 ### Added
 
 - Configuration option `xatkit.message.delay` that allows to specify a delay (in milliseconds) the bot should wait for before sending a message (`0` by default, meaning that the bots replies immediately). This option impacts all the `RuntimeActions` inheriting from `RuntimeArtifactMessage`.
+- Support for *from clause* in execution rule. Execution rules now accept an optional `from <PlatformDefinition>` that allows to filter execution rules based on the platform that triggered the event. When the a *from clause* is specified Xatkit will take it into account to only execute the rules matching both the triggered event and the specified platform. This allows to define precise bot interactions when manipulating multiple messaging platforms.
 
 ### Changed
 
