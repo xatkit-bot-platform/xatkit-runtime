@@ -96,7 +96,7 @@ public class HttpHandlerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void testHandleUnregisteredHandler() {
+    public void handleUnregisteredHandler() {
         this.handler = getHandler();
         handler.handle(NOT_REGISTERED_POST_REQUEST, response, context);
         assertThat(xatkitServer.getLastIsRestEndpointURI()).as("Valid isRestEndpoint URI").isEqualTo(NOT_REGISTERED_URI);
@@ -104,7 +104,7 @@ public class HttpHandlerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void testRegisteredHandler() {
+    public void handleRegisteredHandler() {
         this.handler = getHandler();
         handler.handle(REGISTERED_POST_REQUEST, response, context);
         assertThat(xatkitServer.getLastIsRestEndpointURI()).as("Valid isRestEndpoint URI").isEqualTo(REGISTERED_URI);
