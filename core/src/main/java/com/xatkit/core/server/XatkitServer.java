@@ -257,7 +257,7 @@ public class XatkitServer {
                 "start with a \"/\"", uri);
         checkNotNull(handler, "Cannot register the provided %s %s (uri=%s)", JsonRestHandler.class.getSimpleName(),
                 handler, uri);
-        this.restEndpoints.put(uri, handler);
+        this.restEndpoints.put(normalizeURI(uri), handler);
         Log.info("Registered REST handler {0} at URI {1}", handler.getClass().getSimpleName(), uri);
     }
 
@@ -271,7 +271,7 @@ public class XatkitServer {
     public boolean isRestEndpoint(String uri) {
         checkNotNull(uri, "Cannot check if the provided URI (%s) corresponds to a REST endpoint, please provide a " +
                 "non-null URI", uri);
-        return this.restEndpoints.containsKey(uri);
+        return this.restEndpoints.containsKey(normalizeURI(uri));
     }
 
     /**
@@ -282,7 +282,7 @@ public class XatkitServer {
      */
     public @Nullable
     RestHandler getRegisteredRestHandler(String uri) {
-        return this.restEndpoints.get(uri);
+        return this.restEndpoints.get(normalizeURI(uri));
     }
 
     /**
@@ -322,7 +322,7 @@ public class XatkitServer {
         checkNotNull(uri, "Cannot notify the REST endpoint %s, please provide a non-null URI", uri);
         checkNotNull(headers, "Cannot notify the REST endpoint %s, the headers list is null", uri);
         checkNotNull(params, "Cannot notify the REST endpoint %s, the parameters list is null", uri);
-        RestHandler handler = this.restEndpoints.get(uri);
+        RestHandler handler = this.getRegisteredRestHandler(uri);
         if (isNull(handler)) {
             throw new XatkitException(MessageFormat.format("Cannot notify the REST endpoint {0}, there is no handler " +
                     "registered for this URI", uri));
@@ -350,7 +350,7 @@ public class XatkitServer {
     public void registerWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
         checkNotNull(webhookEventProvider, "Cannot register the provided %s: %s", WebhookEventProvider.class
                 .getSimpleName(), webhookEventProvider);
-        this.restEndpoints.put(webhookEventProvider.getEndpointURI(), webhookEventProvider.getRestHandler());
+        this.registerRestEndpoint(webhookEventProvider.getEndpointURI(), webhookEventProvider.getRestHandler());
     }
 
     /**
@@ -367,6 +367,23 @@ public class XatkitServer {
                 .getSimpleName(), webhookEventProvider);
 
         this.restEndpoints.remove(webhookEventProvider.getEndpointURI());
+    }
+
+    /**
+     * Normalizes the provided URI by removing its trailing {@code /}.
+     * <p>
+     * This method is used to uniformize the format of registered {@code URIs}, and ensure that {@code URIs}
+     * containing a trailing {@code /} are matched to their equivalent without a trailing {@code /}.
+     *
+     * @param uri the {@code URI} to normalize
+     * @return the normalized URI
+     */
+    private String normalizeURI(String uri) {
+        if (uri.length() > 1 && uri.endsWith("/")) {
+            return uri.substring(0, uri.length() - 1);
+        } else {
+            return uri;
+        }
     }
 
     /**
@@ -560,9 +577,9 @@ public class XatkitServer {
 
     /**
      * Retrieves or create the public {@link File} associated to the provided {@code session}.
+     *
      * @param session the {@link XatkitSession} to retrieve or create a {@link File} from
      * @return the {@link File}
-     * 
      * @see #getSessionFile(XatkitSession)
      */
     private @Nonnull
@@ -577,11 +594,11 @@ public class XatkitServer {
     /**
      * Retrieves the {@link File} associated to the provided {@code session}.
      * <p>
-     * This method always returns a {@link File} instance, that needs to be checked with {@link File#exists()} to 
+     * This method always returns a {@link File} instance, that needs to be checked with {@link File#exists()} to
      * know if the session file exists or not.
+     *
      * @param session the {@link XatkitSession} to retrieve the {@link File} from
      * @return the retrieved {@link File}
-     * 
      * @see #getOrCreateSessionFile(XatkitSession)
      */
     private @Nonnull

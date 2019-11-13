@@ -244,6 +244,14 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test
+    public void isRestEndpointRegisteredUriTrailingSlash() {
+        // See https://github.com/xatkit-bot-platform/xatkit-runtime/issues/254
+        this.server = getValidXatkitServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        assertThat(this.server.isRestEndpoint(VALID_REST_URI + "/")).as("The URI is valid even with a trailing /").isTrue();
+    }
+
+    @Test
     public void isRestEndpointNotRegisteredUri() {
         this.server = getValidXatkitServer();
         boolean result = this.server.isRestEndpoint(VALID_REST_URI);
@@ -288,6 +296,16 @@ public class XatkitServerTest extends AbstractXatkitTest {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
         Object result = this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(),
+                Collections.emptyList(), "{}", ContentType.APPLICATION_JSON.getMimeType());
+        checkRestHandlerResult(result);
+    }
+
+    @Test
+    public void notifyRestHandlerTrailingSlash() {
+        // See https://github.com/xatkit-bot-platform/xatkit-runtime/issues/254
+        this.server = getValidXatkitServer();
+        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
+        Object result = this.server.notifyRestHandler(VALID_REST_URI + "/", Collections.emptyList(),
                 Collections.emptyList(), "{}", ContentType.APPLICATION_JSON.getMimeType());
         checkRestHandlerResult(result);
     }
