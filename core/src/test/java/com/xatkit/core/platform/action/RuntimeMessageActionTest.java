@@ -110,7 +110,7 @@ public class RuntimeMessageActionTest extends AbstractXatkitTest {
         long before = System.currentTimeMillis();
         RuntimeActionResult result = action.call();
         long after = System.currentTimeMillis();
-        assertThat(after - before).as("The action waited the configured delay").isGreaterThan(2000);
+        assertThat(after - before).as("The action waited the configured delay").isGreaterThanOrEqualTo(2000);
         assertThat(action.getAttempts()).as("Valid attempt number (1)").isEqualTo(1);
         assertThat(result).as("Not null result").isNotNull();
         assertThat(result.isError()).as("Result is not an error").isFalse();
@@ -120,7 +120,8 @@ public class RuntimeMessageActionTest extends AbstractXatkitTest {
 
     @Test
     public void callRuntimeMessageActionIOException() throws Exception {
-        StubRuntimeMessageActionIOException action = new StubRuntimeMessageActionIOException(RUNTIME_PLATFORM, session, MESSAGE);
+        StubRuntimeMessageActionIOException action = new StubRuntimeMessageActionIOException(RUNTIME_PLATFORM,
+                session, MESSAGE);
         RuntimeActionResult result = action.call();
         assertThat(action.getAttempts()).as("Valid attempt number (1 + number of retries)").isEqualTo(4);
         assertThat(result).as("Not null result").isNotNull();
