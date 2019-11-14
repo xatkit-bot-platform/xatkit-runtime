@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.xatkit.core.server.HttpMethod;
+import com.xatkit.core.server.HttpUtils;
 import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
@@ -16,29 +17,31 @@ import org.mapdb.DBMaker;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * Provides monitoring capabilities for {@link IntentRecognitionProvider}s.
  * <p>
- * This class stores analytics information related to (un)matched intents, and registers a set of REST endpoints
- * allowing to query them from external applications. <b>Warning</b>: the REST endpoints must be accessed using the
- * <i>POST</i> method, this is a current limitation of the {@link XatkitServer}.
+ * This class stores analytics information related to intent recognition, and registers a set of REST endpoints
+ * allowing to query them from external applications.
  * <p>
  * The following endpoints can be used to access the stored information:
  * <ul>
- * <li><b>/analytics/unmatched</b>: returns a JSON object containing a list of inputs that have been received
- * by the bot and hasn't been matched to an intent</li>
- * <li><b>/analytics/matched</b>: returns a JSON object containing the intents matched by the bot and their
- * associated inputs</li>
+ * <li><b>/analytics/monitoring</b>: returns a JSON array containing all the persisted monitoring information (note
+ * that this method doesn't support pagination yet, so the returned JSON may be big for long-running applications).</li>
+ * <li><b>/analytics/monitoring/session?sessionId=id</b>: returns a JSON object containing the monitoring information
+ * for the provided {@code sessionId}</li>
+ * <li><b>/analytics/monitoring/unmatched</b>: returns a JSON array containing all the monitoring entries
+ * corresponding to unmatched inputs (i.e. inputs that haven't been successfully translated into intents)</li>
+ * <li><b>/analytics/monitoring/matched</b>: returns a JSON array containing all the monitoring entries
+ * corresponding to matched inputs (i.e. inputs that have been successfully translated into intents)</li>
+ * <li><b>/analytics/monitoring/sessions/stats</b>: returns a JSON object containing computed statistics over
+ * stored sessions (e.g. average time/session, average number of matched inputs/sessions, etc)</li>
  * </ul>
- *
-// * @see #registerMatchedInput(String, IntentDefinition)
-// * @see #registerUnmatchedInput(String)
  */
 public class RecognitionMonitor {
 
@@ -70,22 +73,16 @@ public class RecognitionMonitor {
     static final String ANALYTICS_DB_FILE = "analytics.db";
 
     /**
-     * The {@link List} of inputs that haven't been matched to any intent.
+     * The persistent {@link Map} containing recognition monitoring information.
+     * <p>
+     * This {@link Map} uses {@code sessionId} as its primary index, and each {@code sessionId} is associated to
+     * another {@link Map} containing {@code timestamp -> IntentRecord} bindings.
+     * <p>
+     * Note that {@code timestamp -> IntentRecord} internal {@link Map}s are ordered, allowing to easily sort
+     * {@link IntentRecord}s over time.
+     *
+     * @see IntentRecord
      */
-    private List<String> unmatchedInputs;
-
-//    /**
-//     * The {@link Map} containing the intents that have been matched and the corresponding inputs.
-//     * <p>
-//     * Matched intent information are stored in a dedicated {@link MatchedIntentInfos} instance.
-//     *
-//     * @see MatchedIntentInfos
-//     */
-    /*
-     * We need to use Strings as the keys of the map because IntentDefinition are not serializable.
-     */
-//    private Map<String, MatchedIntentInfos> matchedIntents;
-
     private Map<String, Map<Long, IntentRecord>> records;
 
     /**
@@ -99,17 +96,8 @@ public class RecognitionMonitor {
      * This constructor loads the stored information from the <i>analytics</i> database and create the in-memory
      * data structures used to monitor intent recognition providers.
      * <p>
-     * This constructor also registers two REST endpoints allowing to query the stored information from external
-     * applications. <b>Warning</b>: the REST endpoints must be accessed using the
-     * <i>POST</i> method, this is a current limitation of the {@link XatkitServer}.
-     * <p>
-     * The following endpoints can be used to access the stored information:
-     * <ul>
-     * <li><b>/analytics/unmatched</b>: returns a JSON object containing a list of inputs that have been received
-     * by the bot and hasn't been matched to an intent</li>
-     * <li><b>/analytics/matched</b>: returns a JSON object containing the intents matched by the bot and their
-     * associated inputs</li>
-     * </ul>
+     * This constructor also registers the REST endpoints allowing to query the stored information from external
+     * applications.
      * <p>
      * This method also registers a shutdown hook which ensures that the database is closed properly when the JVM is
      * stopped.
@@ -128,8 +116,6 @@ public class RecognitionMonitor {
                 configuration);
         analyticsDbDirectory.mkdirs();
         db = DBMaker.fileDB(new File(analyticsDbDirectory.getAbsolutePath() + File.separator + ANALYTICS_DB_FILE)).make();
-//        this.unmatchedInputs = db.indexTreeList("unmatched_inputs", Serializer.STRING).createOrOpen();
-//        this.matchedIntents = (Map<String, MatchedIntentInfos>) db.hashMap("matched_intents").createOrOpen();
 
         this.records = (Map<String, Map<Long, IntentRecord>>) db.hashMap("intent_records").createOrOpen();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -141,26 +127,65 @@ public class RecognitionMonitor {
         this.registerServerEndpoints(xatkitServer);
     }
 
-//    /**
-//     * Registers the REST endpoints used to retrieve monitoring information.
-//     *
-//     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
-//     */
+    /**
+     * Registers the REST endpoints used to retrieve monitoring information.
+     *
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
+     */
     private void registerServerEndpoints(XatkitServer xatkitServer) {
         this.registerGetMonitoringData(xatkitServer);
         this.registerGetMonitoringDataForSession(xatkitServer);
         this.registerGetUnmatchedUtterances(xatkitServer);
         this.registerGetMatchedUtterances(xatkitServer);
         this.registerGetSessionsStats(xatkitServer);
-//        this.registerUnmatchedEndpoint(xatkitServer);
-//        this.registerMatchedEndpoint(xatkitServer);
     }
 
+    /**
+     * Registers the {@code GET: /analytics/monitoring} endpoint.
+     * <p>
+     * This endpoint returns a JSON array containing all the persisted monitoring information (note that this method
+     * doesn't support pagination yet, so the returned JSON may be big for long-running applications).
+     * <p>
+     * The listing below shows an example of the returned JSON payload:
+     * <pre>
+     * {@code
+     * [
+     *     {
+     *         "sessionId": "72f8fa90-8d3e-4804-b00d-5612a95fb644",
+     *         "entries": [
+     *             {
+     *                 "timestamp": 1573750605388,
+     *                 "utterance": "How are you?",
+     *                 "intent": "HowAreYou",
+     *                 "confidence": 1.0
+     *             },
+     *             {
+     *                 "timestamp": 1573750623741,
+     *                 "utterance": "Here is something you won't understand!",
+     *                 "intent": "Default_Fallback_Intent",
+     *                 "confidence": 1.0
+     *             },
+     *             {
+     *                 "timestamp": 1573750630281,
+     *                 "utterance": "I knew it",
+     *                 "intent": "Default_Fallback_Intent",
+     *                 "confidence": 1.0
+     *             }
+     *         ],
+     *         "matchedUtteranceCount": 1,
+     *         "unmatchedUtteranceCount": 2
+     *     }
+     * ]
+     * }
+     * </pre>
+     *
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
+     */
     private void registerGetMonitoringData(XatkitServer xatkitServer) {
-        xatkitServer.registerRestEndpoint("/analytics/monitoring",
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
                     JsonArray result = new JsonArray();
-                    for(Map.Entry<String, Map<Long, IntentRecord>> entry : records.entrySet()) {
+                    for (Map.Entry<String, Map<Long, IntentRecord>> entry : records.entrySet()) {
                         JsonObject sessionObject = buildSessionObject(entry.getKey(), entry.getValue());
                         result.add(sessionObject);
 
@@ -169,32 +194,98 @@ public class RecognitionMonitor {
                 }));
     }
 
+    /**
+     * Registers the {@code GET: /analytics/monitoring/session} endpoint.
+     * <p>
+     * This endpoint expects a {@code sessionId} parameter corresponding to an existing {@code session}. If the
+     * parameter is not provided or if the provided {@code sessionId} does not correspond to an existing {@code
+     * session} the returned JSON payload will contain a single {@code error} field with an error message.
+     * <p>
+     * The listing below shows an example of the returned JSON payload:
+     * <pre>
+     * {@code
+     * {
+     *     "sessionId": "72f8fa90-8d3e-4804-b00d-5612a95fb644",
+     *     "entries": [
+     *         {
+     *             "timestamp": 1573750605388,
+     *             "utterance": "How are you?",
+     *             "intent": "HowAreYou",
+     *             "confidence": 1.0
+     *         },
+     *         {
+     *             "timestamp": 1573750623741,
+     *             "utterance": "Here is something you won't understand!",
+     *             "intent": "Default_Fallback_Intent",
+     *             "confidence": 1.0
+     *         },
+     *         {
+     *             "timestamp": 1573750630281,
+     *             "utterance": "I knew it",
+     *             "intent": "Default_Fallback_Intent",
+     *             "confidence": 1.0
+     *         }
+     *     ],
+     *     "matchedUtteranceCount": 1,
+     *     "unmatchedUtteranceCount": 2
+     * }
+     * }
+     * </pre>
+     *
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
+     */
     private void registerGetMonitoringDataForSession(XatkitServer xatkitServer) {
-        xatkitServer.registerRestEndpoint("/analytics/monitoring/session",
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/session",
                 RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
-                    String sessionId = content.getAsJsonObject().getAsJsonPrimitive("sessionId").getAsString();
-                    Map<Long, IntentRecord> sessionRecords = records.get(sessionId);
-                    JsonObject result;
-                    if(isNull(sessionRecords)) {
-                        result = new JsonObject();
-                        result.addProperty("error", "Session " + sessionId + " not found");
-                    } else {
-                        result = buildSessionObject(sessionId, sessionRecords);
+                    String sessionId = HttpUtils.getParameterValue("sessionId", params);
+                    if (nonNull(sessionId)) {
+                        Map<Long, IntentRecord> sessionRecords = records.get(sessionId);
+                        if (nonNull(sessionRecords)) {
+                            return buildSessionObject(sessionId, sessionRecords);
+                        }
                     }
+                    JsonObject result = new JsonObject();
+                    result.addProperty("error", "Session " + sessionId + " not found");
                     return result;
                 })));
     }
 
+    /**
+     * Registers the {@code GET: /analytics/monitoring/unmatched} endpoint.
+     * <p>
+     * This endpoint returns a JSON array containing all the unmatched inputs (i.e. inputs that haven't been
+     * successfully translated into intents).
+     * <p>
+     * The listing below shows an example of the returned JSON payload:
+     * <pre>
+     * {@code
+     * [
+     *     {
+     *         "sessionId": "72f8fa90-8d3e-4804-b00d-5612a95fb644",
+     *         "timestamp": 1573750623741,
+     *         "utterance": "Here is something you won't understand!"
+     *     },
+     *     {
+     *         "sessionId": "72f8fa90-8d3e-4804-b00d-5612a95fb644",
+     *         "timestamp": 1573750630281,
+     *         "utterance": "I knew it"
+     *     }
+     * ]
+     * }
+     * </pre>
+     *
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
+     */
     private void registerGetUnmatchedUtterances(XatkitServer xatkitServer) {
-        xatkitServer.registerRestEndpoint("/analytics/monitoring/unmatched",
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/unmatched",
                 RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
                     JsonArray result = new JsonArray();
-                    for(Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
+                    for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
                         String sessionId = recordEntry.getKey();
-                        for(Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
+                        for (Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
                             Long timestamp = sessionRecordEntry.getKey();
                             IntentRecord intentRecord = sessionRecordEntry.getValue();
-                            if(intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
+                            if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
                                 JsonObject unmatchedUtteranceObject = new JsonObject();
                                 unmatchedUtteranceObject.addProperty("sessionId", sessionId);
                                 unmatchedUtteranceObject.addProperty("timestamp", timestamp);
@@ -207,22 +298,46 @@ public class RecognitionMonitor {
                 })));
     }
 
+    /**
+     * Registers the {@code GET: /analytics/monitoring/matched} endpoint.
+     * <p>
+     * This endpoint returns a JSON array containing all  the matched intents (i.e. inputs that have been
+     * successfully translated into intents).
+     * <p>
+     * The listing below shows an example of the returned JSON payload:
+     * <pre>
+     * {@code
+     * [
+     *     {
+     *         "sessionId": "72f8fa90-8d3e-4804-b00d-5612a95fb644",
+     *         "timestamp": 1573750605388,
+     *         "utterance": "How are you?",
+     *         "intent": "HowAreYou",
+     *         "confidence": 1.0
+     *     }
+     * ]
+     * }
+     * </pre>
+     *
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
+     */
     private void registerGetMatchedUtterances(XatkitServer xatkitServer) {
-        xatkitServer.registerRestEndpoint("/analytics/monitoring/matched",
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/matched",
                 RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
                     JsonArray result = new JsonArray();
-                    for(Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
+                    for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
                         String sessionId = recordEntry.getKey();
-                        for(Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
+                        for (Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
                             Long timestamp = sessionRecordEntry.getKey();
                             IntentRecord intentRecord = sessionRecordEntry.getValue();
-                            if(!intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
+                            if (!intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
                                 JsonObject matchedUtteranceObject = new JsonObject();
                                 matchedUtteranceObject.addProperty("sessionId", sessionId);
                                 matchedUtteranceObject.addProperty("timestamp", timestamp);
                                 matchedUtteranceObject.addProperty("utterance", intentRecord.getUtterance());
                                 matchedUtteranceObject.addProperty("intent", intentRecord.getIntentName());
-                                matchedUtteranceObject.addProperty("confidence", intentRecord.getRecognitionConfidence());
+                                matchedUtteranceObject.addProperty("confidence",
+                                        intentRecord.getRecognitionConfidence());
                                 result.add(matchedUtteranceObject);
                             }
                         }
@@ -231,30 +346,49 @@ public class RecognitionMonitor {
                 }));
     }
 
+    /**
+     * Registers the {@code GET: /analytics/monitoring/sessions/stats} endpoint.
+     * <p>
+     * This endpoint returns a JSON object containing computed statistics over stored sessions (e.g. average
+     * time/session, average number of matched inputs/sessions, etc).
+     * <p>
+     * The listing below shows an example of the returned JSON payload:
+     * <pre>
+     * {@code
+     * {
+     *     "averageMatchedUtteranceCount": 1.0,
+     *     "averageUnmatchedUtteranceCount": 2.0,
+     *     "averageSessionTime": 43.246
+     * }
+     * }
+     * </pre>
+     *
+     * @param xatkitServer
+     */
     private void registerGetSessionsStats(XatkitServer xatkitServer) {
-        xatkitServer.registerRestEndpoint("/analytics/monitoring/sessions/stats",
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/sessions/stats",
                 RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
                     JsonObject result = new JsonObject();
                     int sessionCount = 0;
                     int totalMatchedUtteranceCount = 0;
                     int totalUnmatchedUtteranceCount = 0;
                     long totalSessionTime = 0;
-                    for(Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
+                    for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
                         sessionCount++;
                         long sessionStartTimestamp = 0;
                         long sessionStopTimestamp = 0;
-                        for(Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
+                        for (Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
                             long timestamp = sessionRecordEntry.getKey();
-                            if(timestamp < sessionStartTimestamp || sessionStartTimestamp == 0) {
+                            if (timestamp < sessionStartTimestamp || sessionStartTimestamp == 0) {
                                 sessionStartTimestamp = timestamp;
                             }
-                            if(timestamp > sessionStopTimestamp) {
+                            if (timestamp > sessionStopTimestamp) {
                                 sessionStopTimestamp = timestamp;
                             }
                             long sessionTime = sessionStopTimestamp - sessionStartTimestamp;
                             totalSessionTime += sessionTime;
                             IntentRecord intentRecord = sessionRecordEntry.getValue();
-                            if(intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
+                            if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
                                 totalUnmatchedUtteranceCount++;
                             } else {
                                 totalMatchedUtteranceCount++;
@@ -272,6 +406,13 @@ public class RecognitionMonitor {
                 })));
     }
 
+    /**
+     * Creates a {@link JsonObject} representing the provided session record.
+     *
+     * @param sessionId   the identifier of the session to translate to a {@link JsonObject}
+     * @param sessionData the database records associated to the provided {@code sessionId}
+     * @return the created {@link JsonObject}
+     */
     private JsonObject buildSessionObject(String sessionId, Map<Long, IntentRecord> sessionData) {
         JsonObject sessionObject = new JsonObject();
         sessionObject.addProperty("sessionId", sessionId);
@@ -279,14 +420,14 @@ public class RecognitionMonitor {
         sessionObject.add("entries", sessionRecords);
         int unmatchedCount = 0;
         int matchedCount = 0;
-        for(Map.Entry<Long, IntentRecord> sessionEntry : sessionData.entrySet()) {
+        for (Map.Entry<Long, IntentRecord> sessionEntry : sessionData.entrySet()) {
             JsonObject entryObject = new JsonObject();
             sessionRecords.add(entryObject);
             entryObject.addProperty("timestamp", sessionEntry.getKey());
             entryObject.addProperty("utterance", sessionEntry.getValue().getUtterance());
             entryObject.addProperty("intent", sessionEntry.getValue().getIntentName());
             entryObject.addProperty("confidence", sessionEntry.getValue().getRecognitionConfidence());
-            if(sessionEntry.getValue().getIntentName().equals("Default_Fallback_Intent")) {
+            if (sessionEntry.getValue().getIntentName().equals("Default_Fallback_Intent")) {
                 unmatchedCount++;
             } else {
                 matchedCount++;
@@ -297,100 +438,16 @@ public class RecognitionMonitor {
         return sessionObject;
     }
 
-//    /**
-//     * Registers the {@code /analytics/unmatched} REST endpoint.
-//     * <p>
-//     * This endpoint returns a JSON object containing the following information:
-//     * <pre>
-//     * {@code
-//     * {
-//     *     "inputs": [
-//     *         "Hi",
-//     *         "Hello"
-//     *     ]
-//     * }
-//     * }
-//     * </pre>
-//     *
-//     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
-//     */
-//    private void registerUnmatchedEndpoint(XatkitServer xatkitServer) {
-//        xatkitServer.registerRestEndpoint("/analytics/unmatched",
-//                RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
-//                    JsonObject result = new JsonObject();
-//                    JsonArray array = new JsonArray();
-//                    result.add("inputs", array);
-//                    for (String unmatchedInput : this.unmatchedInputs) {
-//                        array.add(new JsonPrimitive(unmatchedInput));
-//                    }
-//                    return result;
-//                }));
-//    }
-//
-//    /**
-//     * Registers the {@code /analytics/matched} REST endpoint.
-//     * <p>
-//     * This endpoint returns a JSON object containing the following information:
-//     * <pre>
-//     * {@code
-//     * {
-//     *     "intents": [
-//     *         {
-//     *             "name": "CanYou",
-//     *             "times": 3,
-//     *             "inputs": [
-//     *                 {
-//     *                     "value": "Can you sing?",
-//     *                     "times": 1
-//     *                 },
-//     *                 {
-//     *                     "value": "Can you eat?",
-//     *                     "times": 1
-//     *                 },
-//     *                 {
-//     *                     "value": "Can you dance?",
-//     *                     "times": 1
-//     *                 }
-//     *             ]
-//     *         }
-//     *     ]
-//     * }
-//     * }
-//     * </pre>
-//     *
-//     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
-//     */
-//    private void registerMatchedEndpoint(XatkitServer xatkitServer) {
-//        xatkitServer.registerRestEndpoint("/analytics/matched",
-//                RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
-//                    JsonObject result = new JsonObject();
-//                    JsonArray array = new JsonArray();
-//                    result.add("intents", array);
-//                    for (Map.Entry<String, MatchedIntentInfos> entry : this.matchedIntents.entrySet()) {
-//                        JsonObject intentObject = new JsonObject();
-//                        array.add(intentObject);
-//                        intentObject.add("name", new JsonPrimitive(entry.getKey()));
-//                        intentObject.add("times", new JsonPrimitive(entry.getValue().getAllInputCounts()));
-//                        JsonArray inputsArray = new JsonArray();
-//                        intentObject.add("inputs", inputsArray);
-//                        for (Map.Entry<String, Integer> inputCount : entry.getValue().getInputCounts().entrySet()) {
-//                            JsonObject inputObject = new JsonObject();
-//                            inputObject.add("value", new JsonPrimitive(inputCount.getKey()));
-//                            inputObject.add("times", new JsonPrimitive(inputCount.getValue()));
-//                            inputsArray.add(inputObject);
-//                        }
-//                    }
-//                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-//                    Log.info(gson.toJson(result));
-//                    return result;
-//                }));
-//    }
-
-
+    /**
+     * Logs the recognition information from the provided {@code recognizedIntent} and {@code session}.
+     *
+     * @param session the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
+     * @param recognizedIntent the {@link RecognizedIntent} to log
+     */
     public void logRecognizedIntent(XatkitSession session, RecognizedIntent recognizedIntent) {
         Long ts = System.currentTimeMillis();
         Map<Long, IntentRecord> sessionMap = records.get(session.getSessionId());
-        if(isNull(sessionMap)) {
+        if (isNull(sessionMap)) {
             sessionMap = new TreeMap<>();
         }
         sessionMap.put(ts, new IntentRecord(recognizedIntent));
@@ -398,40 +455,6 @@ public class RecognitionMonitor {
         db.commit();
     }
 
-
-//    /**
-//     * Registers a unmatched {@code input}.
-//     * <p>
-//     * The input can be accessed through the {@code /analytics/unmatched} REST endpoint.
-//     *
-//     * @param input the unmatched input
-//     */
-//    public void registerUnmatchedInput(String input) {
-//        this.unmatchedInputs.add(input);
-//        db.commit();
-//    }
-//
-//    /**
-//     * Registers a matched {@code input} and the corresponding {@code intent}.
-//     * <p>
-//     * The match record can be accessed through the {@code /analytics/matched} REST endpoint.
-//     *
-//     * @param input  the matched input
-//     * @param intent the corresponding {@link IntentDefinition}
-//     */
-//    public void registerMatchedInput(String input, IntentDefinition intent) {
-//        MatchedIntentInfos matchedIntentInfos = this.matchedIntents.get(intent.getName());
-//        if (isNull(matchedIntentInfos)) {
-//            matchedIntentInfos = new MatchedIntentInfos();
-//        }
-//        matchedIntentInfos.addInput(input);
-//        /*
-//         * MapDB put method creates a copy of the stored object, meaning that we can't update it directly, we need to
-//         * put() it once all the modifications have been performed.
-//         */
-//        this.matchedIntents.put(intent.getName(), matchedIntentInfos);
-//        db.commit();
-//    }
 
     /**
      * Commit the pending operations on the database and closes the connection.
@@ -441,14 +464,28 @@ public class RecognitionMonitor {
         this.db.close();
     }
 
+    /**
+     * A database record holding intent-related information.
+     */
     private static class IntentRecord implements Serializable {
 
         private static final long serialVersionUID = 42L;
 
+        /**
+         * The utterance that has been mapped to the intent.
+         */
         private String utterance;
 
+        /**
+         * The name of the intent extracted from the utterance.
+         */
         private String intentName;
 
+        /**
+         * The confidence level associated to the intent extracted from the utterance.
+         * <p>
+         * This value is a percentage contained in {@code [0..1]}
+         */
         private Float recognitionConfidence;
 
         public IntentRecord(RecognizedIntent recognizedIntent) {
@@ -484,68 +521,4 @@ public class RecognitionMonitor {
             return super.equals(obj);
         }
     }
-
-//    /**
-//     * Records matched intent information that are serialized in the {@link DB}.
-//     * <p>
-//     * This class tracks all the inputs that have been matched to a given {@link IntentDefinition}, and counts the
-//     * number of occurrences for each one.
-//     */
-//    private static class MatchedIntentInfos implements Serializable {
-//
-//        /**
-//         * The serialization version UID.
-//         */
-//        private static final long serialVersionUID = 42L;
-//
-//        /**
-//         * The {@link Map} storing the matched inputs and the number of occurrences.
-//         *
-//         * @see #getInputCounts()
-//         * @see #addInput(String)
-//         */
-//        private Map<String, Integer> inputCounts;
-//
-//
-//        /**
-//         * Creates a {@link MatchedIntentInfos} with empty records.
-//         */
-//        public MatchedIntentInfos() {
-//            this.inputCounts = new HashMap<>();
-//        }
-//
-//        /**
-//         * Adds the provided {@code input} to the record and update the associated count.
-//         *
-//         * @param input the input to store
-//         */
-//        public void addInput(String input) {
-//            Integer inputCount = inputCounts.get(input);
-//            if (isNull(inputCount)) {
-//                inputCounts.put(input, 1);
-//            } else {
-//                inputCounts.put(input, inputCount + 1);
-//            }
-//        }
-//
-//        /**
-//         * Returns the {@link Map} containing the stored matched inputs and the associated number of occurrences.
-//         *
-//         * @return the {@link Map} containing the stored matched inputs and the associated number of occurrences
-//         */
-//        public Map<String, Integer> getInputCounts() {
-//            return this.inputCounts;
-//        }
-//
-//        /**
-//         * Returns the number of inputs stored in this record.
-//         *
-//         * @return the number of inputs stored in this record
-//         */
-//        public int getAllInputCounts() {
-//            return inputCounts.values().stream().reduce(Integer::sum).orElse(0);
-//        }
-//
-//
-//    }
 }
