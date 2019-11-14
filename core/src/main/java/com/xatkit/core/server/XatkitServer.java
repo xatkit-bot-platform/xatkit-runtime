@@ -79,9 +79,9 @@ public class XatkitServer {
      * This {@link Map} maps an URI (e.g. {@code /myEndpoint}) to a {@link RestHandler} that takes care of the
      * REST service computation.
      *
-     * @see #notifyRestHandler(String, List, List, Object, String)
+     * @see #notifyRestHandler(HttpMethod, String, List, List, Object, String)
      */
-    private Map<String, RestHandler> restEndpoints;
+    private Map<EndpointEntry, RestHandler> restEndpoints;
 
     /**
      * The directory used to store public content that can be accessed through the {@link ContentHttpHandler}.
@@ -242,47 +242,54 @@ public class XatkitServer {
      * Registers the provided {@code handler} as a REST endpoint for the provided {@code uri}.
      * <p>
      * The provided {@code handler} will receive the HTTP requests that are sent to the provided {@code uri} through
-     * the {@link #notifyRestHandler(String, List, List, Object, String)} method.
+     * the {@link #notifyRestHandler(HttpMethod, String, List, List, Object, String)} method.
      * <p>
      * <b>Note</b>: the provided {@code uri} must start with a leading {@code /}.
      *
-     * @param uri     the URI of the REST endpoint
-     * @param handler the {@link JsonRestHandler} to associate to the REST endpoint
+     * @param httpMethod the Http method of the REST endpoint
+     * @param uri        the URI of the REST endpoint
+     * @param handler    the {@link JsonRestHandler} to associate to the REST endpoint
      * @throws NullPointerException     if the provided {@code uri} or {@code handler} is {@code null}
      * @throws IllegalArgumentException if the provided {@code uri} does not start with a leading {@code /}
      */
-    public void registerRestEndpoint(String uri, RestHandler handler) {
+    public void registerRestEndpoint(HttpMethod httpMethod, String uri, RestHandler handler) {
+        checkNotNull(httpMethod, "Cannot register a REST endpoint for the provided %s %s",
+                HttpMethod.class.getSimpleName(), httpMethod);
         checkNotNull(uri, "Cannot register a REST endpoint for the provided URI %s", uri);
         checkArgument(uri.startsWith("/"), "Cannot register a REST endpoint for the provided URI %s, the URI must " +
                 "start with a \"/\"", uri);
         checkNotNull(handler, "Cannot register the provided %s %s (uri=%s)", JsonRestHandler.class.getSimpleName(),
                 handler, uri);
-        this.restEndpoints.put(normalizeURI(uri), handler);
-        Log.info("Registered REST handler {0} at URI {1}", handler.getClass().getSimpleName(), uri);
+        String normalizedUri = normalizeURI(uri);
+        this.restEndpoints.put(EndpointEntry.of(httpMethod, normalizeURI(uri)), handler);
+        Log.info("Registered REST handler {0} at URI {1} (method={2})", handler.getClass().getSimpleName(),
+                normalizedUri, httpMethod.label);
     }
 
     /**
-     * Returns whether the provided {@code uri} is associated to a REST endpoint.
+     * Returns whether the provided {@code httpMethod} on the given {@code uri} is associated to a REST endpoint.
      *
-     * @param uri the URI of the REST endpoint to check
+     * @param httpMethod the Http method of the REST endpoint to check
+     * @param uri        the URI of the REST endpoint to check
      * @return {@code true} if there is a REST endpoint associated to the provided {@code uri}, {@code false} otherwise
      * @throws NullPointerException if the provided {@code uri} is {@code null}
      */
-    public boolean isRestEndpoint(String uri) {
+    public boolean isRestEndpoint(HttpMethod httpMethod, String uri) {
         checkNotNull(uri, "Cannot check if the provided URI (%s) corresponds to a REST endpoint, please provide a " +
                 "non-null URI", uri);
-        return this.restEndpoints.containsKey(normalizeURI(uri));
+        return this.restEndpoints.containsKey(EndpointEntry.of(httpMethod, normalizeURI(uri)));
     }
 
     /**
-     * Returns the {@link RestHandler} associated to the provided {@code uri}.
+     * Returns the {@link RestHandler} associated to the provided {@code uri} with the given {@code httpMethod}.
      *
-     * @param uri the URI to retrieve the handler for
+     * @param httpMethod the Http method to retrieve the handler for
+     * @param uri        the URI to retrieve the handler for
      * @return the retrieved {@link RestHandler} if it exists, {@code null} otherwise
      */
     public @Nullable
-    RestHandler getRegisteredRestHandler(String uri) {
-        return this.restEndpoints.get(normalizeURI(uri));
+    RestHandler getRegisteredRestHandler(HttpMethod httpMethod, String uri) {
+        return this.restEndpoints.get(EndpointEntry.of(httpMethod, normalizeURI(uri)));
     }
 
     /**
@@ -307,27 +314,33 @@ public class XatkitServer {
     /**
      * Notifies the REST endpoint associated with the provided {@code uri}.
      *
-     * @param uri     the URI of the REST endpoint to notify
-     * @param headers the HTTP {@link Header}s of the request sent to the endpoint
-     * @param params  the HTTP parameters of the request sent to the endpoint
-     * @param content the {@link JsonElement} representing the content of the request sent to the endpoint
+     * @param httpMethod the Http method of the REST endpoint to notify
+     * @param uri        the URI of the REST endpoint to notify
+     * @param headers    the HTTP {@link Header}s of the request sent to the endpoint
+     * @param params     the HTTP parameters of the request sent to the endpoint
+     * @param content    the {@link JsonElement} representing the content of the request sent to the endpoint
      * @return the {@link JsonElement} returned by the endpoint, or {@code null} if the endpoint does not return
      * anything
      * @throws NullPointerException if the provided {@code uri}, {@code header}, or {@code params} is {@code null}
      * @throws XatkitException      if there is no REST endpoint registered for the provided {@code uri}
-     * @see #registerRestEndpoint(String, RestHandler)
+     * @see #registerRestEndpoint(HttpMethod, String, RestHandler)
      */
-    public Object notifyRestHandler(String uri, List<Header> headers, List<NameValuePair> params,
+    public Object notifyRestHandler(HttpMethod httpMethod, String uri, List<Header> headers, List<NameValuePair> params,
                                     @Nullable Object content, String contentType) {
         checkNotNull(uri, "Cannot notify the REST endpoint %s, please provide a non-null URI", uri);
         checkNotNull(headers, "Cannot notify the REST endpoint %s, the headers list is null", uri);
         checkNotNull(params, "Cannot notify the REST endpoint %s, the parameters list is null", uri);
-        RestHandler handler = this.getRegisteredRestHandler(uri);
+        RestHandler handler = this.getRegisteredRestHandler(httpMethod, uri);
         if (isNull(handler)) {
             throw new XatkitException(MessageFormat.format("Cannot notify the REST endpoint {0}, there is no handler " +
                     "registered for this URI", uri));
         }
-        if (handler.acceptContentType(contentType)) {
+        /*
+         * We can ignore the content type if we are dealing with a GET request, the HTTP/1.1 standard explicitly
+         * state that body should be ignored for request methods that do not include defined semantics for an
+         * entity-body (see https://tools.ietf.org/html/rfc2616#section-4.3).
+         */
+        if (httpMethod.equals(HttpMethod.GET) || handler.acceptContentType(contentType)) {
             return handler.handleContent(headers, params, content);
         } else {
             return null;
@@ -343,14 +356,15 @@ public class XatkitServer {
      *
      * @param webhookEventProvider the {@link WebhookEventProvider} to register
      * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
-     * @see #notifyRestHandler(String, List, List, Object, String)
+     * @see #notifyRestHandler (HttpMethod, String, List, List, Object, String)
      * @see RestHandler#acceptContentType(String)
      * @see RestHandler#handleContent(List, List, Object)
      */
     public void registerWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
         checkNotNull(webhookEventProvider, "Cannot register the provided %s: %s", WebhookEventProvider.class
                 .getSimpleName(), webhookEventProvider);
-        this.registerRestEndpoint(webhookEventProvider.getEndpointURI(), webhookEventProvider.getRestHandler());
+        this.registerRestEndpoint(webhookEventProvider.getEndpointMethod(), webhookEventProvider.getEndpointURI(),
+                webhookEventProvider.getRestHandler());
     }
 
     /**
@@ -605,6 +619,58 @@ public class XatkitServer {
     File getSessionFile(XatkitSession session) {
         File sessionFile = new File(this.contentDirectory, session.getSessionId());
         return sessionFile;
+    }
+
+    /**
+     * Uniquely identifies a registered REST endpoint.
+     */
+    private static class EndpointEntry {
+
+        /**
+         * Creates an {@link EndpointEntry} from the provided {@code httpMethod} and {@code uri}.
+         *
+         * @param httpMethod the Http method of the entry
+         * @param uri        the URI of the entry
+         * @return the created {@link EndpointEntry}
+         */
+        private static EndpointEntry of(HttpMethod httpMethod, String uri) {
+            return new EndpointEntry(httpMethod, uri);
+        }
+
+        /**
+         * The {@link HttpMethod} of the entry.
+         */
+        private HttpMethod httpMethod;
+
+        /**
+         * The URI of the entry.
+         */
+        private String uri;
+
+        /**
+         * Constructs an {@link EndpointEntry} with the provided {@code httpMethod} and {@code uri}.
+         * @param httpMethod the Http method of the entry
+         * @param uri the URI of the entry
+         */
+        private EndpointEntry(HttpMethod httpMethod, String uri) {
+            this.httpMethod = httpMethod;
+            this.uri = uri;
+        }
+
+        @Override
+        public int hashCode() {
+            return this.httpMethod.hashCode() + this.uri.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof EndpointEntry) {
+                EndpointEntry other = (EndpointEntry) obj;
+                return other.httpMethod.equals(this.httpMethod) && other.uri.equals(this.uri);
+            } else {
+                return super.equals(obj);
+            }
+        }
     }
 
 }

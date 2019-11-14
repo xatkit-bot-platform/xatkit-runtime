@@ -2,9 +2,7 @@ package com.xatkit.core.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
@@ -16,16 +14,13 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -71,7 +66,7 @@ class HttpHandler implements HttpRequestHandler {
      * The {@link XatkitServer} is used to notify the {@link WebhookEventProvider}s when a new
      * request is received.
      *
-     * @see XatkitServer#notifyRestHandler(String, List, List, Object, String)
+     * @see XatkitServer#notifyRestHandler(HttpMethod, String, List, List, Object, String)
      */
     private XatkitServer xatkitServer;
 
@@ -109,26 +104,31 @@ class HttpHandler implements HttpRequestHandler {
      * @param request  the received {@link HttpRequest}
      * @param response the {@link HttpResponse} to send to the caller
      * @param context  the {@link HttpContext} associated to the received {@link HttpRequest}
-     * @see XatkitServer#notifyRestHandler(String, List, List, Object, String)
+     * @see XatkitServer#notifyRestHandler(HttpMethod, String, List, List, Object, String)
      */
     public void handle(final HttpRequest request, final HttpResponse response, final HttpContext context) {
 
         String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
-        String target = request.getRequestLine().getUri();
-
-        Log.info("Received a {0} query on {1}", method, target);
-
         List<NameValuePair> parameters = null;
+        String path;
         try {
-            parameters = URLEncodedUtils.parse(new URI(target), HTTP.UTF_8);
+            URIBuilder uriBuilder = new URIBuilder(request.getRequestLine().getUri());
+            path = uriBuilder.getPath();
+            parameters = uriBuilder.getQueryParams();
         } catch (URISyntaxException e) {
-            String errorMessage = MessageFormat.format("Cannot parse the requested URI {0}", target);
-            throw new XatkitException(errorMessage);
+            throw new XatkitException(MessageFormat.format("Cannot parse the provided URI {0}, see attached exception",
+                    request.getRequestLine().getUri()), e);
         }
 
-        for (NameValuePair parameter : parameters) {
-            Log.info("Query parameter: {0} = {1}", parameter.getName(), parameter.getValue());
-        }
+        Log.info("Received a {0} query on {1}", method, path);
+
+        parameters.forEach(p -> Log.info("Query parameter: {0}={1}", p.getName(), p.getValue()));
+
+        List<Header> headers = Arrays.asList(request.getAllHeaders());
+        headers.forEach(h -> Log.info("Header {0}={1}", h.getName(), h.getValue()));
+
+        Object content = null;
+        String contentType = null;
 
         Log.info("Request type {0}", request.getClass().getSimpleName());
 
@@ -141,9 +141,6 @@ class HttpHandler implements HttpRequestHandler {
 
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-            Header[] headers = request.getAllHeaders();
-            Log.info("Request Headers");
-            logHeaders(headers);
             String contentEncoding = null;
             Header encodingHeader = entity.getContentEncoding();
             if (nonNull(encodingHeader) && encodingHeader.getElements().length > 0) {
@@ -152,7 +149,6 @@ class HttpHandler implements HttpRequestHandler {
             } else {
                 Log.warn("Unknown query content encoding");
             }
-            String contentType = null;
             Header contentTypeHeader = entity.getContentType();
             if (nonNull(contentTypeHeader) && contentTypeHeader.getElements().length > 0) {
                 contentType = contentTypeHeader.getElements()[0].getName();
@@ -170,64 +166,52 @@ class HttpHandler implements HttpRequestHandler {
                 while (nonNull(currentLine = reader.readLine())) {
                     contentBuilder.append(currentLine);
                 }
-                String content = contentBuilder.toString();
-                if (content.isEmpty()) {
-                    Log.warn("Empty query content");
-                } else {
-                    // TODO check this, it shouldn't exist
-                    if (ContentType.APPLICATION_JSON.getMimeType().equals(contentType)) {
-                        Log.info("Parsing {0} content", ContentType.APPLICATION_JSON.getMimeType());
-                        try {
-                            JsonElement jsonElement = parser.parse(content);
-                            Log.info("Query content: \n {0}", gsonPrinter.toJson(jsonElement));
-                        } catch (JsonSyntaxException e) {
-                            Log.error(e, "Cannot parse the {0} content {1}", ContentType.APPLICATION_JSON.getMimeType
-                                    (), content);
-                        }
-                    } else {
-                        Log.info("No parser for the provided content type {0}, returning the raw content: \n {1}",
-                                contentType, content);
-                    }
-                }
+                content = contentBuilder.toString();
+//                if (stringContent.isEmpty()) {
+//                    Log.warn("Empty query content");
+//                } else {
+//                    // TODO check this, it shouldn't exist
+//                    if (ContentType.APPLICATION_JSON.getMimeType().equals(contentType)) {
+//                        Log.info("Parsing {0} content", ContentType.APPLICATION_JSON.getMimeType());
+//                        try {
+//                            JsonElement jsonElement = parser.parse(stringContent);
+//                            Log.info("Query content: \n {0}", gsonPrinter.toJson(jsonElement));
+//                        } catch (JsonSyntaxException e) {
+//                            Log.error(e, "Cannot parse the {0} content {1}", ContentType.APPLICATION_JSON.getMimeType
+//                                    (), stringContent);
+//                        }
+//                    } else {
+//                        Log.info("No parser for the provided content type {0}, returning the raw content: \n {1}",
+//                                contentType, content);
+//                    }
+//                }
 
-                // WARNING: this is probably wrong: the target can probably contain also the parameters. If this is
-                // true we need to build a new URI(target) and retrieve the raw query
-                if (this.xatkitServer.isRestEndpoint(target)) {
-                    Object result = xatkitServer.notifyRestHandler(target, Arrays.asList(headers), parameters,
-                            content, contentType);
-                    if (nonNull(result)) {
-                        HttpEntity resultEntity = HttpEntityHelper.createHttpEntity(result);
-                        response.setEntity(resultEntity);
-                    } else {
-                        Log.warn("Cannot embed the provided json element {0}", result);
-                    }
-                    response.setHeader("Access-Control-Allow-Headers", "content-type");
-                }
+
             } catch (IOException e) {
                 throw new XatkitException("An error occurred when handling the request content", e);
             }
         }
+
+        HttpMethod httpMethod = HttpMethod.valueOf(method);
+        if (this.xatkitServer.isRestEndpoint(httpMethod, path)) {
+            Object result = xatkitServer.notifyRestHandler(httpMethod, path, headers, parameters,
+                    content, contentType);
+            if (nonNull(result)) {
+                HttpEntity resultEntity = HttpEntityHelper.createHttpEntity(result);
+                response.setEntity(resultEntity);
+            } else {
+                Log.warn("Cannot embed the provided json element {0}", result);
+            }
+            response.setHeader("Access-Control-Allow-Headers", "content-type");
+        }
+
+
         response.setHeader(CORS_HEADER, CORS_VALUE);
-        for(RestHandler handler : xatkitServer.getRegisteredRestHandlers()) {
+        for (RestHandler handler : xatkitServer.getRegisteredRestHandlers()) {
             accessControlAllowHeaders.addAll(handler.getAccessControlAllowHeaders());
         }
         String stringAccessControlAllowHeaders = String.join(",", accessControlAllowHeaders);
         response.setHeader(ACCESS_CONTROL_ALLOW_HEADERS, stringAccessControlAllowHeaders);
         response.setStatusCode(HttpStatus.SC_OK);
     }
-
-
-
-
-    /**
-     * An utility method that logs the names and values of the provided {@link Header} array.
-     *
-     * @param headers the array containing the {@link Header}s to log
-     */
-    private void logHeaders(Header[] headers) {
-        for (int i = 0; i < headers.length; i++) {
-            Log.info("{0} : {1}", headers[i].getName(), headers[i].getValue());
-        }
-    }
-
 }

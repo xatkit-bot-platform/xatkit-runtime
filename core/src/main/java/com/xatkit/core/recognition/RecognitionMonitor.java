@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.intent.IntentDefinition;
@@ -166,7 +167,7 @@ public class RecognitionMonitor {
      * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
      */
     private void registerUnmatchedEndpoint(XatkitServer xatkitServer) {
-        xatkitServer.registerRestEndpoint("/analytics/unmatched",
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/unmatched",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
                     JsonObject result = new JsonObject();
                     JsonArray array = new JsonArray();
@@ -212,7 +213,7 @@ public class RecognitionMonitor {
      * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
      */
     private void registerMatchedEndpoint(XatkitServer xatkitServer) {
-        xatkitServer.registerRestEndpoint("/analytics/matched",
+        xatkitServer.registerRestEndpoint(HttpMethod.GET,"/analytics/matched",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
                     JsonObject result = new JsonObject();
                     JsonArray array = new JsonArray();
