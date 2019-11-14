@@ -3,6 +3,7 @@ package com.xatkit.core.recognition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;

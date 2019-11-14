@@ -5,21 +5,33 @@ import com.google.gson.JsonObject;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.stubs.StubXatkitServer;
 import fr.inria.atlanmod.commons.log.Log;
+import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,13 +43,20 @@ public class HttpHandlerTest extends AbstractXatkitTest {
 
     private static HttpEntityEnclosingRequest NOT_REGISTERED_POST_REQUEST;
 
-    private static String REGISTERED_URI = "/test";
+    private static String REGISTERED_POST_URI = "/test";
 
     private static HttpEntityEnclosingRequest REGISTERED_POST_REQUEST;
 
     private static JsonObject REGISTERED_POST_OBJECT;
 
     private static String REGISTERED_POST_OBJECT_STRING;
+
+
+    private static String REGISTERED_GET_URI = "/test-get";
+
+    private static HttpRequest REGISTERED_GET_REQUEST;
+
+    private static HttpRequest REGISTERED_GET_REQUEST_WITH_PARAMETERS;
 
     private HttpHandler handler;
 
@@ -48,21 +67,31 @@ public class HttpHandlerTest extends AbstractXatkitTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         xatkitServer = new StubXatkitServer();
-        xatkitServer.registerRestEndpoint("/test", RestHandlerFactory.createJsonRestHandler(
-                (headers, params, content) -> {
-                    Log.info("Test rest handler called");
+        xatkitServer.registerRestEndpoint(HttpMethod.POST, REGISTERED_POST_URI,
+                RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
+                    Log.info("Test REST POST handler called");
                     return null;
                 }));
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, REGISTERED_GET_URI, RestHandlerFactory.createJsonRestHandler(
+                (headers, params, content) -> {
+                    Log.info("Test REST GET handler called");
+                    return null;
+                }
+        ));
         NOT_REGISTERED_POST_REQUEST = new BasicHttpEntityEnclosingRequest("POST", NOT_REGISTERED_URI);
         JsonObject notRegisteredPostRequestObject = new JsonObject();
         notRegisteredPostRequestObject.addProperty("key", "value");
         NOT_REGISTERED_POST_REQUEST.setEntity(HttpEntityHelper.createHttpEntity(notRegisteredPostRequestObject));
 
-        REGISTERED_POST_REQUEST = new BasicHttpEntityEnclosingRequest("POST", REGISTERED_URI);
+        REGISTERED_POST_REQUEST = new BasicHttpEntityEnclosingRequest("POST", REGISTERED_POST_URI);
         REGISTERED_POST_OBJECT = new JsonObject();
         REGISTERED_POST_OBJECT.addProperty("key", "value");
         REGISTERED_POST_REQUEST.setEntity(HttpEntityHelper.createHttpEntity(REGISTERED_POST_OBJECT));
         REGISTERED_POST_OBJECT_STRING = new Gson().toJson(REGISTERED_POST_OBJECT);
+
+        REGISTERED_GET_REQUEST = new BasicHttpRequest("GET", REGISTERED_GET_URI);
+
+        REGISTERED_GET_REQUEST_WITH_PARAMETERS = new BasicHttpRequest("GET", REGISTERED_GET_URI + "?param=value");
     }
 
     @AfterClass
@@ -96,7 +125,7 @@ public class HttpHandlerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void testHandleUnregisteredHandler() {
+    public void handleUnregisteredHandler() {
         this.handler = getHandler();
         handler.handle(NOT_REGISTERED_POST_REQUEST, response, context);
         assertThat(xatkitServer.getLastIsRestEndpointURI()).as("Valid isRestEndpoint URI").isEqualTo(NOT_REGISTERED_URI);
@@ -104,18 +133,64 @@ public class HttpHandlerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void testRegisteredHandler() {
+    public void handlePostRequestRegisteredHandler() {
         this.handler = getHandler();
         handler.handle(REGISTERED_POST_REQUEST, response, context);
-        assertThat(xatkitServer.getLastIsRestEndpointURI()).as("Valid isRestEndpoint URI").isEqualTo(REGISTERED_URI);
-        assertThat(xatkitServer.getLastNotifyRestHandlerURI()).as("NotifyRestHandler called").isEqualTo(REGISTERED_URI);
-        assertThat(xatkitServer.getLastNotifyRestHandlerHeaders()).as("Valid headers").isEqualTo(Arrays.asList(REGISTERED_POST_REQUEST.getAllHeaders()));
-        assertThat(xatkitServer.getLastNotifyRestHandlerParams()).as("Valid params").isEmpty();
-        assertThat(xatkitServer.getLastNotifyRestHandlerContentType()).as("Valid content type").isEqualTo(ContentType.APPLICATION_JSON.getMimeType());
-        assertThat(xatkitServer.getLastNotifyRestHandlerContent()).as("Valid content").isEqualTo(REGISTERED_POST_OBJECT_STRING);
+        checkIsRestEndpointCall(HttpMethod.POST, REGISTERED_POST_URI);
+        checkNotifyRestHandlerCall(HttpMethod.POST,
+                REGISTERED_POST_URI,
+                Arrays.asList(REGISTERED_POST_REQUEST.getAllHeaders()),
+                Collections.emptyList(),
+                ContentType.APPLICATION_JSON.getMimeType(),
+                REGISTERED_POST_OBJECT_STRING);
+    }
+
+    @Test
+    public void handleGetRequestRegisteredHandler() {
+        this.handler = getHandler();
+        handler.handle(REGISTERED_GET_REQUEST, response, context);
+        checkIsRestEndpointCall(HttpMethod.GET, REGISTERED_GET_URI);
+        checkNotifyRestHandlerCall(HttpMethod.GET,
+                REGISTERED_GET_URI,
+                Arrays.asList(REGISTERED_GET_REQUEST.getAllHeaders()),
+                Collections.emptyList(),
+                null,
+                null);
+    }
+
+    @Test
+    public void handleGetRequestWithParametersRegisteredHandler() throws URISyntaxException {
+        this.handler = getHandler();
+        handler.handle(REGISTERED_GET_REQUEST_WITH_PARAMETERS, response, context);
+        checkIsRestEndpointCall(HttpMethod.GET, REGISTERED_GET_URI);
+        checkNotifyRestHandlerCall(HttpMethod.GET,
+                REGISTERED_GET_URI,
+                Arrays.asList(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getAllHeaders()),
+                URLEncodedUtils.parse(new URI(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getRequestLine().getUri()), HTTP.UTF_8),
+                null,
+                null);
     }
 
     private HttpHandler getHandler() {
         return new HttpHandler(xatkitServer);
+    }
+
+    private void checkIsRestEndpointCall(HttpMethod expectedMethod, String expectedUri) {
+        assertThat(xatkitServer.getLastIsRestEndpointMethod()).as("Valid isRestEndpoint method").isEqualTo(expectedMethod);
+        assertThat(xatkitServer.getLastIsRestEndpointURI()).as("Valid isRestEndpoint URI").isEqualTo(expectedUri);
+    }
+
+    private void checkNotifyRestHandlerCall(@Nonnull HttpMethod expectedMethod,
+                                            @Nonnull String expectedURI,
+                                            @Nonnull List<Header> expectedHeaders,
+                                            @Nonnull List<NameValuePair> expectedParameters,
+                                            @Nullable String expectedContentType,
+                                            @Nullable Object expectedContent) {
+        assertThat(xatkitServer.getLastNotifyRestHandlerMethod()).as("Valid notifyRestHandler method").isEqualTo(expectedMethod);
+        assertThat(xatkitServer.getLastNotifyRestHandlerURI()).as("Valid notifyRestHandler URI").isEqualTo(expectedURI);
+        assertThat(xatkitServer.getLastNotifyRestHandlerHeaders()).as("Valid notifyRestHandler headers").isEqualTo(expectedHeaders);
+        assertThat(xatkitServer.getLastNotifyRestHandlerParams()).as("Valid notifyRestHandler parameters").isEqualTo(expectedParameters);
+        assertThat(xatkitServer.getLastNotifyRestHandlerContentType()).as("Valid notifyRestHandler content type").isEqualTo(expectedContentType);
+        assertThat(xatkitServer.getLastNotifyRestHandlerContent()).as("Valid notifyRestHandler content").isEqualTo(expectedContent);
     }
 }

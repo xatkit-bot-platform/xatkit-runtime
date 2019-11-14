@@ -2,6 +2,7 @@ package com.xatkit.core.platform.io;
 
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.RestHandler;
 import com.xatkit.core.server.XatkitServer;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -57,7 +58,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends 
     }
 
     /**
-     * Returns the URI of the Rest endpoint to register the provider to.
+     * Returns the URI of the REST endpoint to register the provider to.
      * <p>
      * The returned {@link String} must be prefixed by a {@code '/'}.
      *
@@ -65,6 +66,18 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends 
      * @see XatkitServer#registerWebhookEventProvider(WebhookEventProvider)
      */
     public abstract String getEndpointURI();
+
+    /**
+     * Returns the {@link HttpMethod} of the REST endpoint to register the provided to.
+     * <p>
+     * This method returns {@link HttpMethod#POST} by default, subclasses can override this method to return custom
+     * {@link HttpMethod}.
+     *
+     * @return the {@link HttpMethod} of the REST endpoint to register the provider to
+     */
+    public HttpMethod getEndpointMethod() {
+        return HttpMethod.POST;
+    }
 
     /**
      * Returns the concrete {@link RestHandler} instance that handles incoming Rest requests.

@@ -186,7 +186,8 @@ public class XatkitServerTest extends AbstractXatkitTest {
         this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
-        this.server.notifyRestHandler(stubJsonWebhookEventProvider.getEndpointURI(), Collections.emptyList(),
+        this.server.notifyRestHandler(HttpMethod.POST, stubJsonWebhookEventProvider.getEndpointURI(),
+                Collections.emptyList(),
                 Collections.emptyList(), "{field: value}", ContentType.APPLICATION_JSON.getMimeType());
         assertThat(stubJsonWebhookEventProvider.hasReceivedEvent()).as("WebhookEventProvider has received an event")
                 .isTrue();
@@ -197,7 +198,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
         this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
-        this.server.notifyRestHandler(stubJsonWebhookEventProvider.getEndpointURI(), Collections.emptyList(),
+        this.server.notifyRestHandler(HttpMethod.POST, stubJsonWebhookEventProvider.getEndpointURI(), Collections.emptyList(),
                 Collections.emptyList(), "test", "not valid");
         assertThat(stubJsonWebhookEventProvider.hasReceivedEvent()).as("WebhookEventProvider hasn't received an " +
                 "event").isFalse();
@@ -206,79 +207,109 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test(expected = NullPointerException.class)
     public void registerRestEndpointNullUri() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(null, VALID_REST_HANDLER);
+        this.server.registerRestEndpoint(HttpMethod.POST, null, VALID_REST_HANDLER);
     }
 
     @Test(expected = NullPointerException.class)
     public void registerRestEndpointNullHandler() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, null);
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void registerRestEndpointNotRootUri() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint("test", VALID_REST_HANDLER);
+        this.server.registerRestEndpoint(HttpMethod.POST, "test", VALID_REST_HANDLER);
     }
 
     @Test
     public void registerRestEndpoint() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        assertThat(this.server.getRegisteredRestHandler(VALID_REST_URI)).as("Handler registered").isEqualTo(VALID_REST_HANDLER);
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        assertThat(this.server.getRegisteredRestHandler(HttpMethod.POST, VALID_REST_URI)).as("Handler registered").isEqualTo(VALID_REST_HANDLER);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void isRestEndpointNullMethod() {
+        this.server = getValidXatkitServer();
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.isRestEndpoint(null, VALID_REST_URI);
     }
 
     @Test(expected = NullPointerException.class)
     public void isRestEndpointNullUri() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        this.server.isRestEndpoint(null);
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.isRestEndpoint(HttpMethod.POST, null);
     }
 
     @Test
     public void isRestEndpointRegisteredUri() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        boolean result = this.server.isRestEndpoint(VALID_REST_URI);
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        boolean result = this.server.isRestEndpoint(HttpMethod.POST, VALID_REST_URI);
         assertThat(result).as("Provided URI is a rest endpoint").isTrue();
+    }
+
+    @Test
+    public void isRestEndpointRegisteredUriTrailingSlash() {
+        // See https://github.com/xatkit-bot-platform/xatkit-runtime/issues/254
+        this.server = getValidXatkitServer();
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        assertThat(this.server.isRestEndpoint(HttpMethod.POST, VALID_REST_URI + "/")).as("The URI is valid even with a trailing /").isTrue();
     }
 
     @Test
     public void isRestEndpointNotRegisteredUri() {
         this.server = getValidXatkitServer();
-        boolean result = this.server.isRestEndpoint(VALID_REST_URI);
+        boolean result = this.server.isRestEndpoint(HttpMethod.POST, VALID_REST_URI);
         assertThat(result).as("Provided URI is not a rest endpoint").isFalse();
+    }
+
+    @Test
+    public void isRestEndpointNotRegisteredMethod() {
+        this.server = getValidXatkitServer();
+        boolean result = this.server.isRestEndpoint(HttpMethod.PUT, VALID_REST_URI);
+        assertThat(result).as("Provided URI + Method is not a rest endpoint").isFalse();
+    }
+
+    @Test (expected = NullPointerException.class)
+    public void notifyRestHandlerNullMethod() {
+        this.server = getValidXatkitServer();
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.notifyRestHandler(null, VALID_REST_URI, Collections.emptyList(), Collections.emptyList(),
+                new JsonObject(), ContentType.APPLICATION_JSON.getMimeType());
     }
 
     @Test(expected = NullPointerException.class)
     public void notifyRestHandlerNullUri() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        this.server.notifyRestHandler(null, Collections.emptyList(), Collections.emptyList(), new JsonObject(),
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.notifyRestHandler(HttpMethod.POST, null, Collections.emptyList(), Collections.emptyList(), new JsonObject(),
                 ContentType.APPLICATION_JSON.getMimeType());
     }
 
     @Test(expected = NullPointerException.class)
     public void notifyRestHandlerNullHeaders() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        this.server.notifyRestHandler(VALID_REST_URI, null, Collections.emptyList(), new JsonObject(),
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, null, Collections.emptyList(), new JsonObject(),
                 ContentType.APPLICATION_JSON.getMimeType());
     }
 
     @Test(expected = NullPointerException.class)
     public void notifyRestHandlerNullParams() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(), null, new JsonObject(),
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(), null, new JsonObject(),
                 ContentType.APPLICATION_JSON.getMimeType());
     }
 
     @Test
     public void notifyRestHandlerNullJsonObject() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        Object result = this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(),
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        Object result = this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(),
                 Collections.emptyList(), null, ContentType.APPLICATION_JSON.getMimeType());
         checkRestHandlerResult(result);
     }
@@ -286,8 +317,18 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void notifyRestHandler() {
         this.server = getValidXatkitServer();
-        this.server.registerRestEndpoint(VALID_REST_URI, VALID_REST_HANDLER);
-        Object result = this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(),
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        Object result = this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(),
+                Collections.emptyList(), "{}", ContentType.APPLICATION_JSON.getMimeType());
+        checkRestHandlerResult(result);
+    }
+
+    @Test
+    public void notifyRestHandlerTrailingSlash() {
+        // See https://github.com/xatkit-bot-platform/xatkit-runtime/issues/254
+        this.server = getValidXatkitServer();
+        this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
+        Object result = this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI + "/", Collections.emptyList(),
                 Collections.emptyList(), "{}", ContentType.APPLICATION_JSON.getMimeType());
         checkRestHandlerResult(result);
     }
@@ -295,7 +336,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test(expected = XatkitException.class)
     public void notifyRestHandlerNotRegisteredUri() {
         this.server = getValidXatkitServer();
-        this.server.notifyRestHandler(VALID_REST_URI, Collections.emptyList(), Collections.emptyList(), null,
+        this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(), Collections.emptyList(), null,
                 ContentType.APPLICATION_JSON.getMimeType());
     }
 
