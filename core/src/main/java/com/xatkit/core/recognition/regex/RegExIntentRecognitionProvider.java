@@ -485,7 +485,7 @@ public class RegExIntentRecognitionProvider implements IntentRecognitionProvider
                      * Return the first one we find, no need to iterate the rest of the map
                      */
                     if (nonNull(this.recognitionMonitor)) {
-                        this.recognitionMonitor.registerMatchedInput(input, intentDefinition);
+                        this.recognitionMonitor.logRecognizedIntent(session, recognizedIntent);
                     }
                     return recognizedIntent;
                 }
@@ -496,7 +496,7 @@ public class RegExIntentRecognitionProvider implements IntentRecognitionProvider
          */
         recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
         if (nonNull(recognitionMonitor)) {
-            this.recognitionMonitor.registerUnmatchedInput(input);
+            this.recognitionMonitor.logRecognizedIntent(session, recognizedIntent);
         }
         return recognizedIntent;
     }

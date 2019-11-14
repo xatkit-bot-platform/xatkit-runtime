@@ -1493,14 +1493,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 .getDisplayName(), queryResult.getIntentDetectionConfidence(), queryResult.getFulfillmentText());
         RecognizedIntent recognizedIntent = convertDialogFlowIntentToRecognizedIntent(queryResult);
         if (nonNull(recognitionMonitor)) {
-            if (recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT)) {
-                recognitionMonitor.registerUnmatchedInput(input);
-            } else {
-                /*
-                 * We can safely cast here, RecognizedIntents always have an IntentDefinition as their definition.
-                 */
-                recognitionMonitor.registerMatchedInput(input, (IntentDefinition) recognizedIntent.getDefinition());
-            }
+            recognitionMonitor.logRecognizedIntent(session, recognizedIntent);
         }
         return recognizedIntent;
     }

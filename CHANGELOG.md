@@ -13,6 +13,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - Configuration option `xatkit.message.delay` that allows to specify a delay (in milliseconds) the bot should wait for before sending a message (`0` by default, meaning that the bots replies immediately). This option impacts all the `RuntimeActions` inheriting from `RuntimeArtifactMessage`.
 - Support for *from clause* in execution rule. Execution rules now accept an optional `from <PlatformDefinition>` that allows to filter execution rules based on the platform that triggered the event. When the a *from clause* is specified Xatkit will take it into account to only execute the rules matching both the triggered event and the specified platform. This allows to define precise bot interactions when manipulating multiple messaging platforms.
 - Support for all the Http methods supported by Apache http-core in XatkitServer (fix [#222]( https://github.com/xatkit-bot-platform/xatkit-runtime/issues/222 )). This includes requests with parameters (`?param=value`), that are correctly mapped to the handler corresponding to their base URI. **This change breaks the public API**: it is now required to specify the `HttpMethod` when registering a rest handler.
+- We have replaced the previous monitoring API with a brand new REST API that will offer us the required flexibility to expose additional information in the future. You can take a look at the available endpoints and the associated responses in this [wiki article](https://github.com/xatkit-bot-platform/xatkit-releases/wiki/REST-API). Note that this API is far from perfect, and we already have a couple of opened issues to improve it (see [here](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/258) and [here](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/257)).
 
 ### Changed
 
@@ -20,6 +21,11 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - `XatkitCore` now loads `.execution` files instead of `.xmi`. **This change breaks the public API**: existing  `.properties` file need to be updated with the path to the `.execution` file.
 - `ExecutionService` now inherits from `XbaseInterpreter`, offering complete support for Xbase expressions in the execution models. **This change breaks the public API**: the interpreter public methods have changed to reflect this integration.
 - Renamed `DefaultIntentProvider` to `RegExIntentProvider` to reflect how intents are extracted. **This change breaks the public API**: classes depending on `DefaultIntentProvider` need to update their dependencies. The behavior of the provider is not changed by this update.
+- The monitoring database structure has been changed. Data stored with previous versions of Xatkit won't be accessible with the new version, and existing databases need to be deleted/moved before starting bots to avoid data corruption.
+
+### Removed
+
+- Monitoring REST endpoints ` POST /analytics/unmatched ` and `POST /analytics/matched ` have been removed and replace by a new monitoring API. **This change breaks the public API**: client applications relying on these endpoints need to adapt to the new API.
 
 ## [3.0.0] - 2019-10-10
 
