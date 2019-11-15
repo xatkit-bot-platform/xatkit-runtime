@@ -380,7 +380,8 @@ public class XatkitServer {
         checkNotNull(webhookEventProvider, "Cannot unregister the provided %s: %s", WebhookEventProvider.class
                 .getSimpleName(), webhookEventProvider);
 
-        this.restEndpoints.remove(webhookEventProvider.getEndpointURI());
+        this.restEndpoints.remove(EndpointEntry.of(webhookEventProvider.getEndpointMethod(),
+                webhookEventProvider.getEndpointURI()));
     }
 
     /**
