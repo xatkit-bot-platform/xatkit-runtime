@@ -50,6 +50,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class XatkitCoreTest extends AbstractXatkitTest {
 
+    protected static String VALID_EXECUTION_MODEL_PATH = "/tmp/xatkitTestExecutionResource.execution";
+
     protected static ExecutionModel VALID_EXECUTION_MODEL;
 
     @BeforeClass
@@ -117,17 +119,16 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         }
         executionFile.createNewFile();
         BufferedWriter writer = new BufferedWriter(new FileWriter(executionFile));
-        writer.write("import library \"/tmp/xatkitTestIntentResource.xmi\"");
+        writer.write("import library \"/tmp/xatkitTestIntentResource.intent\"");
         writer.newLine();
-        writer.write("import platform \"/tmp/xatkitTestPlatformResource.xmi\"\n");
+        writer.write("import platform \"/tmp/xatkitTestPlatformResource.platform\"\n");
         writer.newLine();
         writer.write("on intent Default_Welcome_Intent do\n");
         writer.newLine();
         writer.write("\tStubRuntimePlatform.StubRuntimeAction()\n");
         writer.close();
 
-        Resource resource = testResourceSet.getResource(URI.createFileURI("/tmp/xatkitTestExecutionResource" +
-                ".execution"), true);
+        Resource resource = testResourceSet.getResource(URI.createFileURI(VALID_EXECUTION_MODEL_PATH), true);
         VALID_EXECUTION_MODEL = (ExecutionModel) resource.getContents().get(0);
 
     }
@@ -328,8 +329,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     public void getExecutionModelFromValidString() {
         xatkitCore = getValidXatkitCore();
         ExecutionModel executionModel =
-                xatkitCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL.eResource().getURI()
-                        .toString()));
+                xatkitCore.getExecutionModel(buildExecutionModelConfiguration(VALID_EXECUTION_MODEL_PATH));
         assertThat(executionModel).as("Not null ExecutionModel").isNotNull();
         /*
          * Not enough, but comparing the entire content of the model is more complicated than it looks like.
