@@ -4,7 +4,6 @@ import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -83,7 +82,6 @@ class AdminHttpHandler implements HttpRequestHandler {
      * @param request  the received {@link HttpRequest}
      * @param response the {@link HttpResponse} to send to the caller
      * @param context  the {@link HttpContext} associated to the received {@link HttpRequest}
-     * @see XatkitServer#notifyWebhookEventProviders(String, Object, Header[])
      */
     public void handle(final HttpRequest request, final HttpResponse response, final HttpContext context) {
 

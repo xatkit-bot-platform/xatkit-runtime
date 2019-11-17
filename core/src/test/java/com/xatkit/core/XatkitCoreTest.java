@@ -4,8 +4,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.common.CommonPackage;
-import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
+import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.ExecutionModel;
@@ -72,7 +72,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         Injector injector = Guice.createInjector(new ExecutionRuntimeModule());
         ResourceSet testResourceSet = injector.getInstance(XtextResourceSet.class);
         File libraryFile = new File("/tmp/xatkitTestIntentResource.intent");
-        if(libraryFile.exists()) {
+        if (libraryFile.exists()) {
             libraryFile.delete();
         }
         libraryFile.createNewFile();
@@ -91,7 +91,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         libraryWriter.close();
 
         File platformFile = new File("/tmp/xatkitTestPlatformResource.platform");
-        if(platformFile.exists()) {
+        if (platformFile.exists()) {
             platformFile.delete();
         }
         platformFile.createNewFile();
@@ -114,7 +114,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         platformWriter.close();
 
         File executionFile = new File("/tmp/xatkitTestExecutionResource.execution");
-        if(executionFile.exists()) {
+        if (executionFile.exists()) {
             executionFile.delete();
         }
         executionFile.createNewFile();
