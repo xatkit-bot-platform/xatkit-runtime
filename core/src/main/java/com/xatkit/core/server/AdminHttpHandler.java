@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.Objects;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
@@ -94,8 +95,11 @@ class AdminHttpHandler implements HttpRequestHandler {
          * Ignore the parameters, they are not used for now.
          */
 
-        if (method.equals("GET")) {
-            if (target.equals("/admin")) {
+        if (Objects.equals(method,"GET")) {
+            /*
+             * Use Objects.equals(): the method/target may be null
+             */
+            if (Objects.equals(target, "/admin")) {
                 InputStream is = this.getClass().getClassLoader().getResourceAsStream("admin/admin.html");
                 if (isNull(is)) {
                     Log.error("Cannot return the admin/admin.html page not found");
