@@ -136,8 +136,8 @@ public class HttpHandlerTest extends AbstractXatkitTest {
     public void handlePostRequestRegisteredHandler() {
         this.handler = getHandler();
         handler.handle(REGISTERED_POST_REQUEST, response, context);
-        checkIsRestEndpointCall(HttpMethod.POST, REGISTERED_POST_URI);
-        checkNotifyRestHandlerCall(HttpMethod.POST,
+        assertIsRestEndpointCallMatches(HttpMethod.POST, REGISTERED_POST_URI);
+        assertNotifyRestHandlerCallMatches(HttpMethod.POST,
                 REGISTERED_POST_URI,
                 Arrays.asList(REGISTERED_POST_REQUEST.getAllHeaders()),
                 Collections.emptyList(),
@@ -149,8 +149,8 @@ public class HttpHandlerTest extends AbstractXatkitTest {
     public void handleGetRequestRegisteredHandler() {
         this.handler = getHandler();
         handler.handle(REGISTERED_GET_REQUEST, response, context);
-        checkIsRestEndpointCall(HttpMethod.GET, REGISTERED_GET_URI);
-        checkNotifyRestHandlerCall(HttpMethod.GET,
+        assertIsRestEndpointCallMatches(HttpMethod.GET, REGISTERED_GET_URI);
+        assertNotifyRestHandlerCallMatches(HttpMethod.GET,
                 REGISTERED_GET_URI,
                 Arrays.asList(REGISTERED_GET_REQUEST.getAllHeaders()),
                 Collections.emptyList(),
@@ -162,8 +162,8 @@ public class HttpHandlerTest extends AbstractXatkitTest {
     public void handleGetRequestWithParametersRegisteredHandler() throws URISyntaxException {
         this.handler = getHandler();
         handler.handle(REGISTERED_GET_REQUEST_WITH_PARAMETERS, response, context);
-        checkIsRestEndpointCall(HttpMethod.GET, REGISTERED_GET_URI);
-        checkNotifyRestHandlerCall(HttpMethod.GET,
+        assertIsRestEndpointCallMatches(HttpMethod.GET, REGISTERED_GET_URI);
+        assertNotifyRestHandlerCallMatches(HttpMethod.GET,
                 REGISTERED_GET_URI,
                 Arrays.asList(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getAllHeaders()),
                 URLEncodedUtils.parse(new URI(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getRequestLine().getUri()), HTTP.UTF_8),
@@ -175,17 +175,17 @@ public class HttpHandlerTest extends AbstractXatkitTest {
         return new HttpHandler(xatkitServer);
     }
 
-    private void checkIsRestEndpointCall(HttpMethod expectedMethod, String expectedUri) {
+    private void assertIsRestEndpointCallMatches(HttpMethod expectedMethod, String expectedUri) {
         assertThat(xatkitServer.getLastIsRestEndpointMethod()).as("Valid isRestEndpoint method").isEqualTo(expectedMethod);
         assertThat(xatkitServer.getLastIsRestEndpointURI()).as("Valid isRestEndpoint URI").isEqualTo(expectedUri);
     }
 
-    private void checkNotifyRestHandlerCall(@Nonnull HttpMethod expectedMethod,
-                                            @Nonnull String expectedURI,
-                                            @Nonnull List<Header> expectedHeaders,
-                                            @Nonnull List<NameValuePair> expectedParameters,
-                                            @Nullable String expectedContentType,
-                                            @Nullable Object expectedContent) {
+    private void assertNotifyRestHandlerCallMatches(@Nonnull HttpMethod expectedMethod,
+                                                    @Nonnull String expectedURI,
+                                                    @Nonnull List<Header> expectedHeaders,
+                                                    @Nonnull List<NameValuePair> expectedParameters,
+                                                    @Nullable String expectedContentType,
+                                                    @Nullable Object expectedContent) {
         assertThat(xatkitServer.getLastNotifyRestHandlerMethod()).as("Valid notifyRestHandler method").isEqualTo(expectedMethod);
         assertThat(xatkitServer.getLastNotifyRestHandlerURI()).as("Valid notifyRestHandler URI").isEqualTo(expectedURI);
         assertThat(xatkitServer.getLastNotifyRestHandlerHeaders()).as("Valid notifyRestHandler headers").isEqualTo(expectedHeaders);

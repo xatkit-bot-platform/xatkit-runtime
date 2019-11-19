@@ -243,7 +243,7 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
                 .Kind.KIND_MAP);
         assertThat(entityType.getEntitiesCount()).as("EntityType contains 2 entities").isEqualTo(2);
         List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities = entityType.getEntitiesList();
-        checkEntities(entities, VALID_MAPPING_ENTITY_DEFINITION.getEntries());
+        assertValidXatkitToDialogFlowEntityMapping(entities, VALID_MAPPING_ENTITY_DEFINITION.getEntries());
     }
 
     @Test
@@ -294,8 +294,8 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         assertThat(registeredComposite.get().getEntitiesCount()).as("EntityType contains 1 entity").isEqualTo(1);
     }
 
-    private void checkEntities(List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities,
-                               List<MappingEntityDefinitionEntry> entries) {
+    private void assertValidXatkitToDialogFlowEntityMapping(List<com.google.cloud.dialogflow.v2.EntityType.Entity> entities,
+                                                            List<MappingEntityDefinitionEntry> entries) {
         for (MappingEntityDefinitionEntry entry : entries) {
             List<com.google.cloud.dialogflow.v2.EntityType.Entity> foundEntities = entities.stream().filter(e -> e
                     .getValue().equals(entry.getReferenceValue())).collect(Collectors.toList());
@@ -343,7 +343,7 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         registeredIntentDefinition.getDefaultAnswers().add(defaultAnswer2);
         api.registerIntentDefinition(registeredIntentDefinition);
         List<Intent> registeredIntents = api.getRegisteredIntentsFullView();
-        checkRegisteredIntent(registeredIntentDefinition, registeredIntents);
+        assertValidXatkitToDialogFlowIntentMapping(registeredIntentDefinition, registeredIntents);
     }
 
     @Test
@@ -369,7 +369,7 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         /*
          * The Intent is registered even if the Entity is not registered
          */
-        checkRegisteredIntent(registeredIntentDefinition, registeredIntents);
+        assertValidXatkitToDialogFlowIntentMapping(registeredIntentDefinition, registeredIntents);
     }
 
     @Test
@@ -502,7 +502,7 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         api.registerIntentDefinition(registeredIntentDefinition);
     }
 
-    private void checkRegisteredIntent(IntentDefinition registeredIntent, List<Intent> dialogFlowIntents) {
+    private void assertValidXatkitToDialogFlowIntentMapping(IntentDefinition registeredIntent, List<Intent> dialogFlowIntents) {
         assertThat(dialogFlowIntents).as("Registered Intent list is not null").isNotNull();
         softly.assertThat(dialogFlowIntents).as("Registered Intent list is not empty").isNotEmpty();
         Intent foundIntent = null;
@@ -869,7 +869,7 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
     public void createSessionValidApi() {
         api = getValidDialogFlowApi();
         XatkitSession session = api.createSession("sessionID");
-        checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
+        assertDialogFlowSessionContains(session, VALID_PROJECT_ID, "sessionID");
     }
 
     @Test
@@ -878,7 +878,7 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         api = new DialogFlowApi(xatkitCore, configuration);
         XatkitSession session = api.createSession("sessionID");
-        checkDialogFlowSession(session, VALID_PROJECT_ID, "sessionID");
+        assertDialogFlowSessionContains(session, VALID_PROJECT_ID, "sessionID");
         softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable " +
                 "timeout")
                 .isEqualTo(10);
@@ -1267,7 +1267,7 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         return sb.toString();
     }
 
-    private void checkDialogFlowSession(XatkitSession session, String expectedProjectId, String expectedSessionId) {
+    private void assertDialogFlowSessionContains(XatkitSession session, String expectedProjectId, String expectedSessionId) {
         assertThat(session).as("Not null session").isNotNull();
         assertThat(session).as("The session is a DialogFlowSession instance").isInstanceOf(DialogFlowSession.class);
         DialogFlowSession dialogFlowSession = (DialogFlowSession) session;

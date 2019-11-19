@@ -195,7 +195,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
                 ".platform").getFile());
         configuration.addProperty(XatkitCore.CUSTOM_PLATFORMS_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         xatkitCore = new XatkitCore(configuration);
-        checkXatkitCore(xatkitCore);
+        assertXatkitCoreState(xatkitCore);
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
         List<URI> registeredResourceURIs = xatkitCore.executionResourceSet.getResources().stream().map(r -> r.getURI
                 ()).collect(Collectors.toList());
@@ -222,7 +222,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
                 .getFile());
         configuration.addProperty(XatkitCore.CUSTOM_LIBRARIES_KEY_PREFIX + "Example", validFile.getAbsolutePath());
         xatkitCore = new XatkitCore(configuration);
-        checkXatkitCore(xatkitCore);
+        assertXatkitCoreState(xatkitCore);
         URI expectedURI = URI.createFileURI(validFile.getAbsolutePath());
         List<URI> registeredResourceURIs = xatkitCore.executionResourceSet.getResources().stream().map(r -> r.getURI
                 ()).collect(Collectors.toList());
@@ -239,7 +239,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     public void constructValidConfiguration() {
         Configuration configuration = buildConfiguration();
         xatkitCore = new XatkitCore(configuration);
-        checkXatkitCore(xatkitCore);
+        assertXatkitCoreState(xatkitCore);
     }
 
     @Test
@@ -256,7 +256,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         ExecutionModel executionModel = testExecutionModel.getExecutionModel();
 
         xatkitCore = new XatkitCore(buildConfiguration(executionModel));
-        checkXatkitCore(xatkitCore, executionModel);
+        assertXatkitCoreState(xatkitCore, executionModel);
     }
 
     @Test
@@ -271,7 +271,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
         executionModel.getEventProviderDefinitions().add(stubWebhookEventProviderDefinition);
         xatkitCore = new XatkitCore(buildConfiguration(executionModel));
-        checkXatkitCore(xatkitCore, executionModel);
+        assertXatkitCoreState(xatkitCore, executionModel);
         assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers()).as("Server RestHandler collection is not" +
                 " empty").isNotEmpty();
         assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers().iterator().next()).as("Valid " +
@@ -401,8 +401,8 @@ public class XatkitCoreTest extends AbstractXatkitTest {
      *
      * @param xatkitCore the {@link XatkitCore} instance to check
      */
-    private void checkXatkitCore(XatkitCore xatkitCore) {
-        checkXatkitCore(xatkitCore, VALID_EXECUTION_MODEL);
+    private void assertXatkitCoreState(XatkitCore xatkitCore) {
+        assertXatkitCoreState(xatkitCore, VALID_EXECUTION_MODEL);
     }
 
     /**
@@ -412,7 +412,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
      * @param xatkitCore     the {@link XatkitCore} instance to check
      * @param executionModel the {@link ExecutionModel} to check
      */
-    private void checkXatkitCore(XatkitCore xatkitCore, ExecutionModel executionModel) {
+    private void assertXatkitCoreState(XatkitCore xatkitCore, ExecutionModel executionModel) {
         /*
          * isNotNull() assertions are not soft, otherwise the runner does not print the assertion error and fails on
          * a NullPointerException in the following assertions.

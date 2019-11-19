@@ -28,7 +28,7 @@ public class DialogFlowSessionTest extends AbstractXatkitTest {
     public void constructValidSessionName() {
         SessionName sessionName = getValidSessionName();
         session = new DialogFlowSession(sessionName);
-        checkDialogFlowSession(session, sessionName);
+        assertDialogFlowSessionHasName(session, sessionName);
     }
 
     @Test(expected = NullPointerException.class)
@@ -41,7 +41,7 @@ public class DialogFlowSessionTest extends AbstractXatkitTest {
     public void constructEmptyConfiguration() {
         SessionName sessionName = getValidSessionName();
         session = new DialogFlowSession(sessionName, new BaseConfiguration());
-        checkDialogFlowSession(session, sessionName);
+        assertDialogFlowSessionHasName(session, sessionName);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class DialogFlowSessionTest extends AbstractXatkitTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         session = new DialogFlowSession(sessionName, configuration);
-        checkDialogFlowSession(session, sessionName);
+        assertDialogFlowSessionHasName(session, sessionName);
         softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable timeout")
                 .isEqualTo(10);
     }
@@ -59,7 +59,7 @@ public class DialogFlowSessionTest extends AbstractXatkitTest {
         return SessionName.of(VALID_PROJECT_ID, "demo");
     }
 
-    private void checkDialogFlowSession(DialogFlowSession session, SessionName expectedSessionName) {
+    private void assertDialogFlowSessionHasName(DialogFlowSession session, SessionName expectedSessionName) {
         softly.assertThat(session.getSessionId()).as("Valid session ID").isEqualTo(expectedSessionName.toString());
         softly.assertThat(session.getSessionName()).as("Valid SessionName").isEqualTo(expectedSessionName);
         softly.assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();

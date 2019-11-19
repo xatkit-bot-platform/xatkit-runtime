@@ -24,7 +24,7 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
     @Test
     public void constructEmptyConfiguration() {
         context = new RuntimeContexts(new BaseConfiguration());
-        checkRuntimeContext(context);
+        assertRuntimeContextNotNullOrEmpty(context);
         assertThat(context.getVariableTimeout()).as("Default variable timeout value").isEqualTo(2);
     }
 
@@ -33,14 +33,14 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         context = new RuntimeContexts(configuration);
-        checkRuntimeContext(context);
+        assertRuntimeContextNotNullOrEmpty(context);
         assertThat(context.getVariableTimeout()).as("Valid variable timeout value").isEqualTo(10);
     }
 
     @Test
     public void constructValidContext() {
         context = new RuntimeContexts();
-        checkRuntimeContext(context);
+        assertRuntimeContextNotNullOrEmpty(context);
     }
 
     @Test(expected = NullPointerException.class)
@@ -67,7 +67,7 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
         context.setContext("context", 5);
         assertThat(context.getContextMap()).as("Context map contains the context").containsKeys("context");
         assertThat(context.getContextMap().get("context")).as("Context map values is empty").isEmpty();
-        checkLifespanMap(context, "context", 5);
+        assertLifespanMapContains(context, "context", 5);
     }
 
     @Test(expected = NullPointerException.class)
@@ -111,16 +111,16 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
     public void setContextValueNullValue() {
         context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", null);
-        checkContextMap(context, "context", "key", null);
-        checkLifespanMap(context, "context",5);
+        assertContextMapContains(context, "context", "key", null);
+        assertLifespanMapContains(context, "context",5);
     }
 
     @Test
     public void setContextValueValidValue() {
         context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
-        checkContextMap(context, "context", "key", "value");
-        checkLifespanMap(context, "context", 5);
+        assertContextMapContains(context, "context", "key", "value");
+        assertLifespanMapContains(context, "context", 5);
     }
 
     @Test
@@ -128,8 +128,8 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
         context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         context.setContextValue("context", 6, "key", "newValue");
-        checkContextMap(context, "context", "key", "newValue");
-        checkLifespanMap(context, "context", 6);
+        assertContextMapContains(context, "context", "key", "newValue");
+        assertLifespanMapContains(context, "context", 6);
     }
 
     @Test
@@ -137,8 +137,8 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
         context = new RuntimeContexts();
         context.setContextValue("context", 5, "key", "value");
         context.setContextValue("context", 4, "key", "newValue");
-        checkContextMap(context, "context", "key", "newValue");
-        checkLifespanMap(context, "context", 5);
+        assertContextMapContains(context, "context", "key", "newValue");
+        assertLifespanMapContains(context, "context", 5);
     }
 
     @Test(expected = NullPointerException.class)
@@ -273,9 +273,9 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
         context.setContextValue("context", 5, "key", "value");
         context.decrementLifespanCounts();
         assertThat(context.getLifespanCountsMap()).as("Lifespan count map contains 1 element").hasSize(1);
-        checkLifespanMap(context, "context", 4);
+        assertLifespanMapContains(context, "context", 4);
         assertThat(context.getContextMap()).as("Context map contains 1 element").hasSize(1);
-        checkContextMap(context, "context", "key", "value");
+        assertContextMapContains(context, "context", "key", "value");
         // getContextLifespanCount(context) already tested
     }
 
@@ -286,11 +286,11 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
         context.setContextValue("context2", 5, "key2", "value2");
         context.decrementLifespanCounts();
         assertThat(context.getLifespanCountsMap()).as("Lifespan count map contains 2 elements").hasSize(2);
-        checkLifespanMap(context, "context1", 4);
-        checkLifespanMap(context, "context2", 4);
+        assertLifespanMapContains(context, "context1", 4);
+        assertLifespanMapContains(context, "context2", 4);
         assertThat(context.getContextMap()).as("Context map contains 2 elements").hasSize(2);
-        checkContextMap(context, "context1", "key1", "value1");
-        checkContextMap(context, "context2", "key2", "value2");
+        assertContextMapContains(context, "context1", "key1", "value1");
+        assertContextMapContains(context, "context2", "key2", "value2");
     }
 
     @Test
@@ -301,9 +301,9 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
         context.decrementLifespanCounts();
         context.decrementLifespanCounts();
         assertThat(context.getLifespanCountsMap()).as("Lifespan count map contains 1 element").hasSize(1);
-        checkLifespanMap(context, "context2", 3);
+        assertLifespanMapContains(context, "context2", 3);
         assertThat(context.getContextMap()).as("Context map contains 1 element");
-        checkContextMap(context, "context2", "key2", "value2");
+        assertContextMapContains(context, "context2", "key2", "value2");
     }
 
     @Test
@@ -400,12 +400,12 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
      * We do not test updates on context values themselves, because they are not cloned (see #129)
      */
 
-    private void checkRuntimeContext(RuntimeContexts context) {
+    private void assertRuntimeContextNotNullOrEmpty(RuntimeContexts context) {
         assertThat(context.getContextMap()).as("Not null context map").isNotNull();
         assertThat(context.getContextMap()).as("Empty context map").isEmpty();
     }
 
-    private void checkContextMap(RuntimeContexts context, String expectedContext, String expectedKey, Object
+    private void assertContextMapContains(RuntimeContexts context, String expectedContext, String expectedKey, Object
             expectedValue) {
         Map<String, Map<String, Object>> rawContext = context.getContextMap();
         assertThat(rawContext).as("Context map contains the set context").containsKey(expectedContext);
@@ -414,7 +414,7 @@ public class RuntimeContextsTest extends AbstractXatkitTest {
         assertThat(contextVariables.get(expectedKey)).as("Context map contains the value").isEqualTo(expectedValue);
     }
 
-    private void checkLifespanMap(RuntimeContexts context, String expectedContext, int expectedLifespanCount) {
+    private void assertLifespanMapContains(RuntimeContexts context, String expectedContext, int expectedLifespanCount) {
         Map<String, Integer> rawLifespanCounts = context.getLifespanCountsMap();
         assertThat(rawLifespanCounts).as("Context lifespan count map contains the set context").containsKey
                 (expectedContext);

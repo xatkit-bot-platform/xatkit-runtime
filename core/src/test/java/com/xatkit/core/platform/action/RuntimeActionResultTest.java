@@ -14,7 +14,7 @@ public class RuntimeActionResultTest extends AbstractXatkitTest {
         result = new RuntimeActionResult(null, 3);
         assertThat(result.getResult()).as("Null result").isNull();
         assertThat(result.getExecutionTime()).as("Valid execution time").isEqualTo(3);
-        checkObjectLongConstructor(result);
+        assertActionResultIsNotErrorOrException(result);
     }
 
     @Test
@@ -23,7 +23,7 @@ public class RuntimeActionResultTest extends AbstractXatkitTest {
         result = new RuntimeActionResult(rawResult, 3);
         assertThat(result.getResult()).as("Valid result").isEqualTo(rawResult);
         assertThat(result.getExecutionTime()).as("Valid execution time").isEqualTo(3);
-        checkObjectLongConstructor(result);
+        assertActionResultIsNotErrorOrException(result);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -103,7 +103,7 @@ public class RuntimeActionResultTest extends AbstractXatkitTest {
     /*
      * Checks the {@code result} values that should not be modified after calling RuntimeActionResult(Object, long).
      */
-    private void checkObjectLongConstructor(RuntimeActionResult result) {
+    private void assertActionResultIsNotErrorOrException(RuntimeActionResult result) {
         assertThat(result.getThrownException()).as("No thrown exception").isNull();
         assertThat(result.isError()).as("Not error").isFalse();
     }

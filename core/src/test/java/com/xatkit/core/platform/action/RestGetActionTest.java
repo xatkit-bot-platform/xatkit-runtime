@@ -62,12 +62,12 @@ public class RestGetActionTest extends RestActionTest {
          * Soft checks, the goal is not to test the result of the API, just to ensure that the response code,
          * headers, and Json content have been set.
          */
-        checkValidGetResponse(stubRestGetAction.getResponseStatus(),
+        assertValidGetResponse(stubRestGetAction.getResponseStatus(),
                 stubRestGetAction.getResponseJsonElement(), stubRestGetAction.getResponseHeaders());
     }
 
-    public static void checkValidGetResponse(int responseStatus, JsonElement responseJsonElement,
-                                             Headers responseHeaders) {
+    public static void assertValidGetResponse(int responseStatus, JsonElement responseJsonElement,
+                                              Headers responseHeaders) {
         assertThat(responseStatus).as("Valid response status").isEqualTo(200);
         assertThat(responseJsonElement).as("Valid JsonElement").isInstanceOf(JsonElement.class);
         assertThat(responseHeaders).as("Valid response Headers").isNotNull();

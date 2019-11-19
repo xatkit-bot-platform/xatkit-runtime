@@ -26,7 +26,7 @@ public class XatkitSessionTest extends AbstractXatkitTest {
     @Test
     public void constructValidSessionId() {
         session = new XatkitSession("session");
-        checkXatkitSession(session);
+        assertValidXatkitSession(session);
     }
 
     @Test(expected = NullPointerException.class)
@@ -37,7 +37,7 @@ public class XatkitSessionTest extends AbstractXatkitTest {
     @Test
     public void constructEmptyConfiguration() {
         session = new XatkitSession("session", new BaseConfiguration());
-        checkXatkitSession(session);
+        assertValidXatkitSession(session);
     }
 
     @Test
@@ -45,7 +45,7 @@ public class XatkitSessionTest extends AbstractXatkitTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         session = new XatkitSession("session", configuration);
-        checkXatkitSession(session);
+        assertValidXatkitSession(session);
         softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable timeout")
                 .isEqualTo(10);
     }
@@ -119,7 +119,7 @@ public class XatkitSessionTest extends AbstractXatkitTest {
         assertThat(result).as("Valid single-valued result").isEqualTo("value2");
     }
 
-    private void checkXatkitSession(XatkitSession session) {
+    private void assertValidXatkitSession(XatkitSession session) {
         softly.assertThat(session.getSessionId()).as("Valid session ID").isEqualTo("session");
         softly.assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
         softly.assertThat(session.getRuntimeContexts().getContextMap()).as("Empty context").isEmpty();

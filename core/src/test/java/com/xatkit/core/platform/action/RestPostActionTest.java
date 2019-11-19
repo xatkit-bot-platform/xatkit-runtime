@@ -69,13 +69,13 @@ public class RestPostActionTest extends RestActionTest {
          * Note that we also check that the Json content contains the new "id" field, that has been created after
          * processing the POST request.
          */
-        checkValidPostResponse(stubRestPostAction.getResponseStatus(),
+        assertValidPostResponse(stubRestPostAction.getResponseStatus(),
                 stubRestPostAction.getResponseJsonElement(),
                 stubRestPostAction.getResponseHeaders());
     }
 
-    private static void checkValidPostResponse(int responseStatus, JsonElement responseJsonElement,
-                                              Headers responseHeaders) {
+    private static void assertValidPostResponse(int responseStatus, JsonElement responseJsonElement,
+                                                Headers responseHeaders) {
         assertThat(responseStatus).as("Valid response status").isEqualTo(201);
         assertThat(responseJsonElement).as("Valid JsonElement").isInstanceOf(JsonElement.class);
         JsonObject jsonObject = responseJsonElement.getAsJsonObject();
