@@ -14,7 +14,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
@@ -112,9 +111,8 @@ class HttpHandler implements HttpRequestHandler {
         List<NameValuePair> parameters = null;
         String path;
         try {
-            URIBuilder uriBuilder = new URIBuilder(request.getRequestLine().getUri());
-            path = uriBuilder.getPath();
-            parameters = uriBuilder.getQueryParams();
+            path = HttpUtils.getPath(request);
+            parameters = HttpUtils.getParameters(request);
         } catch (URISyntaxException e) {
             throw new XatkitException(MessageFormat.format("Cannot parse the provided URI {0}, see attached exception",
                     request.getRequestLine().getUri()), e);
