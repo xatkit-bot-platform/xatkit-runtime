@@ -1,6 +1,7 @@
 package com.xatkit.core.session;
 
 import com.xatkit.core.XatkitCore;
+import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.isNull;
 
 /**
  * A session holding user-related information.
@@ -164,11 +166,36 @@ public class XatkitSession {
         return this.sessionVariables;
     }
 
-    // Ugly fix
-    // This is clearly not good, but it allows to manipulate github session from events and access its content in
-    // user-specific actions
+    /**
+     * Merges this {@link XatkitSession} with the provided {@code other}.
+     *
+     * @param other the {@link XatkitSession} to merge in the current one
+     */
     public void merge(XatkitSession other) {
-        sessionVariables = other.sessionVariables;
+        other.sessionVariables.entrySet().forEach(v -> {
+            if (sessionVariables.containsKey(v.getKey())) {
+                if (v.getValue() instanceof Map) {
+                    /*
+                     * We need to copy the map of the other session to make sure they are independent. The merge also
+                     * copies individual map entries in case the map was already stored in the current session.
+                     * TODO support such merge for other collection types
+                     */
+                    Map sessionMap = (Map) sessionVariables.get(v.getKey());
+                    if(isNull(sessionMap)) {
+                        sessionMap = new HashMap((Map) v.getValue());
+                        sessionVariables.put(v.getKey(), sessionMap);
+                    } else {
+                        sessionMap.putAll((Map) v.getValue());
+                    }
+                } else {
+                    Log.warn("Overriding session variable {0} (old_value={1}, new_value={2}, sessionId={3})",
+                            v.getKey(), sessionVariables.get(v.getKey()), v.getValue(), this.sessionId);
+                    sessionVariables.put(v.getKey(), v.getValue());
+                }
+            } else {
+                sessionVariables.put(v.getKey(), v.getValue());
+            }
+        });
     }
 
     /**

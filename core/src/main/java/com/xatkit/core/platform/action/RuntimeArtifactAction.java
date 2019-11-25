@@ -104,6 +104,12 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
             try {
                 clientSession.getRuntimeContexts().merge(session.getRuntimeContexts());
                 clientSession.merge(session);
+                /*
+                 * The new merge strategy doesn't replace the clientSession.sessionVariables reference with the
+                 * provided session.sessionVariables. We need to update the current session to make sure the action
+                 * will be computed with the clientSession.
+                 */
+                session = clientSession;
             } catch (XatkitException e) {
                 throw new XatkitException("Cannot construct the action {0}, the action session cannot be merged in " +
                         "the client one", e);
@@ -176,7 +182,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
                 if (attempts < IO_ERROR_RETRIES + 1) {
                     Log.error("An {0} occurred when computing the action, trying to send the artifact again ({1}/{2})"
                             , e
-                            .getClass().getSimpleName(), attempts, IO_ERROR_RETRIES);
+                                    .getClass().getSimpleName(), attempts, IO_ERROR_RETRIES);
                 } else {
                     Log.error("Could not compute the action: {0}", e.getClass().getSimpleName());
                 }
@@ -204,10 +210,10 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
     }
 
     private void waitMessageDelay() {
-        if(this.messageDelay > 0) {
+        if (this.messageDelay > 0) {
             try {
                 Thread.sleep(messageDelay);
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 Log.error("An error occurred when waiting for the message delay, see attached exception", e);
             }
         }

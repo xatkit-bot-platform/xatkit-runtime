@@ -282,6 +282,33 @@ public class ExecutionService extends XbaseInterpreter {
                         evaluatedArguments,
                         session);
                 RuntimeActionResult result = executeRuntimeAction(runtimeAction);
+                if(!session.equals(runtimeAction.getSession())) {
+                    /*
+                     * The runtimeAction.getSession can be different if the action changed its own session. This is the
+                     * case for messaging actions that need to create a session associated to the targeted channel.
+                     * An example of such behavior:
+                     * on GithubEvent do
+                     *  SlackPlatform.PostMessage("text", "channel")
+                     * The rule session is created from the GithubEvent, but another session is created to invoke the
+                     * PostMessage action.
+                     */
+                    context.assignValue(EVALUATION_CONTEXT_SESSION_KEY, runtimeAction.getSession());
+                    RuntimeModel runtimeModel = (RuntimeModel) context.getValue(QualifiedName.create("this"));
+                    /*
+                     * Update the RuntimeModel's session to bind the new session used by the action. This is required
+                     * to store values in the new session that will be accessible when the session is retrieved from
+                     * another rule.
+                     * Example:
+                     * on GithubEvent do
+                     *  SlackPlatform.PostMessage("test", "channel")
+                     *  session.put("abc", "def")
+                     * on Intent do (from channel)
+                     *  session.get("abc")
+                     * Here the channel's session should contain the key "abc", it cannot be the case if we don't
+                     * switch the session from the RuntimeModel.
+                     */
+                    runtimeModel.setSession(runtimeAction.getSession().getSessionVariables());
+                }
                 return result.getResult();
             }
         }

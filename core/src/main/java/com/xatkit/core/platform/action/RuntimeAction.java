@@ -44,7 +44,7 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
      * Constructs a new {@link RuntimeAction} with the provided {@code runtimePlatform} and {@code session}.
      *
      * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session          the {@link XatkitSession} associated to this action
+     * @param session         the {@link XatkitSession} associated to this action
      * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
      */
     public RuntimeAction(T runtimePlatform, XatkitSession session) {
@@ -105,6 +105,19 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
          * value for the thrownException parameter, that will set accordingly the isError() helper.
          */
         return new RuntimeActionResult(computationResult, thrownException, (after - before));
+    }
+
+    /**
+     * Returns the {@link XatkitSession} used to compute this action.
+     * <p>
+     * The returned {@link XatkitSession} can be different from the one provided in the constructor if the
+     * {@link RuntimeAction} needs to create a dedicated session. This is for example the case with messaging
+     * actions, that typically need to create a session representing the {@code channel} to send messages to.
+     *
+     * @return the {@link XatkitSession} used to compute this action
+     */
+    public XatkitSession getSession() {
+        return session;
     }
 
     /**
