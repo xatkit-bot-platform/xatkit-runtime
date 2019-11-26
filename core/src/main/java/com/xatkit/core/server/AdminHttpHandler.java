@@ -1,7 +1,6 @@
 package com.xatkit.core.server;
 
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.HttpRequest;
@@ -9,7 +8,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
@@ -18,8 +16,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -27,15 +28,36 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 
 /**
- * Handles the input requests and notifies the {@link WebhookEventProvider}s.
+ * A handler bound to {@code /admin} that allows to quickly test web-based bots.
  */
 class AdminHttpHandler implements HttpRequestHandler {
 
     /**
-     * The pattern used to match and replace the server location template in the HTML file.
+     * The pattern used to print the server location in the rendered {@code admin.html} file.
      */
-    // Need to double single quotes, see https://docs.oracle.com/javase/7/docs/api/java/text/MessageFormat.html
-    private static final String SERVER_LOCATION_PATTERN = "window.xatkit_server = ''{0}''";
+    private static final String SERVER_LOCATION_PATTERN = "#xatkit\\.server";
+
+    /**
+     * The pattern used to print the username in the rendered {@code admin.html} file.
+     * <p>
+     * This pattern is replaced with a random name from {@link #TEST_CLIENT_NAMES} when the page is displayed to
+     * simulate multiple users.
+     */
+    private static final String USERNAME_PATTERN = "#xatkit\\.username";
+
+    /**
+     * A {@link List} of test client names used to render the {@code /admin} page and simulate multiple users.
+     *
+     * @see #TEMPLATE_FILLED_COUNT
+     */
+    private static List<String> TEST_CLIENT_NAMES = Arrays.asList("Bob", "Alice", "Gwendal", "Jordi");
+
+    /**
+     * A counter used to render the {@code /admin} page with random client names.
+     *
+     * @see #TEST_CLIENT_NAMES
+     */
+    private static int TEMPLATE_FILLED_COUNT = 0;
 
     /**
      * The placeholder used for the server location in the HTML file.
@@ -87,19 +109,24 @@ class AdminHttpHandler implements HttpRequestHandler {
     public void handle(final HttpRequest request, final HttpResponse response, final HttpContext context) {
 
         String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
-        String target = request.getRequestLine().getUri();
-
-        Log.info("Received a {0} query on {1}", method, target);
+        String path = null;
+        try {
+            path = HttpUtils.getPath(request);
+        } catch(URISyntaxException e) {
+            throw new XatkitException(MessageFormat.format("Cannot parse the provided URI {0}, see attached exception",
+                    request.getRequestLine().getUri()), e);
+        }
+        Log.info("Received a {0} query on {1}", method, path);
 
         /*
          * Ignore the parameters, they are not used for now.
          */
 
-        if (Objects.equals(method,"GET")) {
+        if (Objects.equals(method, "GET")) {
             /*
              * Use Objects.equals(): the method/target may be null
              */
-            if (Objects.equals(target, "/admin")) {
+            if (Objects.equals(path, "/admin")) {
                 InputStream is = this.getClass().getClassLoader().getResourceAsStream("admin/admin.html");
                 if (isNull(is)) {
                     Log.error("Cannot return the admin/admin.html page not found");
@@ -110,14 +137,14 @@ class AdminHttpHandler implements HttpRequestHandler {
                 InputStream entityContent = replaceHtmlTemplates(is);
                 entity.setContent(entityContent);
                 entity.setContentType(ContentType.TEXT_HTML.getMimeType());
-                entity.setContentEncoding(HTTP.UTF_8);
+                entity.setContentEncoding(StandardCharsets.UTF_8.name());
                 response.setEntity(entity);
                 response.setStatusCode(HttpStatus.SC_OK);
                 return;
             }
 
-            if (target.startsWith("/admin/js/") || target.startsWith("/admin/css/")) {
-                String targetPath = target.substring(1);
+            if (path.startsWith("/admin/js/") || path.startsWith("/admin/css/")) {
+                String targetPath = path.substring(1);
                 InputStream is = this.getClass().getClassLoader().getResourceAsStream(targetPath);
                 if (isNull(is)) {
                     Log.error("Cannot return the resource at {0}", targetPath);
@@ -131,13 +158,14 @@ class AdminHttpHandler implements HttpRequestHandler {
                 } else if (targetPath.endsWith(".js")) {
                     entity.setContentType("application/javascript");
                 }
-                entity.setContentEncoding(HTTP.UTF_8);
+                entity.setContentEncoding(StandardCharsets.UTF_8.name());
                 response.setEntity(entity);
                 response.setStatusCode(HttpStatus.SC_OK);
                 return;
             }
         }
     }
+
 
     /**
      * Replaces the templates of the provided {@code from} {@link InputStream}.
@@ -146,9 +174,11 @@ class AdminHttpHandler implements HttpRequestHandler {
      *
      * @param from the {@link InputStream} to replace the templates from
      * @return an {@link InputStream} containing {@code from}'s contents with its templates replaced
-     * @see XatkitServerUtils#SERVER_PUBLIC_URL_KEY
+     * @see #SERVER_LOCATION_PATTERN
+     * @see #USERNAME_PATTERN
      */
     private InputStream replaceHtmlTemplates(InputStream from) {
+        TEMPLATE_FILLED_COUNT++;
         BufferedReader reader = new BufferedReader(new InputStreamReader(from));
         StringBuilder builder = new StringBuilder();
         try {
@@ -160,14 +190,9 @@ class AdminHttpHandler implements HttpRequestHandler {
                     "attached exception", this.getClass().getSimpleName()), e);
         }
         String content = builder.toString();
-        content = content.replace(MessageFormat.format(SERVER_LOCATION_PATTERN, SERVER_LOCATION_PLACEHOLDER),
-                MessageFormat.format(SERVER_LOCATION_PATTERN, reactServerURL));
-        try {
-            return new ByteArrayInputStream(content.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new XatkitException(MessageFormat.format("Cannot create an {0} from the provided {1}: {2}, see " +
-                            "attached exception", InputStream.class.getSimpleName(), String.class.getSimpleName(),
-                    content), e);
-        }
+        content = content.replaceAll(SERVER_LOCATION_PATTERN, reactServerURL);
+        String clientName = TEST_CLIENT_NAMES.get(TEMPLATE_FILLED_COUNT % TEST_CLIENT_NAMES.size());
+        content = content.replaceAll(USERNAME_PATTERN, clientName);
+        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 }
