@@ -108,6 +108,28 @@ public class XatkitServerTest extends AbstractXatkitTest {
         this.server = new XatkitServer(configuration);
     }
 
+    @Test(expected = XatkitException.class)
+    public void constructConfigurationWithKeystoreNullPublicURL() {
+        Configuration configuration = new BaseConfiguration();
+        /*
+         * test.jks doesn't exist, but the exception should be thrown anyway.
+         */
+        configuration.setProperty(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY, "test.jks");
+        this.server = new XatkitServer(configuration);
+    }
+
+    @Test(expected = XatkitException.class)
+    public void constructConfigurationInvalidKeystoreLocation() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.setProperty(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY, "test.jks");
+        configuration.setProperty(XatkitServerUtils.SERVER_PUBLIC_URL_KEY, "https://localhost");
+        this.server = new XatkitServer(configuration);
+    }
+
+    /*
+     * TODO test cases with valid keystore
+     */
+
     @Test
     public void startEmptyConfiguration() {
         this.server = new XatkitServer(new BaseConfiguration());
@@ -198,7 +220,8 @@ public class XatkitServerTest extends AbstractXatkitTest {
         this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
-        this.server.notifyRestHandler(HttpMethod.POST, stubJsonWebhookEventProvider.getEndpointURI(), Collections.emptyList(),
+        this.server.notifyRestHandler(HttpMethod.POST, stubJsonWebhookEventProvider.getEndpointURI(),
+                Collections.emptyList(),
                 Collections.emptyList(), "test", "not valid");
         assertThat(stubJsonWebhookEventProvider.hasReceivedEvent()).as("WebhookEventProvider hasn't received an " +
                 "event").isFalse();
@@ -256,7 +279,8 @@ public class XatkitServerTest extends AbstractXatkitTest {
         // See https://github.com/xatkit-bot-platform/xatkit-runtime/issues/254
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
-        assertThat(this.server.isRestEndpoint(HttpMethod.POST, VALID_REST_URI + "/")).as("The URI is valid even with a trailing /").isTrue();
+        assertThat(this.server.isRestEndpoint(HttpMethod.POST, VALID_REST_URI + "/")).as("The URI is valid even with " +
+                "a trailing /").isTrue();
     }
 
     @Test
@@ -273,7 +297,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
         assertThat(result).as("Provided URI + Method is not a rest endpoint").isFalse();
     }
 
-    @Test (expected = NullPointerException.class)
+    @Test(expected = NullPointerException.class)
     public void notifyRestHandlerNullMethod() {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
@@ -285,7 +309,8 @@ public class XatkitServerTest extends AbstractXatkitTest {
     public void notifyRestHandlerNullUri() {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
-        this.server.notifyRestHandler(HttpMethod.POST, null, Collections.emptyList(), Collections.emptyList(), new JsonObject(),
+        this.server.notifyRestHandler(HttpMethod.POST, null, Collections.emptyList(), Collections.emptyList(),
+                new JsonObject(),
                 ContentType.APPLICATION_JSON.getMimeType());
     }
 
@@ -336,7 +361,8 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test(expected = XatkitException.class)
     public void notifyRestHandlerNotRegisteredUri() {
         this.server = getValidXatkitServer();
-        this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(), Collections.emptyList(), null,
+        this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(),
+                Collections.emptyList(), null,
                 ContentType.APPLICATION_JSON.getMimeType());
     }
 

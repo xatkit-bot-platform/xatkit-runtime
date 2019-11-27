@@ -124,11 +124,21 @@ public class XatkitServer {
                 (), Configuration.class.getSimpleName(), configuration);
         Log.info("Creating {0}", this.getClass().getSimpleName());
         this.isStarted = false;
+        if (configuration.containsKey(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY)
+                && !configuration.containsKey(XatkitServerUtils.SERVER_PUBLIC_URL_KEY)) {
+            /*
+             * We could automatically set the default URL to https://localhost, but it doesn't really make sense. If
+             * this is an issue we can update XatkitServer's behavior to adapt the default public URL when there is
+             * an SSL context.
+             */
+            throw new XatkitException(MessageFormat.format("Cannot start the {0}: the configuration contains a " +
+                            "keystore location but does not contain the server''s public_url ({1}))",
+                    this.getClass().getSimpleName(), XatkitServerUtils.SERVER_PUBLIC_URL_KEY));
+        }
         String publicUrl = configuration.getString(XatkitServerUtils.SERVER_PUBLIC_URL_KEY,
                 XatkitServerUtils.DEFAULT_SERVER_LOCATION);
         this.port = configuration.getInt(XatkitServerUtils.SERVER_PORT_KEY, XatkitServerUtils.DEFAULT_SERVER_PORT);
         this.baseURL = publicUrl + ":" + Integer.toString(this.port);
-        Log.info("{0} started on {1}", this.getClass().getSimpleName(), this.getBaseURL());
         this.restEndpoints = new HashMap<>();
         this.contentDirectory = FileUtils.getFile(XatkitServerUtils.PUBLIC_DIRECTORY_NAME, configuration);
         this.contentDirectory.mkdirs();
@@ -138,10 +148,7 @@ public class XatkitServer {
         } catch (IOException e) {
             throw new XatkitException("Cannot initialize the Xatkit server, see the attached exception", e);
         }
-
-        SSLContext sslContext = getSSLContext(configuration);
-
-        Log.info("SSL CONTEXT: {0}", sslContext);
+        SSLContext sslContext = createSSLContext(configuration);
 
         SocketConfig socketConfig = SocketConfig.custom()
                 .setSoTimeout(15000)
@@ -151,6 +158,9 @@ public class XatkitServer {
         server = ServerBootstrap.bootstrap()
                 .setListenerPort(port)
                 .setServerInfo("Xatkit/1.1")
+                /*
+                 * createSSLContext is @Nullable: setting a null SSLContext is similar to not setting it.
+                 */
                 .setSslContext(sslContext)
                 .setSocketConfig(socketConfig)
                 .setExceptionLogger(e -> {
@@ -168,21 +178,30 @@ public class XatkitServer {
                 .registerHandler("/admin*", new AdminHttpHandler(configuration))
                 .registerHandler("*", new HttpHandler(this))
                 .create();
-
-        System.out.println("Serving "
-                + (sslContext == null ? "" : " with " + sslContext.getProvider() + "/ " + sslContext.getProtocol()));
     }
 
-    private @Nullable SSLContext getSSLContext(@Nonnull Configuration configuration) {
+    /**
+     * Creates a {@link SSLContext} from the provided {@code configuration}.
+     *
+     * @param configuration the {@link Configuration} containing the SSL configuration
+     * @return the {@link SSLContext}, or {@code null} if the provided {@code configuration} does not contain an SSL
+     * configuration
+     * @throws XatkitException      if the provided keystore does not exist of if an error occurred when loading the
+     *                              keystore content
+     * @throws NullPointerException if the {@code configuration} contains a keystore location but does not contain a
+     *                              store/key password
+     */
+    private @Nullable
+    SSLContext createSSLContext(@Nonnull Configuration configuration) {
         checkNotNull(configuration, "Cannot get the %s from the provided %s %s", SSLContext.class.getSimpleName(),
                 Configuration.class.getSimpleName(), configuration);
         String keystorePath = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY);
-        if(isNull(keystorePath)) {
+        if (isNull(keystorePath)) {
             Log.info("No SSL context to load");
             return null;
         }
         File keystoreFile = FileUtils.getFile(keystorePath, configuration);
-        if(keystoreFile.exists()) {
+        if (keystoreFile.exists()) {
             String storePassword = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_STORE_PASSWORD_KEY);
             String keyPassword = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_KEY_PASSWORD_KEY);
             checkNotNull(storePassword, "Cannot load the provided keystore, property %s not set",
@@ -195,10 +214,9 @@ public class XatkitServer {
                 sslContext = SSLContexts.custom().loadKeyMaterial(keystoreFile,
                         storePassword.toCharArray(),
                         keyPassword.toCharArray())
-//                    .setProtocol("TLSv1.2")
                         .build();
                 return sslContext;
-            } catch(NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | CertificateException | IOException | KeyManagementException e) {
+            } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | CertificateException | IOException | KeyManagementException e) {
                 throw new XatkitException(MessageFormat.format("Cannot get the {0}: an error occurred when loading " +
                         "the keystore, see attached exception", SSLContext.class.getSimpleName()));
 
@@ -702,8 +720,9 @@ public class XatkitServer {
 
         /**
          * Constructs an {@link EndpointEntry} with the provided {@code httpMethod} and {@code uri}.
+         *
          * @param httpMethod the Http method of the entry
-         * @param uri the URI of the entry
+         * @param uri        the URI of the entry
          */
         private EndpointEntry(HttpMethod httpMethod, String uri) {
             this.httpMethod = httpMethod;
