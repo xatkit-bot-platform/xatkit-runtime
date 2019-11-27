@@ -12,9 +12,11 @@ import org.apache.http.NameValuePair;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
+import org.apache.http.ssl.SSLContexts;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
 import java.net.BindException;
@@ -23,6 +25,11 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
@@ -131,6 +138,11 @@ public class XatkitServer {
         } catch (IOException e) {
             throw new XatkitException("Cannot initialize the Xatkit server, see the attached exception", e);
         }
+
+        SSLContext sslContext = getSSLContext(configuration);
+
+        Log.info("SSL CONTEXT: {0}", sslContext);
+
         SocketConfig socketConfig = SocketConfig.custom()
                 .setSoTimeout(15000)
                 .setTcpNoDelay(true)
@@ -139,6 +151,7 @@ public class XatkitServer {
         server = ServerBootstrap.bootstrap()
                 .setListenerPort(port)
                 .setServerInfo("Xatkit/1.1")
+                .setSslContext(sslContext)
                 .setSocketConfig(socketConfig)
                 .setExceptionLogger(e -> {
                     if (e instanceof SocketTimeoutException) {
@@ -155,6 +168,45 @@ public class XatkitServer {
                 .registerHandler("/admin*", new AdminHttpHandler(configuration))
                 .registerHandler("*", new HttpHandler(this))
                 .create();
+
+        System.out.println("Serving "
+                + (sslContext == null ? "" : " with " + sslContext.getProvider() + "/ " + sslContext.getProtocol()));
+    }
+
+    private @Nullable SSLContext getSSLContext(@Nonnull Configuration configuration) {
+        checkNotNull(configuration, "Cannot get the %s from the provided %s %s", SSLContext.class.getSimpleName(),
+                Configuration.class.getSimpleName(), configuration);
+        String keystorePath = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY);
+        if(isNull(keystorePath)) {
+            Log.info("No SSL context to load");
+            return null;
+        }
+        File keystoreFile = FileUtils.getFile(keystorePath, configuration);
+        if(keystoreFile.exists()) {
+            String storePassword = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_STORE_PASSWORD_KEY);
+            String keyPassword = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_KEY_PASSWORD_KEY);
+            checkNotNull(storePassword, "Cannot load the provided keystore, property %s not set",
+                    XatkitServerUtils.SERVER_KEYSTORE_STORE_PASSWORD_KEY);
+            checkNotNull(keyPassword, "Cannot load the provided keystore, property %s not set",
+                    XatkitServerUtils.SERVER_KEYSTORE_KEY_PASSWORD_KEY);
+            SSLContext sslContext = null;
+
+            try {
+                sslContext = SSLContexts.custom().loadKeyMaterial(keystoreFile,
+                        storePassword.toCharArray(),
+                        keyPassword.toCharArray())
+//                    .setProtocol("TLSv1.2")
+                        .build();
+                return sslContext;
+            } catch(NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | CertificateException | IOException | KeyManagementException e) {
+                throw new XatkitException(MessageFormat.format("Cannot get the {0}: an error occurred when loading " +
+                        "the keystore, see attached exception", SSLContext.class.getSimpleName()));
+
+            }
+        } else {
+            throw new XatkitException(MessageFormat.format("Cannot get the {0} from the provided keystore location " +
+                    "{1}: the file does not exist", SSLContext.class.getSimpleName(), keystorePath));
+        }
     }
 
     /**

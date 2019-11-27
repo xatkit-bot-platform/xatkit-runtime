@@ -52,4 +52,11 @@ public interface XatkitServerUtils {
      * The directory name used to store Xatkit public content.
      */
     String PUBLIC_DIRECTORY_NAME = "public";
+
+    // JKS LOCATION
+    String SERVER_KEYSTORE_LOCATION_KEY = "xatkit.server.ssl.keystore";
+
+    String SERVER_KEYSTORE_STORE_PASSWORD_KEY = "xatkit.server.ssl.keystore.store.password";
+
+    String SERVER_KEYSTORE_KEY_PASSWORD_KEY = "xatkit.server.ssl.keystore.key.password";
 }
