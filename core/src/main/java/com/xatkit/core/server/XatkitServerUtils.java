@@ -52,4 +52,24 @@ public interface XatkitServerUtils {
      * The directory name used to store Xatkit public content.
      */
     String PUBLIC_DIRECTORY_NAME = "public";
+
+    /**
+     * The {@link Configuration} key used to specify the location of the keystore to create the SSL context from.
+     * <p>
+     * This property can contain an absolute path to the keystore, or a relative path that will be resolved from the
+     * location of the configuration file.
+     */
+    String SERVER_KEYSTORE_LOCATION_KEY = "xatkit.server.ssl.keystore";
+
+    /**
+     * The {@link Configuration} key used to specify the {@code store password} of the SSL keystore.
+     */
+    String SERVER_KEYSTORE_STORE_PASSWORD_KEY = "xatkit.server.ssl.keystore.store.password";
+
+    /**
+     * The {@link Configuration} key used to specify the {@code key password} of the SSL keystore.
+     * <p>
+     * The value of this property is usually equal to {@link #SERVER_KEYSTORE_STORE_PASSWORD_KEY}.
+     */
+    String SERVER_KEYSTORE_KEY_PASSWORD_KEY = "xatkit.server.ssl.keystore.key.password";
 }
