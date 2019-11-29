@@ -26,6 +26,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - Renamed `DefaultIntentProvider` to `RegExIntentProvider` to reflect how intents are extracted. **This change breaks the public API**: classes depending on `DefaultIntentProvider` need to update their dependencies. The behavior of the provider is not changed by this update.
 - The monitoring database structure has been changed. Data stored with previous versions of Xatkit won't be accessible with the new version, and existing databases need to be deleted/moved before starting bots to avoid data corruption.
 - `XatkitSession.merge(other)` now performs a deep copy of the `other` session variables. This allows to update a merged session without altering the base one. 
+- `RegExIntentRecognitionProvider` is now case insensitive for *training sentences*. This means that the training sentence `hi` now matches `HI`, `Hi`, etc. This change does not affect **mapping entities**, that are still case sensitive. To extend the behavior to mapping entities we need to implement support for synonyms (see [#261](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/261))
 
 ### Removed
 

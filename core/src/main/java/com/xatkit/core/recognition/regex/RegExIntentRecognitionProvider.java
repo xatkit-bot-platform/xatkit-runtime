@@ -301,7 +301,7 @@ public class RegExIntentRecognitionProvider implements IntentRecognitionProvider
         for (String trainingSentence : intentDefinition.getTrainingSentences()) {
             trainingSentence = escapeRegExpReservedCharacters(trainingSentence);
             if (intentDefinition.getOutContexts().isEmpty()) {
-                patterns.add(Pattern.compile("^" + trainingSentence + "$"));
+                patterns.add(Pattern.compile("^(?i)" + trainingSentence + "$"));
             } else {
                 String preparedTrainingSentence = trainingSentence;
                 for (Context context : intentDefinition.getOutContexts()) {

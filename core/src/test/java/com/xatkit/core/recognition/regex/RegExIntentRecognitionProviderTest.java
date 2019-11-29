@@ -20,6 +20,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -153,7 +154,7 @@ public class RegExIntentRecognitionProviderTest extends AbstractXatkitTest {
         assertThat(provider.intentPatterns).as("Intent pattern map contains the registered intent definition")
                 .containsKeys(VALID_INTENT_DEFINITION_NO_OUT_CONTEXT);
         assertThat(provider.intentPatterns.get(VALID_INTENT_DEFINITION_NO_OUT_CONTEXT).get(0).pattern()).as("Intent " +
-                "pattern map contains the correct pattern").isEqualTo("^this is a test$");
+                "pattern map contains the correct pattern").isEqualTo("^(?i)this is a test$");
     }
 
     @Test
@@ -204,6 +205,24 @@ public class RegExIntentRecognitionProviderTest extends AbstractXatkitTest {
         provider.registerEntityDefinition(MAPPING_ENTITY);
         provider.registerIntentDefinition(INTENT_MAPPING_OUT_CONTEXT);
         RecognizedIntent recognizedIntent = provider.getIntent("this is a Person", new XatkitSession("sessionID"));
+        assertRecognizedIntentWithOutContextMappingIsValid(recognizedIntent, "this is a Person");
+
+    }
+
+    @Ignore
+    /*
+     * Should be enabled to test #261 (https://github.com/xatkit-bot-platform/xatkit-runtime/issues/261)
+     */
+    @Test
+    public void getIntentValidIntentDefinitionWithOutContextMappingUpperCase() {
+        provider.registerEntityDefinition(MAPPING_ENTITY);
+        provider.registerIntentDefinition(INTENT_MAPPING_OUT_CONTEXT);
+        RecognizedIntent recognizedIntent = provider.getIntent("this is a Person".toUpperCase(), new XatkitSession(
+                "sessionID"));
+        assertRecognizedIntentWithOutContextMappingIsValid(recognizedIntent, "this is a Person".toUpperCase());
+    }
+
+    private void assertRecognizedIntentWithOutContextMappingIsValid(RecognizedIntent recognizedIntent, String input) {
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(INTENT_MAPPING_OUT_CONTEXT);
         assertThat(recognizedIntent.getOutContextInstances()).as("Recognized intent contains one out context").hasSize(1);
@@ -213,7 +232,7 @@ public class RegExIntentRecognitionProviderTest extends AbstractXatkitTest {
         ContextParameterValue value = contextInstance.getValues().get(0);
         assertThat(value.getContextParameter()).as("Valid value context parameter").isEqualTo(MAPPING_CONTEXT.getParameters().get(0));
         assertThat(value.getValue()).as("Valid value").isEqualTo("Person");
-        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a Person");
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo(input);
         assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
@@ -254,6 +273,17 @@ public class RegExIntentRecognitionProviderTest extends AbstractXatkitTest {
         assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
         assertThat(recognizedIntent.getDefinition()).as("Valid intent definition").isEqualTo(VALID_INTENT_DEFINITION_NO_OUT_CONTEXT);
         assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a test");
+        assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
+    }
+
+    @Test
+    public void getIntentValidIntentDefinitionNoOutContextUpperCase() {
+        provider.registerIntentDefinition(VALID_INTENT_DEFINITION_NO_OUT_CONTEXT);
+        RecognizedIntent recognizedIntent = provider.getIntent("this is a test".toUpperCase(), new XatkitSession(
+                "sessionID"));
+        assertThat(recognizedIntent).as("Not null recognized intent").isNotNull();
+        assertThat(recognizedIntent.getDefinition()).as("Correct matched input").isEqualTo(VALID_INTENT_DEFINITION_NO_OUT_CONTEXT);
+        assertThat(recognizedIntent.getMatchedInput()).as("Correct matched input").isEqualTo("this is a test".toUpperCase());
         assertThat(recognizedIntent.getRecognitionConfidence()).as("Correct confidence level").isEqualTo(1);
     }
 
