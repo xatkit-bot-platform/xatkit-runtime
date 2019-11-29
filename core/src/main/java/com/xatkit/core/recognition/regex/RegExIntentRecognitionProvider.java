@@ -421,7 +421,7 @@ public class RegExIntentRecognitionProvider implements IntentRecognitionProvider
     public void shutdown() {
         this.intentPatterns = null;
         this.isShutdown = true;
-        if(nonNull(this.recognitionMonitor)) {
+        if (nonNull(this.recognitionMonitor)) {
             this.recognitionMonitor.shutdown();
         }
     }
