@@ -6,7 +6,7 @@ package com.xatkit;
 public class BotTest {
 
     public static void main(String[] args) {
-        Xatkit.main(new String[]{"C:\\Users\\gwend\\Dropbox\\jarvis-demo-resources\\github-demo\\github-demo.properties"});
+        Xatkit.main(new String[]{"<Path to Xatkit properties file>"});
         try {
             Thread.sleep(10000000);
         }catch(InterruptedException e) {
