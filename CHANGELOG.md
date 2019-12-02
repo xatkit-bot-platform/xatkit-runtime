@@ -8,6 +8,8 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 ## Unreleased
 
+## [4.0.0] - 2019-12-01
+
 ### Added
 
 - Configuration option `xatkit.message.delay` that allows to specify a delay (in milliseconds) the bot should wait for before sending a message (`0` by default, meaning that the bots replies immediately). This option impacts all the `RuntimeActions` inheriting from `RuntimeArtifactMessage`.
