@@ -11,7 +11,7 @@ main() {
     e "Building Xatkit Parent"
     cd /tmp
     git clone https://github.com/xatkit-bot-platform/xatkit.git > /dev/null
-    cd xatkit-releases
+    cd xatkit
     mvn install -DskipTests > /dev/null
     e "Done"
 
