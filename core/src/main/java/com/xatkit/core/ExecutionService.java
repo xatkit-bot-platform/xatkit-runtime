@@ -1,5 +1,6 @@
 package com.xatkit.core;
 
+import com.xatkit.core.monitoring.RecognitionMonitor;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.action.RuntimeActionResult;
@@ -25,6 +26,7 @@ import org.eclipse.xtext.xbase.interpreter.IEvaluationContext;
 import org.eclipse.xtext.xbase.interpreter.IEvaluationResult;
 import org.eclipse.xtext.xbase.interpreter.impl.XbaseInterpreter;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -106,6 +108,21 @@ public class ExecutionService extends XbaseInterpreter {
      */
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+
+
+
+    private RecognitionMonitor monitor;
+
+
+
+
+    public ExecutionService(ExecutionModel executionModel, RuntimePlatformRegistry runtimePlatformRegistry,
+                            Configuration configuration) {
+        this(executionModel, runtimePlatformRegistry, configuration, null);
+    }
+
+
+
     /**
      * Constructs a new {@link ExecutionService} based on the provided {@code executionModel} and {@code
      * runtimePlatformRegistry}.
@@ -122,7 +139,7 @@ public class ExecutionService extends XbaseInterpreter {
      *                              {@code null}
      */
     public ExecutionService(ExecutionModel executionModel, RuntimePlatformRegistry runtimePlatformRegistry,
-                            Configuration configuration) {
+                            Configuration configuration, @Nullable RecognitionMonitor monitor) {
         checkNotNull(executionModel, "Cannot construct a %s from the provided %s %s", this.getClass()
                 .getSimpleName(), ExecutionModel.class.getSimpleName(), executionModel);
         checkNotNull(runtimePlatformRegistry, "Cannot construct a %s from the provided %s %s", this.getClass()
@@ -133,6 +150,7 @@ public class ExecutionService extends XbaseInterpreter {
         this.runtimePlatformRegistry = runtimePlatformRegistry;
         this.configuration = configuration;
         this.configurationMap = ConfigurationConverter.getMap(configuration);
+        this.monitor = monitor;
         /*
          * Resolve all the proxies in the Resource: this should remove concurrent read issues on the model (see
          * https://www.eclipse.org/forums/index.php/t/1095731/)
@@ -282,6 +300,9 @@ public class ExecutionService extends XbaseInterpreter {
                         evaluatedArguments,
                         session);
                 RuntimeActionResult result = executeRuntimeAction(runtimeAction);
+                if(nonNull(monitor)) {
+                    monitor.logAction(session, runtimeAction.getClass(), evaluatedArguments, result);
+                }
                 if(!session.equals(runtimeAction.getSession())) {
                     /*
                      * The runtimeAction.getSession can be different if the action changed its own session. This is the

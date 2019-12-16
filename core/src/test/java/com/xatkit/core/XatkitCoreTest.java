@@ -142,7 +142,7 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     public static Configuration buildConfiguration(Object executionModel) {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(XatkitCore.EXECUTION_MODEL_KEY, executionModel);
-        configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
+        configuration.addProperty(XatkitCore.ENABLE_RECOGNITION_ANALYTICS, false);
         return configuration;
     }
 

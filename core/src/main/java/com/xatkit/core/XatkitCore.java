@@ -3,6 +3,7 @@ package com.xatkit.core;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.xatkit.common.CommonPackage;
+import com.xatkit.core.monitoring.RecognitionMonitor;
 import com.xatkit.core.platform.Formatter;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
@@ -53,6 +54,7 @@ import org.eclipse.xtext.resource.XtextResourceSet;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.XbasePackage;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -97,6 +99,22 @@ public class XatkitCore {
      * The {@link Configuration} key to store the configuration folder path.
      */
     public static String CONFIGURATION_FOLDER_PATH_KEY = "xatkit.core.configuration.path";
+
+
+
+
+
+    /**
+     * The {@link Configuration} key used to specify whether to enable intent recognition monitoring.
+     * <p>
+     * Intent recognition monitoring is enabled by default, and stores the results in the {@code data/analytics}
+     * folder. It can be disabled by explicitly setting this property to {@code false} in the {@link Configuration}
+     * file.
+     */
+    public static String ENABLE_RECOGNITION_ANALYTICS = "xatkit.recognition.enable_monitoring";
+
+
+
 
     /**
      * The {@link Configuration} key prefix to store the custom platform paths.
@@ -211,6 +229,18 @@ public class XatkitCore {
      */
     private Injector executionInjector;
 
+
+
+
+
+
+    private RecognitionMonitor recognitionMonitor;
+
+
+
+
+
+
     /**
      * Constructs a new {@link XatkitCore} instance from the provided {@code configuration}.
      * <p>
@@ -243,10 +273,11 @@ public class XatkitCore {
              * to register the analytics REST endpoints (this is also required to start the EventProviderDefinition).
              */
             this.xatkitServer = new XatkitServer(configuration);
+            this.recognitionMonitor = this.initRecognitionMonitor();
             this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                     configuration);
             this.sessions = new HashMap<>();
-            this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry, configuration);
+            this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry, configuration, recognitionMonitor);
             this.executionInjector.injectMembers(executionService);
             this.eventDefinitionRegistry = new EventDefinitionRegistry();
             this.loadExecutionModel(executionModel);
@@ -263,6 +294,32 @@ public class XatkitCore {
             stopServices();
             throw t;
         }
+    }
+
+
+
+
+    public RecognitionMonitor getRecognitionMonitor() {
+        return recognitionMonitor;
+    }
+
+
+
+    /**
+     * Retrieves and creates the {@link RecognitionMonitor} from the provided {@link Configuration}.
+     *
+     * @return the created {@link RecognitionMonitor}, or {@code null} intent recognition monitoring is disabled in
+     * the provided {@link Configuration}
+     * @see #ENABLE_RECOGNITION_ANALYTICS
+     */
+    @Nullable
+    private RecognitionMonitor initRecognitionMonitor() {
+        boolean enableRecognitionAnalytics = configuration.getBoolean(ENABLE_RECOGNITION_ANALYTICS, true);
+        RecognitionMonitor monitor = null;
+        if (enableRecognitionAnalytics) {
+            monitor = new RecognitionMonitor(this.xatkitServer, configuration);
+        }
+        return monitor;
     }
 
     /**

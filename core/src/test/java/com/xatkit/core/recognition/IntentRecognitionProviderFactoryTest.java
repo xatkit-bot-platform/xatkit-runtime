@@ -58,7 +58,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
     @Test
     public void getIntentRecognitionProviderDialogFlowPropertiesDisabledAnalytics() {
         Configuration configuration = DialogFlowApiTest.buildConfiguration();
-        configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
+        configuration.addProperty(XatkitCore.ENABLE_RECOGNITION_ANALYTICS, false);
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubXatkitCore, configuration);
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DialogFlowApi").isInstanceOf(DialogFlowApi.class);
@@ -82,7 +82,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
     @Test
     public void getIntentRecognitionProviderEmptyConfigurationDisableAnalytics() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(IntentRecognitionProviderFactory.ENABLE_RECOGNITION_ANALYTICS, false);
+        configuration.addProperty(XatkitCore.ENABLE_RECOGNITION_ANALYTICS, false);
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(stubXatkitCore, configuration);
         assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is null").isNull();
     }

@@ -1,5 +1,6 @@
 package com.xatkit.core.recognition;
 
+import com.xatkit.core.monitoring.RecognitionMonitor;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;

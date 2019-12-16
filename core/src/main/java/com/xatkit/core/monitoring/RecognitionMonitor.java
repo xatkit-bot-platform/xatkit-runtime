@@ -1,8 +1,11 @@
-package com.xatkit.core.recognition;
+package com.xatkit.core.monitoring;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.xatkit.core.platform.action.RuntimeAction;
+import com.xatkit.core.platform.action.RuntimeActionResult;
+import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.HttpUtils;
 import com.xatkit.core.server.RestHandlerFactory;
@@ -15,8 +18,10 @@ import org.apache.commons.configuration2.Configuration;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.Serializable;
+import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -83,7 +88,7 @@ public class RecognitionMonitor {
      *
      * @see IntentRecord
      */
-    private Map<String, Map<Long, IntentRecord>> records;
+    private Map<String, Map<Long, Record>> records;
 
     /**
      * The database used to persist and load the monitoring information.
@@ -117,7 +122,7 @@ public class RecognitionMonitor {
         analyticsDbDirectory.mkdirs();
         db = DBMaker.fileDB(new File(analyticsDbDirectory.getAbsolutePath() + File.separator + ANALYTICS_DB_FILE)).make();
 
-        this.records = (Map<String, Map<Long, IntentRecord>>) db.hashMap("intent_records").createOrOpen();
+        this.records = (Map<String, Map<Long, Record>>) db.hashMap("intent_records").createOrOpen();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (!this.db.isClosed()) {
                 db.commit();
@@ -185,7 +190,7 @@ public class RecognitionMonitor {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
                     JsonArray result = new JsonArray();
-                    for (Map.Entry<String, Map<Long, IntentRecord>> entry : records.entrySet()) {
+                    for (Map.Entry<String, Map<Long, Record>> entry : records.entrySet()) {
                         JsonObject sessionObject = buildSessionObject(entry.getKey(), entry.getValue());
                         result.add(sessionObject);
 
@@ -239,7 +244,7 @@ public class RecognitionMonitor {
                 RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
                     String sessionId = HttpUtils.getParameterValue("sessionId", params);
                     if (nonNull(sessionId)) {
-                        Map<Long, IntentRecord> sessionRecords = records.get(sessionId);
+                        Map<Long, Record> sessionRecords = records.get(sessionId);
                         if (nonNull(sessionRecords)) {
                             return buildSessionObject(sessionId, sessionRecords);
                         }
@@ -280,17 +285,19 @@ public class RecognitionMonitor {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/unmatched",
                 RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
                     JsonArray result = new JsonArray();
-                    for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
+                    for (Map.Entry<String, Map<Long, Record>> recordEntry : records.entrySet()) {
                         String sessionId = recordEntry.getKey();
-                        for (Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
-                            Long timestamp = sessionRecordEntry.getKey();
-                            IntentRecord intentRecord = sessionRecordEntry.getValue();
-                            if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
-                                JsonObject unmatchedUtteranceObject = new JsonObject();
-                                unmatchedUtteranceObject.addProperty("sessionId", sessionId);
-                                unmatchedUtteranceObject.addProperty("timestamp", timestamp);
-                                unmatchedUtteranceObject.addProperty("utterance", intentRecord.getUtterance());
-                                result.add(unmatchedUtteranceObject);
+                        for (Map.Entry<Long, Record> sessionRecordEntry : recordEntry.getValue().entrySet()) {
+                            if (sessionRecordEntry.getValue() instanceof IntentRecord) {
+                                Long timestamp = sessionRecordEntry.getKey();
+                                IntentRecord intentRecord = (IntentRecord) sessionRecordEntry.getValue();
+                                if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
+                                    JsonObject unmatchedUtteranceObject = new JsonObject();
+                                    unmatchedUtteranceObject.addProperty("sessionId", sessionId);
+                                    unmatchedUtteranceObject.addProperty("timestamp", timestamp);
+                                    unmatchedUtteranceObject.addProperty("utterance", intentRecord.getUtterance());
+                                    result.add(unmatchedUtteranceObject);
+                                }
                             }
                         }
                     }
@@ -325,20 +332,22 @@ public class RecognitionMonitor {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/matched",
                 RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
                     JsonArray result = new JsonArray();
-                    for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
+                    for (Map.Entry<String, Map<Long, Record>> recordEntry : records.entrySet()) {
                         String sessionId = recordEntry.getKey();
-                        for (Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
-                            Long timestamp = sessionRecordEntry.getKey();
-                            IntentRecord intentRecord = sessionRecordEntry.getValue();
-                            if (!intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
-                                JsonObject matchedUtteranceObject = new JsonObject();
-                                matchedUtteranceObject.addProperty("sessionId", sessionId);
-                                matchedUtteranceObject.addProperty("timestamp", timestamp);
-                                matchedUtteranceObject.addProperty("utterance", intentRecord.getUtterance());
-                                matchedUtteranceObject.addProperty("intent", intentRecord.getIntentName());
-                                matchedUtteranceObject.addProperty("confidence",
-                                        intentRecord.getRecognitionConfidence());
-                                result.add(matchedUtteranceObject);
+                        for (Map.Entry<Long, Record> sessionRecordEntry : recordEntry.getValue().entrySet()) {
+                            if (sessionRecordEntry.getValue() instanceof IntentRecord) {
+                                Long timestamp = sessionRecordEntry.getKey();
+                                IntentRecord intentRecord = (IntentRecord) sessionRecordEntry.getValue();
+                                if (!intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
+                                    JsonObject matchedUtteranceObject = new JsonObject();
+                                    matchedUtteranceObject.addProperty("sessionId", sessionId);
+                                    matchedUtteranceObject.addProperty("timestamp", timestamp);
+                                    matchedUtteranceObject.addProperty("utterance", intentRecord.getUtterance());
+                                    matchedUtteranceObject.addProperty("intent", intentRecord.getIntentName());
+                                    matchedUtteranceObject.addProperty("confidence",
+                                            intentRecord.getRecognitionConfidence());
+                                    result.add(matchedUtteranceObject);
+                                }
                             }
                         }
                     }
@@ -373,25 +382,27 @@ public class RecognitionMonitor {
                     int totalMatchedUtteranceCount = 0;
                     int totalUnmatchedUtteranceCount = 0;
                     long totalSessionTime = 0;
-                    for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
+                    for (Map.Entry<String, Map<Long, Record>> recordEntry : records.entrySet()) {
                         sessionCount++;
                         long sessionStartTimestamp = 0;
                         long sessionStopTimestamp = 0;
-                        for (Map.Entry<Long, IntentRecord> sessionRecordEntry : recordEntry.getValue().entrySet()) {
-                            long timestamp = sessionRecordEntry.getKey();
-                            if (timestamp < sessionStartTimestamp || sessionStartTimestamp == 0) {
-                                sessionStartTimestamp = timestamp;
-                            }
-                            if (timestamp > sessionStopTimestamp) {
-                                sessionStopTimestamp = timestamp;
-                            }
-                            long sessionTime = sessionStopTimestamp - sessionStartTimestamp;
-                            totalSessionTime += sessionTime;
-                            IntentRecord intentRecord = sessionRecordEntry.getValue();
-                            if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
-                                totalUnmatchedUtteranceCount++;
-                            } else {
-                                totalMatchedUtteranceCount++;
+                        for (Map.Entry<Long, Record> sessionRecordEntry : recordEntry.getValue().entrySet()) {
+                            if (sessionRecordEntry.getValue() instanceof IntentRecord) {
+                                long timestamp = sessionRecordEntry.getKey();
+                                if (timestamp < sessionStartTimestamp || sessionStartTimestamp == 0) {
+                                    sessionStartTimestamp = timestamp;
+                                }
+                                if (timestamp > sessionStopTimestamp) {
+                                    sessionStopTimestamp = timestamp;
+                                }
+                                long sessionTime = sessionStopTimestamp - sessionStartTimestamp;
+                                totalSessionTime += sessionTime;
+                                IntentRecord intentRecord = (IntentRecord) sessionRecordEntry.getValue();
+                                if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
+                                    totalUnmatchedUtteranceCount++;
+                                } else {
+                                    totalMatchedUtteranceCount++;
+                                }
                             }
                         }
                     }
@@ -413,24 +424,43 @@ public class RecognitionMonitor {
      * @param sessionData the database records associated to the provided {@code sessionId}
      * @return the created {@link JsonObject}
      */
-    private JsonObject buildSessionObject(String sessionId, Map<Long, IntentRecord> sessionData) {
+    private JsonObject buildSessionObject(String sessionId, Map<Long, Record> sessionData) {
         JsonObject sessionObject = new JsonObject();
         sessionObject.addProperty("sessionId", sessionId);
         JsonArray sessionRecords = new JsonArray();
         sessionObject.add("entries", sessionRecords);
         int unmatchedCount = 0;
         int matchedCount = 0;
-        for (Map.Entry<Long, IntentRecord> sessionEntry : sessionData.entrySet()) {
-            JsonObject entryObject = new JsonObject();
-            sessionRecords.add(entryObject);
-            entryObject.addProperty("timestamp", sessionEntry.getKey());
-            entryObject.addProperty("utterance", sessionEntry.getValue().getUtterance());
-            entryObject.addProperty("intent", sessionEntry.getValue().getIntentName());
-            entryObject.addProperty("confidence", sessionEntry.getValue().getRecognitionConfidence());
-            if (sessionEntry.getValue().getIntentName().equals("Default_Fallback_Intent")) {
-                unmatchedCount++;
-            } else {
-                matchedCount++;
+        for (Map.Entry<Long, Record> sessionEntry : sessionData.entrySet()) {
+            if (sessionEntry.getValue() instanceof IntentRecord) {
+                IntentRecord intentRecord = (IntentRecord) sessionEntry.getValue();
+                JsonObject entryObject = new JsonObject();
+                sessionRecords.add(entryObject);
+                entryObject.addProperty("timestamp", sessionEntry.getKey());
+                entryObject.addProperty("utterance", intentRecord.getUtterance());
+                entryObject.addProperty("intent", intentRecord.getIntentName());
+                entryObject.addProperty("confidence", intentRecord.getRecognitionConfidence());
+                if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
+                    unmatchedCount++;
+                } else {
+                    matchedCount++;
+                }
+            } else if (sessionEntry.getValue() instanceof ActionRecord) {
+                ActionRecord actionRecord = (ActionRecord) sessionEntry.getValue();
+                JsonObject entryObject = new JsonObject();
+                sessionRecords.add(entryObject);
+                entryObject.addProperty("timestamp", sessionEntry.getKey());
+                entryObject.addProperty("action", actionRecord.getActionName());
+                JsonArray arguments = new JsonArray();
+                entryObject.add("arguments", arguments);
+                for(String arg : actionRecord.getArguments()) {
+                    arguments.add(arg);
+                }
+                entryObject.addProperty("execution_time", actionRecord.getExecutionTime());
+                entryObject.addProperty("is_error", actionRecord.isError());
+                if (nonNull(actionRecord.getThrownException())) {
+                    entryObject.addProperty("exception", printStackTrace(actionRecord.getThrownException()));
+                }
             }
         }
         sessionObject.add("matchedUtteranceCount", new JsonPrimitive(matchedCount));
@@ -438,19 +468,46 @@ public class RecognitionMonitor {
         return sessionObject;
     }
 
+
+    /**
+     * Prints the stack trace associated to the provided {@link Throwable}.
+     *
+     * @param e the {@link Throwable} to print the stack trace of
+     */
+    private String printStackTrace(Throwable e) {
+        // TODO DUPLICATED
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintWriter printWriter = new PrintWriter(baos, true);
+        e.printStackTrace(printWriter);
+        return printWriter.toString();
+    }
+
+
     /**
      * Logs the recognition information from the provided {@code recognizedIntent} and {@code session}.
      *
-     * @param session the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
+     * @param session          the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
      * @param recognizedIntent the {@link RecognizedIntent} to log
      */
     public void logRecognizedIntent(XatkitSession session, RecognizedIntent recognizedIntent) {
         Long ts = System.currentTimeMillis();
-        Map<Long, IntentRecord> sessionMap = records.get(session.getSessionId());
+        Map<Long, Record> sessionMap = records.get(session.getSessionId());
         if (isNull(sessionMap)) {
             sessionMap = new TreeMap<>();
         }
         sessionMap.put(ts, new IntentRecord(recognizedIntent));
+        records.put(session.getSessionId(), sessionMap);
+        db.commit();
+    }
+
+    public void logAction(XatkitSession session, Class<? extends RuntimeAction> runtimeActionClass,
+                          List<Object> evaluatedArguments, RuntimeActionResult actionResult) {
+        Long ts = System.currentTimeMillis();
+        Map<Long, Record> sessionMap = records.get(session.getSessionId());
+        if (isNull(sessionMap)) {
+            sessionMap = new TreeMap<>();
+        }
+        sessionMap.put(ts, new ActionRecord(runtimeActionClass, evaluatedArguments, actionResult));
         records.put(session.getSessionId(), sessionMap);
         db.commit();
     }
@@ -464,61 +521,4 @@ public class RecognitionMonitor {
         this.db.close();
     }
 
-    /**
-     * A database record holding intent-related information.
-     */
-    private static class IntentRecord implements Serializable {
-
-        private static final long serialVersionUID = 42L;
-
-        /**
-         * The utterance that has been mapped to the intent.
-         */
-        private String utterance;
-
-        /**
-         * The name of the intent extracted from the utterance.
-         */
-        private String intentName;
-
-        /**
-         * The confidence level associated to the intent extracted from the utterance.
-         * <p>
-         * This value is a percentage contained in {@code [0..1]}
-         */
-        private Float recognitionConfidence;
-
-        public IntentRecord(RecognizedIntent recognizedIntent) {
-            this.utterance = recognizedIntent.getMatchedInput();
-            this.intentName = recognizedIntent.getDefinition().getName();
-            this.recognitionConfidence = recognizedIntent.getRecognitionConfidence();
-        }
-
-        public String getUtterance() {
-            return this.utterance;
-        }
-
-        public String getIntentName() {
-            return this.intentName;
-        }
-
-        public Float getRecognitionConfidence() {
-            return this.recognitionConfidence;
-        }
-
-        @Override
-        public int hashCode() {
-            return this.utterance.hashCode() + this.intentName.hashCode() + this.recognitionConfidence.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof IntentRecord) {
-                IntentRecord other = (IntentRecord) obj;
-                return other.utterance.equals(this.utterance) && other.intentName.equals(this.intentName)
-                        && other.recognitionConfidence.equals(this.recognitionConfidence);
-            }
-            return super.equals(obj);
-        }
-    }
 }

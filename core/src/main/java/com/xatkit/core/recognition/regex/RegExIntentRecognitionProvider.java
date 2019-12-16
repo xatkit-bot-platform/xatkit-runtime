@@ -4,7 +4,7 @@ import com.xatkit.core.XatkitCore;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
-import com.xatkit.core.recognition.RecognitionMonitor;
+import com.xatkit.core.monitoring.RecognitionMonitor;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.BaseEntityDefinition;
