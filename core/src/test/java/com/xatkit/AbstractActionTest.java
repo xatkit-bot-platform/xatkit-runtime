@@ -32,6 +32,23 @@ public abstract class AbstractActionTest<A extends RuntimeAction<P>, P extends R
     protected static StubXatkitCore XATKIT_CORE;
 
     /**
+     * The {@link RuntimePlatform} instance containing the action under test.
+     */
+    protected P platform;
+
+    /**
+     * The {@link RuntimeAction} instance under test.
+     */
+    protected A action;
+
+    /**
+     * An empty {@link XatkitSession} that can be used to create instances of the action under test.
+     * <p>
+     * This session is reset before each test.
+     */
+    protected XatkitSession emptySession;
+
+    /**
      * Initializes the {@link StubXatkitCore} instance.
      */
     @BeforeClass
@@ -48,23 +65,6 @@ public abstract class AbstractActionTest<A extends RuntimeAction<P>, P extends R
             XATKIT_CORE.shutdown();
         }
     }
-
-    /**
-     * The {@link RuntimePlatform} instance containing the action under test.
-     */
-    protected P platform;
-
-    /**
-     * The {@link RuntimeAction} instance under test.
-     */
-    protected A action;
-
-    /**
-     * An empty {@link XatkitSession} that can be used to create instances of the action under test.
-     * <p>
-     * This session is reset before each test.
-     */
-    protected XatkitSession emptySession;
 
     /**
      * Initializes the {@link RuntimePlatform} and the empty {@link XatkitSession}.
