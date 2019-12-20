@@ -10,7 +10,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 ### Added
 
-- Utility test class `AbstractActionTest` that eases the definition of action test classes.
+- Utility test class `AbstractActionTest` and `AbstractEventProviderTest`that eases the definition of action and event provider test classes, respectively.
 
 ## [4.0.0] - 2019-12-01
 
