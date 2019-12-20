@@ -8,6 +8,10 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 ## Unreleased
 
+### Added
+
+- Utility test class `AbstractActionTest` that eases the definition of action test classes.
+
 ## [4.0.0] - 2019-12-01
 
 ### Added
