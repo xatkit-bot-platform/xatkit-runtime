@@ -88,9 +88,10 @@ class AdminHttpHandler implements HttpRequestHandler {
                 Configuration.class.getSimpleName(), configuration);
         // TODO This handler should probably go in the react platform.
         int reactPort = configuration.getInt("xatkit.react.port", 5001);
+        String reactBasePath = configuration.getString("xatkit.react.base_path", "/socket.io");
         String serverLocation = configuration.getString(XatkitServerUtils.SERVER_PUBLIC_URL_KEY,
                 XatkitServerUtils.DEFAULT_SERVER_LOCATION);
-        this.reactServerURL = serverLocation + ":" + Integer.toString(reactPort);
+        this.reactServerURL = serverLocation + ":" + Integer.toString(reactPort) + reactBasePath;
     }
 
     /**
