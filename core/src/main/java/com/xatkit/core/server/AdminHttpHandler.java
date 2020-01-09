@@ -33,9 +33,14 @@ import static java.util.Objects.isNull;
 class AdminHttpHandler implements HttpRequestHandler {
 
     /**
-     * The pattern used to print the server location in the rendered {@code admin.html} file.
+     * The pattern used to print the location of the Xatkit server in the rendered {@code admin.html} file.
      */
-    private static final String SERVER_LOCATION_PATTERN = "#xatkit\\.server";
+    private static final String BASE_SERVER_LOCATION_PATTERN = "#xatkit\\.server";
+
+    /**
+     * The pattern used to print the location of the ReactPlatform's server in the rendered {@code admin.html} file.
+     */
+    private static final String SERVER_LOCATION_PATTERN = "#xatkit\\.react_server";
 
     /**
      * The pattern used to print the username in the rendered {@code admin.html} file.
@@ -60,11 +65,9 @@ class AdminHttpHandler implements HttpRequestHandler {
     private static int TEMPLATE_FILLED_COUNT = 0;
 
     /**
-     * The placeholder used for the server location in the HTML file.
+     * The location of the ReactPlatform's server managing the socket.io connexion.
      */
-    private static final String SERVER_LOCATION_PLACEHOLDER =
-            XatkitServerUtils.DEFAULT_SERVER_LOCATION + ":" + Integer.toString(5001);
-    // TODO This handler should be move to the react platform, where the default react port is defined.
+    private String reactServerURL;
 
     /**
      * The Xatkit server location (public URL and port) to use from the returned HTML and Javascript files.
@@ -72,7 +75,7 @@ class AdminHttpHandler implements HttpRequestHandler {
      * @see XatkitServerUtils#SERVER_PUBLIC_URL_KEY
      * @see XatkitServerUtils#DEFAULT_SERVER_LOCATION
      */
-    private String reactServerURL;
+    public String serverURL;
 
     /**
      * Constructs an {@link AdminHttpHandler} with the provided {@code configuration}.
@@ -89,6 +92,9 @@ class AdminHttpHandler implements HttpRequestHandler {
         // TODO This handler should probably go in the react platform.
         int reactPort = configuration.getInt("xatkit.react.port", 5001);
         this.reactServerURL = configuration.getString("xatkit.react.public_url", "http://localhost:" + reactPort);
+        int serverPort = configuration.getInt(XatkitServerUtils.SERVER_PORT_KEY, XatkitServerUtils.DEFAULT_SERVER_PORT);
+        this.serverURL = configuration.getString(XatkitServerUtils.SERVER_PUBLIC_URL_KEY,
+                XatkitServerUtils.DEFAULT_SERVER_LOCATION + ":" + serverPort);
     }
 
     /**
@@ -191,6 +197,7 @@ class AdminHttpHandler implements HttpRequestHandler {
         content = content.replaceAll(SERVER_LOCATION_PATTERN, reactServerURL);
         String clientName = TEST_CLIENT_NAMES.get(TEMPLATE_FILLED_COUNT % TEST_CLIENT_NAMES.size());
         content = content.replaceAll(USERNAME_PATTERN, clientName);
+        content = content.replaceAll(BASE_SERVER_LOCATION_PATTERN, serverURL);
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 }
