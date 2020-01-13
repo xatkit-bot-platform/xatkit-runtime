@@ -4,6 +4,7 @@ import com.google.api.core.ApiFuture;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.FailedPreconditionException;
+import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.v2.AgentsClient;
 import com.google.cloud.dialogflow.v2.AgentsSettings;
@@ -961,6 +962,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         Log.info("Registering DialogFlow intent {0}", intentDefinition.getName());
         if (this.registeredIntents.containsKey(intentDefinition.getName())) {
             Log.info("Intent {0} already registered", intentDefinition.getName());
+            throw new DialogFlowException(MessageFormat.format("Cannot register the intent {0}, the intent " +
+                    "already exists", intentDefinition.getName()));
         }
 
         List<String> trainingSentences = intentDefinition.getTrainingSentences();
@@ -1014,7 +1017,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             Intent response = intentsClient.createIntent(projectAgentName, intent);
             registeredIntents.put(response.getDisplayName(), response);
             Log.info("Intent {0} successfully registered", response.getDisplayName());
-        } catch (FailedPreconditionException e) {
+        } catch (FailedPreconditionException | InvalidArgumentException e) {
             if (e.getMessage().contains("already exists")) {
                 throw new DialogFlowException(MessageFormat.format("Cannot register the intent {0}, the intent " +
                         "already exists", intentDefinition.getName()), e);

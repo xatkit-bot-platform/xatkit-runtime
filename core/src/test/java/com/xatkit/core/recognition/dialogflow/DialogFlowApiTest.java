@@ -187,7 +187,11 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        xatkitCore.shutdown();
+        if(nonNull(xatkitCore)) {
+            xatkitCore.shutdown();
+        } else {
+            Log.warn("XatkitCore was null in DialogFlowApiTest.tearDownAfterClass");
+        }
     }
 
     @Rule
