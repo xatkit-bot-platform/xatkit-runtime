@@ -11,7 +11,8 @@ import org.apache.http.protocol.HTTP;
 
 import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -60,14 +61,32 @@ public class HttpEntityHelper {
         checkNotNull(element, "Cannot create an %s from the provided %s %s", HttpEntity.class.getSimpleName(),
                 JsonElement.class.getSimpleName(), element);
         String rawJson = gson.toJson(element);
-        BasicHttpEntity entity = new BasicHttpEntity();
-        byte[] jsonBytes = rawJson.getBytes(Charset.forName("UTF-8"));
-        entity.setContent(new ByteArrayInputStream(jsonBytes));
+        byte[] jsonBytes = rawJson.getBytes(StandardCharsets.UTF_8);
+        InputStream is = new ByteArrayInputStream(jsonBytes);
         /*
          * Use the size of the byte array, it may be longer than the size of the string for special characters.
          */
-        entity.setContentLength(jsonBytes.length);
-        entity.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+        return createHttpEntityFromInputStream(is, jsonBytes.length, ContentType.APPLICATION_JSON.getMimeType());
+    }
+
+    /**
+     * Creates a {@link HttpEntity} with the given {@code contentLength} and {@code contentType}, from the provided
+     * {@code is}.
+     *
+     * @param is            the {@link InputStream} to set in the {@link HttpEntity}
+     * @param contentLength the content length of the {@link HttpEntity}
+     * @param contentType   the content type of the {@link HttpEntity}
+     * @return the created {@link HttpEntity}
+     *
+     * @see HttpEntity#getContentType()
+     * @see HttpEntity#getContentLength() 
+     */
+    private static HttpEntity createHttpEntityFromInputStream(@Nonnull InputStream is, int contentLength,
+                                                              String contentType) {
+        BasicHttpEntity entity = new BasicHttpEntity();
+        entity.setContent(is);
+        entity.setContentLength(contentLength);
+        entity.setContentType(contentType);
         entity.setContentEncoding(HTTP.UTF_8);
         return entity;
     }
