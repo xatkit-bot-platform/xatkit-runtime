@@ -17,6 +17,15 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 - `HttpHandler` now supports `HttpEntity` instances returned from `RestHandler#handle`. This allows to define handlers that directly return a valid `HttpEntity` (e.g. the content of an HTML page). In this case, the `RestHandler` implementation is responsible of the `HttpEntity` creation.
 - `RestHandler` instances can now throw a `RestHandlerException` to notify the server that an error occurred when handling the request. For now this exception is used to return a *404* status code instead of *200*.
+
+## Removed
+
+- Class `AdminHttpHandler`: this class was designed to test the *ReactPlatform*, it didn't make sense to keep it in *xatkit-runtime*. The functionality of the `AdminHttpHandler` are still available when starting a bot based on the *ReactPlatform*, but the handlers are now defined in the [*xatkit-react-platform*](https://github.com/xatkit-bot-platform/xatkit-react-platform) project.
+
+## Fixed
+
+- [#251](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/251): *AdminHttpHandler should be moved to react platform*
+
 ## [4.0.0] - 2019-12-01
 
 ### Added
