@@ -79,7 +79,7 @@ public class HttpEntityHelper {
      * @return the created {@link HttpEntity}
      *
      * @see HttpEntity#getContentType()
-     * @see HttpEntity#getContentLength() 
+     * @see HttpEntity#getContentLength()
      */
     private static HttpEntity createHttpEntityFromInputStream(@Nonnull InputStream is, int contentLength,
                                                               String contentType) {

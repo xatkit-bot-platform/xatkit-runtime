@@ -59,17 +59,26 @@ public abstract class RestHandler<C> {
 
     /**
      * Handles the received {@code headers}, {@code params}, and parsed payload.
+     * <p>
+     * The value returned by this method is embedded in the sever's response. If the return value is an intance of
+     * {@link org.apache.http.HttpEntity} it is embedded as is, otherwise the server attempts to convert it into a
+     * valid {@link org.apache.http.HttpEntity} using {@link HttpEntityHelper#createHttpEntity(Object)}.
+     * <p>
+     * The exception thrown by this method is used to determine the HTTP response's status. By default the server
+     * returns a status code {@code 200}, but it will return a {@code 404} if this method threw an exception.
      *
      * @param headers the HTTP headers of the received request
      * @param params  the request parameters
      * @param content the parsed request payload to handle
      * @return an {@link Object} to embed in the server's response
+     * @throws RestHandlerException if an error occurred when handling the request
      * @see #parseContent(Object)
+     * @see HttpEntityHelper#createHttpEntity(Object)
      */
     protected abstract @Nullable
     Object handleParsedContent(@Nonnull List<Header> headers,
                                @Nonnull List<NameValuePair> params,
-                               @Nullable C content);
+                               @Nullable C content) throws RestHandlerException;
 
     /**
      * Handles the raw HTTP request.
@@ -84,12 +93,13 @@ public abstract class RestHandler<C> {
      * @param params  the request parameters
      * @param content the raw HTTP request content to handle
      * @return an {@link Object} to embed in the server's response
+     * @throws RestHandlerException TODO
      * @see #parseContent(Object)
      * @see #handleParsedContent(List, List, Object)
      */
     public final @Nullable
     Object handleContent(@Nonnull List<Header> headers, @Nonnull List<NameValuePair> params,
-                         @Nullable Object content) {
+                         @Nullable Object content) throws RestHandlerException {
         C parsedContent = parseContent(content);
         return handleParsedContent(headers, params, parsedContent);
     }

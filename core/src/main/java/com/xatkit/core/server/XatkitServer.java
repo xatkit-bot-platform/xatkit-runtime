@@ -175,7 +175,7 @@ public class XatkitServer {
                     }
                 })
                 .registerHandler("/content*", new ContentHttpHandler(this))
-                .registerHandler("/admin*", new AdminHttpHandler(configuration))
+//                .registerHandler("/admin*", new AdminHttpHandler(configuration))
                 .registerHandler("*", new HttpHandler(this))
                 .create();
     }
@@ -393,10 +393,11 @@ public class XatkitServer {
      * anything
      * @throws NullPointerException if the provided {@code uri}, {@code header}, or {@code params} is {@code null}
      * @throws XatkitException      if there is no REST endpoint registered for the provided {@code uri}
+     * @throws RestHandlerException if an error occurred when processing the {@link RestHandler}'s logic
      * @see #registerRestEndpoint(HttpMethod, String, RestHandler)
      */
     public Object notifyRestHandler(HttpMethod httpMethod, String uri, List<Header> headers, List<NameValuePair> params,
-                                    @Nullable Object content, String contentType) {
+                                    @Nullable Object content, String contentType) throws RestHandlerException {
         checkNotNull(uri, "Cannot notify the REST endpoint %s, please provide a non-null URI", uri);
         checkNotNull(headers, "Cannot notify the REST endpoint %s, the headers list is null", uri);
         checkNotNull(params, "Cannot notify the REST endpoint %s, the parameters list is null", uri);

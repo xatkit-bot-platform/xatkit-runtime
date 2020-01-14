@@ -20,17 +20,18 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * A handler that receives HTTP requests and process them.
+ * A handler that receives HTTP requests containing JSON and process them.
  * <p>
- * This interface can be used to define REST endpoint from {@link RuntimePlatform}s.
- * The endpoint can be registered using the following code:
+ * This class can be used to define REST endpoints from {@link RuntimePlatform}s. The endpoint can be registered
+ * using the following code:
  * <pre>
  * {@code
  * XatkitServer xatkitServer = [...]
  * String restEndpointURI = "/myEndpoint";
- * xatkitServer.registerRestEndpoint(restEndpointURI, (headers, params, content) -> {
+ * xatkitServer.registerRestEndpoint(HttpMethod.GET, restEndpointURI, RestHandlerFactory.createJsonRestHandler(
+ *  (headers, params, content) -> {
  *     // Handle the request
- *     // return a JsonElement that will be sent back to the caller
+ *     // return an Object that will be embedded in the HTTP response
  * }
  * }
  * </pre>
@@ -98,7 +99,7 @@ public abstract class JsonRestHandler extends RestHandler<JsonElement> {
      */
     @Override
     public abstract JsonElement handleParsedContent(@Nonnull List<Header> headers, @Nonnull List<NameValuePair> params,
-                                                    @Nullable JsonElement content);
+                                                    @Nullable JsonElement content) throws RestHandlerException;
 
     /**
      * A static class containing utility methods to manipulate Json contents.

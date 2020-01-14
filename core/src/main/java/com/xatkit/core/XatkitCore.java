@@ -252,11 +252,6 @@ public class XatkitCore {
             this.loadExecutionModel(executionModel);
             xatkitServer.start();
             Log.info("Xatkit bot started");
-            if (this.isReactBot()) {
-                Log.info("You can test your chatbot here {0} (note that the bot's behavior can be slightly " +
-                        "different on the test page than when it is deployed on a server)", "http://localhost:" +
-                        this.xatkitServer.getPort() + "/admin");
-            }
         } catch (Throwable t) {
             Log.error("An error occurred when starting the {0}, trying to close started services", this.getClass()
                     .getSimpleName());
@@ -292,32 +287,6 @@ public class XatkitCore {
         } else {
             throw new XatkitException(MessageFormat.format("Cannot find formatter {0}", formatterName));
         }
-    }
-
-    /**
-     * Returns whether the bot uses the React platform.
-     * <p>
-     * A react bot uses (not exclusively) the {@code ReactPlatform} in its execution model. This method is used to
-     * deploy a web-page with the bot that can be used to test the modeled bot through its React actions and events.
-     * This means that bots using multiple ChatPlatform as their input may work differently on the test page and when
-     * deployed.
-     *
-     * @return {@code true} if the modeled bot uses the React platform, {@code false} otherwise
-     */
-    private boolean isReactBot() {
-        for (RuntimePlatform runtimePlatform : this.runtimePlatformRegistry.getRuntimePlatforms()) {
-            /*
-             * Check the name instead of the type because ReactPlatform is not part of the main project anymore.
-             * TODO this method should be moved in the <i>react-platform</i> project
-             */
-            if (runtimePlatform.getName().equals("ReactPlatform")) {
-                return true;
-            }
-            /*
-             * Do not test the ChatPlatform, if it is bound to ReactPlatform it has been initialized already.
-             */
-        }
-        return false;
     }
 
     /**

@@ -204,7 +204,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void notifyAcceptedContentType() {
+    public void notifyAcceptedContentType() throws RestHandlerException {
         this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
@@ -216,7 +216,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void notifyNotAcceptedContentType() {
+    public void notifyNotAcceptedContentType() throws RestHandlerException {
         this.server = getValidXatkitServer();
         StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
         this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
@@ -298,7 +298,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void notifyRestHandlerNullMethod() {
+    public void notifyRestHandlerNullMethod() throws RestHandlerException {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
         this.server.notifyRestHandler(null, VALID_REST_URI, Collections.emptyList(), Collections.emptyList(),
@@ -306,7 +306,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void notifyRestHandlerNullUri() {
+    public void notifyRestHandlerNullUri() throws RestHandlerException {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
         this.server.notifyRestHandler(HttpMethod.POST, null, Collections.emptyList(), Collections.emptyList(),
@@ -315,7 +315,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void notifyRestHandlerNullHeaders() {
+    public void notifyRestHandlerNullHeaders() throws RestHandlerException {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
         this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, null, Collections.emptyList(), new JsonObject(),
@@ -323,7 +323,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void notifyRestHandlerNullParams() {
+    public void notifyRestHandlerNullParams() throws RestHandlerException {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
         this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(), null, new JsonObject(),
@@ -331,7 +331,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void notifyRestHandlerNullJsonObject() {
+    public void notifyRestHandlerNullJsonObject() throws RestHandlerException {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
         Object result = this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(),
@@ -340,7 +340,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void notifyRestHandler() {
+    public void notifyRestHandler() throws RestHandlerException {
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
         Object result = this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(),
@@ -349,7 +349,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void notifyRestHandlerTrailingSlash() {
+    public void notifyRestHandlerTrailingSlash() throws RestHandlerException {
         // See https://github.com/xatkit-bot-platform/xatkit-runtime/issues/254
         this.server = getValidXatkitServer();
         this.server.registerRestEndpoint(HttpMethod.POST, VALID_REST_URI, VALID_REST_HANDLER);
@@ -359,7 +359,7 @@ public class XatkitServerTest extends AbstractXatkitTest {
     }
 
     @Test(expected = XatkitException.class)
-    public void notifyRestHandlerNotRegisteredUri() {
+    public void notifyRestHandlerNotRegisteredUri() throws RestHandlerException {
         this.server = getValidXatkitServer();
         this.server.notifyRestHandler(HttpMethod.POST, VALID_REST_URI, Collections.emptyList(),
                 Collections.emptyList(), null,

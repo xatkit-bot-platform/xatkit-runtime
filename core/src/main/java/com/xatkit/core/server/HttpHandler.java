@@ -165,26 +165,6 @@ class HttpHandler implements HttpRequestHandler {
                     contentBuilder.append(currentLine);
                 }
                 content = contentBuilder.toString();
-//                if (stringContent.isEmpty()) {
-//                    Log.warn("Empty query content");
-//                } else {
-//                    // TODO check this, it shouldn't exist
-//                    if (ContentType.APPLICATION_JSON.getMimeType().equals(contentType)) {
-//                        Log.info("Parsing {0} content", ContentType.APPLICATION_JSON.getMimeType());
-//                        try {
-//                            JsonElement jsonElement = parser.parse(stringContent);
-//                            Log.info("Query content: \n {0}", gsonPrinter.toJson(jsonElement));
-//                        } catch (JsonSyntaxException e) {
-//                            Log.error(e, "Cannot parse the {0} content {1}", ContentType.APPLICATION_JSON.getMimeType
-//                                    (), stringContent);
-//                        }
-//                    } else {
-//                        Log.info("No parser for the provided content type {0}, returning the raw content: \n {1}",
-//                                contentType, content);
-//                    }
-//                }
-
-
             } catch (IOException e) {
                 throw new XatkitException("An error occurred when handling the request content", e);
             }
@@ -192,15 +172,38 @@ class HttpHandler implements HttpRequestHandler {
 
         HttpMethod httpMethod = HttpMethod.valueOf(method);
         if (this.xatkitServer.isRestEndpoint(httpMethod, path)) {
-            Object result = xatkitServer.notifyRestHandler(httpMethod, path, headers, parameters,
-                    content, contentType);
+            Object result = null;
+            try {
+                result = xatkitServer.notifyRestHandler(httpMethod, path, headers, parameters,
+                        content, contentType);
+            } catch(RestHandlerException e) {
+                Log.error(e, "An error occurred when notifying the Rest handler, see attached exception");
+                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                /*
+                 * We can return here, no need to process the returned value.
+                 */
+                return;
+            }
             if (nonNull(result)) {
-                HttpEntity resultEntity = HttpEntityHelper.createHttpEntity(result);
-                response.setEntity(resultEntity);
+                if(result instanceof HttpEntity) {
+                    /*
+                     * Handle RestHandlers that directly return a HttpEntity. This is for example the case for
+                     * RestHandlers that return plain HTML, JS, or CSS.
+                     */
+                    response.setEntity((HttpEntity) result);
+                } else {
+                    /*
+                     * Otherwise try to create an entity from the returned result. This is for example how
+                     * JsonElements are handled.
+                     */
+                    HttpEntity resultEntity = HttpEntityHelper.createHttpEntity(result);
+                    response.setEntity(resultEntity);
+                }
             } else {
                 Log.warn("Cannot embed the provided json element {0}", result);
             }
             response.setHeader("Access-Control-Allow-Headers", "content-type");
+            response.setStatusCode(HttpStatus.SC_OK);
         }
 
 
@@ -210,6 +213,9 @@ class HttpHandler implements HttpRequestHandler {
         }
         String stringAccessControlAllowHeaders = String.join(",", accessControlAllowHeaders);
         response.setHeader(ACCESS_CONTROL_ALLOW_HEADERS, stringAccessControlAllowHeaders);
+        /*
+         * TODO check if setting the status code is required here.
+         */
         response.setStatusCode(HttpStatus.SC_OK);
     }
 }

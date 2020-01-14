@@ -1,6 +1,7 @@
 package com.xatkit.stubs;
 
 import com.xatkit.core.server.HttpMethod;
+import com.xatkit.core.server.RestHandlerException;
 import com.xatkit.core.server.XatkitServer;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.http.Header;
@@ -40,7 +41,7 @@ public class StubXatkitServer extends XatkitServer {
 
     @Override
     public Object notifyRestHandler(HttpMethod httpMethod, String uri, List<Header> headers, List<NameValuePair> params,
-                                    @Nullable Object content, String contentType) {
+                                    @Nullable Object content, String contentType) throws RestHandlerException {
         this.lastNotifyRestHandlerMethod = httpMethod;
         this.lastNotifyRestHandlerURI = uri;
         this.lastNotifyRestHandlerHeaders = headers;

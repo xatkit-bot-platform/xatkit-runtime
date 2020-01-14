@@ -11,7 +11,12 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 ### Added
 
 - Utility test class `AbstractActionTest` and `AbstractEventProviderTest`that eases the definition of action and event provider test classes, respectively.
+- Class `EmptyContentRestHandler` which can be used to define REST endpoints that do not accept any request content (this is for example the case for most of the *GET* requests). 
 
+## Changed
+
+- `HttpHandler` now supports `HttpEntity` instances returned from `RestHandler#handle`. This allows to define handlers that directly return a valid `HttpEntity` (e.g. the content of an HTML page). In this case, the `RestHandler` implementation is responsible of the `HttpEntity` creation.
+- `RestHandler` instances can now throw a `RestHandlerException` to notify the server that an error occurred when handling the request. For now this exception is used to return a *404* status code instead of *200*.
 ## [4.0.0] - 2019-12-01
 
 ### Added
