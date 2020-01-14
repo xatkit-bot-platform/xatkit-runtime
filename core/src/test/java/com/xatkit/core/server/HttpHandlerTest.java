@@ -18,7 +18,6 @@ import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -29,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -166,7 +166,7 @@ public class HttpHandlerTest extends AbstractXatkitTest {
         assertNotifyRestHandlerCallMatches(HttpMethod.GET,
                 REGISTERED_GET_URI,
                 Arrays.asList(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getAllHeaders()),
-                URLEncodedUtils.parse(new URI(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getRequestLine().getUri()), HTTP.UTF_8),
+                URLEncodedUtils.parse(new URI(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getRequestLine().getUri()), StandardCharsets.UTF_8.name()),
                 null,
                 null);
     }
