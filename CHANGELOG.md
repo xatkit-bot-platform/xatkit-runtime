@@ -25,6 +25,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 ## Fixed
 
 - [#251](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/251): *AdminHttpHandler should be moved to react platform*
+- The `XatkitServer` now correctly returns a `404` error if there is no `RestHandler` associated to a requested URI.
 
 ## [4.0.0] - 2019-12-01
 

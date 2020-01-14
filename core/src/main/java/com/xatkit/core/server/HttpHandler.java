@@ -204,6 +204,13 @@ class HttpHandler implements HttpRequestHandler {
             }
             response.setHeader("Access-Control-Allow-Headers", "content-type");
             response.setStatusCode(HttpStatus.SC_OK);
+        } else {
+            /*
+             * There is no handler for this URI.
+             */
+            Log.error("No endpoint registered for {0}: {1}", method, path);
+            response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+            return;
         }
 
 
