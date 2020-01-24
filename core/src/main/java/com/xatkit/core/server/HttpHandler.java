@@ -118,17 +118,15 @@ class HttpHandler implements HttpRequestHandler {
                     request.getRequestLine().getUri()), e);
         }
 
-        Log.info("Received a {0} query on {1}", method, path);
+        Log.debug("Received a {0} query on {1}", method, path);
 
-        parameters.forEach(p -> Log.info("Query parameter: {0}={1}", p.getName(), p.getValue()));
+        parameters.forEach(p -> Log.debug("Query parameter: {0}={1}", p.getName(), p.getValue()));
 
         List<Header> headers = Arrays.asList(request.getAllHeaders());
-        headers.forEach(h -> Log.info("Header {0}={1}", h.getName(), h.getValue()));
+        headers.forEach(h -> Log.debug("Header {0}={1}", h.getName(), h.getValue()));
 
         Object content = null;
         String contentType = null;
-
-        Log.info("Request type {0}", request.getClass().getSimpleName());
 
         /*
          * The access control headers that will be returned in the response.
@@ -143,19 +141,19 @@ class HttpHandler implements HttpRequestHandler {
             Header encodingHeader = entity.getContentEncoding();
             if (nonNull(encodingHeader) && encodingHeader.getElements().length > 0) {
                 contentEncoding = encodingHeader.getElements()[0].getName();
-                Log.info("Query content encoding: {0}", contentEncoding);
+                Log.debug("Query content encoding: {0}", contentEncoding);
             } else {
                 Log.warn("Unknown query content encoding");
             }
             Header contentTypeHeader = entity.getContentType();
             if (nonNull(contentTypeHeader) && contentTypeHeader.getElements().length > 0) {
                 contentType = contentTypeHeader.getElements()[0].getName();
-                Log.info("Query content type: {0}", contentType);
+                Log.debug("Query content type: {0}", contentType);
             } else {
                 Log.warn("Unknown query content type");
             }
             Long contentLength = entity.getContentLength();
-            Log.info("Query content length: {0}", contentLength);
+            Log.debug("Query content length: {0}", contentLength);
 
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
@@ -200,7 +198,7 @@ class HttpHandler implements HttpRequestHandler {
                     response.setEntity(resultEntity);
                 }
             } else {
-                Log.warn("Cannot embed the provided json element {0}", result);
+                Log.warn("Cannot embed the handler's result {0}", result);
             }
             response.setHeader("Access-Control-Allow-Headers", "content-type");
             response.setStatusCode(HttpStatus.SC_OK);

@@ -122,7 +122,6 @@ public class XatkitServer {
     public XatkitServer(Configuration configuration) {
         checkNotNull(configuration, "Cannot start the %s with the provided %s: %s", this.getClass().getSimpleName
                 (), Configuration.class.getSimpleName(), configuration);
-        Log.info("Creating {0}", this.getClass().getSimpleName());
         this.isStarted = false;
         if (configuration.containsKey(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY)
                 && !configuration.containsKey(XatkitServerUtils.SERVER_PUBLIC_URL_KEY)) {
@@ -164,10 +163,13 @@ public class XatkitServer {
                 .setSslContext(sslContext)
                 .setSocketConfig(socketConfig)
                 .setExceptionLogger(e -> {
-                    if (e instanceof SocketTimeoutException) {
+                    if(e instanceof SocketTimeoutException || (e instanceof IOException && e.getMessage().equals(
+                        "Connection reset by peer"))) {
                         /*
                          * SocketTimeoutExceptions are thrown after each query, we can log them as debug to avoid
                          * polluting the application log.
+                         * Connection reset by peer is thrown when a remote client closes the connection, this
+                         * happens quite often and can be logged as debug too.
                          */
                         Log.debug(e);
                     } else {
@@ -175,7 +177,6 @@ public class XatkitServer {
                     }
                 })
                 .registerHandler("/content*", new ContentHttpHandler(this))
-//                .registerHandler("/admin*", new AdminHttpHandler(configuration))
                 .registerHandler("*", new HttpHandler(this))
                 .create();
     }
@@ -197,7 +198,7 @@ public class XatkitServer {
                 Configuration.class.getSimpleName(), configuration);
         String keystorePath = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY);
         if (isNull(keystorePath)) {
-            Log.info("No SSL context to load");
+            Log.debug("No SSL context to load");
             return null;
         }
         File keystoreFile = FileUtils.getFile(keystorePath, configuration);
@@ -583,7 +584,7 @@ public class XatkitServer {
         try {
             filePath = Paths.get(file.getAbsolutePath()).toRealPath(LinkOption.NOFOLLOW_LINKS);
         } catch (NoSuchFileException e) {
-            Log.info("Cannot retrieve the public URL for the provided file {0}, the file does not exist",
+            Log.error("Cannot retrieve the public URL for the provided file {0}, the file does not exist",
                     file.getAbsolutePath());
             return null;
         } catch (IOException e) {
@@ -645,7 +646,7 @@ public class XatkitServer {
         try {
             p = p.toRealPath(LinkOption.NOFOLLOW_LINKS);
         } catch (NoSuchFileException e) {
-            Log.warn("The public file {0} does not exist", p);
+            Log.error("The public file {0} does not exist", p);
             return null;
         } catch (IOException e) {
             throw new XatkitException(e);

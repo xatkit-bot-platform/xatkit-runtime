@@ -59,7 +59,7 @@ public class ContentHttpHandler implements HttpRequestHandler {
         String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
         String target = request.getRequestLine().getUri();
 
-        Log.info("{0} - Received a {1} query on {2}", this.getClass().getSimpleName(), method, target);
+        Log.debug("{0} - Received a {1} query on {2}", this.getClass().getSimpleName(), method, target);
 
         /*
          * Ignore the parameters, they are not used for now.
@@ -67,14 +67,15 @@ public class ContentHttpHandler implements HttpRequestHandler {
         if (method.equals("GET")) {
             if (target.startsWith(XatkitServerUtils.PUBLIC_CONTENT_URL_FRAGMENT)) {
                 String filePath = target.replaceFirst(XatkitServerUtils.PUBLIC_CONTENT_URL_FRAGMENT, "");
-                Log.info("File Path: {0}", filePath);
+                Log.debug("File Path: {0}", filePath);
                 File file = xatkitServer.getPublicFile(filePath);
                 if (nonNull(file) && file.exists() && !file.isDirectory()) {
                     FileInputStream fis;
                     try {
                         fis = new FileInputStream(file);
                     } catch (IOException e) {
-                        Log.error("Cannot retrieve the file {0}", file.getAbsolutePath());
+                        Log.error("{0} Cannot retrieve the file {1}", this.getClass().getSimpleName(),
+                                file.getAbsolutePath());
                         response.setStatusCode(HttpStatus.SC_NOT_FOUND);
                         return;
                     }
@@ -86,7 +87,7 @@ public class ContentHttpHandler implements HttpRequestHandler {
                 }
             }
         }
-        Log.warn("Cannot server content {0}", target);
+        Log.error("Cannot server content {0}, unsupported method {1}", target, method);
         response.setStatusCode(HttpStatus.SC_NOT_FOUND);
     }
 }
