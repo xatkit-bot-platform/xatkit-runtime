@@ -114,10 +114,10 @@ public class RuntimeContexts {
         this.lifespanCounts = new ConcurrentHashMap<>();
         if (configuration.containsKey(VARIABLE_TIMEOUT_KEY)) {
             this.variableTimeout = configuration.getInt(VARIABLE_TIMEOUT_KEY);
-            Log.info("Setting context variable timeout to {0}s", variableTimeout);
+            Log.debug("Setting context variable timeout to {0}s", variableTimeout);
         } else {
             this.variableTimeout = DEFAULT_VARIABLE_TIMEOUT_VALUE;
-            Log.info("Using default context variable timeout ({0}s)", DEFAULT_VARIABLE_TIMEOUT_VALUE);
+            Log.debug("Using default context variable timeout ({0}s)", DEFAULT_VARIABLE_TIMEOUT_VALUE);
         }
     }
 
@@ -200,7 +200,7 @@ public class RuntimeContexts {
                  * new context (i.e. a new Intent recognized from the IntentRecognitionProvider or a new Event
                  * received by an RuntimeEventProvider). Override the current value to keep the variable alive.
                  */
-                Log.info("Overriding context {0} lifespanCount (previous: {1}, new: {2})", context, currentLifespan,
+                Log.debug("Overriding context {0} lifespanCount (previous: {1}, new: {2})", context, currentLifespan,
                         lifespanCount);
                 lifespanCounts.put(context, lifespanCount);
             } else {
@@ -213,7 +213,7 @@ public class RuntimeContexts {
                         ".decrementLifespanCounts()", context, lifespanCount, currentLifespan);
             }
         } else {
-            Log.info("Setting context {0} lifespanCount to {1}", context, lifespanCount);
+            Log.debug("Setting context {0} lifespanCount to {1}", context, lifespanCount);
             lifespanCounts.put(context, lifespanCount);
         }
         return contextMap;
@@ -249,7 +249,7 @@ public class RuntimeContexts {
         checkNotNull(key, "Cannot set the context vaule value from the provided key %s", key);
         checkArgument(lifespanCount > 0, "Cannot set the context lifespan count to %s, the lifespan count should be " +
                 "strictly greater than 0", lifespanCount);
-        Log.info("Setting context variable {0}.{1} to {2}", context, key, value);
+        Log.debug("Setting context variable {0}.{1} to {2}", context, key, value);
         Map<String, Object> contextMap = setContext(context, lifespanCount);
         contextMap.put(key, value);
     }
@@ -356,7 +356,7 @@ public class RuntimeContexts {
      * decrement the lifespan counters from the live contexts.
      */
     public void decrementLifespanCounts() {
-        Log.info("Decrementing RuntimeContexts lifespanCounts");
+        Log.debug("Decrementing RuntimeContexts lifespanCounts");
         Iterator<Map.Entry<String, Integer>> it = lifespanCounts.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, Integer> entry = it.next();
@@ -393,7 +393,7 @@ public class RuntimeContexts {
         other.getContextMap().forEach((k, v) -> {
             Map<String, Object> variableMap = new HashMap<>();
             if (this.contexts.containsKey(k)) {
-                Log.warn("Overriding existing context: {0}", k);
+                Log.debug("Overriding existing context: {0}", k);
                 /*
                  * Add all the variables that are already stored in the context, they may be overridden by variables
                  * from {@code other}.
