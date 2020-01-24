@@ -82,7 +82,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
     public RuntimeArtifactAction(T runtimePlatform, XatkitSession session) {
         super(runtimePlatform, session);
         this.messageDelay = this.runtimePlatform.getConfiguration().getInt(MESSAGE_DELAY_KEY, DEFAULT_MESSAGE_DELAY);
-        Log.info("{0} message delay: {1}", this.getClass().getSimpleName(), messageDelay);
+        Log.debug("{0} message delay: {1}", this.getClass().getSimpleName(), messageDelay);
     }
 
     /**
