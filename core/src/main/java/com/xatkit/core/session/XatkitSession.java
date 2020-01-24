@@ -5,6 +5,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -181,7 +182,7 @@ public class XatkitSession {
                      * TODO support such merge for other collection types
                      */
                     Map sessionMap = (Map) sessionVariables.get(v.getKey());
-                    if(isNull(sessionMap)) {
+                    if (isNull(sessionMap)) {
                         sessionMap = new HashMap((Map) v.getValue());
                         sessionVariables.put(v.getKey(), sessionMap);
                     } else {
@@ -206,5 +207,15 @@ public class XatkitSession {
      */
     public Object get(String key) {
         return this.sessionVariables.get(key);
+    }
+
+    /**
+     * Returns a {@link String} representation of the session.
+     *
+     * @return a {@link String} representation of the session
+     */
+    @Override
+    public String toString() {
+        return MessageFormat.format("Session={0}", this.sessionId);
     }
 }

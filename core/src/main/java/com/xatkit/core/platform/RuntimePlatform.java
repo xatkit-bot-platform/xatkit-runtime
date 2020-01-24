@@ -364,6 +364,18 @@ public abstract class RuntimePlatform {
     }
 
     /**
+     * Returns a {@link String} representation of this platform.
+     * <p>
+     * Platforms are singletons in Xatkit: we can safely return their type (see {@link Class#getSimpleName()}) as a
+     * way to identify them in logs.
+     * @return a {@link String} representation of this platform
+     */
+    @Override
+    public String toString() {
+        return MessageFormat.format("*{0}", this.getClass().getSimpleName());
+    }
+
+    /**
      * The {@link Thread} class used to start {@link RuntimeEventProvider}s.
      * <p>
      * <b>Note:</b> this class is protected for testing purposes, and should not be called by client code.
