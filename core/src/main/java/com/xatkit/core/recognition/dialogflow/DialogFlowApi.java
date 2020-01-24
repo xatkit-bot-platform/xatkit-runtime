@@ -1489,9 +1489,6 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             throw new DialogFlowException(e);
         }
         QueryResult queryResult = response.getQueryResult();
-        Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\"",
-                queryResult.getIntent().getDisplayName(), queryResult.getIntentDetectionConfidence(),
-                queryResult.getQueryText());
         RecognizedIntent recognizedIntent = convertDialogFlowIntentToRecognizedIntent(queryResult);
         if (nonNull(recognitionMonitor)) {
             recognitionMonitor.logRecognizedIntent(session, recognizedIntent);
