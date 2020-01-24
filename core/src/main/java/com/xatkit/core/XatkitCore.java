@@ -10,7 +10,6 @@ import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
-import com.xatkit.core.recognition.dialogflow.DialogFlowException;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ExecutionModel;
@@ -370,7 +369,7 @@ public class XatkitCore {
          */
         EventDefinition eventDefinition = rule.getEvent();
         this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
-        Log.info("Registering event {0}", eventDefinition.getName());
+        Log.debug("Registering event {0}", eventDefinition.getName());
         if (eventDefinition instanceof IntentDefinition) {
             IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
             for (Context outContext : intentDefinition.getOutContexts()) {
@@ -378,8 +377,8 @@ public class XatkitCore {
                     try {
                         this.intentRecognitionProvider.registerEntityDefinition(parameter.getEntity()
                                 .getReferredEntity());
-                    } catch (DialogFlowException e) {
-                        Log.warn(e.getMessage());
+                    } catch (IntentRecognitionProviderException e) {
+                        Log.error(e.getMessage());
                     }
                 }
             }
@@ -387,7 +386,7 @@ public class XatkitCore {
                 this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
                 return true;
             } catch (IntentRecognitionProviderException e) {
-                Log.warn(e.getMessage());
+                Log.error(e.getMessage());
             }
         }
         return false;
