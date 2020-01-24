@@ -513,7 +513,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 /*
                  * No credentials provided, using the GOOGLE_APPLICATION_CREDENTIALS environment variable.
                  */
-                Log.info("No credentials file provided, using GOOGLE_APPLICATION_CREDENTIALS environment variable");
+                Log.warn("No credentials file provided, using GOOGLE_APPLICATION_CREDENTIALS environment variable");
                 agentsSettings = AgentsSettings.newBuilder().build();
                 intentsSettings = IntentsSettings.newBuilder().build();
                 entityTypesSettings = EntityTypesSettings.newBuilder().build();
@@ -754,7 +754,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             Log.trace("Skipping registration of {0} ({1}), {0} are natively supported by DialogFlow",
                     BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType().getLiteral());
         } else if (entityDefinition instanceof CustomEntityDefinition) {
-            Log.info("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
+            Log.debug("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
             EntityType entityType = this.registeredEntityTypes.get(entityDefinition.getName());
             if (isNull(entityType)) {
                 entityType = createEntityTypeFromCustomEntityDefinition((CustomEntityDefinition) entityDefinition);
@@ -770,7 +770,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                             "already exists", entityDefinition), e);
                 }
             } else {
-                Log.info("{0} {1} is already registered", EntityType.class.getSimpleName(), entityDefinition.getName());
+                Log.debug("{0} {1} is already registered", EntityType.class.getSimpleName(),
+                        entityDefinition.getName());
             }
         } else {
             throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
@@ -959,9 +960,8 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         }
         checkNotNull(intentDefinition, "Cannot register the IntentDefinition null");
         checkNotNull(intentDefinition.getName(), "Cannot register the IntentDefinition with null as its name");
-        Log.info("Registering DialogFlow intent {0}", intentDefinition.getName());
+        Log.debug("Registering DialogFlow intent {0}", intentDefinition.getName());
         if (this.registeredIntents.containsKey(intentDefinition.getName())) {
-            Log.info("Intent {0} already registered", intentDefinition.getName());
             throw new DialogFlowException(MessageFormat.format("Cannot register the intent {0}, the intent " +
                     "already exists", intentDefinition.getName()));
         }
@@ -989,12 +989,12 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 .addAllMessages(messages);
 
         if (nonNull(intentDefinition.getFollows())) {
-            Log.info("Registering intent {0} as a follow-up of {1}", intentDefinition.getName(), intentDefinition
+            Log.debug("Registering intent {0} as a follow-up of {1}", intentDefinition.getName(), intentDefinition
                     .getFollows().getName());
             Intent parentIntent = registeredIntents.get(adaptIntentDefinitionNameToDialogFlow(intentDefinition
                     .getFollows().getName()));
             if (isNull(parentIntent)) {
-                Log.info(MessageFormat.format("Cannot find intent {0} in the DialogFlow project, trying to register " +
+                Log.debug(MessageFormat.format("Cannot find intent {0} in the DialogFlow project, trying to register " +
                         "it", intentDefinition.getFollows().getName()));
                 registerIntentDefinition(intentDefinition.getFollows());
                 parentIntent = registeredIntents.get(adaptIntentDefinitionNameToDialogFlow(intentDefinition
@@ -1016,7 +1016,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
         try {
             Intent response = intentsClient.createIntent(projectAgentName, intent);
             registeredIntents.put(response.getDisplayName(), response);
-            Log.info("Intent {0} successfully registered", response.getDisplayName());
+            Log.debug("Intent {0} successfully registered", response.getDisplayName());
         } catch (FailedPreconditionException | InvalidArgumentException e) {
             if (e.getMessage().contains("already exists")) {
                 throw new DialogFlowException(MessageFormat.format("Cannot register the intent {0}, the intent " +
@@ -1283,7 +1283,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 }
             }
             entityTypesClient.deleteEntityType(entityType.getName());
-            Log.info("{0} {1} successfully deleted", EntityType.class.getSimpleName(), entityType.getDisplayName());
+            Log.debug("{0} {1} successfully deleted", EntityType.class.getSimpleName(), entityType.getDisplayName());
             /*
              * Remove the deleted EntityType from the local cache.
              */
@@ -1326,7 +1326,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             }
         }
         intentsClient.deleteIntent(intent.getName());
-        Log.info("{0} {1} successfully deleted", Intent.class.getSimpleName(), intentDefinition.getName());
+        Log.debug("{0} {1} successfully deleted", Intent.class.getSimpleName(), intentDefinition.getName());
         /*
          * Remove the deleted Intent from the local cache.
          */
@@ -1386,7 +1386,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
         }
         SessionName sessionName = SessionName.of(projectId, sessionId);
-        Log.info("New session created with path {0}", sessionName.toString());
+        Log.debug("New session created with path {0}", sessionName.toString());
         return new DialogFlowSession(sessionName, configuration);
     }
 
@@ -1408,7 +1408,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #getIntent(String, XatkitSession)
      */
     public void mergeLocalSessionInDialogFlow(DialogFlowSession dialogFlowSession) {
-        Log.info("Merging local context in the DialogFlow session {0}", dialogFlowSession.getSessionId());
+        Log.debug("Merging local context in the DialogFlow session {0}", dialogFlowSession.getSessionId());
         checkNotNull(dialogFlowSession, "Cannot merge the provided %s %s", DialogFlowSession.class.getSimpleName(),
                 dialogFlowSession);
         dialogFlowSession.getRuntimeContexts().getContextMap().entrySet().stream().forEach(contextEntry ->
@@ -1489,11 +1489,9 @@ public class DialogFlowApi implements IntentRecognitionProvider {
             throw new DialogFlowException(e);
         }
         QueryResult queryResult = response.getQueryResult();
-        Log.info("====================\n" +
-                "Query Text: {0} \n" +
-                "Detected Intent: {1} (confidence: {2})\n" +
-                "Fulfillment Text: {3}", queryResult.getQueryText(), queryResult.getIntent()
-                .getDisplayName(), queryResult.getIntentDetectionConfidence(), queryResult.getFulfillmentText());
+        Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\"",
+                queryResult.getIntent().getDisplayName(), queryResult.getIntentDetectionConfidence(),
+                queryResult.getQueryText());
         RecognizedIntent recognizedIntent = convertDialogFlowIntentToRecognizedIntent(queryResult);
         if (nonNull(recognitionMonitor)) {
             recognitionMonitor.logRecognizedIntent(session, recognizedIntent);
@@ -1558,11 +1556,11 @@ public class DialogFlowApi implements IntentRecognitionProvider {
                 ContextInstance contextInstance = intentFactory.createContextInstance();
                 contextInstance.setDefinition(contextDefinition);
                 contextInstance.setLifespanCount(lifespanCount);
-                Log.info("Processing context {0}", context.getName());
+                Log.debug("Processing context {0}", context.getName());
                 Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
                 for (String key : parameterValues.keySet()) {
                     String parameterValue = convertParameterValueToString(parameterValues.get(key));
-                    Log.info("Processing context value {0} ({1})", key, parameterValue);
+                    Log.debug("Processing context value {0} ({1})", key, parameterValue);
                     /*
                      * Ignore original: this variable contains the raw parsed value, we don't need this.
                      */

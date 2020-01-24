@@ -309,6 +309,7 @@ public class XatkitCore {
     private void loadExecutionModel(ExecutionModel executionModel) {
         boolean intentRegistered = false;
         this.startEventProviders(executionModel);
+        Log.info("Registering execution rule events");
         for (ExecutionRule rule : executionModel.getExecutionRules()) {
             intentRegistered |= this.registerExecutionRuleEvent(rule);
             this.enableExecutionRuleActions(rule);

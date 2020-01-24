@@ -17,7 +17,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 - `HttpHandler` now supports `HttpEntity` instances returned from `RestHandler#handle`. This allows to define handlers that directly return a valid `HttpEntity` (e.g. the content of an HTML page). In this case, the `RestHandler` implementation is responsible of the `HttpEntity` creation.
 - `RestHandler` instances can now throw a `RestHandlerException` to notify the server that an error occurred when handling the request. For now this exception is used to return a *404* status code instead of *200*.
-- Change log level of non-critical messages in `XatkitServer` this reduces the amount of noise in Xatkit logs.
+- Change log level of non-critical messages in `XatkitServer`, `DialogFlow` and `RegEx` intent recognition providers. This reduces the amount of noise in Xatkit logs.
 
 ## Removed
 
@@ -28,6 +28,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - [#251](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/251): *AdminHttpHandler should be moved to react platform*
 - The `XatkitServer` now correctly returns a `404` error if there is no `RestHandler` associated to a requested URI.
 - [#267](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/267): *Change log level of XatkitServer logs to debug*
+- [#269](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/269): *Reduce default logging of DialogFlow API*
 
 ## [4.0.0] - 2019-12-01
 

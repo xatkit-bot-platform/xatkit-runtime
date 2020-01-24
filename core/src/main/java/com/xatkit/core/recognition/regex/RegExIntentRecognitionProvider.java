@@ -194,7 +194,7 @@ public class RegExIntentRecognitionProvider implements IntentRecognitionProvider
             Log.trace("Skipping registration of {0} ({1}), {0} are natively supported",
                     BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType().getLiteral());
         } else if (entityDefinition instanceof CustomEntityDefinition) {
-            Log.info("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
+            Log.debug("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
             this.registerCustomEntityDefinition((CustomEntityDefinition) entityDefinition);
         }
     }
