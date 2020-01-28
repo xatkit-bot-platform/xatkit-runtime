@@ -61,7 +61,7 @@ import static java.util.Objects.nonNull;
  *
  * @see IntentRecognitionProviderFactory
  */
-public class RegExIntentRecognitionProvider implements IntentRecognitionProvider {
+public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
 
     /**
      * The Default Fallback Intent that is returned when the user input does not match any registered Intent.
@@ -457,7 +457,7 @@ public class RegExIntentRecognitionProvider implements IntentRecognitionProvider
      * @return the {@link RecognizedIntent} matched from the provided {@code input}
      */
     @Override
-    public RecognizedIntent getIntent(String input, XatkitSession session) {
+    public RecognizedIntent getIntentInternal(String input, XatkitSession session) {
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
         /*
          * The recognitionConfidence is always 1 with the RegExIntentRecognitionProvider since it always returns
