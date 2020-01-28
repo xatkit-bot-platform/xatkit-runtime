@@ -94,7 +94,7 @@ import static java.util.Objects.nonNull;
  * <a href="https://cloud.google.com/dialogflow-enterprise/docs/reference/libraries">DialogFlow documentation</a> for
  * further information.
  */
-public class DialogFlowApi implements IntentRecognitionProvider {
+public class DialogFlowApi extends IntentRecognitionProvider {
 
     /**
      * The {@link Configuration} key to store the unique identifier of the DialogFlow project.
@@ -1462,7 +1462,7 @@ public class DialogFlowApi implements IntentRecognitionProvider {
      * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
     @Override
-    public RecognizedIntent getIntent(String input, XatkitSession session) {
+    public RecognizedIntent getIntentInternal(String input, XatkitSession session) {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot extract an Intent from the provided input, the DialogFlow API is " +
                     "shutdown");
