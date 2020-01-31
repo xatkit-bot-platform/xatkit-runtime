@@ -373,6 +373,7 @@ public class RecognitionMonitor {
                     int totalMatchedUtteranceCount = 0;
                     int totalUnmatchedUtteranceCount = 0;
                     long totalSessionTime = 0;
+                    double accumulatedConfidence = 0.0;
                     for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
                         sessionCount++;
                         long sessionStartTimestamp = 0;
@@ -391,6 +392,7 @@ public class RecognitionMonitor {
                             if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
                                 totalUnmatchedUtteranceCount++;
                             } else {
+                                accumulatedConfidence += (double) intentRecord.getRecognitionConfidence();
                                 totalMatchedUtteranceCount++;
                             }
                         }
@@ -398,6 +400,9 @@ public class RecognitionMonitor {
                     double avgMatchedUtterance = totalMatchedUtteranceCount / (double) sessionCount;
                     double avgUnmatchedUtterance = totalUnmatchedUtteranceCount / (double) sessionCount;
                     double avgSessionTime = totalSessionTime / (double) sessionCount;
+                    double avgRecognitionConfidence = accumulatedConfidence / (double) totalMatchedUtteranceCount;
+
+                    result.addProperty("averageRecognitionConfidence", avgRecognitionConfidence);
                     result.addProperty("averageMatchedUtteranceCount", avgMatchedUtterance);
                     result.addProperty("averageUnmatchedUtteranceCount", avgUnmatchedUtterance);
                     // /1000 for seconds
