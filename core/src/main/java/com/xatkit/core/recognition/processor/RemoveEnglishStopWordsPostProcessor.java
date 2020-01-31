@@ -90,8 +90,12 @@ public class RemoveEnglishStopWordsPostProcessor implements IntentPostProcessor 
                 if (referredEntity instanceof BaseEntityDefinition) {
                     BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) referredEntity;
                     if (baseEntityDefinition.getEntityType().equals(EntityType.ANY)) {
-                        String processedValue = removeStopWords(v.getValue());
-                        v.setValue(processedValue);
+                        if(v.getValue() instanceof String) {
+                            String processedValue = removeStopWords((String) v.getValue());
+                            v.setValue(processedValue);
+                        } else {
+                            Log.error("Found {1} parameter value for an any entity", v.getClass().getSimpleName());
+                        }
                     }
                 }
             });

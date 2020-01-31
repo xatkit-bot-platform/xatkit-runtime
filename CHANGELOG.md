@@ -14,6 +14,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - Class `EmptyContentRestHandler` which can be used to define REST endpoints that do not accept any request content (this is for example the case for most of the *GET* requests). 
 - Support for pre/post processors wrapping intent recognition (see [#252](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/252)). This allows to define specific functions to adapt the textual input (e.g. to improve the intent recognition quality), as well as the computed intent (e.g. to normalize values in extracted contexts). **This change breaks the public API**: the `IntentRecognitionProvider` interface is now an abstract class, existing classes implementing the interface should now extend it.
 - Post-processor `RemoveEnglishStopWordsPostProcessor` that removes English stop words from recognized intent's parameter values that have been extracted from `any` entities. This processor should help normalizing DialogFlow values when using `any` entities (see [#265](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/265)). The processor can be activated using the following property: `xatkit.recognition.postprocessors = RemoveEnglishStopWords`.
+- Support for `CompositeEntity` in the DialogFlow intent provider (see [#271](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/271)). The keyword was already present in the language but the mapping to DialogFlow wasn't working properly (nested values were not supported by the connector). `CompositeEntities` can be accessed as multi-level maps, e.g. `(context.get("context").get("composite") as Map).get("nested1")`.
 
 ## Changed
 
@@ -33,6 +34,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - [#269](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/269): *Reduce default logging of DialogFlow API*
 - [#252](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/252): *Pre/Post processing of user inputs*
 - [#265](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/265): *An option to remove stop words from parameters extracted with any*
+- [#271](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/271): *Add support for composite entity*
 
 ## [4.0.0] - 2019-12-01
 
