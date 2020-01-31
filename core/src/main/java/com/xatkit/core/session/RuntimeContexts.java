@@ -272,7 +272,7 @@ public class RuntimeContexts {
                 ContextParameterValue.class.getSimpleName(), contextParameterValue);
         String contextName = ((Context) contextParameterValue.getContextParameter().eContainer()).getName();
         String parameterName = contextParameterValue.getContextParameter().getName();
-        String parameterValue = contextParameterValue.getValue();
+        Object parameterValue = contextParameterValue.getValue();
         int lifespanCount = contextParameterValue.getContextInstance().getLifespanCount();
         this.setContextValue(contextName, lifespanCount, parameterName, parameterValue);
     }
