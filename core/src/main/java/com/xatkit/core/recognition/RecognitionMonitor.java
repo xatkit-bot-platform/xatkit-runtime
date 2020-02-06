@@ -185,11 +185,27 @@ public class RecognitionMonitor {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
                     JsonArray result = new JsonArray();
+                    double accRecognitionConfidence = 0.0;
+                    int matchedCount = 0;
+                    int unmatchedCount = 0;
+                    int nSessions = 0;
                     for (Map.Entry<String, Map<Long, IntentRecord>> entry : records.entrySet()) {
                         JsonObject sessionObject = buildSessionObject(entry.getKey(), entry.getValue());
-                        result.add(sessionObject);
+                        matchedCount += sessionObject.get("matchedUtteranceCount").getAsInt();
+                        unmatchedCount += sessionObject.get("unmatchedUtteranceCount").getAsInt();
+                        accRecognitionConfidence += (sessionObject.get("avgSessionConfidence").getAsDouble() * sessionObject.get("matchedUtteranceCount").getAsDouble());
+                        nSessions++;
 
+                        result.add(sessionObject);
                     }
+
+                    JsonObject globalInfo = new JsonObject();
+                    globalInfo.addProperty("nSessions", nSessions);
+                    globalInfo.addProperty("avgRecognitionConfidence", accRecognitionConfidence/(double) matchedCount);
+                    globalInfo.addProperty("totalUnmatchedUtterances", unmatchedCount);
+                    globalInfo.addProperty("totalMatchedUtterances", matchedCount);
+                    result.add(globalInfo);
+
                     return result;
                 }));
     }
@@ -373,7 +389,6 @@ public class RecognitionMonitor {
                     int totalMatchedUtteranceCount = 0;
                     int totalUnmatchedUtteranceCount = 0;
                     long totalSessionTime = 0;
-                    double accumulatedConfidence = 0.0;
                     for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
                         sessionCount++;
                         long sessionStartTimestamp = 0;
@@ -392,7 +407,6 @@ public class RecognitionMonitor {
                             if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
                                 totalUnmatchedUtteranceCount++;
                             } else {
-                                accumulatedConfidence += (double) intentRecord.getRecognitionConfidence();
                                 totalMatchedUtteranceCount++;
                             }
                         }
@@ -400,9 +414,7 @@ public class RecognitionMonitor {
                     double avgMatchedUtterance = totalMatchedUtteranceCount / (double) sessionCount;
                     double avgUnmatchedUtterance = totalUnmatchedUtteranceCount / (double) sessionCount;
                     double avgSessionTime = totalSessionTime / (double) sessionCount;
-                    double avgRecognitionConfidence = accumulatedConfidence / (double) totalMatchedUtteranceCount;
 
-                    result.addProperty("averageRecognitionConfidence", avgRecognitionConfidence);
                     result.addProperty("averageMatchedUtteranceCount", avgMatchedUtterance);
                     result.addProperty("averageUnmatchedUtteranceCount", avgUnmatchedUtterance);
                     // /1000 for seconds
@@ -425,6 +437,7 @@ public class RecognitionMonitor {
         sessionObject.add("entries", sessionRecords);
         int unmatchedCount = 0;
         int matchedCount = 0;
+        double accConfidence = 0.0;
         for (Map.Entry<Long, IntentRecord> sessionEntry : sessionData.entrySet()) {
             JsonObject entryObject = new JsonObject();
             sessionRecords.add(entryObject);
@@ -435,11 +448,13 @@ public class RecognitionMonitor {
             if (sessionEntry.getValue().getIntentName().equals("Default_Fallback_Intent")) {
                 unmatchedCount++;
             } else {
+                accConfidence += sessionEntry.getValue().getRecognitionConfidence();
                 matchedCount++;
             }
         }
         sessionObject.add("matchedUtteranceCount", new JsonPrimitive(matchedCount));
         sessionObject.add("unmatchedUtteranceCount", new JsonPrimitive(unmatchedCount));
+        sessionObject.add("avgSessionConfidence", new JsonPrimitive(accConfidence/(double)matchedCount));
         return sessionObject;
     }
 
