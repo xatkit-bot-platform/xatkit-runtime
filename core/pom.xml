@@ -29,6 +29,16 @@
 
     <dependencies>
 
+        <!-- Stanford NLP -->
+        <!-- This dependency has the provided scope because it is only required by some pre/post processors, see the
+        documentation to setup Stanford NLP in Xatkit. -->
+        <dependency>
+            <groupId>edu.stanford.nlp</groupId>
+            <artifactId>stanford-corenlp</artifactId>
+            <version>3.9.2</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- DialogFlow -->
 
         <dependency>
