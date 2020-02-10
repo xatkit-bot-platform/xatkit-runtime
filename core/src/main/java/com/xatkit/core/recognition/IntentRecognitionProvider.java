@@ -7,6 +7,7 @@ import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
+import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
@@ -178,11 +179,23 @@ public abstract class IntentRecognitionProvider {
     public final RecognizedIntent getIntent(String input, XatkitSession session) {
         String preProcessedInput = input;
         for (InputPreProcessor preProcessor : this.preProcessors) {
+            long preStart = System.currentTimeMillis();
             preProcessedInput = preProcessor.process(input, session);
+            long preEnd = System.currentTimeMillis();
+            Log.debug("Time to execute pre-processor {0}: {1}ms", preProcessor.getClass().getSimpleName(),
+                    (preEnd - preStart));
         }
+        long recognitionStart = System.currentTimeMillis();
         RecognizedIntent recognizedIntent = getIntentInternal(preProcessedInput, session);
+        long recognitionEnd = System.currentTimeMillis();
+        Log.debug("Time to recognize the intent with {0}: {1}ms", this.getClass().getSimpleName(),
+                (recognitionEnd - recognitionStart));
         for (IntentPostProcessor postProcessor : this.postProcessors) {
+            long postStart = System.currentTimeMillis();
             recognizedIntent = postProcessor.process(recognizedIntent, session);
+            long postEnd = System.currentTimeMillis();
+            Log.debug("Time to execute post-processor {0}: {1}ms", postProcessor.getClass().getSimpleName(),
+                    (postEnd - postStart));
         }
         return recognizedIntent;
     }
