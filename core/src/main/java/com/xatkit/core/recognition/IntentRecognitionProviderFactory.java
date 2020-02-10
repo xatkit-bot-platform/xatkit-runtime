@@ -117,7 +117,21 @@ public class IntentRecognitionProviderFactory {
             provider = new RegExIntentRecognitionProvider(configuration, recognitionMonitor);
         }
         provider.setPreProcessors(preProcessors);
+        for(InputPreProcessor preProcessor : preProcessors) {
+            /*
+             * Initialize the pre-processors once they have all been constructed, this way we can initialize third
+             * party services that are used by multiple pre-processors.
+             */
+            preProcessor.init();
+        }
         provider.setPostProcessors(postProcessors);
+        for(IntentPostProcessor postProcessor : postProcessors) {
+            /*
+             * Initialize the post-processors once they have all been constructed, this way we can initialize third
+             * party services that are used by multiple post-processors.
+             */
+            postProcessor.init();
+        }
         return provider;
     }
 
