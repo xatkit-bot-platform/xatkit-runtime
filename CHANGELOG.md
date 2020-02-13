@@ -24,6 +24,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - `RestHandler` instances can now throw a `RestHandlerException` to notify the server that an error occurred when handling the request. For now this exception is used to return a *404* status code instead of *200*.
 - Change log level of non-critical messages in `XatkitServer`, `DialogFlow` and `RegEx` intent recognition providers. This reduces the amount of noise in Xatkit logs.
 - `RestHandlerException` now supports HTTP error codes, and the `HttpHandler` uses this value to return the corresponding HTTP status to the client.
+- Monitoring endpoint `GET: /analytics/monitoring/session` now returns a `404` with an error message if the `sessionId` parameter is missing or if the corresponding session cannot be found. **This change breaks the public API**: client application expecting a status code `200` should be updated.
 
 ## Removed
 
@@ -38,6 +39,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - [#252](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/252): *Pre/Post processing of user inputs*
 - [#265](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/265): *An option to remove stop words from parameters extracted with any*
 - [#271](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/271): *Add support for composite entity*
+- [#279](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/279): *Monitoring API: error responses should use proper HTTP codes*
 
 ## [4.0.0] - 2019-12-01
 
