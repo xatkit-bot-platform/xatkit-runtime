@@ -16,6 +16,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - Post-processor `RemoveEnglishStopWordsPostProcessor` that removes English stop words from recognized intent's parameter values that have been extracted from `any` entities. This processor should help normalizing DialogFlow values when using `any` entities (see [#265](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/265)). The processor can be activated using the following property: `xatkit.recognition.postprocessors = RemoveEnglishStopWords`.
 - Hook method `RuntimeArtifactAction#beforeDelay(delay)` that can be extended by concrete messaging actions that need to perform any computation before a potential message delay (specified with `xatkit.message.delay`). This is for example the case if the action needs to notify a client to print a waiting message or loading dots. This change does not break the public API: the hook does nothing if not implemented.
 - Support for `CompositeEntity` in the DialogFlow intent provider (see [#271](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/271)). The keyword was already present in the language but the mapping to DialogFlow wasn't working properly (nested values were not supported by the connector). `CompositeEntities` can be accessed as multi-level maps, e.g. `(context.get("context").get("composite") as Map).get("nested1")`.
+- New utility methods in `HttpEntityHelper` to create and parse `HttpEntity` instances.
 
 ## Changed
 

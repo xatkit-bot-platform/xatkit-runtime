@@ -17,9 +17,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -155,17 +152,7 @@ class HttpHandler implements HttpRequestHandler {
             Long contentLength = entity.getContentLength();
             Log.debug("Query content length: {0}", contentLength);
 
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
-                StringBuilder contentBuilder = new StringBuilder();
-                String currentLine;
-                while (nonNull(currentLine = reader.readLine())) {
-                    contentBuilder.append(currentLine);
-                }
-                content = contentBuilder.toString();
-            } catch (IOException e) {
-                throw new XatkitException("An error occurred when handling the request content", e);
-            }
+            content = HttpEntityHelper.getStringFromHttpEntity(entity);
         }
 
         HttpMethod httpMethod = HttpMethod.valueOf(method);
