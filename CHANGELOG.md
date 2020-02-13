@@ -23,6 +23,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - `HttpHandler` now supports `HttpEntity` instances returned from `RestHandler#handle`. This allows to define handlers that directly return a valid `HttpEntity` (e.g. the content of an HTML page). In this case, the `RestHandler` implementation is responsible of the `HttpEntity` creation.
 - `RestHandler` instances can now throw a `RestHandlerException` to notify the server that an error occurred when handling the request. For now this exception is used to return a *404* status code instead of *200*.
 - Change log level of non-critical messages in `XatkitServer`, `DialogFlow` and `RegEx` intent recognition providers. This reduces the amount of noise in Xatkit logs.
+- `RestHandlerException` now supports HTTP error codes, and the `HttpHandler` uses this value to return the corresponding HTTP status to the client.
 
 ## Removed
 

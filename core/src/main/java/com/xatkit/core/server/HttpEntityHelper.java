@@ -97,6 +97,30 @@ public class HttpEntityHelper {
     }
 
     /**
+     * Creates an {@link HttpEntity} representing the error wrapped in the provided {@link RestHandlerException}.
+     * <p>
+     * The created {@link HttpEntity} contains a Json element with the following content:
+     * <pre>
+     * {@code
+     *  {
+     *      "error" : <e.getMessage()>
+     *  }
+     * }
+     * </pre>
+     *
+     * @param e the {@link RestHandlerException} to transform into an error {@link HttpEntity}
+     * @return the created {@link HttpEntity}
+     * @throws NullPointerException if the provided {@link RestHandlerException} is {@code null}
+     */
+    public static HttpEntity createErrorEntity(@Nonnull RestHandlerException e) {
+        checkNotNull(e, "Cannot create an error %s from the provided %s %s", HttpEntity.class.getSimpleName(),
+                RestHandlerException.class.getSimpleName(), e);
+        JsonObject errorObject = new JsonObject();
+        errorObject.addProperty("error", e.getMessage());
+        return createHttpEntity(errorObject);
+    }
+
+    /**
      * Creates a {@link HttpEntity} from the provided {@code element}.
      * <p>
      * This method wraps the {@link String} representation of the provided {@code element} into an {@link HttpEntity}

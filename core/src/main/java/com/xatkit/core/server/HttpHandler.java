@@ -163,7 +163,9 @@ class HttpHandler implements HttpRequestHandler {
                         content, contentType);
             } catch(RestHandlerException e) {
                 Log.error(e, "An error occurred when notifying the Rest handler, see attached exception");
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                HttpEntity errorEntity = HttpEntityHelper.createErrorEntity(e);
+                response.setEntity(errorEntity);
+                response.setStatusCode(e.getErrorCode());
                 /*
                  * We can return here, no need to process the returned value.
                  */
