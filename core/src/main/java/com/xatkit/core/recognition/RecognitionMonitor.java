@@ -193,7 +193,7 @@ public class RecognitionMonitor {
                         JsonObject sessionObject = buildSessionObject(entry.getKey(), entry.getValue());
                         matchedCount += sessionObject.get("matchedUtteranceCount").getAsInt();
                         unmatchedCount += sessionObject.get("unmatchedUtteranceCount").getAsInt();
-                        accRecognitionConfidence += (sessionObject.get("avgSessionConfidence").getAsDouble() * sessionObject.get("matchedUtteranceCount").getAsDouble());
+                        if(!sessionObject.get("avgSessionConfidence").equals(' ')) accRecognitionConfidence += (sessionObject.get("avgSessionConfidence").getAsDouble() * sessionObject.get("matchedUtteranceCount").getAsDouble());
                         nSessions++;
 
                         result.add(sessionObject);
@@ -201,12 +201,16 @@ public class RecognitionMonitor {
 
                     JsonObject globalInfo = new JsonObject();
                     globalInfo.addProperty("nSessions", nSessions);
-                    globalInfo.addProperty("avgRecognitionConfidence", accRecognitionConfidence/(double) matchedCount);
+                    double aux = accRecognitionConfidence/(double) matchedCount;
+                    if(!Double.isNaN(aux)) globalInfo.addProperty("avgRecognitionConfidence", aux);
+                    else globalInfo.addProperty("avgRecognitionConfidence", ' ');
                     globalInfo.addProperty("totalUnmatchedUtterances", unmatchedCount);
                     globalInfo.addProperty("totalMatchedUtterances", matchedCount);
-                    result.add(globalInfo);
 
-                    return result;
+                    JsonArray resultObject = new JsonArray();
+                    resultObject.add(result);
+                    resultObject.add(globalInfo);
+                    return resultObject;
                 }));
     }
 
@@ -454,7 +458,8 @@ public class RecognitionMonitor {
         }
         sessionObject.add("matchedUtteranceCount", new JsonPrimitive(matchedCount));
         sessionObject.add("unmatchedUtteranceCount", new JsonPrimitive(unmatchedCount));
-        sessionObject.add("avgSessionConfidence", new JsonPrimitive(accConfidence/(double)matchedCount));
+        if(matchedCount != 0) sessionObject.add("avgSessionConfidence", new JsonPrimitive(accConfidence/(double)matchedCount));
+        else sessionObject.add("avgSessionConfidence", new JsonPrimitive(' '));
         return sessionObject;
     }
 
