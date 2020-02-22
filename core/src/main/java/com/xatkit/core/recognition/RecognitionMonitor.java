@@ -184,33 +184,35 @@ public class RecognitionMonitor {
     private void registerGetMonitoringData(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
-                    JsonArray result = new JsonArray();
+                    JsonArray sessionsArray = new JsonArray();
                     double accRecognitionConfidence = 0.0;
                     int matchedCount = 0;
                     int unmatchedCount = 0;
                     int nSessions = 0;
                     for (Map.Entry<String, Map<Long, IntentRecord>> entry : records.entrySet()) {
                         JsonObject sessionObject = buildSessionObject(entry.getKey(), entry.getValue());
-                        matchedCount += sessionObject.get("matchedUtteranceCount").getAsInt();
+                        int sessionMatchedCount = sessionObject.get("matchedUtteranceCount").getAsInt();
+                        matchedCount += sessionMatchedCount;
                         unmatchedCount += sessionObject.get("unmatchedUtteranceCount").getAsInt();
-                        if(!sessionObject.get("avgSessionConfidence").equals(' ')) accRecognitionConfidence += (sessionObject.get("avgSessionConfidence").getAsDouble() * sessionObject.get("matchedUtteranceCount").getAsDouble());
+                        if(sessionObject.has("avgSessionConfidence")) {
+                            double avgSessionConfidence = sessionObject.get("avgSessionConfidence").getAsDouble();
+                            accRecognitionConfidence += avgSessionConfidence * (double)sessionMatchedCount;
+                        }
                         nSessions++;
-
-                        result.add(sessionObject);
+                        sessionsArray.add(sessionObject);
                     }
-
                     JsonObject globalInfo = new JsonObject();
                     globalInfo.addProperty("nSessions", nSessions);
                     double aux = accRecognitionConfidence/(double) matchedCount;
-                    if(!Double.isNaN(aux)) globalInfo.addProperty("avgRecognitionConfidence", aux);
-                    else globalInfo.addProperty("avgRecognitionConfidence", ' ');
+                    if(!Double.isNaN(aux) && Double.isFinite(aux)) {
+                        globalInfo.addProperty("avgRecognitionConfidence", aux);
+                    }
                     globalInfo.addProperty("totalUnmatchedUtterances", unmatchedCount);
                     globalInfo.addProperty("totalMatchedUtterances", matchedCount);
-
-                    JsonArray resultObject = new JsonArray();
-                    resultObject.add(result);
-                    resultObject.add(globalInfo);
-                    return resultObject;
+                    JsonArray resultArray = new JsonArray();
+                    resultArray.add(sessionsArray);
+                    resultArray.add(globalInfo);
+                    return resultArray;
                 }));
     }
 
@@ -468,8 +470,10 @@ public class RecognitionMonitor {
         }
         sessionObject.add("matchedUtteranceCount", new JsonPrimitive(matchedCount));
         sessionObject.add("unmatchedUtteranceCount", new JsonPrimitive(unmatchedCount));
-        if(matchedCount != 0) sessionObject.add("avgSessionConfidence", new JsonPrimitive(accConfidence/(double)matchedCount));
-        else sessionObject.add("avgSessionConfidence", new JsonPrimitive(' '));
+        if(matchedCount > 0) {
+            sessionObject.add("avgSessionConfidence",
+                    new JsonPrimitive(accConfidence/(double)matchedCount));
+        }
         return sessionObject;
     }
 
