@@ -14,12 +14,19 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - Class `EmptyContentRestHandler` which can be used to define REST endpoints that do not accept any request content (this is for example the case for most of the *GET* requests). 
 - Support for pre/post processors wrapping intent recognition (see [#252](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/252)). This allows to define specific functions to adapt the textual input (e.g. to improve the intent recognition quality), as well as the computed intent (e.g. to normalize values in extracted contexts). **This change breaks the public API**: the `IntentRecognitionProvider` interface is now an abstract class, existing classes implementing the interface should now extend it.
 - Post-processor `RemoveEnglishStopWordsPostProcessor` that removes English stop words from recognized intent's parameter values that have been extracted from `any` entities. This processor should help normalizing DialogFlow values when using `any` entities (see [#265](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/265)). The processor can be activated using the following property: `xatkit.recognition.postprocessors = RemoveEnglishStopWords`.
+- Post-processor `IsEnglishYesNoQuestion` that sets the context parameter `nlp.isYesNo` to `true` if the user input is a yes/no question, and `false` otherwise (see [#276](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/276)).
+- Post-processor `EnglishSentiment` that sets the context parameter `nlp.sentiment` to a value in `["Very Negative", "Negative", "Neutral", "Positive", "Very Positive"]` (see [#275](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/275)).
+- Hook method `RuntimeArtifactAction#beforeDelay(delay)` that can be extended by concrete messaging actions that need to perform any computation before a potential message delay (specified with `xatkit.message.delay`). This is for example the case if the action needs to notify a client to print a waiting message or loading dots. This change does not break the public API: the hook does nothing if not implemented.
+- Support for `CompositeEntity` in the DialogFlow intent provider (see [#271](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/271)). The keyword was already present in the language but the mapping to DialogFlow wasn't working properly (nested values were not supported by the connector). `CompositeEntities` can be accessed as multi-level maps, e.g. `(context.get("context").get("composite") as Map).get("nested1")`.
+- New utility methods in `HttpEntityHelper` to create and parse `HttpEntity` instances.
 
 ## Changed
 
 - `HttpHandler` now supports `HttpEntity` instances returned from `RestHandler#handle`. This allows to define handlers that directly return a valid `HttpEntity` (e.g. the content of an HTML page). In this case, the `RestHandler` implementation is responsible of the `HttpEntity` creation.
 - `RestHandler` instances can now throw a `RestHandlerException` to notify the server that an error occurred when handling the request. For now this exception is used to return a *404* status code instead of *200*.
 - Change log level of non-critical messages in `XatkitServer`, `DialogFlow` and `RegEx` intent recognition providers. This reduces the amount of noise in Xatkit logs.
+- `RestHandlerException` now supports HTTP error codes, and the `HttpHandler` uses this value to return the corresponding HTTP status to the client.
+- Monitoring endpoint `GET: /analytics/monitoring/session` now returns a `404` with an error message if the `sessionId` parameter is missing or if the corresponding session cannot be found. **This change breaks the public API**: client application expecting a status code `200` should be updated.
 
 ## Removed
 
@@ -29,10 +36,18 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 - [#251](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/251): *AdminHttpHandler should be moved to react platform*
 - The `XatkitServer` now correctly returns a `404` error if there is no `RestHandler` associated to a requested URI.
+- [#252](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/252):: *Pre/Post processing of user inputs*
+- [#260](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/260): *Public react server URL should be decoupled from the server base URL*
 - [#267](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/267): *Change log level of XatkitServer logs to debug*
 - [#269](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/269): *Reduce default logging of DialogFlow API*
 - [#252](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/252): *Pre/Post processing of user inputs*
 - [#265](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/265): *An option to remove stop words from parameters extracted with any*
+- [#267](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/267): *Change log level of XatkitServer logs to debug*
+- [#269](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/269): *Reduce default logging of DialogFlow API*
+- [#271](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/271): *Add support for composite entity*
+- [#275](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/275): *Add sentiment analysis post-processor*
+- [#276](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/276): *Add post-processor extracting whether a user input is a yes/no question*
+- [#279](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/279): *Monitoring API: error responses should use proper HTTP codes*
 
 ## [4.0.0] - 2019-12-01
 

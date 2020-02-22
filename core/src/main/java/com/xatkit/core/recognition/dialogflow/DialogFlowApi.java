@@ -1226,7 +1226,20 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                 Intent.Parameter parameter = Intent.Parameter.newBuilder().setDisplayName(contextParameter.getName())
                         .setEntityTypeDisplayName(dialogFlowEntity).setValue("$" + contextParameter
                                 .getName()).build();
-                results.add(parameter);
+                Optional<Intent.Parameter> parameterAlreadyRegistered =
+                        results.stream().filter(r -> r.getDisplayName().equals(parameter.getDisplayName())).findAny();
+                if (parameterAlreadyRegistered.isPresent()) {
+                    /*
+                     * Don't register the parameter if it has been added to the list, this means that we have a
+                     * parameter initialized with different fragments, and this is already handled when constructing
+                     * the training sentence.
+                     * If the parameter is added the agent seems to work fine, but there is an error message
+                     * "Parameter name must be unique within the action" in the corresponding intent page.
+                     */
+                    Log.warn("Parameter {0} is defined multiple times", parameter.getDisplayName());
+                } else {
+                    results.add(parameter);
+                }
             }
         }
         return results;
@@ -1421,18 +1434,9 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                     Map<String, Object> contextVariables = contextEntry.getValue();
                     Map<String, Value> dialogFlowContextVariables = new HashMap<>();
                     contextVariables.entrySet().stream().forEach(contextVariableEntry -> {
-                                if (!(contextVariableEntry.getValue() instanceof String)) {
-                                    throw new XatkitException(MessageFormat.format("Cannot merge the current {0} in " +
-                                                    "DialogFlow, the context parameter value {1}.{2}={3} is not a " +
-                                                    "{4}", this.getClass().getSimpleName(), contextName,
-                                            contextVariableEntry.getKey(), contextVariableEntry.getValue(),
-                                            String.class.getSimpleName()));
-                                }
-                                Value value = Value.newBuilder().setStringValue((String) contextVariableEntry
-                                        .getValue()).build();
-                                dialogFlowContextVariables.put(contextVariableEntry.getKey(), value);
-                            }
-                    );
+                        Value value = buildValue(contextVariableEntry.getValue());
+                        dialogFlowContextVariables.put(contextVariableEntry.getKey(), value);
+                    });
                     /*
                      * Need to put the lifespanCount otherwise the context is ignored.
                      */
@@ -1441,6 +1445,59 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                     contextsClient.createContext(dialogFlowSession.getSessionName(), builder.build());
                 }
         );
+    }
+
+    // TODO comment this
+
+    /**
+     * Creates a protobuf {@link Value} from the provided {@link Object}.
+     * <p>
+     * This method supports {@link String} and {@link Map} as input, other data types should not be passed to this
+     * method, because all the values returned by DialogFlow are translated into {@link String} or {@link Map}.
+     *
+     * @param from the {@link Object} to translate to a protobuf {@link Value}
+     * @return the protobuf {@link Value}
+     * @throws IllegalArgumentException if the provided {@link Object}'s type is not supported
+     * @see #buildStruct(Map)
+     */
+    private Value buildValue(Object from) {
+        Value.Builder valueBuilder = Value.newBuilder();
+        if (from instanceof String) {
+            valueBuilder.setStringValue((String) from);
+            return valueBuilder.build();
+        } else if (from instanceof Map) {
+            Struct struct = buildStruct((Map<String, Object>) from);
+            return valueBuilder.setStructValue(struct).build();
+        } else {
+            throw new IllegalArgumentException(MessageFormat.format("Cannot build a protobuf value from {0}", from));
+        }
+    }
+
+    /**
+     * Creates a protobuf {@link Struct} from the provided {@link Map}.
+     * <p>
+     * This method deals with nested {@link Map}s, as long as their values are {@link String}s. The returned
+     * {@link Struct} reflects the {@link Map} nesting hierarchy.
+     *
+     * @param fromMap the {@link Map} to translate to a protobuf {@link Struct}
+     * @return the protobuf {@link Struct}
+     * @throws IllegalArgumentException if a nested {@link Map}'s value type is not {@link String} or {@link Map}
+     */
+    private Struct buildStruct(Map<String, Object> fromMap) {
+        Struct.Builder structBuilder = Struct.newBuilder();
+        for (Map.Entry<String, Object> entry : fromMap.entrySet()) {
+            if (entry.getValue() instanceof String) {
+                structBuilder.putFields(entry.getKey(),
+                        Value.newBuilder().setStringValue((String) entry.getValue()).build());
+            } else if (entry.getValue() instanceof Map) {
+                structBuilder.putFields(entry.getKey(), Value.newBuilder().setStructValue(buildStruct((Map<String,
+                        Object>) entry.getValue())).build());
+            } else {
+                throw new IllegalArgumentException(MessageFormat.format("Cannot build a protobuf struct " +
+                        "from {0}, unsupported data type", fromMap));
+            }
+        }
+        return structBuilder.build();
     }
 
     /**
@@ -1556,19 +1613,16 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                 Log.debug("Processing context {0}", context.getName());
                 Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
                 for (String key : parameterValues.keySet()) {
-                    String parameterValue = convertParameterValueToString(parameterValues.get(key));
-                    Log.debug("Processing context value {0} ({1})", key, parameterValue);
-                    /*
-                     * Ignore original: this variable contains the raw parsed value, we don't need this.
-                     */
-                    if (!key.contains(".original")) {
-                        ContextParameter contextParameter = contextDefinition.getContextParameter(key);
-                        if (nonNull(contextParameter)) {
-                            ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
-                            contextParameterValue.setValue(parameterValue);
-                            contextParameterValue.setContextParameter(contextParameter);
-                            contextInstance.getValues().add(contextParameterValue);
-                        }
+                    Value value = parameterValues.get(key);
+
+                    Object parameterValue = buildParameterValue(value);
+
+                    ContextParameter contextParameter = contextDefinition.getContextParameter(key);
+                    if (nonNull(contextParameter) && !key.contains(".original")) {
+                        ContextParameterValue contextParameterValue = intentFactory.createContextParameterValue();
+                        contextParameterValue.setContextParameter(contextParameter);
+                        contextParameterValue.setValue(parameterValue);
+                        contextInstance.getValues().add(contextParameterValue);
                     }
                 }
                 recognizedIntent.getOutContextInstances().add(contextInstance);
@@ -1577,6 +1631,35 @@ public class DialogFlowApi extends IntentRecognitionProvider {
             }
         }
         return recognizedIntent;
+    }
+
+    // TODO comment this
+
+    /**
+     * Build a context parameter value from the provided protobuf {@link Value}.
+     * <p>
+     * The returned value is assignable to {@link ContextParameterValue#setValue(Object)}, and is either a
+     * {@link String}, or a {@link Map} for nested {@link Struct} {@link Value}s.
+     *
+     * @param fromValue the protobuf {@link Value} to translate
+     * @return the context parameter value
+     */
+    private Object buildParameterValue(Value fromValue) {
+        if (fromValue.getKindCase().equals(Value.KindCase.STRUCT_VALUE)) {
+            Map<String, Object> parameterMap = new HashMap<>();
+            fromValue.getStructValue().getFieldsMap().forEach((key, value) -> {
+                if (!key.contains(".original")) {
+                    /*
+                     * Remove .original in inner structures, we don't need them
+                     */
+                    Object adaptedValue = buildParameterValue(value);
+                    parameterMap.put(key, adaptedValue);
+                }
+            });
+            return parameterMap;
+        } else {
+            return convertParameterValueToString(fromValue);
+        }
     }
 
     /**

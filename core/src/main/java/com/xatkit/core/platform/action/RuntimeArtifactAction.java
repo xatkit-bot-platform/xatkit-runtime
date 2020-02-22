@@ -15,9 +15,6 @@ import static java.util.Objects.nonNull;
 /**
  * An abstract {@link RuntimeAction}.
  * <p>
- * This class relies on {@link RuntimeContexts#fillContextValues(String)} to replace context
- * variable accesses by their concrete value.
- * <p>
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the action
  * @see RuntimePlatform
@@ -176,8 +173,9 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
                 }
             }
             try {
-                waitMessageDelay();
-                computationResult = compute();
+                this.beforeDelay(messageDelay);
+                this.waitMessageDelay();
+                computationResult = this.compute();
             } catch (IOException e) {
                 if (attempts < IO_ERROR_RETRIES + 1) {
                     Log.error("An {0} occurred when computing the action, trying to send the artifact again ({1}/{2})"
@@ -207,6 +205,19 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
         } while (nonNull(thrownException) && attempts < IO_ERROR_RETRIES + 1);
         long after = System.currentTimeMillis();
         return new RuntimeActionResult(computationResult, thrownException, (after - before));
+    }
+
+    /**
+     * A hook that is executed before any delay specified by {@link #MESSAGE_DELAY_KEY}.
+     * <p>
+     * This method can be extended by concrete sub-classes if an action must be performed before a potential delay (e
+     * .g. notifying a client application to display writing dots).
+     * @param delayValue the value of the delay (in ms)
+     */
+    protected void beforeDelay(int delayValue) {
+        /*
+         * Do nothing, this method is a hook that can be extended by concrete sub-classes.
+         */
     }
 
     private void waitMessageDelay() {

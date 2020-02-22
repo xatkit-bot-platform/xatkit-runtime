@@ -1,11 +1,13 @@
 package com.xatkit.core.server;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.stubs.StubXatkitServer;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -51,12 +53,15 @@ public class HttpHandlerTest extends AbstractXatkitTest {
 
     private static String REGISTERED_POST_OBJECT_STRING;
 
-
     private static String REGISTERED_GET_URI = "/test-get";
+
+    private static String REGISTERED_GET_URI_ERROR = "/test-get-error";
 
     private static HttpRequest REGISTERED_GET_REQUEST;
 
     private static HttpRequest REGISTERED_GET_REQUEST_WITH_PARAMETERS;
+
+    private static HttpRequest REGISTERED_GET_REQUEST_ERROR;
 
     private HttpHandler handler;
 
@@ -78,6 +83,11 @@ public class HttpHandlerTest extends AbstractXatkitTest {
                     return null;
                 }
         ));
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, REGISTERED_GET_URI_ERROR,
+                RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
+                    Log.info("Test REST GET handler throwing error called");
+                    throw new RestHandlerException(403, "An error occurred");
+                }));
         NOT_REGISTERED_POST_REQUEST = new BasicHttpEntityEnclosingRequest("POST", NOT_REGISTERED_URI);
         JsonObject notRegisteredPostRequestObject = new JsonObject();
         notRegisteredPostRequestObject.addProperty("key", "value");
@@ -92,6 +102,8 @@ public class HttpHandlerTest extends AbstractXatkitTest {
         REGISTERED_GET_REQUEST = new BasicHttpRequest("GET", REGISTERED_GET_URI);
 
         REGISTERED_GET_REQUEST_WITH_PARAMETERS = new BasicHttpRequest("GET", REGISTERED_GET_URI + "?param=value");
+
+        REGISTERED_GET_REQUEST_ERROR = new BasicHttpRequest("GET", REGISTERED_GET_URI_ERROR);
     }
 
     @AfterClass
@@ -166,9 +178,24 @@ public class HttpHandlerTest extends AbstractXatkitTest {
         assertNotifyRestHandlerCallMatches(HttpMethod.GET,
                 REGISTERED_GET_URI,
                 Arrays.asList(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getAllHeaders()),
-                URLEncodedUtils.parse(new URI(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getRequestLine().getUri()), StandardCharsets.UTF_8.name()),
+                URLEncodedUtils.parse(new URI(REGISTERED_GET_REQUEST_WITH_PARAMETERS.getRequestLine().getUri()),
+                        StandardCharsets.UTF_8.name()),
                 null,
                 null);
+    }
+
+    @Test
+    public void handleGetRequestErrorRegisteredHandler() {
+        this.handler = getHandler();
+        handler.handle(REGISTERED_GET_REQUEST_ERROR, response, context);
+        assertIsRestEndpointCallMatches(HttpMethod.GET, REGISTERED_GET_URI_ERROR);
+        assertThat(response.getStatusLine().getStatusCode()).as("Status code is 403").isEqualTo(403);
+        assertThat(response.getEntity()).as("Response entity is not null").isNotNull();
+        HttpEntity errorEntity = response.getEntity();
+        JsonElement errorElement = HttpEntityHelper.getJsonElementFromHttpEntity(errorEntity);
+        JsonObject errorObject = errorElement.getAsJsonObject();
+        assertThat(errorObject.get("error").getAsString()).as("Response entity contains the exception's error " +
+                "message").isEqualTo("An error occurred");
     }
 
     private HttpHandler getHandler() {

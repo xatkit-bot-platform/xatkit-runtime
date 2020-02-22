@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.HttpUtils;
+import com.xatkit.core.server.RestHandlerException;
 import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
@@ -21,7 +22,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 /**
  * Provides monitoring capabilities for {@link IntentRecognitionProvider}s.
@@ -251,6 +251,16 @@ public class RecognitionMonitor {
      * }
      * }
      * </pre>
+     * <p>
+     * <b>Note</b>: this endpoint returns a {@code 404} status and the following content if the provided session does
+     * not exist:
+     * <pre>
+     * {@code
+     *  {
+     *      "error" : "Session <sessionId> not found"
+     *  }
+     * }
+     * </pre>
      *
      * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
      */
@@ -258,15 +268,15 @@ public class RecognitionMonitor {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/session",
                 RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
                     String sessionId = HttpUtils.getParameterValue("sessionId", params);
-                    if (nonNull(sessionId)) {
-                        Map<Long, IntentRecord> sessionRecords = records.get(sessionId);
-                        if (nonNull(sessionRecords)) {
-                            return buildSessionObject(sessionId, sessionRecords);
-                        }
+                    if(isNull(sessionId)) {
+                        throw new RestHandlerException(404, "Missing parameter sessionId");
                     }
-                    JsonObject result = new JsonObject();
-                    result.addProperty("error", "Session " + sessionId + " not found");
-                    return result;
+                    Map<Long, IntentRecord> sessionRecords = records.get(sessionId);
+                    if(isNull(sessionRecords)) {
+                        throw new RestHandlerException(404, "Session " + sessionId + " not found");
+                    } else {
+                        return buildSessionObject(sessionId, sessionRecords);
+                    }
                 })));
     }
 
