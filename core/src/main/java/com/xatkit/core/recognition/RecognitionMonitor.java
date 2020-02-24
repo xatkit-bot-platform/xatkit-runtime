@@ -150,33 +150,48 @@ public class RecognitionMonitor {
      * <pre>
      * {@code
      * [
-     *     {
-     *         "sessionId": "72f8fa90-8d3e-4804-b00d-5612a95fb644",
-     *         "entries": [
-     *             {
-     *                 "timestamp": 1573750605388,
-     *                 "utterance": "How are you?",
-     *                 "intent": "HowAreYou",
-     *                 "confidence": 1.0
-     *             },
-     *             {
-     *                 "timestamp": 1573750623741,
-     *                 "utterance": "Here is something you won't understand!",
-     *                 "intent": "Default_Fallback_Intent",
-     *                 "confidence": 1.0
-     *             },
-     *             {
-     *                 "timestamp": 1573750630281,
-     *                 "utterance": "I knew it",
-     *                 "intent": "Default_Fallback_Intent",
-     *                 "confidence": 1.0
-     *             }
-     *         ],
-     *         "matchedUtteranceCount": 1,
-     *         "unmatchedUtteranceCount": 2
-     *     }
-     * ]
-     * }
+     *  [{
+     *      "sessionId": "7df67aeb-4e20-4ee4-86dd-8f0df52e3720",
+     *      "entries": [{
+     *          "timestamp": 1582543925719,
+     *          "utterance": "whats up",
+     *          "intent": "Default_Fallback_Intent",
+     *          "confidence": 1.0
+     *      }, {
+     *          "timestamp": 1582543930723,
+     *          "utterance": "help me pls",
+     *          "intent": "Default_Fallback_Intent",
+     *          "confidence": 1.0
+     *      }],
+     *      "matchedUtteranceCount": 0,
+     *      "unmatchedUtteranceCount": 2
+     *  }, {
+     *      "sessionId": "22d48fa1-bb93-42fc-bf7e-7a61903fb0e4",
+     *      "entries": [{
+     *          "timestamp": 1582543939678,
+     *          "utterance": "hi",
+     *          "intent": "Welcome",
+     *          "confidence": 1.0
+     *      }, {
+     *          "timestamp": 1582543942658,
+     *          "utterance": "how are you?",
+     *          "intent": "HowAreYou",
+     *          "confidence": 1.0
+     *      }, {
+     *          "timestamp": 1582543948698,
+     *          "utterance": "me too! thanks!",
+     *          "intent": "Default_Fallback_Intent",
+     *          "confidence": 1.0
+     *      }],
+     *      "matchedUtteranceCount": 2,
+     *      "unmatchedUtteranceCount": 1,
+     *      "avgSessionConfidence": 1.0
+     *  }], {
+     *      "nSessions": 2,
+     *      "avgRecognitionConfidence": 1.0,
+     *      "totalUnmatchedUtterances": 3,
+     *      "totalMatchedUtterances": 2
+     * }]
      * </pre>
      *
      * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
