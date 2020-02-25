@@ -150,33 +150,48 @@ public class RecognitionMonitor {
      * <pre>
      * {@code
      * [
-     *     {
-     *         "sessionId": "72f8fa90-8d3e-4804-b00d-5612a95fb644",
-     *         "entries": [
-     *             {
-     *                 "timestamp": 1573750605388,
-     *                 "utterance": "How are you?",
-     *                 "intent": "HowAreYou",
-     *                 "confidence": 1.0
-     *             },
-     *             {
-     *                 "timestamp": 1573750623741,
-     *                 "utterance": "Here is something you won't understand!",
-     *                 "intent": "Default_Fallback_Intent",
-     *                 "confidence": 1.0
-     *             },
-     *             {
-     *                 "timestamp": 1573750630281,
-     *                 "utterance": "I knew it",
-     *                 "intent": "Default_Fallback_Intent",
-     *                 "confidence": 1.0
-     *             }
-     *         ],
-     *         "matchedUtteranceCount": 1,
-     *         "unmatchedUtteranceCount": 2
-     *     }
-     * ]
-     * }
+     *  [{
+     *      "sessionId": "7df67aeb-4e20-4ee4-86dd-8f0df52e3720",
+     *      "entries": [{
+     *          "timestamp": 1582543925719,
+     *          "utterance": "whats up",
+     *          "intent": "Default_Fallback_Intent",
+     *          "confidence": 1.0
+     *      }, {
+     *          "timestamp": 1582543930723,
+     *          "utterance": "help me pls",
+     *          "intent": "Default_Fallback_Intent",
+     *          "confidence": 1.0
+     *      }],
+     *      "matchedUtteranceCount": 0,
+     *      "unmatchedUtteranceCount": 2
+     *  }, {
+     *      "sessionId": "22d48fa1-bb93-42fc-bf7e-7a61903fb0e4",
+     *      "entries": [{
+     *          "timestamp": 1582543939678,
+     *          "utterance": "hi",
+     *          "intent": "Welcome",
+     *          "confidence": 1.0
+     *      }, {
+     *          "timestamp": 1582543942658,
+     *          "utterance": "how are you?",
+     *          "intent": "HowAreYou",
+     *          "confidence": 1.0
+     *      }, {
+     *          "timestamp": 1582543948698,
+     *          "utterance": "me too! thanks!",
+     *          "intent": "Default_Fallback_Intent",
+     *          "confidence": 1.0
+     *      }],
+     *      "matchedUtteranceCount": 2,
+     *      "unmatchedUtteranceCount": 1,
+     *      "avgSessionConfidence": 1.0
+     *  }], {
+     *      "nSessions": 2,
+     *      "avgRecognitionConfidence": 1.0,
+     *      "totalUnmatchedUtterances": 3,
+     *      "totalMatchedUtterances": 2
+     * }]
      * </pre>
      *
      * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
@@ -184,13 +199,35 @@ public class RecognitionMonitor {
     private void registerGetMonitoringData(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
-                    JsonArray result = new JsonArray();
+                    JsonArray sessionsArray = new JsonArray();
+                    double accRecognitionConfidence = 0.0;
+                    int matchedCount = 0;
+                    int unmatchedCount = 0;
+                    int nSessions = 0;
                     for (Map.Entry<String, Map<Long, IntentRecord>> entry : records.entrySet()) {
                         JsonObject sessionObject = buildSessionObject(entry.getKey(), entry.getValue());
-                        result.add(sessionObject);
-
+                        int sessionMatchedCount = sessionObject.get("matchedUtteranceCount").getAsInt();
+                        matchedCount += sessionMatchedCount;
+                        unmatchedCount += sessionObject.get("unmatchedUtteranceCount").getAsInt();
+                        if(sessionObject.has("avgSessionConfidence")) {
+                            double avgSessionConfidence = sessionObject.get("avgSessionConfidence").getAsDouble();
+                            accRecognitionConfidence += avgSessionConfidence * (double)sessionMatchedCount;
+                        }
+                        nSessions++;
+                        sessionsArray.add(sessionObject);
                     }
-                    return result;
+                    JsonObject globalInfo = new JsonObject();
+                    globalInfo.addProperty("nSessions", nSessions);
+                    double aux = accRecognitionConfidence/(double) matchedCount;
+                    if(!Double.isNaN(aux) && Double.isFinite(aux)) {
+                        globalInfo.addProperty("avgRecognitionConfidence", aux);
+                    }
+                    globalInfo.addProperty("totalUnmatchedUtterances", unmatchedCount);
+                    globalInfo.addProperty("totalMatchedUtterances", matchedCount);
+                    JsonArray resultArray = new JsonArray();
+                    resultArray.add(sessionsArray);
+                    resultArray.add(globalInfo);
+                    return resultArray;
                 }));
     }
 
@@ -383,7 +420,6 @@ public class RecognitionMonitor {
                     int totalMatchedUtteranceCount = 0;
                     int totalUnmatchedUtteranceCount = 0;
                     long totalSessionTime = 0;
-                    double accumulatedConfidence = 0.0;
                     for (Map.Entry<String, Map<Long, IntentRecord>> recordEntry : records.entrySet()) {
                         sessionCount++;
                         long sessionStartTimestamp = 0;
@@ -402,7 +438,6 @@ public class RecognitionMonitor {
                             if (intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
                                 totalUnmatchedUtteranceCount++;
                             } else {
-                                accumulatedConfidence += (double) intentRecord.getRecognitionConfidence();
                                 totalMatchedUtteranceCount++;
                             }
                         }
@@ -410,9 +445,7 @@ public class RecognitionMonitor {
                     double avgMatchedUtterance = totalMatchedUtteranceCount / (double) sessionCount;
                     double avgUnmatchedUtterance = totalUnmatchedUtteranceCount / (double) sessionCount;
                     double avgSessionTime = totalSessionTime / (double) sessionCount;
-                    double avgRecognitionConfidence = accumulatedConfidence / (double) totalMatchedUtteranceCount;
 
-                    result.addProperty("averageRecognitionConfidence", avgRecognitionConfidence);
                     result.addProperty("averageMatchedUtteranceCount", avgMatchedUtterance);
                     result.addProperty("averageUnmatchedUtteranceCount", avgUnmatchedUtterance);
                     // /1000 for seconds
@@ -435,6 +468,7 @@ public class RecognitionMonitor {
         sessionObject.add("entries", sessionRecords);
         int unmatchedCount = 0;
         int matchedCount = 0;
+        double accConfidence = 0.0;
         for (Map.Entry<Long, IntentRecord> sessionEntry : sessionData.entrySet()) {
             JsonObject entryObject = new JsonObject();
             sessionRecords.add(entryObject);
@@ -445,11 +479,16 @@ public class RecognitionMonitor {
             if (sessionEntry.getValue().getIntentName().equals("Default_Fallback_Intent")) {
                 unmatchedCount++;
             } else {
+                accConfidence += sessionEntry.getValue().getRecognitionConfidence();
                 matchedCount++;
             }
         }
         sessionObject.add("matchedUtteranceCount", new JsonPrimitive(matchedCount));
         sessionObject.add("unmatchedUtteranceCount", new JsonPrimitive(unmatchedCount));
+        if(matchedCount > 0) {
+            sessionObject.add("avgSessionConfidence",
+                    new JsonPrimitive(accConfidence/(double)matchedCount));
+        }
         return sessionObject;
     }
 
