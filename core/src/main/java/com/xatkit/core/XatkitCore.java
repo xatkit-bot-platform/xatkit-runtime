@@ -1010,6 +1010,10 @@ public class XatkitCore {
         return sessions.get(sessionId);
     }
 
+    public Iterable<XatkitSession> getXatkitSessions() {
+        return sessions.values();
+    }
+
     /**
      * Invalidates all the {@link XatkitSession}s and clear the session registry.
      */

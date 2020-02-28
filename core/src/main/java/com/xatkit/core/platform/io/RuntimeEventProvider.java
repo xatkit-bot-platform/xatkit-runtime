@@ -97,6 +97,13 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
         this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, session);
     }
 
+    public void broadcastEventInstance(EventInstance eventInstance) {
+        eventInstance.setTriggeredBy(this.runtimePlatform.getName());
+        this.xatkitCore.getXatkitSessions().forEach(xatkitSession ->
+                this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, xatkitSession)
+        );
+    }
+
     /**
      * Closes the {@link RuntimeEventProvider} and releases internal resources.
      * <p>
