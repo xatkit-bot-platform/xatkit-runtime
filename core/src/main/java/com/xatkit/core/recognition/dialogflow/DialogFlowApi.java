@@ -189,6 +189,9 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * <p>
      * This threshold is used to accept/reject a matched intent based on its confidence. The default value is {@code
      * 0} (accept all intents).
+     * <p>
+     * <b>Note</b>: recognized intents that contain an {@code any} entity are never rejected based on the threshold,
+     * these entities typically have a low confidence value.
      */
     public static String CONFIDENCE_THRESHOLD_KEY = "xatkit.dialogflow.confidence.threshold";
 
@@ -292,6 +295,8 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * The DialogFlow confidence threshold used to accept/reject intents based on their confidence score.
      * <p>
      * This option is set to {@code 0} by default (accept all intents).
+     * <b>Note</b>: recognized intents that contain an {@code any} entity are never rejected based on the threshold,
+     * these entities typically have a low confidence value.
      */
     private float confidenceThreshold;
 
@@ -1611,11 +1616,28 @@ public class DialogFlowApi extends IntentRecognitionProvider {
          *  set its definition to DEFAULT_FALLBACK_INTENT and we skip context registration.
          */
         if (!recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT) && recognizedIntent.getRecognitionConfidence() < confidenceThreshold) {
-            Log.debug("Confidence for matched intent {0} (input = {1}) is lower than the configured threshold ({2}), " +
-                            "overriding the matched intent with {3}", recognizedIntent.getDefinition().getName(),
-                    recognizedIntent.getMatchedInput(), confidenceThreshold, DEFAULT_FALLBACK_INTENT.getName());
-            recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
-            return recognizedIntent;
+            boolean containsAnyEntity =
+                    recognizedIntent.getDefinition().getOutContexts().stream().flatMap(c -> c.getParameters().stream())
+                            .anyMatch(
+                                    p -> p.getEntity().getReferredEntity() instanceof BaseEntityDefinition &&
+                                            ((BaseEntityDefinition) p.getEntity().getReferredEntity()).getEntityType().equals(com.xatkit.intent.EntityType.ANY)
+                            );
+            /*
+             * We should not reject a recognized intent if it contains an any entity, these intents typically have a
+             * low confidence level.
+             */
+            if (!containsAnyEntity) {
+                Log.debug("Confidence for matched intent {0} (input = \"{1}\", confidence = {2}) is lower than the " +
+                                "configured threshold ({3}), overriding the matched intent with {4}",
+                        recognizedIntent.getDefinition().getName(), recognizedIntent.getMatchedInput(),
+                        recognizedIntent.getRecognitionConfidence(), confidenceThreshold,
+                        DEFAULT_FALLBACK_INTENT.getName());
+                recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
+                return recognizedIntent;
+            } else {
+                Log.debug("Detected a low-confidence value for the intent {0} (inputs = \"{1}\", confidence = {2}). " +
+                        "The intent has not been filtered out because it contains an any entity");
+            }
         }
         /*
          * Set the output context values.
