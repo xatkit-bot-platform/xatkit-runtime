@@ -185,6 +185,15 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     public static String CUSTOM_FOLLOWUP_LIFESPAN = "xatkit.dialogflow.followup.lifespan";
 
     /**
+     * The {@link Configuration} key to store the DialogFlow confidence threshold.
+     * <p>
+     * This threshold is used to accept/reject a matched intent based on its confidence. The default value is {@code
+     * 0} (accept all intents).
+     */
+    public static String CONFIDENCE_THRESHOLD_KEY = "xatkit.dialogflow.confidence.threshold";
+
+
+    /**
      * The DialogFlow Default Fallback Intent that is returned when the user input does not match any registered Intent.
      *
      * @see #convertDialogFlowIntentToIntentDefinition(Intent)
@@ -278,6 +287,13 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * value may result in unmatched intents.
      */
     private int customFollowupLifespan;
+
+    /**
+     * The DialogFlow confidence threshold used to accept/reject intents based on their confidence score.
+     * <p>
+     * This option is set to {@code 0} by default (accept all intents).
+     */
+    private float confidenceThreshold;
 
     /**
      * Represents the DialogFlow project name.
@@ -484,6 +500,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         this.enableEntityLoader = configuration.getBoolean(ENABLE_ENTITY_LOADING_KEY, true);
         this.enableContextMerge = configuration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
         this.customFollowupLifespan = configuration.getInt(CUSTOM_FOLLOWUP_LIFESPAN, 2);
+        this.confidenceThreshold = configuration.getFloat(CONFIDENCE_THRESHOLD_KEY, 0);
     }
 
     /**
@@ -1589,6 +1606,17 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         recognizedIntent.setRecognitionConfidence(result.getIntentDetectionConfidence());
         recognizedIntent.setMatchedInput(result.getQueryText());
 
+        /*
+         * Handle the confidence threshold: if the matched intent's confidence is lower than the defined threshold we
+         *  set its definition to DEFAULT_FALLBACK_INTENT and we skip context registration.
+         */
+        if (!recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT) && recognizedIntent.getRecognitionConfidence() < confidenceThreshold) {
+            Log.debug("Confidence for matched intent {0} (input = {1}) is lower than the configured threshold ({2}), " +
+                            "overriding the matched intent with {3}", recognizedIntent.getDefinition().getName(),
+                    recognizedIntent.getMatchedInput(), confidenceThreshold, DEFAULT_FALLBACK_INTENT.getName());
+            recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
+            return recognizedIntent;
+        }
         /*
          * Set the output context values.
          */
