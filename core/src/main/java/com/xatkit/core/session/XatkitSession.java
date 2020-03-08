@@ -83,6 +83,7 @@ public class XatkitSession {
         this.runtimeContexts = new RuntimeContexts(configuration);
         this.sessionVariables = new HashMap<>();
         this.configuration = configuration;
+        Log.info("{0} {1} created", XatkitSession.class.getSimpleName(), this.sessionId);
     }
 
     /**

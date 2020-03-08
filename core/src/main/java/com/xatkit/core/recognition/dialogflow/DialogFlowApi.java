@@ -1421,7 +1421,6 @@ public class DialogFlowApi extends IntentRecognitionProvider {
             throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
         }
         SessionName sessionName = SessionName.of(projectId, sessionId);
-        Log.debug("New session created with path {0}", sessionName.toString());
         return new DialogFlowSession(sessionName, configuration);
     }
 
