@@ -14,7 +14,9 @@ import fr.inria.atlanmod.commons.log.Log;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
@@ -219,11 +221,8 @@ public class EventInstanceBuilder {
             contextParameterValue.setValue(contextValues.get(contextKey));
             contextInstance.getValues().add(contextParameterValue);
         }
+        this.checkSetContextParameters(eventInstance);
         this.clear();
-        /*
-         * Note: this method does not check that all the out context parameter have been filled with values (see
-         * #142). This may be integrated in a future release based on the issue discussions.
-         */
         return eventInstance;
     }
 
@@ -235,6 +234,35 @@ public class EventInstanceBuilder {
     public void clear() {
         this.eventDefinitionName = null;
         this.contextValues = new HashMap<>();
+    }
+
+    /**
+     * Checks that all the {@link ContextParameter}s of the provided {@code eventInstance} have been assigned a
+     * {@link ContextParameterValue}.
+     * <p>
+     * This method logs a warning for each {@link ContextParameter} that has not been set in the provided {@code
+     * eventInstance}. It does not throw an exception or cancel the {@link #build()} call, because existing APIs
+     * evolve fast and this may have too many unpredictable consequences on existing bots. See
+     * <a href="https://github.com/xatkit-bot-platform/xatkit-runtime/issues/142">#142</a> for more information.
+     *
+     * @param eventInstance
+     */
+    private void checkSetContextParameters(EventInstance eventInstance) {
+        checkNotNull(eventInstance, "Cannot check the context parameters of the provided {0} {1}",
+                EventInstance.class.getSimpleName(), eventInstance);
+        List<ContextParameter> allContextParameters =
+                eventInstance.getDefinition().getOutContexts().stream().flatMap(c -> c.getParameters().stream()).collect(Collectors.toList());
+        List<ContextParameterValue> allParameterValues =
+                eventInstance.getOutContextInstances().stream().flatMap(c -> c.getValues().stream()).collect(Collectors.toList());
+        for (ContextParameter contextParameter : allContextParameters) {
+            boolean isDefined =
+                    allParameterValues.stream().anyMatch(v -> v.getContextParameter().equals(contextParameter));
+            if (!isDefined) {
+                Log.debug("The parameter {0}.{1}.{2} has not been set. This may indicate a change in the API used to " +
+                                "build the event.", eventInstance.getDefinition().getName(),
+                        ((Context) contextParameter.eContainer()).getName(), contextParameter.getName());
+            }
+        }
     }
 
     /**

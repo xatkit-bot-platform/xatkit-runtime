@@ -62,7 +62,7 @@ public class EventInstanceBuilderTest extends AbstractXatkitTest {
         builder = EventInstanceBuilder.newBuilder(registry);
         builder.setEventDefinitionName("EventName");
         /*
-         * Setting the EventDefinition name does not throw an exception is the EventDefinition is not registered,
+         * Setting the EventDefinition name does not throw an exception if the EventDefinition is not registered,
          * this is done when building the EventInstance.
          */
         assertThat(builder.getEventDefinitionName()).as("Valid EventDefinition name").isEqualTo("EventName");
@@ -116,7 +116,10 @@ public class EventInstanceBuilderTest extends AbstractXatkitTest {
         builder.setEventDefinitionName("EventName").setOutContextValue("key2", "value").build();
         /*
          * This should not throw an exception: the EventDefinition should define the context, but it may not be the
-         * case if the API recently evolved.
+         * case if the API recently evolved. See #142 for more information.
+         * If the log policy is set to DEBUG this test should print the following message:
+         * - The parameter EventName.OutContext.key has not been set. This may indicate a change in the API used to
+         * build the event.
          */
     }
 
