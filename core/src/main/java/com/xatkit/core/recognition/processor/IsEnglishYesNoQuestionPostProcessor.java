@@ -59,6 +59,7 @@ public class IsEnglishYesNoQuestionPostProcessor extends StanfordNLPPostProcesso
      * <p>
      * <b>Note</b>: {@code nlp.isYesNo == false} does not mean that the provided input is not a yes/no question, but
      * that it could not be matched to the yes/no patterns supported by this processor.
+     *
      * @param recognizedIntent the {@link RecognizedIntent} to process
      * @param session          the {@link XatkitSession} associated to the {@code recognizedIntent}
      * @return the unmodified {@code recognizedIntent}
