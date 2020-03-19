@@ -14,7 +14,7 @@ import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.ExecutionPackage;
-import com.xatkit.execution.ExecutionRule;
+import com.xatkit.execution.State;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.EntityDefinition;
@@ -294,7 +294,7 @@ public class XatkitCore {
      * This method starts the {@link RuntimeEventProvider}s, builds the {@link RuntimePlatform}s, and enables their
      * {@link RuntimeAction}s from the definitions specified in the provided {@code executionModel}.
      * <p>
-     * This method also registers the {@link IntentDefinition}s used in the provided {@code executionModel} in the
+     * This method also registers the {@link EventDefinition}s used in the provided {@code executionModel} in the
      * {@link IntentRecognitionProvider}.
      * <p>
      * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@link ExecutionModel} have to be
@@ -302,16 +302,20 @@ public class XatkitCore {
      *
      * @param executionModel the {@link ExecutionModel} to load the runtime instances from
      * @see #startEventProviders(ExecutionModel)
-     * @see #registerExecutionRuleEvent(ExecutionRule)
-     * @see #enableExecutionRuleActions(ExecutionRule)
+     * @see #registerEventDefinition(EventDefinition)
+     * @see #enableStateActions(State)
      */
     private void loadExecutionModel(ExecutionModel executionModel) {
         boolean intentRegistered = false;
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");
-        for (ExecutionRule rule : executionModel.getExecutionRules()) {
-            intentRegistered |= this.registerExecutionRuleEvent(rule);
-            this.enableExecutionRuleActions(rule);
+
+        Iterable<EventDefinition> accessedEvents = XbaseUtils.getAccessedEvents(executionModel);
+        for (EventDefinition e : accessedEvents) {
+            intentRegistered |= this.registerEventDefinition(e);
+        }
+        for (State s : executionModel.getStates()) {
+            this.enableStateActions(s);
         }
         if (intentRegistered) {
             /*
@@ -351,23 +355,20 @@ public class XatkitCore {
     }
 
     /**
-     * Registers the {@link EventDefinition} of the provided {@code rule} to the {@link IntentRecognitionProvider}.
+     * Registers the provided {@link EventDefinition}.
      * <p>
-     * If the provided {@code rule} contains an {@link IntentDefinition} this method also attempts to register its
-     * contexts if they are required in its training sentences.
+     * The provided {@code eventDefinition} is added to the {@link EventDefinitionRegistry}. If the {@code
+     * eventDefinition} is an {@link IntentDefinition} this method also takes care of registering it to the
+     * {@link IntentRecognitionProvider}.
      *
-     * @param rule the {@link ExecutionRule} to register the {@link EventDefinition} from
-     * @return {@code true} if the {@link EventDefinition} was registered in the {@link IntentRecognitionProvider},
-     * {@code false} otherwise
-     * @see IntentRecognitionProvider#registerEntityDefinition(EntityDefinition)
+     * @param eventDefinition the {@link EventDefinition} to register
+     * @return {@code true} if the event has been registered to the {@link IntentRecognitionProvider}, {@code false}
+     * otherwise
+     * @see EventDefinitionRegistry
      * @see IntentRecognitionProvider#registerIntentDefinition(IntentDefinition)
+     * @see IntentRecognitionProvider#registerEntityDefinition(EntityDefinition)
      */
-    private boolean registerExecutionRuleEvent(ExecutionRule rule) {
-        /*
-         * We don't need to check whether the EventDefinition is a proxy, EventDefinitions are contained in
-         * EventProviderDefinitions, that have been checked before.
-         */
-        EventDefinition eventDefinition = rule.getEvent();
+    private boolean registerEventDefinition(EventDefinition eventDefinition) {
         this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
         Log.debug("Registering event {0}", eventDefinition.getName());
         if (eventDefinition instanceof IntentDefinition) {
@@ -401,13 +402,13 @@ public class XatkitCore {
      * This method instantiates the {@link RuntimePlatform}s containing the {@link RuntimeAction}s if necessary (i.e.
      * if they have not been initialized before).
      *
-     * @param rule
+     * @param state
      */
-    private void enableExecutionRuleActions(ExecutionRule rule) {
+    private void enableStateActions(State state) {
         /*
          * Load the action platforms
          */
-        rule.eAllContents().forEachRemaining(e -> {
+        state.eAllContents().forEachRemaining(e -> {
                     if (e instanceof XMemberFeatureCall) {
                         XMemberFeatureCall featureCall = (XMemberFeatureCall) e;
                         if (XbaseUtils.isPlatformActionCall(featureCall, this.runtimePlatformRegistry)) {
@@ -433,8 +434,8 @@ public class XatkitCore {
                              * Enable inherited actions, they are not defined in the platform file.
                              */
                             PlatformDefinition parent = platformDefinition.getExtends();
-                            if(nonNull(parent)) {
-                                for(ActionDefinition actionDefinition : parent.getActions()) {
+                            if (nonNull(parent)) {
+                                for (ActionDefinition actionDefinition : parent.getActions()) {
                                     runtimePlatform.enableAction(actionDefinition);
                                 }
                             }
