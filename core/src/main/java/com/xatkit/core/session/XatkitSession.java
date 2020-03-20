@@ -1,10 +1,13 @@
 package com.xatkit.core.session;
 
 import com.xatkit.core.XatkitCore;
+import com.xatkit.execution.State;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +33,18 @@ public class XatkitSession {
      * The unique identifier of the {@link XatkitSession}.
      */
     private String sessionId;
+
+    /**
+     * The runtime {@link State} associated to the {@link XatkitSession}.
+     * <p>
+     * The session's state represents the point in the conversation graph where the user is. {@link XatkitSession}s
+     * created with {@link com.xatkit.core.ExecutionService#createSession(String)} are automatically initialized with
+     * the {@code Init} {@link State} of the bot's execution model.
+     *
+     * @see #setState(State)
+     * @see com.xatkit.core.ExecutionService#createSession(String)
+     */
+    private State state;
 
     /**
      * The {@link RuntimeContexts} used to store context-related variables.
@@ -69,10 +84,17 @@ public class XatkitSession {
      * <p>
      * This constructor forwards the provided {@link Configuration} to the underlying {@link RuntimeContexts} and can
      * be used to customize {@link RuntimeContexts} properties.
+     * <p>
+     * <b>Note</b>: this method does <i>not</i> set the {@link State} associated to the {@link XatkitSession}. This
+     * can be done by calling {@link XatkitSession#setState(State)}. {@link XatkitSession}s created with
+     * {@link com.xatkit.core.ExecutionService#createSession(String)} are automatically initialized with the {@code
+     * Init} {@link State} of the bot's execution model.
      *
      * @param sessionId     the unique identifier of the {@link XatkitSession}
      * @param configuration the {@link Configuration} parameterizing the {@link XatkitSession}
      * @throws NullPointerException if the provided {@code sessionId} or {@code configuration} is {@code null}
+     * @see #setState(State)
+     * @see com.xatkit.core.ExecutionService#createSession(String)
      */
     public XatkitSession(String sessionId, Configuration configuration) {
         checkNotNull(sessionId, "Cannot construct a %s with the session Id %s", XatkitSession.class.getSimpleName(),
@@ -93,6 +115,33 @@ public class XatkitSession {
      */
     public String getSessionId() {
         return sessionId;
+    }
+
+    /**
+     * Returns the runtime {@link State} associated to the session.
+     * <p>
+     * The session's state represents the point in the conversation graph where the user is. It is used by the Xatkit
+     * {@link com.xatkit.core.ExecutionService} to execute the logic of the bot and compute actionable transitions.
+     *
+     * @return the runtime {@link State} associated to the session, or {@code null} if the session's {@link State}
+     * has not been initialized
+     */
+    public @Nullable
+    State getState() {
+        return this.state;
+    }
+
+    /**
+     * Sets the session's {@link State}.
+     * <p>
+     * The session's state represents the point in the conversation graph where the user is. It is used by the Xatkit
+     * {@link com.xatkit.core.ExecutionService} to execute the logic of the bot and compute actionable transitions.
+     *
+     * @param state the {@link State} to set
+     */
+    public void setState(@Nonnull State state) {
+        checkNotNull(state, "Cannot set the provided %s %s", State.class.getSimpleName(), state);
+        this.state = state;
     }
 
     /**
