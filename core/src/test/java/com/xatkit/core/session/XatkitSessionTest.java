@@ -150,6 +150,12 @@ public class XatkitSessionTest extends AbstractXatkitTest {
         assertThat(session.getState()).as("State correctly erased").isEqualTo(testState2);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void setNullState() {
+        session = new XatkitSession("sessionId");
+        session.setState(null);
+    }
+
     private void assertValidXatkitSession(XatkitSession session) {
         softly.assertThat(session.getSessionId()).as("Valid session ID").isEqualTo("session");
         softly.assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
