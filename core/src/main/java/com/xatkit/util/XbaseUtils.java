@@ -13,9 +13,9 @@ import org.eclipse.xtext.xbase.XMemberFeatureCall;
 
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static fr.inria.atlanmod.commons.Preconditions.checkState;
@@ -32,8 +32,8 @@ public class XbaseUtils {
      * @param executionModel the {@link ExecutionModel} to retrieve the {@link EventDefinition} from
      * @return the {@link EventDefinition} accessed in the provided {@code executionModel}
      */
-    public static List<EventDefinition> getAccessedEvents(ExecutionModel executionModel) {
-        List<EventDefinition> result = new ArrayList<>();
+    public static Iterable<EventDefinition> getAccessedEvents(ExecutionModel executionModel) {
+        Set<EventDefinition> result = new HashSet<>();
         Iterable<EObject> allContents = executionModel::eAllContents;
         for (EObject e : allContents) {
             if (e instanceof XFeatureCall) {
