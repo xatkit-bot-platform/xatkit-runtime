@@ -57,6 +57,7 @@ import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.intent.TextFragment;
+import com.xatkit.util.ExecutionModelHelper;
 import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
@@ -71,6 +72,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -998,41 +1000,13 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         List<Context> outContexts = createOutContexts(intentDefinition);
         List<Intent.Parameter> parameters = createParameters(intentDefinition.getOutContexts());
 
-        List<String> defaultAnswers = intentDefinition.getDefaultAnswers();
         List<Intent.Message> messages = new ArrayList<>();
-        for (String defaultAnswer : defaultAnswers) {
-            messages.add(Intent.Message.newBuilder().setText(Intent.Message.Text.newBuilder().addText(defaultAnswer)).build());
-        }
 
         Intent.Builder builder = Intent.newBuilder().setDisplayName(adaptIntentDefinitionNameToDialogFlow
                 (intentDefinition.getName())).addAllTrainingPhrases(dialogFlowTrainingPhrases)
                 .addAllInputContextNames(inContextNames)
                 .addAllOutputContexts(outContexts).addAllParameters(parameters)
                 .addAllMessages(messages);
-
-        if (nonNull(intentDefinition.getFollows())) {
-            Log.debug("Registering intent {0} as a follow-up of {1}", intentDefinition.getName(), intentDefinition
-                    .getFollows().getName());
-            Intent parentIntent = registeredIntents.get(adaptIntentDefinitionNameToDialogFlow(intentDefinition
-                    .getFollows().getName()));
-            if (isNull(parentIntent)) {
-                Log.debug(MessageFormat.format("Cannot find intent {0} in the DialogFlow project, trying to register " +
-                        "it", intentDefinition.getFollows().getName()));
-                registerIntentDefinition(intentDefinition.getFollows());
-                parentIntent = registeredIntents.get(adaptIntentDefinitionNameToDialogFlow(intentDefinition
-                        .getFollows().getName()));
-            }
-            if (nonNull(parentIntent)) {
-                builder.setParentFollowupIntentName(parentIntent.getName());
-            } else {
-                /*
-                 * The parentIntent registration has failed, there is no way to build a DialogFlow agent that is
-                 * consistent with the provided model.
-                 */
-                throw new XatkitException(MessageFormat.format("Cannot retrieve the parent intent {0}, check the logs" +
-                        " for additional information", intentDefinition.getFollows().getName()));
-            }
-        }
 
         Intent intent = builder.build();
         try {
@@ -1125,37 +1099,26 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     /**
      * Creates the DialogFlow input {@link Context} names from the provided {@code intentDefinition}.
      * <p>
-     * This method iterates the provided {@code intentDefinition}'s in {@link com.xatkit.intent.Context}s, and
-     * maps them to their concrete DialogFlow {@link String} identifier. The returned {@link String} can be used to
-     * refer to existing DialogFlow's {@link Context}s.
+     * This method creates an input {@link Context} for every {@link IntentDefinition} which is not a top-level
+     * intent (see {@link ExecutionModelHelper#getTopLevelIntents()}). This means that these intents can be matched
+     * iff the input context is set in the DialogFlow session.
+     * <p>
+     * This method returns an empty {@link List} if the provided {@code intentDefinition} is a top-level intent.
      *
      * @param intentDefinition the {@link IntentDefinition} to create the DialogFlow input {@link Context}s from
      * @return the created {@link List} of DialogFlow {@link Context} identifiers
      * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
-     * @see IntentDefinition#getInContexts()
+     * @see ExecutionModelHelper#getTopLevelIntents()
      */
     protected List<String> createInContextNames(IntentDefinition intentDefinition) {
         checkNotNull(intentDefinition, "Cannot create the in contexts from the provided %s %s", IntentDefinition
                 .class.getSimpleName(), intentDefinition);
-        List<com.xatkit.intent.Context> contexts = intentDefinition.getInContexts();
         List<String> results = new ArrayList<>();
-        for (com.xatkit.intent.Context context : contexts) {
-            /*
-             * Use a dummy session to create the context.
-             */
+        Collection<IntentDefinition> topLevelIntents = ExecutionModelHelper.getInstance().getTopLevelIntents();
+        if (!topLevelIntents.contains(intentDefinition)) {
             ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
-                    context.getName());
+                    "Enable" + intentDefinition.getName());
             results.add(contextName.toString());
-            /*
-             * Ignore the context parameters, they are not taken into account by DialogFlow for input contexts.
-             */
-        }
-        if (nonNull(intentDefinition.getFollows())) {
-            /*
-             * Use getName instead of toString, getFollowUpContext returns a fully built context, with a name that
-             * uniquely identifies it.
-             */
-            results.add(getFollowUpContext(intentDefinition.getFollows()).getName());
         }
         return results;
     }
@@ -1186,9 +1149,6 @@ public class DialogFlowApi extends IntentRecognitionProvider {
             Context dialogFlowContext = Context.newBuilder().setName(contextName.toString()).setLifespanCount(context
                     .getLifeSpan()).build();
             results.add(dialogFlowContext);
-        }
-        if (!intentDefinition.getFollowedBy().isEmpty()) {
-            results.add(getFollowUpContext(intentDefinition));
         }
         return results;
     }

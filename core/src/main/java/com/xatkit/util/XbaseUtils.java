@@ -1,134 +1,15 @@
 package com.xatkit.util;
 
 import com.xatkit.core.RuntimePlatformRegistry;
-import com.xatkit.execution.ExecutionModel;
-import com.xatkit.intent.EventDefinition;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.xtext.common.types.JvmField;
-import org.eclipse.xtext.common.types.JvmGenericType;
-import org.eclipse.xtext.common.types.JvmIdentifiableElement;
-import org.eclipse.xtext.common.types.JvmMember;
-import org.eclipse.xtext.xbase.XFeatureCall;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
-
-import javax.annotation.Nullable;
-import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static fr.inria.atlanmod.commons.Preconditions.checkState;
-import static java.util.Objects.nonNull;
 
 /**
  * An utility class providing helpers for Xbase objects.
  */
 public class XbaseUtils {
-
-    /**
-     * Returns the {@link EventDefinition}s accessed in the provided {@code executionModel}.
-     *
-     * @param executionModel the {@link ExecutionModel} to retrieve the {@link EventDefinition} from
-     * @return the {@link EventDefinition} accessed in the provided {@code executionModel}
-     */
-    public static Iterable<EventDefinition> getAccessedEvents(ExecutionModel executionModel) {
-        Set<EventDefinition> result = new HashSet<>();
-        Iterable<EObject> allContents = executionModel::eAllContents;
-        for (EObject e : allContents) {
-            if (e instanceof XFeatureCall) {
-                XFeatureCall featureCall = (XFeatureCall) e;
-                if (isEventDefinitionAccess(featureCall.getFeature())) {
-                    EventDefinition eventDefinition = getAccessedEventDefinition(featureCall.getFeature());
-                    if (nonNull(eventDefinition)) {
-                        result.add(eventDefinition);
-                    } else {
-                        throw new RuntimeException(MessageFormat.format("Cannot retrieve the {0} from the provided " +
-                                        "{1} {2}", EventDefinition.class.getSimpleName(),
-                                featureCall.getFeature().getClass().getSimpleName(), featureCall.getFeature()));
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns {@code true} if the provided {@link JvmIdentifiableElement} is an {@link EventDefinition} access.
-     * <p>
-     * This method checks if the provided {@code element} corresponds to an access (in the execution language) to a
-     * class derived from the imported events. Such accesses are typically performed in transition guards:
-     * {@code
-     * <pre>
-     * MyState {
-     *     Next {
-     *         intent == MyIntent --> OtherState
-     *     }
-     * }
-     * </pre>
-     * }
-     * The inferrer allows such accesses by deriving a class {@code MyIntent} from the imported
-     * {@link com.xatkit.intent.IntentDefinition}s.
-     * <p>
-     * See {@link #getAccessedEventDefinition(JvmIdentifiableElement)} to retrieve the accessed {@link EventDefinition}.
-     *
-     * @param element the {@link JvmIdentifiableElement} to check
-     * @return {@code true} if the provided {@code element} is an {@link EventDefinition} access, {@code false}
-     * otherwise
-     * @see #getAccessedEventDefinition(JvmIdentifiableElement)
-     */
-    public static boolean isEventDefinitionAccess(JvmIdentifiableElement element) {
-        if (element instanceof JvmGenericType) {
-            JvmGenericType typeFeature = (JvmGenericType) element;
-            if (typeFeature.getSuperTypes().stream().anyMatch(t -> t.getIdentifier().equals(EventDefinition.class.getName()))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns the {@link EventDefinition} associated to the provided {@link JvmIdentifiableElement}.
-     * <p>
-     * This method checks if the provided {@code element} corresponds to an access (in the execution language) to a
-     * class derived from the imported events, and returns the events. Such accesses are typically performed in
-     * transition guards:
-     * {@code
-     * <pre>
-     * MyState {
-     *     Next {
-     *         intent == MyIntent --> OtherState
-     *     }
-     * }
-     * </pre>
-     * }
-     * The inferrer allows such accesses by deriving a class {@code MyIntent} from the imported
-     * {@link com.xatkit.intent.IntentDefinition}s.
-     * <p>
-     * See {@link #isEventDefinitionAccess(JvmIdentifiableElement)} to check whether {@code element} is an
-     * {@link EventDefinition} access.
-     *
-     * @param element the {@link JvmIdentifiableElement} to check
-     * @return the associated {@link EventDefinition} if it exists, {@code null} otherwise
-     * @see #isEventDefinitionAccess(JvmIdentifiableElement)
-     */
-    public static @Nullable
-    EventDefinition getAccessedEventDefinition(JvmIdentifiableElement element) {
-        if (element instanceof JvmGenericType) {
-            JvmGenericType typeFeature = (JvmGenericType) element;
-            if (typeFeature.getSuperTypes().stream().anyMatch(t -> t.getIdentifier().equals(EventDefinition.class.getName()))) {
-                Optional<JvmMember> field =
-                        typeFeature.getMembers().stream().filter(m -> m instanceof JvmField && m.getSimpleName().equals("base")).findAny();
-                if (field.isPresent()) {
-                    return (EventDefinition) ((JvmField) field.get()).getConstantValue();
-                } else {
-                    throw new RuntimeException(MessageFormat.format("Cannot find the static field {0}.{1}, this field" +
-                            " should have been set during Xtext parsing", element.getSimpleName(), "base"));
-                }
-            }
-        }
-        return null;
-    }
 
     /**
      * Returns {@code true} if the provided {@code featureCall} is a platform's action call, {@code false} otherwise.

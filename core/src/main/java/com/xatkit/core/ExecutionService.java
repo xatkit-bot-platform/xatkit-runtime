@@ -6,27 +6,36 @@ import com.xatkit.core.platform.action.RuntimeActionResult;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ExecutionModel;
-import com.xatkit.execution.ExecutionRule;
+import com.xatkit.execution.State;
+import com.xatkit.execution.Transition;
 import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameterValue;
-import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
+import com.xatkit.metamodels.utils.EventWrapper;
 import com.xatkit.metamodels.utils.RuntimeModel;
+import com.xatkit.util.ExecutionModelHelper;
 import com.xatkit.util.XbaseUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.ConfigurationConverter;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.xtext.common.types.JvmField;
+import org.eclipse.xtext.common.types.JvmGenericType;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.util.CancelIndicator;
+import org.eclipse.xtext.xbase.XBinaryOperation;
 import org.eclipse.xtext.xbase.XExpression;
+import org.eclipse.xtext.xbase.XFeatureCall;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.eclipse.xtext.xbase.interpreter.IEvaluationContext;
 import org.eclipse.xtext.xbase.interpreter.IEvaluationResult;
 import org.eclipse.xtext.xbase.interpreter.impl.XbaseInterpreter;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +44,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -129,7 +139,6 @@ public class ExecutionService extends XbaseInterpreter {
                 .getSimpleName(), RuntimePlatformRegistry.class.getSimpleName(), runtimePlatformRegistry);
         checkNotNull(configuration, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
                 Configuration.class.getSimpleName(), configuration);
-        this.executionModel = executionModel;
         this.runtimePlatformRegistry = runtimePlatformRegistry;
         this.configuration = configuration;
         this.configurationMap = ConfigurationConverter.getMap(configuration);
@@ -172,6 +181,223 @@ public class ExecutionService extends XbaseInterpreter {
     }
 
     /**
+     * Initializes the provided {@code session}'s {@link State} and executes it.
+     * <p>
+     * The provided {@link XatkitSession}'s {@link State} is set with the {@code Init} {@link State} of the bot
+     * execution model, and the {@code Body} section of this {@link State} is directly executed.
+     * <p>
+     * Note that {@code context} and {@code parameters} are not set for the execution of the {@code Init} state. This
+     * means that execution models accessing {@code context} information in the {@code Init} state will throw a
+     * {@link NullPointerException}.
+     *
+     * @param session the {@link XatkitSession} to initialize
+     * @throws NullPointerException if the provided {@code session} is {@code null}
+     */
+    public void initSession(@Nonnull XatkitSession session) {
+        checkNotNull(session, "Cannot initialize the provided %s %s", XatkitSession.class.getSimpleName(), session);
+        session.setState(ExecutionModelHelper.getInstance().getInitState());
+        this.executeBody(session.getState(), session);
+    }
+
+    /**
+     * Executes the body of the provided {@code state}, using the provided {@code session}.
+     * <p>
+     * This method evaluates the content of the <i>body</i> section of the provided {@code state}, and throws a
+     * {@link XatkitException} wrapping any exception thrown by the interpreted code. Once the body section has been
+     * fully (and successfully) evaluated this method looks for wildcard transitions ({@code _ --> MyState}) to
+     * navigate.
+     * <p>
+     * This method can be safely called on {@link State}s that do not define a body.
+     *
+     * @param state   the {@link State} to execute the body section of
+     * @param session the {@link XatkitSession} holding the contextual information
+     * @throws NullPointerException if the provided {@code state} or {@code session} is {@code null}
+     */
+    private void executeBody(@Nonnull State state, @Nonnull XatkitSession session) {
+        checkNotNull(state, "Cannot execute the body of the provided %s %s", State.class.getSimpleName(), state);
+        checkNotNull(session, "Cannot execute the body of %s %s with the provided %s %s", State.class.getSimpleName()
+                , state.getName(), XatkitSession.class.getSimpleName(), session);
+        XExpression bodyExpression = state.getBody();
+        if (isNull(bodyExpression)) {
+            Log.debug("{0}'s body section is null, skipping its execution", state.getName());
+        } else {
+            IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(null, session);
+            IEvaluationResult evaluationResult = this.evaluate(bodyExpression, evaluationContext,
+                    CancelIndicator.NullImpl);
+            handleEvaluationResult(evaluationResult);
+            /*
+             * Result is ignored here, we just want to know if it contains a Throwable.
+             */
+        }
+        /*
+         * Look for wildcard transitions and navigate them. We don't need to wait here, we can just move to the next
+         * state that defines non-wildcard transitions.
+         */
+        Transition wildcardTransition = getWildcardTransition(state);
+        if (nonNull(wildcardTransition)) {
+            session.setState(wildcardTransition.getState());
+            executeBody(wildcardTransition.getState(), session);
+        }
+    }
+
+    /**
+     * Executes the fallback of the provided {@code state}, using the provided {@code session}.
+     * <p>
+     * The fallback of a {@link State} is executed when an event is received and the engine cannot
+     * find any navigable {@link Transition}. If the provided {@code state} does not define a <i>fallback</i> section
+     * the <i>body</i> of the <b>Default_Fallback</b> {@link State} is executed.
+     *
+     * @param state   the {@link State} to execute the fallback section of
+     * @param session the {@link XatkitSession} holding the contextual information
+     * @throws NullPointerException if the provided {@code state} or {@code session} is {@code null}
+     */
+    private void executeFallback(@Nonnull State state, @Nonnull XatkitSession session) {
+        checkNotNull(state, "Cannot execute the fallback of the provided %s %s", State.class.getSimpleName(), state);
+        checkNotNull(session, "Cannot execute the fallback of %s %s with the provided %s %s",
+                State.class.getSimpleName()
+                , state.getName(), XatkitSession.class.getSimpleName(), session);
+        XExpression fallbackExpression = state.getFallback();
+        if (isNull(fallbackExpression)) {
+            executeBody(ExecutionModelHelper.getInstance().getFallbackState(), session);
+        } else {
+            IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(null, session);
+            IEvaluationResult evaluationResult = this.evaluate(fallbackExpression, evaluationContext,
+                    CancelIndicator.NullImpl);
+            handleEvaluationResult(evaluationResult);
+            /*
+             * Result is ignored here, we just want to know if it contains a Throwable.
+             */
+        }
+        /*
+         * The fallback semantics implies that the execution engine stays in the same state. This means that we need
+         * to increment all the context lifespans to be sure they will be available for the next intent recognition
+         * (otherwise they will be deleted and the matching will be inconsistent).
+         */
+        session.getRuntimeContexts().incrementLifespanCounts();
+    }
+
+    /**
+     * Returns the wildcard {@link Transition} associated to the provided {@link State}, if it exists.
+     * <p>
+     * <b>Note</b>: this method does not check the uniqueness of the wildcard {@link Transition}.
+     *
+     * @param state the {@link State} to retrieve the wildcard {@link Transition} from
+     * @return the {@link Transition} if it exists, {@code null} otherwise
+     * @throws NullPointerException if the provided {@code state} is {@code null}
+     */
+    private @Nullable
+    Transition getWildcardTransition(@Nonnull State state) {
+        checkNotNull(state, "Cannot retrieve the wildcard transition of %s %s", State.class.getSimpleName(), state);
+        return state.getTransitions().stream().filter(Transition::isIsWildcard).findAny().orElse(null);
+    }
+
+    /**
+     * Creates an {@link IEvaluationContext} containing Xatkit-related variables.
+     * <p>
+     * The created {@link IEvaluationContext} holds the values bound to {@code event}, {@code intent}, {@code session
+     * }, {@code context}, and {@code config} variables in the execution language.
+     * <p>
+     * The {@code event} and {@code intent} variables are set from the provided {@code eventInstance}, while the
+     * other ones are retrieved from the {@code session} or Xatkit internals.
+     * <p>
+     * <b>Note</b>: the provided {@code eventInstance} can be {@code null} (e.g. when creating the
+     * {@link IEvaluationContext} for {@link State}s accessed via a wildcard {@link Transition}).
+     *
+     * @param eventInstance the {@link EventInstance} to set in the context
+     * @param session       the {@link XatkitSession} to set in the context
+     * @return the created {@link IEvaluationContext}
+     * @throws NullPointerException if the provided {@link XatkitSession} is {@code null}
+     */
+    private @Nonnull
+    IEvaluationContext createXatkitEvaluationContext(@Nullable EventInstance eventInstance,
+                                                     @Nonnull XatkitSession session) {
+        checkNotNull(session, "Cannot create the %s from the provided %s %s",
+                IEvaluationContext.class.getSimpleName(), XatkitSession.class.getSimpleName(), session);
+        IEvaluationContext evaluationContext = this.createContext();
+        RuntimeModel runtimeModel = new RuntimeModel(session.getRuntimeContexts().getContextMap(),
+                session.getSessionVariables(), configurationMap,
+                eventInstance);
+        evaluationContext.newValue(QualifiedName.create("this"), runtimeModel);
+        evaluationContext.newValue(EVALUATION_CONTEXT_SESSION_KEY, session);
+        return evaluationContext;
+    }
+
+    /**
+     * Helper method to access the raw result contained in the provided {@code evaluationResult}.
+     * <p>
+     * This method checks whether the provided {@code evaluationResult} holds a result value or a {@link Throwable}
+     * indicating an error in the evaluation (see {@link #evaluate(XExpression)}).
+     *
+     * @param evaluationResult the {@link IEvaluationResult} to handle
+     * @return the raw result contained in the provided {@code evaluationResult}
+     * @throws XatkitException      if the provided {@code evaluationResult} holds a {@link Throwable}
+     * @throws NullPointerException if the provided {@code evaluationResult} is {@code null}
+     */
+    private @Nullable
+    Object handleEvaluationResult(@Nonnull IEvaluationResult evaluationResult) {
+        checkNotNull(evaluationResult, "Cannot handle the provided %s %s", IEvaluationResult.class.getSimpleName(),
+                evaluationResult);
+        if (nonNull(evaluationResult.getException())) {
+            throw new XatkitException(evaluationResult.getException());
+        }
+        return evaluationResult.getResult();
+    }
+
+    /**
+     * Computes the {@link List} of {@link Transition}s that can be navigated from the provided {@code state}.
+     * <p>
+     * This method checks, for all the {@link Transition}s, whether their condition is fulfilled or not. The
+     * evaluation context of the conditions includes the provided {@code eventInstance} (bound to the {@code event
+     * /intent} variable in the execution language, and the provided {@code session} (bound to the {@code session}
+     * variable in the execution language).
+     * <p>
+     * <b>Note</b>: this method should <b>not</b> return more than one transition. Multiple navigable transitions
+     * generally indicate an issue in the bot design.
+     *
+     * @param eventInstance the {@link EventInstance} to use to check event mappings in the transitions' conditions
+     * @param state         the current {@link State} to compute the navigable {@link Transition}s from
+     * @param session       the {@link XatkitSession} holding the context information
+     * @return the {@link List} of navigable {@link Transition}s
+     * @throws XatkitException      if the evaluation of a {@link Transition}'s condition returns a non-boolean value
+     * @throws NullPointerException if the provided {@code eventInstance}, {@code state}, or {@code session} is
+     *                              {@code null}
+     */
+    private List<Transition> getNavigableTransitions(EventInstance eventInstance, State state, XatkitSession session) {
+        checkNotNull(eventInstance, "Cannot compute the navigable transitions from the provided %s %s",
+                EventInstance.class.getSimpleName());
+        checkNotNull(state, "Cannot compute the navigable transitions from the provided %s %s",
+                State.class.getSimpleName(), state);
+        checkNotNull(session, "Cannot compute the navigable transitions from the provided %s %s",
+                XatkitSession.class.getSimpleName(), session);
+        List<Transition> result = new ArrayList<>();
+        for (Transition t : state.getTransitions()) {
+            IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(eventInstance, session);
+            IEvaluationResult evaluationResult = this.evaluate(t.getCondition(), evaluationContext,
+                    CancelIndicator.NullImpl);
+            Object expressionValue = handleEvaluationResult(evaluationResult);
+            if (expressionValue instanceof Boolean) {
+                if ((Boolean) expressionValue) {
+                    result.add(t);
+                } else {
+                    /*
+                     * Skip, the transition condition is not fulfilled.
+                     */
+                }
+            } else {
+                /*
+                 * The evaluated condition is not a boolean. This should not happen in the general case because the
+                 * execution language grammar explicitly uses boolean operation rules to set transitions' conditions.
+                 */
+                throw new XatkitException(MessageFormat.format("An error occurred when evaluating {0}'s {1} " +
+                                "conditions: expected a boolean value, found {2}", state.getName(),
+                        Transition.class.getSimpleName(), expressionValue));
+            }
+        }
+        return result;
+    }
+
+
+    /**
      * Handles the provided {@code eventInstance} and executes the corresponding {@link RuntimeAction}s defined in the
      * {@link ExecutionModel}.
      * <p>
@@ -189,34 +415,43 @@ public class ExecutionService extends XbaseInterpreter {
      * @param eventInstance the {@link EventInstance} to handle
      * @param session       the {@link XatkitSession} used to define and access context variables
      * @throws NullPointerException if the provided {@code eventInstance} or {@code session} is {@code null}
-     * @see #executeExecutionRule(ExecutionRule, XatkitSession)
      */
     public void handleEventInstance(EventInstance eventInstance, XatkitSession session) {
         checkNotNull(eventInstance, "Cannot handle the %s %s", EventInstance.class.getSimpleName(), eventInstance);
         checkNotNull(session, "Cannot handle the %s %s", XatkitSession.class.getSimpleName(), session);
+        checkNotNull(session.getState(), "Cannot handle the %s %s, the provided %s's state hasn't been initialized",
+                EventInstance.class.getSimpleName(), eventInstance, XatkitSession.class.getSimpleName());
         CompletableFuture.runAsync(() -> {
-            /*
-             * Register the returned context values
-             */
-            for (ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
+            State sessionState = session.getState();
+
+            List<Transition> transitions = getNavigableTransitions(eventInstance, sessionState, session);
+            if (transitions.size() > 1) {
+                throw new XatkitException(MessageFormat.format("Found several navigable transitions ({0}), cannot " +
+                        "decide which one to navigate", transitions.size()));
                 /*
-                 * Register the context first: this allows to register context without parameters (e.g. follow-up
-                 * contexts).
+                 * TODO Here we are blocked, we need an error state or something
                  */
-                session.getRuntimeContexts().setContext(contextInstance.getDefinition().getName(),
-                        contextInstance.getLifespanCount());
-                for (ContextParameterValue value : contextInstance.getValues()) {
-                    session.getRuntimeContexts().setContextValue(value);
+            } else if (transitions.size() == 0) {
+                executeFallback(session.getState(), session);
+            } else {
+                for (ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
+                    /*
+                     * Register the context first: this allows to register context without parameters (e.g. follow-up
+                     * contexts).
+                     */
+                    session.getRuntimeContexts().setContext(contextInstance.getDefinition().getName(),
+                            contextInstance.getLifespanCount());
+                    for (ContextParameterValue value : contextInstance.getValues()) {
+                        session.getRuntimeContexts().setContextValue(value);
+                    }
                 }
-            }
-            /*
-             * Store the event that triggered the rule execution in the session, it can be useful to some actions (e
-             * .g. analytics)
-             */
-            session.store(MATCHED_EVENT_SESSION_KEY, eventInstance);
-            List<ExecutionRule> executionRules = this.getExecutionRulesFromEvent(eventInstance);
-            for (ExecutionRule rule : executionRules) {
-                executeExecutionRule(rule, session);
+                /*
+                 * Store the event that triggered the rule execution in the session, it can be useful to some actions (e
+                 * .g. analytics)
+                 */
+                session.store(MATCHED_EVENT_SESSION_KEY, eventInstance);
+                session.setState(transitions.get(0).getState());
+                executeBody(transitions.get(0).getState(), session);
             }
         }, executorService).exceptionally((throwable) -> {
             Log.error("An error occurred when running the actions associated to the event {0}. Check the logs for " +
@@ -231,27 +466,7 @@ public class ExecutionService extends XbaseInterpreter {
         });
     }
 
-    /**
-     * Sets the evaluation context associated to the provided {@code executionRule} and delegates its evaluation.
-     * <p>
-     * This method also creates the {@link RuntimeModel} instance that will be used as {@code this} by the interpreter.
-     *
-     * @param executionRule the {@link ExecutionRule} to execute
-     * @param session       the {@link XatkitSession} associated to the {@link ExecutionRule}
-     * @see #evaluate(XExpression, IEvaluationContext, CancelIndicator)
-     */
-    private void executeExecutionRule(ExecutionRule executionRule, XatkitSession session) {
-        IEvaluationContext evaluationContext = this.createContext();
-        RuntimeModel runtimeModel = new RuntimeModel(session.getRuntimeContexts().getContextMap(),
-                session.getSessionVariables(), configurationMap,
-                (EventInstance) session.get(MATCHED_EVENT_SESSION_KEY));
-        evaluationContext.newValue(QualifiedName.create("this"), runtimeModel);
-        evaluationContext.newValue(EVALUATION_CONTEXT_SESSION_KEY, session);
-        IEvaluationResult evaluationResult = this.evaluate(executionRule, evaluationContext, CancelIndicator.NullImpl);
-        if (nonNull(evaluationResult.getException())) {
-            throw new XatkitException(evaluationResult.getException());
-        }
-    }
+    // TODO check that, talk about the two use cases
 
     /**
      * Evaluates the provided {@code expression}.
@@ -282,7 +497,7 @@ public class ExecutionService extends XbaseInterpreter {
                         evaluatedArguments,
                         session);
                 RuntimeActionResult result = executeRuntimeAction(runtimeAction);
-                if(!session.equals(runtimeAction.getSession())) {
+                if (!session.equals(runtimeAction.getSession())) {
                     /*
                      * The runtimeAction.getSession can be different if the action changed its own session. This is the
                      * case for messaging actions that need to create a session associated to the targeted channel.
@@ -310,6 +525,29 @@ public class ExecutionService extends XbaseInterpreter {
                     runtimeModel.setSession(runtimeAction.getSession().getSessionVariables());
                 }
                 return result.getResult();
+            }
+        } else if (expression instanceof XBinaryOperation) {
+            /*
+             * Custom implementation of intent = MyIntent and event = MyEvent binary operations.
+             */
+            XBinaryOperation operation = (XBinaryOperation) expression;
+            if (operation.getFeature().getSimpleName().equals("operator_equals")) {
+                if (operation.getLeftOperand() instanceof XFeatureCall) {
+                    XFeatureCall leftFeatureCall = (XFeatureCall) operation.getLeftOperand();
+                    if (leftFeatureCall.getFeature() instanceof JvmField && (leftFeatureCall.getFeature().getSimpleName().equals("intent") || leftFeatureCall.getFeature().getSimpleName().equals("event"))) {
+                        XFeatureCall rightFeatureCall = (XFeatureCall) operation.getRightOperand();
+                        if (rightFeatureCall.getFeature() instanceof JvmGenericType) {
+                            JvmGenericType rightFeatureType = (JvmGenericType) rightFeatureCall.getFeature();
+                            if (rightFeatureType.getSuperTypes().stream().anyMatch(t -> t.getIdentifier().equals("com" +
+                                    ".xatkit.intent.EventDefinition"))) {
+                                EventWrapper wrapper = (EventWrapper) internalEvaluate(operation.getLeftOperand(),
+                                        context, indicator);
+                                return wrapper.getEventInstance().getDefinition().getName().equals(rightFeatureType.getSimpleName());
+                            }
+                        }
+                    }
+
+                }
             }
         }
         return super.doEvaluate(expression, context, indicator);
@@ -366,40 +604,6 @@ public class ExecutionService extends XbaseInterpreter {
         String platformName = XbaseUtils.getPlatformName(actionCall);
         RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform(platformName);
         return runtimePlatform.createRuntimeAction(actionCall, arguments, session);
-    }
-
-    /**
-     * Retrieves the {@link ExecutionRule}s associated to the provided {@code eventInstance}.
-     * <p>
-     * This method navigates the underlying {@link ExecutionModel} and retrieves all the {@link ExecutionRule}s that
-     * match the {@link EventDefinition} of the provided {@code eventInstance}. Note that {@link ExecutionRule}s may
-     * be returned in any order.
-     *
-     * @param eventInstance the {@link EventInstance} to retrieve the {@link ExecutionRule}s from
-     * @return a {@link List} containing the retrieved {@link ExecutionRule}s
-     * @see #executeExecutionRule(ExecutionRule, XatkitSession)
-     */
-    private List<ExecutionRule> getExecutionRulesFromEvent(EventInstance eventInstance) {
-        EventDefinition eventDefinition = eventInstance.getDefinition();
-        List<ExecutionRule> result = new ArrayList<>();
-        for (ExecutionRule rule : executionModel.getExecutionRules()) {
-            if (rule.getEvent().getName().equals(eventDefinition.getName())) {
-                if(nonNull(rule.getFromPlatform())) {
-                    if(rule.getFromPlatform().getName().equals(eventInstance.getTriggeredBy())) {
-                        result.add(rule);
-                    } else {
-                        /*
-                         * Do nothing, we don't want to execute this rule because its from guard is not matched.
-                         * (keep the continue in case the method code evolves)
-                         */
-                        continue;
-                    }
-                } else {
-                    result.add(rule);
-                }
-            }
-        }
-        return result;
     }
 
     /**

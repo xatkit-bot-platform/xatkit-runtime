@@ -25,11 +25,13 @@ import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.intent.TextFragment;
+import com.xatkit.util.ExecutionModelHelper;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,13 +83,6 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
     static {
         DEFAULT_FALLBACK_INTENT.setName("Default_Fallback_Intent");
     }
-
-    /**
-     * The context name suffix used to identify follow-up contexts.
-     *
-     * @see #setFollowUpContexts(IntentDefinition, RecognizedIntent)
-     */
-    protected static String FOLLOW_CONTEXT_NAME_SUFFIX = "_follow";
 
     /**
      * The delimiter used to separate context and parameter names in RegExp group names.
@@ -479,7 +474,6 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
                      * Sets additional values that are not part of the matched expressions. These values can be
                      * follow-up contexts, or empty contexts.
                      */
-                    setFollowUpContexts(intentDefinition, recognizedIntent);
                     setEmptyContexts(intentDefinition, recognizedIntent);
                     /*
                      * Return the first one we find, no need to iterate the rest of the map
@@ -515,29 +509,19 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * @param session           the {@link XatkitSession} storing contextual values
      * @return the {@link List} of {@link IntentDefinition} that can be matched according to the provided {@code
      * session}
-     * @see #setFollowUpContexts(IntentDefinition, RecognizedIntent)
      */
     private List<IntentDefinition> getMatchableIntents(Set<IntentDefinition> intentDefinitions, XatkitSession session) {
         RuntimeContexts runtimeContexts = session.getRuntimeContexts();
+        Collection<IntentDefinition> topLevelIntents = ExecutionModelHelper.getInstance().getTopLevelIntents();
         List<IntentDefinition> result = new ArrayList<>();
         for (IntentDefinition intentDefinition : intentDefinitions) {
-            if (nonNull(intentDefinition.getFollows())) {
-                // cannot use getVariables because it always return an empty map
-                if (isNull(runtimeContexts.getContextVariables(intentDefinition.getFollows().getName() + FOLLOW_CONTEXT_NAME_SUFFIX))) {
-                    continue;
+            if(topLevelIntents.contains(intentDefinition)) {
+                result.add(intentDefinition);
+            } else {
+                if(nonNull(runtimeContexts.getContextMap().get("Enable" + intentDefinition.getName()))) {
+                    result.add(intentDefinition);
                 }
             }
-            boolean error = false;
-            for (Context inContext : intentDefinition.getInContexts()) {
-                if (isNull(runtimeContexts.getContextVariables(inContext.getName()))) {
-                    error = true;
-                    break;
-                }
-            }
-            if (error) {
-                continue;
-            }
-            result.add(intentDefinition);
         }
         return result;
     }
@@ -585,25 +569,6 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
                 ContextInstance contextInstance = getOrCreateContextInstance(recognizedIntent, context);
                 contextInstance.getValues().add(contextParameterValue);
             }
-        }
-    }
-
-    /**
-     * Sets the {@link ContextInstance} representing implicit follow-up contexts in the provided {@code
-     * reccognizedIntent}.
-     * <p>
-     * This method sets the {@link ContextInstance}'s lifespan count to 3, allowing to recover from an unmatched
-     * intent before discarding it.
-     *
-     * @param intentDefinition the {@link IntentDefinition} defining the follow-up relationship
-     * @param recognizedIntent the {@link RecognizedIntent} to set the {@link ContextInstance} of
-     */
-    private void setFollowUpContexts(IntentDefinition intentDefinition, RecognizedIntent recognizedIntent) {
-        if (!intentDefinition.getFollowedBy().isEmpty()) {
-            Context followContext = IntentFactory.eINSTANCE.createContext();
-            followContext.setName(intentDefinition.getName() + FOLLOW_CONTEXT_NAME_SUFFIX);
-            followContext.setLifeSpan(2);
-            getOrCreateContextInstance(recognizedIntent, followContext);
         }
     }
 

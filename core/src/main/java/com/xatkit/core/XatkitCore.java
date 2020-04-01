@@ -36,6 +36,7 @@ import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.platform.PlatformPackage;
 import com.xatkit.util.EMFUtils;
+import com.xatkit.util.ExecutionModelHelper;
 import com.xatkit.util.FileUtils;
 import com.xatkit.util.Loader;
 import com.xatkit.util.XbaseUtils;
@@ -233,6 +234,7 @@ public class XatkitCore {
             this.runtimePlatformRegistry = new RuntimePlatformRegistry();
             initializeExecutionResourceSet();
             ExecutionModel executionModel = getExecutionModel(configuration);
+            ExecutionModelHelper.create(executionModel);
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
                     .getSimpleName(), ExecutionModel.class.getSimpleName());
             this.formatters = new HashMap<>();
@@ -310,7 +312,7 @@ public class XatkitCore {
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");
 
-        Iterable<EventDefinition> accessedEvents = XbaseUtils.getAccessedEvents(executionModel);
+        Iterable<EventDefinition> accessedEvents = ExecutionModelHelper.getInstance().getAllAccessedEvents();
         for (EventDefinition e : accessedEvents) {
             intentRegistered |= this.registerEventDefinition(e);
         }
@@ -995,6 +997,10 @@ public class XatkitCore {
         if (isNull(session)) {
             session = this.intentRecognitionProvider.createSession(sessionId);
             sessions.put(sessionId, session);
+            /*
+             * The executor service takes care of configuring the new session and setting the init state.
+             */
+            executionService.initSession(session);
         }
         return session;
     }

@@ -370,6 +370,20 @@ public class RuntimeContexts {
     }
 
     /**
+     * Increments the lifespanCount of all the stored contexts.
+     * <p>
+     * This method is typically called after an invalid intent matching to make sure context parameters remain
+     * unchanged for the next match. If the context are not incremented the automated call to
+     * {@link #decrementLifespanCounts()} may delete them, making the intent recognition inconsistent.
+     */
+    public void incrementLifespanCounts() {
+        Log.debug("Incrementing RuntimeContexts lifespanCounts");
+        for (Map.Entry<String, Integer> entry : lifespanCounts.entrySet()) {
+            entry.setValue(entry.getValue() + 1);
+        }
+    }
+
+    /**
      * Merges the provided {@code other} {@link RuntimeContexts} into this one.
      * <p>
      * This method adds all the {@code contexts} and {@code values} of the provided {@code other}

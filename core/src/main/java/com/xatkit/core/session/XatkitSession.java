@@ -2,6 +2,9 @@ package com.xatkit.core.session;
 
 import com.xatkit.core.XatkitCore;
 import com.xatkit.execution.State;
+import com.xatkit.execution.Transition;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.util.ExecutionModelHelper;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -136,12 +139,24 @@ public class XatkitSession {
      * <p>
      * The session's state represents the point in the conversation graph where the user is. It is used by the Xatkit
      * {@link com.xatkit.core.ExecutionService} to execute the logic of the bot and compute actionable transitions.
+     * <p>
+     * This method also sets the context parameters needed to match the next {@link IntentDefinition}s, if they exist.
      *
      * @param state the {@link State} to set
      */
     public void setState(@Nonnull State state) {
         checkNotNull(state, "Cannot set the provided %s %s", State.class.getSimpleName(), state);
         this.state = state;
+        for(Transition t : state.getTransitions()) {
+            ExecutionModelHelper.getInstance().getAccessedEvents(t).forEach(e -> {
+                if(e instanceof IntentDefinition) {
+                    IntentDefinition i = (IntentDefinition)e;
+                    if(!ExecutionModelHelper.getInstance().getTopLevelIntents().contains(i)) {
+                        this.runtimeContexts.setContext("Enable" + i.getName(), 2);
+                    }
+                }
+            });
+        }
     }
 
     /**
