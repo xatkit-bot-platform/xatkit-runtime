@@ -195,7 +195,7 @@ public class ExecutionModelHelper {
                 }
             });
         });
-        return topLevelIntents;
+        return result;
     }
 
     /**
