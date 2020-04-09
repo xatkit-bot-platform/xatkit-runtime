@@ -220,7 +220,12 @@ public class ExecutionService extends XbaseInterpreter {
         if (isNull(bodyExpression)) {
             Log.debug("{0}'s body section is null, skipping its execution", state.getName());
         } else {
-            IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(null, session);
+            /*
+             * The event instance that made the state machine move to the current state. This event instance is set
+             * by the handleEventInstance method
+             */
+            EventInstance lastEventInstance = (EventInstance) session.get(MATCHED_EVENT_SESSION_KEY);
+            IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(lastEventInstance, session);
             IEvaluationResult evaluationResult = this.evaluate(bodyExpression, evaluationContext,
                     CancelIndicator.NullImpl);
             if (nonNull(evaluationResult.getException())) {
@@ -262,7 +267,12 @@ public class ExecutionService extends XbaseInterpreter {
         if (isNull(fallbackExpression)) {
             executeBody(ExecutionModelHelper.getInstance().getFallbackState(), session);
         } else {
-            IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(null, session);
+            /*
+             * The event instance that made the state machine move to the current state. This event instance is set
+             * by the handleEventInstance method
+             */
+            EventInstance lastEventInstance = (EventInstance) session.get(MATCHED_EVENT_SESSION_KEY);
+            IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(lastEventInstance, session);
             IEvaluationResult evaluationResult = this.evaluate(fallbackExpression, evaluationContext,
                     CancelIndicator.NullImpl);
             if (nonNull(evaluationResult.getException())) {
@@ -340,6 +350,10 @@ public class ExecutionService extends XbaseInterpreter {
                 XatkitSession.class.getSimpleName(), session);
         List<Transition> result = new ArrayList<>();
         for (Transition t : state.getTransitions()) {
+            /*
+             * Create the context with the received EventInstance. This is the instance we want to use in the
+             * transition conditions.
+             */
             IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(eventInstance, session);
             IEvaluationResult evaluationResult = this.evaluate(t.getCondition(), evaluationContext,
                     CancelIndicator.NullImpl);
