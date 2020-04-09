@@ -146,6 +146,7 @@ public class XatkitSession {
      */
     public void setState(@Nonnull State state) {
         checkNotNull(state, "Cannot set the provided %s %s", State.class.getSimpleName(), state);
+        Log.debug("Session {0} - State set to {1}", this.getSessionId(), state.getName());
         this.state = state;
         for(Transition t : state.getTransitions()) {
             ExecutionModelHelper.getInstance().getAccessedEvents(t).forEach(e -> {
