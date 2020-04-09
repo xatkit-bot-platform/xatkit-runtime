@@ -411,6 +411,7 @@ public class ExecutionService extends XbaseInterpreter {
                  * TODO Here we are blocked, we need an error state or something
                  */
             } else if (transitions.size() == 0) {
+                session.store(MATCHED_EVENT_SESSION_KEY, eventInstance);
                 executeFallback(session.getState(), session);
             } else {
                 for (ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
