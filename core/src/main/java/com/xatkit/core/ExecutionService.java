@@ -224,7 +224,10 @@ public class ExecutionService extends XbaseInterpreter {
             IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(null, session);
             IEvaluationResult evaluationResult = this.evaluate(bodyExpression, evaluationContext,
                     CancelIndicator.NullImpl);
-            handleEvaluationResult(evaluationResult);
+            if (nonNull(evaluationResult.getException())) {
+                Log.error(evaluationResult.getException(), "An error occurred when executing fallback of state {0}",
+                        state.getName());
+            }
             /*
              * Result is ignored here, we just want to know if it contains a Throwable.
              */
@@ -263,7 +266,10 @@ public class ExecutionService extends XbaseInterpreter {
             IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(null, session);
             IEvaluationResult evaluationResult = this.evaluate(fallbackExpression, evaluationContext,
                     CancelIndicator.NullImpl);
-            handleEvaluationResult(evaluationResult);
+            if (nonNull(evaluationResult.getException())) {
+                Log.error(evaluationResult.getException(), "An error occurred when executing fallback of state {0}",
+                        state.getName());
+            }
             /*
              * Result is ignored here, we just want to know if it contains a Throwable.
              */
@@ -286,6 +292,7 @@ public class ExecutionService extends XbaseInterpreter {
      * @throws NullPointerException if the provided {@code state} is {@code null}
      */
     private @Nullable
+    // this should be somewhere else
     Transition getWildcardTransition(@Nonnull State state) {
         checkNotNull(state, "Cannot retrieve the wildcard transition of %s %s", State.class.getSimpleName(), state);
         return state.getTransitions().stream().filter(Transition::isIsWildcard).findAny().orElse(null);
@@ -323,27 +330,6 @@ public class ExecutionService extends XbaseInterpreter {
     }
 
     /**
-     * Helper method to access the raw result contained in the provided {@code evaluationResult}.
-     * <p>
-     * This method checks whether the provided {@code evaluationResult} holds a result value or a {@link Throwable}
-     * indicating an error in the evaluation (see {@link #evaluate(XExpression)}).
-     *
-     * @param evaluationResult the {@link IEvaluationResult} to handle
-     * @return the raw result contained in the provided {@code evaluationResult}
-     * @throws XatkitException      if the provided {@code evaluationResult} holds a {@link Throwable}
-     * @throws NullPointerException if the provided {@code evaluationResult} is {@code null}
-     */
-    private @Nullable
-    Object handleEvaluationResult(@Nonnull IEvaluationResult evaluationResult) {
-        checkNotNull(evaluationResult, "Cannot handle the provided %s %s", IEvaluationResult.class.getSimpleName(),
-                evaluationResult);
-        if (nonNull(evaluationResult.getException())) {
-            throw new XatkitException(evaluationResult.getException());
-        }
-        return evaluationResult.getResult();
-    }
-
-    /**
      * Computes the {@link List} of {@link Transition}s that can be navigated from the provided {@code state}.
      * <p>
      * This method checks, for all the {@link Transition}s, whether their condition is fulfilled or not. The
@@ -374,23 +360,33 @@ public class ExecutionService extends XbaseInterpreter {
             IEvaluationContext evaluationContext = this.createXatkitEvaluationContext(eventInstance, session);
             IEvaluationResult evaluationResult = this.evaluate(t.getCondition(), evaluationContext,
                     CancelIndicator.NullImpl);
-            Object expressionValue = handleEvaluationResult(evaluationResult);
-            if (expressionValue instanceof Boolean) {
-                if ((Boolean) expressionValue) {
-                    result.add(t);
+            if (nonNull(evaluationResult.getException())) {
+                Log.error(evaluationResult.getException(), "An exception occurred when evaluating transition " +
+                        "{0} of state {1}", state.getTransitions().indexOf(t), state.getName());
+                /*
+                 * We consider the transition as non-navigable if an exception is thrown while computing its condition.
+                 */
+                continue;
+            } else {
+                Object expressionValue = evaluationResult.getResult();
+                if (expressionValue instanceof Boolean) {
+                    if ((Boolean) expressionValue) {
+                        result.add(t);
+                    } else {
+                        /*
+                         * Skip, the transition condition is not fulfilled.
+                         */
+                    }
                 } else {
                     /*
-                     * Skip, the transition condition is not fulfilled.
+                     * The evaluated condition is not a boolean. This should not happen in the general case because the
+                     * execution language grammar explicitly uses boolean operation rules to set transitions'
+                     * conditions.
                      */
+                    throw new XatkitException(MessageFormat.format("An error occurred when evaluating {0}'s {1} " +
+                                    "conditions: expected a boolean value, found {2}", state.getName(),
+                            Transition.class.getSimpleName(), expressionValue));
                 }
-            } else {
-                /*
-                 * The evaluated condition is not a boolean. This should not happen in the general case because the
-                 * execution language grammar explicitly uses boolean operation rules to set transitions' conditions.
-                 */
-                throw new XatkitException(MessageFormat.format("An error occurred when evaluating {0}'s {1} " +
-                                "conditions: expected a boolean value, found {2}", state.getName(),
-                        Transition.class.getSimpleName(), expressionValue));
             }
         }
         return result;
@@ -466,8 +462,6 @@ public class ExecutionService extends XbaseInterpreter {
         });
     }
 
-    // TODO check that, talk about the two use cases
-
     /**
      * Evaluates the provided {@code expression}.
      * <p>
@@ -498,6 +492,7 @@ public class ExecutionService extends XbaseInterpreter {
                         session);
                 RuntimeActionResult result = executeRuntimeAction(runtimeAction);
                 if (!session.equals(runtimeAction.getSession())) {
+                    // TODO update the documentation
                     /*
                      * The runtimeAction.getSession can be different if the action changed its own session. This is the
                      * case for messaging actions that need to create a session associated to the targeted channel.
@@ -569,7 +564,7 @@ public class ExecutionService extends XbaseInterpreter {
         RuntimeActionResult result = action.call();
         if (result.isError()) {
             Log.error("An error occurred when executing the action {0}", action.getClass().getSimpleName());
-            printStackTrace(result.getThrownException());
+            printStackTrace(result.getThrowable());
         }
         Log.info("Action {0} executed in {1} ms", action.getClass().getSimpleName(), result.getExecutionTime());
         return result;
