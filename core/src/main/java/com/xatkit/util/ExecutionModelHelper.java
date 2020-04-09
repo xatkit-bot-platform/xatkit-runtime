@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -187,7 +188,7 @@ public class ExecutionModelHelper {
      */
     private Collection<IntentDefinition> computeTopLevelIntents() {
         Set<IntentDefinition> result = new HashSet<>();
-        Collection<State> topLevelStates = getStatesReachableWithWildcard(initState);
+        Collection<State> topLevelStates = getAllStatesReachableWithWildcard(initState);
         topLevelStates.stream().flatMap(state -> state.getTransitions().stream()).forEach(t -> {
             getAccessedEvents(t).forEach(e -> {
                 if (e instanceof IntentDefinition) {
@@ -199,36 +200,71 @@ public class ExecutionModelHelper {
     }
 
     /**
-     * Returns the {@link State}s that can be reached from the provided {@code state} with wildcard {@link Transition}s.
+     * Returns the {@link State} that can be reached from the provided {@code state} with a wildcard {@link Transition}.
      *
-     * @param state the {@link State} to use to start the search
-     * @return the {@link State}s that can be reached from the provided {@code state} with wildcard {@link Transition}s
-     * @see Transition#isIsWildcard()
-     * @see #getStatesReachableWithWildcard(State, Set)
+     * @param state the {@link State} to retrieve the wildcard-reachable {@link State} from
+     * @return the reachable {@link State} if it exist, or {@code null}
+     * @throws IllegalStateException if the provided {@code state} contains more than one transition and at least one
+     *                               is a wildcard
+     * @see #getAllStatesReachableWithWildcard(State) to retrieve all the {@link State}s that can be transitively
+     * reached with a wildcard {@link Transition} from the provided {@code state}
      */
-    private Collection<State> getStatesReachableWithWildcard(State state) {
-        return getStatesReachableWithWildcard(state, new HashSet<>());
+    public @Nullable
+    State getStateReachableWithWildcard(State state) {
+        checkNotNull(state, "Cannot retrieve the state reachable with wildcard transition from the provided state %s"
+                , state);
+        State result = null;
+        if (state.getTransitions().stream().anyMatch(Transition::isIsWildcard)) {
+            if (state.getTransitions().size() > 0) {
+                throw new IllegalStateException(MessageFormat.format("The provided state %s contains more than 1 " +
+                        "transition and at least one is a wildcard", state.getName()));
+            } else {
+                result = state.getTransitions().get(0).getState();
+            }
+        }
+        return result;
     }
 
     /**
-     * Returns the {@link State}s that can be reached from the provided {@code state} with wildcard {@link Transition}s.
+     * Returns all the {@link State}s that can be transitively reached from the provided {@code state} with wildcard
+     * {@link Transition}s.
      * <p>
-     * This method is a recursive implementation of {@link #getStatesReachableWithWildcard(State)} that uses the
+     * <b>Note</b>: the order of the returned state is undefined, you cannot use it to navigate the states in a
+     * depth-first or breadth-first way.
+     *
+     * @param state the {@link State} to use to start the search
+     * @return the {@link State}s that can be reached from the provided {@code state} with wildcard {@link Transition}s
+     * @throws IllegalStateException if the provided {@code state} contains more than one transition and at least one
+     *                               is a wildcard
+     * @see Transition#isIsWildcard()
+     * @see #getAllStatesReachableWithWildcard(State, Set)
+     */
+    public Collection<State> getAllStatesReachableWithWildcard(State state) {
+        return getAllStatesReachableWithWildcard(state, new HashSet<>());
+    }
+
+    /**
+     * Returns all the {@link State}s that can be transitively reached from the provided {@code state} with wildcard
+     * {@link Transition}s.
+     * <p>
+     * <b>Note</b>: the order of the returned state is undefined, you cannot use it to navigate the states in a
+     * depth-first or breadth-first way.
+     * <p>
+     * This method is a recursive implementation of {@link #getAllStatesReachableWithWildcard(State)} that uses the
      * {@code result} {@link Set} as an accumulator.
      *
      * @param state  the {@link State} to use to start the search
      * @param result the {@link Set} used to gather the retrieved {@link State}s
      * @return the {@link State}s that can be reached from the provided {@code state} with wildcard {@link Transition}s
+     * @throws IllegalStateException if the provided {@code state} contains more than one transition and at least one
+     *                               is a wildcard
      */
-    private Collection<State> getStatesReachableWithWildcard(State state, Set<State> result) {
+    private Collection<State> getAllStatesReachableWithWildcard(State state, Set<State> result) {
         boolean added = result.add(state);
         if (added) {
-            if (state.getTransitions().stream().anyMatch(Transition::isIsWildcard)) {
-                /*
-                 * We assume here there is only one state
-                 */
-                State otherState = state.getTransitions().get(0).getState();
-                return getStatesReachableWithWildcard(otherState, result);
+            State otherState = getStateReachableWithWildcard(state);
+            if (nonNull(otherState)) {
+                return getAllStatesReachableWithWildcard(otherState, result);
             } else {
                 return result;
             }

@@ -236,10 +236,10 @@ public class ExecutionService extends XbaseInterpreter {
          * Look for wildcard transitions and navigate them. We don't need to wait here, we can just move to the next
          * state that defines non-wildcard transitions.
          */
-        Transition wildcardTransition = getWildcardTransition(state);
-        if (nonNull(wildcardTransition)) {
-            session.setState(wildcardTransition.getState());
-            executeBody(wildcardTransition.getState(), session);
+        State stateReachableWithWildcard = ExecutionModelHelper.getInstance().getStateReachableWithWildcard(state);
+        if(nonNull(stateReachableWithWildcard)) {
+            session.setState(stateReachableWithWildcard);
+            executeBody(stateReachableWithWildcard, session);
         }
     }
 
@@ -280,22 +280,6 @@ public class ExecutionService extends XbaseInterpreter {
          * (otherwise they will be deleted and the matching will be inconsistent).
          */
         session.getRuntimeContexts().incrementLifespanCounts();
-    }
-
-    /**
-     * Returns the wildcard {@link Transition} associated to the provided {@link State}, if it exists.
-     * <p>
-     * <b>Note</b>: this method does not check the uniqueness of the wildcard {@link Transition}.
-     *
-     * @param state the {@link State} to retrieve the wildcard {@link Transition} from
-     * @return the {@link Transition} if it exists, {@code null} otherwise
-     * @throws NullPointerException if the provided {@code state} is {@code null}
-     */
-    private @Nullable
-    // this should be somewhere else
-    Transition getWildcardTransition(@Nonnull State state) {
-        checkNotNull(state, "Cannot retrieve the wildcard transition of %s %s", State.class.getSimpleName(), state);
-        return state.getTransitions().stream().filter(Transition::isIsWildcard).findAny().orElse(null);
     }
 
     /**
