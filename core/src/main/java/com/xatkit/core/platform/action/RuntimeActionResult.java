@@ -36,10 +36,10 @@ public class RuntimeActionResult {
      * <p>
      * Setting this value makes the {@link #isError()} method return {@code true}.
      *
-     * @see #getThrownException()
+     * @see #getThrowable()
      * @see #isError()
      */
-    private Exception thrownException;
+    private Throwable throwable;
 
     /**
      * Constructs a new {@link RuntimeActionResult} from the provided {@code result} and {@code executionTime}.
@@ -67,15 +67,15 @@ public class RuntimeActionResult {
      * {@link #getExecutionTime()} method.
      *
      * @param partialResult   the partial raw result that has been computed before failing
-     * @param thrownException the {@link Exception} that has been thrown during the computation
+     * @param throwable the {@link Throwable} that has been thrown during the computation
      * @param executionTime   the execution time (in milliseconds)
      * @throws IllegalArgumentException if the provided {@code executionTime < 0}
      */
-    public RuntimeActionResult(Object partialResult, Exception thrownException, long executionTime) {
+    public RuntimeActionResult(Object partialResult, Throwable throwable, long executionTime) {
         checkArgument(executionTime >= 0, "Cannot construct a %s from the provided execution time: expected a " +
                 "positive value (in ms), found %s", this.getClass().getSimpleName(), executionTime);
         this.result = partialResult;
-        this.thrownException = thrownException;
+        this.throwable = throwable;
         this.executionTime = executionTime;
     }
 
@@ -108,20 +108,20 @@ public class RuntimeActionResult {
      * @return the {@link Exception} that has been thrown during the computation
      * @see #isError() }
      */
-    public Exception getThrownException() {
-        return this.thrownException;
+    public Throwable getThrowable() {
+        return this.throwable;
     }
 
     /**
      * Returns whether the {@link RuntimeActionResult} represents an errored computation.
      * <p>
      * If this method returns {@code true} the {@link Exception} that has been thrown during the errored computation
-     * can be retrieved by calling {@link #getThrownException()}.
+     * can be retrieved by calling {@link #getThrowable()}.
      *
      * @return {@code true} if the {@link RuntimeActionResult} represents an errored computation, {@code false} otherwise
-     * @see #getThrownException()
+     * @see #getThrowable()
      */
     public boolean isError() {
-        return nonNull(this.thrownException);
+        return nonNull(this.throwable);
     }
 }

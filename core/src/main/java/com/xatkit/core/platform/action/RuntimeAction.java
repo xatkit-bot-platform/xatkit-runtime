@@ -83,7 +83,7 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
      * <p>
      * This method does not throw any {@link Exception} if the underlying {@link RuntimeAction}'s computation does not
      * complete. Exceptions thrown during the {@link RuntimeAction}'s computation can be accessed through the
-     * {@link RuntimeActionResult#getThrownException()} method.
+     * {@link RuntimeActionResult#getThrowable()} method.
      *
      * @return the {@link RuntimeActionResult} containing the raw result of the computation and monitoring information
      * @see ExecutionService
@@ -92,19 +92,19 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
     @Override
     public RuntimeActionResult call() {
         Object computationResult = null;
-        Exception thrownException = null;
+        Throwable callThrowable = null;
         long before = System.currentTimeMillis();
         try {
             computationResult = compute();
-        } catch (Exception e) {
-            thrownException = e;
+        } catch (Throwable e) {
+            callThrowable = e;
         }
         long after = System.currentTimeMillis();
         /*
          * Construct the RuntimeAction result from the gathered information. Note that the constructor accepts a null
          * value for the thrownException parameter, that will set accordingly the isError() helper.
          */
-        return new RuntimeActionResult(computationResult, thrownException, (after - before));
+        return new RuntimeActionResult(computationResult, callThrowable, (after - before));
     }
 
     /**

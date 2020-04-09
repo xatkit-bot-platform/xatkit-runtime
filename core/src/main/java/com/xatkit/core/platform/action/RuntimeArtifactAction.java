@@ -129,7 +129,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * <p>
      * This method does not throw any {@link Exception} if the underlying {@link RuntimeAction}'s computation does not
      * complete. Exceptions thrown during the {@link RuntimeArtifactAction}'s computation can be accessed through the
-     * {@link RuntimeActionResult#getThrownException()} method.
+     * {@link RuntimeActionResult#getThrowable()} method.
      *
      * @return the {@link RuntimeActionResult} containing the raw result of the computation and monitoring information
      * @see ExecutionService
