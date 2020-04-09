@@ -241,7 +241,7 @@ public class ExecutionService extends XbaseInterpreter {
          * state that defines non-wildcard transitions.
          */
         State stateReachableWithWildcard = ExecutionModelHelper.getInstance().getStateReachableWithWildcard(state);
-        if(nonNull(stateReachableWithWildcard)) {
+        if (nonNull(stateReachableWithWildcard)) {
             session.setState(stateReachableWithWildcard);
             executeBody(stateReachableWithWildcard, session);
         }
@@ -535,7 +535,7 @@ public class ExecutionService extends XbaseInterpreter {
                                     ".xatkit.intent.EventDefinition"))) {
                                 EventWrapper wrapper = (EventWrapper) internalEvaluate(operation.getLeftOperand(),
                                         context, indicator);
-                                if(isNull(wrapper)) {
+                                if (isNull(wrapper)) {
                                     /*
                                      * The wrapper can be null if use the "intent" accessor on a received event. In
                                      * this case the result of the comparison is always false.
