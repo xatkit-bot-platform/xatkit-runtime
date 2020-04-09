@@ -39,7 +39,6 @@ import com.xatkit.util.EMFUtils;
 import com.xatkit.util.ExecutionModelHelper;
 import com.xatkit.util.FileUtils;
 import com.xatkit.util.Loader;
-import com.xatkit.util.XbaseUtils;
 import com.xatkit.utils.XatkitImportHelper;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
@@ -413,8 +412,9 @@ public class XatkitCore {
         state.eAllContents().forEachRemaining(e -> {
                     if (e instanceof XMemberFeatureCall) {
                         XMemberFeatureCall featureCall = (XMemberFeatureCall) e;
-                        if (XbaseUtils.isPlatformActionCall(featureCall, this.runtimePlatformRegistry)) {
-                            String platformName = XbaseUtils.getPlatformName(featureCall);
+                        if (ExecutionModelHelper.getInstance().isPlatformActionCall(featureCall,
+                                this.runtimePlatformRegistry)) {
+                            String platformName = ExecutionModelHelper.getInstance().getPlatformName(featureCall);
 
                             PlatformDefinition platformDefinition =
                                     this.runtimePlatformRegistry.getPlatformDefinition(platformName);

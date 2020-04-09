@@ -11,8 +11,8 @@ import com.xatkit.intent.EventInstance;
 import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.util.ExecutionModelHelper;
 import com.xatkit.util.Loader;
-import com.xatkit.util.XbaseUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -276,7 +276,7 @@ public abstract class RuntimePlatform {
                 RuntimeAction.class.getSimpleName(), arguments);
         checkNotNull(session, "Cannot construct a %s from the provided %s %s", RuntimeAction.class.getSimpleName(),
                 XatkitSession.class.getSimpleName(), session);
-        String actionName = XbaseUtils.getActionName(actionCall);
+        String actionName = ExecutionModelHelper.getInstance().getActionName(actionCall);
 
         Class<? extends RuntimeAction> runtimeActionClass = actionMap.get(actionName);
         if (isNull(runtimeActionClass)) {

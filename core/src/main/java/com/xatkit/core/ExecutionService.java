@@ -14,7 +14,6 @@ import com.xatkit.intent.EventInstance;
 import com.xatkit.metamodels.utils.EventWrapper;
 import com.xatkit.metamodels.utils.RuntimeModel;
 import com.xatkit.util.ExecutionModelHelper;
-import com.xatkit.util.XbaseUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.ConfigurationConverter;
@@ -465,7 +464,7 @@ public class ExecutionService extends XbaseInterpreter {
     protected Object doEvaluate(XExpression expression, IEvaluationContext context, CancelIndicator indicator) {
         if (expression instanceof XMemberFeatureCall) {
             XMemberFeatureCall featureCall = (XMemberFeatureCall) expression;
-            if (XbaseUtils.isPlatformActionCall(featureCall, this.runtimePlatformRegistry)) {
+            if (ExecutionModelHelper.getInstance().isPlatformActionCall(featureCall, this.runtimePlatformRegistry)) {
                 XatkitSession session = (XatkitSession) context.getValue(EVALUATION_CONTEXT_SESSION_KEY);
                 List<Object> evaluatedArguments = new ArrayList<>();
                 for (XExpression xExpression : featureCall.getActualArguments()) {
@@ -580,7 +579,7 @@ public class ExecutionService extends XbaseInterpreter {
      */
     private RuntimeAction getRuntimeActionFromXMemberFeatureCall(XMemberFeatureCall actionCall, List<Object> arguments,
                                                                  XatkitSession session) {
-        String platformName = XbaseUtils.getPlatformName(actionCall);
+        String platformName = ExecutionModelHelper.getInstance().getPlatformName(actionCall);
         RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform(platformName);
         return runtimePlatform.createRuntimeAction(actionCall, arguments, session);
     }
