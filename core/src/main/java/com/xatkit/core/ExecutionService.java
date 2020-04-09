@@ -520,7 +520,15 @@ public class ExecutionService extends XbaseInterpreter {
                                     ".xatkit.intent.EventDefinition"))) {
                                 EventWrapper wrapper = (EventWrapper) internalEvaluate(operation.getLeftOperand(),
                                         context, indicator);
-                                return wrapper.getEventInstance().getDefinition().getName().equals(rightFeatureType.getSimpleName());
+                                if(isNull(wrapper)) {
+                                    /*
+                                     * The wrapper can be null if use the "intent" accessor on a received event. In
+                                     * this case the result of the comparison is always false.
+                                     */
+                                    return false;
+                                } else {
+                                    return wrapper.getEventInstance().getDefinition().getName().equals(rightFeatureType.getSimpleName());
+                                }
                             }
                         }
                     }
