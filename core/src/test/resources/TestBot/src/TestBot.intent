@@ -1,0 +1,11 @@
+Library TestBot
+
+intent HelloWorld {
+	inputs {
+		"Hello World"
+	}
+	creates context Hello {
+		sets parameter helloTo from fragment "World" (entity any)
+	}
+}
+

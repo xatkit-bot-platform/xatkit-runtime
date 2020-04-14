@@ -1,0 +1,25 @@
+import library "TestBot/src/TestBot.intent" as TestBotLib
+import platform "TestBot/src/StubRuntimePlatform.platform" as TestBotPlat
+
+use provider StubRuntimePlatform.StubInputProvider
+
+Init {
+	Next {
+		intent == HelloWorld --> HandleHelloWorld
+	}
+}
+
+HandleHelloWorld {
+	Body {
+		StubRuntimePlatform.StubRuntimeAction
+	}
+	Next {
+		_ --> Init
+	}
+}
+
+Default_Fallback {
+	Body {
+		
+	}
+}
