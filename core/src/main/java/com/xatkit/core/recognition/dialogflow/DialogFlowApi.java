@@ -62,6 +62,7 @@ import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -213,9 +214,11 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     }
 
     /**
-     * The containing {@link XatkitCore} instance.
+     * The {@link EventDefinitionRegistry} containing the events defined in the current bot.
+     * <p>
+     * This registry is used to convert intents returned by DialogFlow into {@link RecognizedIntent}s.
      */
-    private XatkitCore xatkitCore;
+    private EventDefinitionRegistry eventRegistry;
 
     /**
      * The {@link Configuration} used to initialize this class.
@@ -417,18 +420,19 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     /**
      * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
      * <p>
-     * This constructor is a placeholder for {@link #DialogFlowApi(XatkitCore, Configuration, RecognitionMonitor)}
+     * This constructor is a placeholder for
+     * {@link #DialogFlowApi(EventDefinitionRegistry, Configuration, RecognitionMonitor)}
      * with a {@code null} {@link RecognitionMonitor}.
      *
-     * @param xatkitCore    the {@link XatkitCore} instance managing the {@link DialogFlowApi}
+     * @param eventRegistry the {@link EventDefinitionRegistry} containing the events defined in the current bot
      * @param configuration the {@link Configuration} holding the DialogFlow project ID and language code
-     * @throws NullPointerException if the provided {@code xatkitCore}, {@code configuration} or one of the
+     * @throws NullPointerException if the provided {@code eventRegistry}, {@code configuration} or one of the
      *                              mandatory {@code configuration} value is {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
-     * @see #DialogFlowApi(XatkitCore, Configuration, RecognitionMonitor)
+     * @see #DialogFlowApi(EventDefinitionRegistry, Configuration, RecognitionMonitor)
      */
-    public DialogFlowApi(XatkitCore xatkitCore, Configuration configuration) {
-        this(xatkitCore, configuration, null);
+    public DialogFlowApi(@Nonnull EventDefinitionRegistry eventRegistry, @Nonnull Configuration configuration) {
+        this(eventRegistry, configuration, null);
     }
 
     /**
@@ -457,10 +461,10 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * option for a bot implementation that manipulates local {@link XatkitSession}s may generate consistency issues
      * and unexpected behaviors (such as unmatched intents and context value overwriting).
      *
-     * @param xatkitCore         the {@link XatkitCore} instance managing the {@link DialogFlowApi}
+     * @param eventRegistry      the {@link EventDefinitionRegistry} containing the events defined in the current bot
      * @param configuration      the {@link Configuration} holding the DialogFlow project ID and language code
      * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent matching information
-     * @throws NullPointerException if the provided {@code xatkitCore}, {@code configuration} or one of the mandatory
+     * @throws NullPointerException if the provided {@code eventRegistry}, {@code configuration} or one of the mandatory
      *                              {@code configuration} value is {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
      * @see #PROJECT_ID_KEY
@@ -469,12 +473,14 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * @see #ENABLE_INTENT_LOADING_KEY
      * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
      */
-    public DialogFlowApi(XatkitCore xatkitCore, Configuration configuration,
+    public DialogFlowApi(@Nonnull EventDefinitionRegistry eventRegistry, @Nonnull Configuration configuration,
                          @Nullable RecognitionMonitor recognitionMonitor) {
-        checkNotNull(xatkitCore, "Cannot construct a DialogFlow API instance with a null XatkitCore instance");
-        checkNotNull(configuration, "Cannot construct a DialogFlow API instance from a configuration");
+        checkNotNull(eventRegistry, "Cannot construct a DialogFlow API instance from the provided {0} {1}",
+                EventDefinitionRegistry.class.getSimpleName(), eventRegistry);
+        checkNotNull(configuration, "Cannot construct a DialogFlow API instance from the provided {0} {1}",
+                Configuration.class.getSimpleName(), configuration);
         Log.info("Starting DialogFlow Client");
-        this.xatkitCore = xatkitCore;
+        this.eventRegistry = eventRegistry;
         this.configuration = configuration;
         this.loadConfiguration(configuration);
         this.projectAgentName = ProjectAgentName.of(projectId);
@@ -1371,7 +1377,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * conversation parts from a given user.
      * <p>
      * The returned {@link XatkitSession} is configured by the global {@link Configuration} provided in
-     * {@link #DialogFlowApi(XatkitCore, Configuration)}.
+     * {@link #DialogFlowApi(EventDefinitionRegistry, Configuration)}.
      *
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
@@ -1611,8 +1617,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
              */
             com.xatkit.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
             if (isNull(contextDefinition)) {
-                contextDefinition = this.xatkitCore.getEventDefinitionRegistry().getEventDefinitionOutContext
-                        (contextName);
+                contextDefinition = this.eventRegistry.getEventDefinitionOutContext(contextName);
             }
             if (nonNull(contextDefinition)) {
                 int lifespanCount = context.getLifespanCount();
@@ -1717,8 +1722,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     private IntentDefinition convertDialogFlowIntentToIntentDefinition(Intent intent) {
         checkNotNull(intent, "Cannot retrieve the %s from the provided %s %s", IntentDefinition.class.getSimpleName()
                 , Intent.class.getSimpleName(), intent);
-        IntentDefinition result = xatkitCore.getEventDefinitionRegistry().getIntentDefinition(intent
-                .getDisplayName());
+        IntentDefinition result = eventRegistry.getIntentDefinition(intent.getDisplayName());
         if (isNull(result)) {
             Log.warn("Cannot retrieve the {0} with the provided name {1}, returning the Default Fallback Intent",
                     IntentDefinition.class.getSimpleName(), intent.getDisplayName());

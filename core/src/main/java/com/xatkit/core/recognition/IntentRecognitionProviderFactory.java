@@ -108,7 +108,7 @@ public class IntentRecognitionProviderFactory {
             /*
              * The provided configuration contains DialogFlow-related information.
              */
-            provider = new DialogFlowApi(xatkitCore, configuration, recognitionMonitor);
+            provider = new DialogFlowApi(xatkitCore.getEventDefinitionRegistry(), configuration, recognitionMonitor);
         } else {
             /*
              * The provided configuration does not contain any IntentRecognitionProvider information, returning a

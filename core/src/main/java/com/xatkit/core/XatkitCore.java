@@ -149,6 +149,7 @@ public class XatkitCore {
         try {
             this.configuration = configuration;
             this.runtimePlatformRegistry = new RuntimePlatformRegistry();
+            this.eventDefinitionRegistry = new EventDefinitionRegistry();
             ModelLoader modelLoader = new ModelLoader(this.runtimePlatformRegistry);
             ExecutionModel executionModel = modelLoader.loadExecutionModel(configuration);
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
@@ -167,7 +168,6 @@ public class XatkitCore {
             this.sessions = new HashMap<>();
             this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry, configuration);
             modelLoader.getExecutionInjector().injectMembers(executionService);
-            this.eventDefinitionRegistry = new EventDefinitionRegistry();
             this.loadExecutionModel(executionModel);
             xatkitServer.start();
             Log.info("Xatkit bot started");
