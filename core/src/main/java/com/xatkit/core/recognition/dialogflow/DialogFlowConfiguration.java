@@ -7,6 +7,7 @@ import lombok.NonNull;
 import lombok.Value;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
@@ -142,6 +143,7 @@ public class DialogFlowConfiguration {
      *
      * @see #GOOGLE_CREDENTIALS_PATH_KEY
      */
+    @Nullable
     private String googleCredentialsPath;
 
     /**
