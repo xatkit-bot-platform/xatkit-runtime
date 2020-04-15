@@ -3,6 +3,7 @@ package com.xatkit.core.recognition;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
+import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
@@ -104,7 +105,7 @@ public class IntentRecognitionProviderFactory {
 
         IntentRecognitionProvider provider;
 
-        if (configuration.containsKey(DialogFlowApi.PROJECT_ID_KEY)) {
+        if (configuration.containsKey(DialogFlowConfiguration.PROJECT_ID_KEY)) {
             /*
              * The provided configuration contains DialogFlow-related information.
              */

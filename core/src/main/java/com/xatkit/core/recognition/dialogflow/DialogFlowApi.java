@@ -85,118 +85,13 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * A concrete wrapper for the DialogFlow API client.
+ * A {@link IntentRecognitionProvider} implementation for the DialogFlow API.
  * <p>
- * This class is used to easily setup a connection to a given DialogFlow agent. Note that in addition to the
- * constructor parameters, the DialogFlow {@code projectId} (see {@link #PROJECT_ID_KEY}), language code (see
- * {@link #LANGUAGE_CODE_KEY}), and the location of the DialogFlow project's key file ((see
- * {@link #GOOGLE_CREDENTIALS_PATH_KEY}) should be provided in the constructor's {@link Configuration}. The
- * DialogFlow project's key file location can also be provided in the {@code GOOGLE_APPLICATION_CREDENTIALS}
- * environment variable. See
- * <a href="https://cloud.google.com/dialogflow-enterprise/docs/reference/libraries">DialogFlow documentation</a> for
- * further information.
+ * This class is used to easily setup a connection to a given DialogFlow agent. The behavior of this connector can be
+ * customized in the Xatkit {@link Configuration}, see {@link DialogFlowConfiguration} for more information on the
+ * configuration options.
  */
 public class DialogFlowApi extends IntentRecognitionProvider {
-
-    /**
-     * The {@link Configuration} key to store the unique identifier of the DialogFlow project.
-     *
-     * @see #DialogFlowApi(EventDefinitionRegistry, Configuration)
-     */
-    public static String PROJECT_ID_KEY = "xatkit.dialogflow.projectId";
-
-    /**
-     * The {@link Configuration} key to store the code of the language processed by DialogFlow.
-     *
-     * @see #DialogFlowApi(EventDefinitionRegistry, Configuration)
-     */
-    public static String LANGUAGE_CODE_KEY = "xatkit.dialogflow.language";
-
-    /**
-     * The {@link Configuration} key to store the path of the {@code JSON} credential file for DialogFlow.
-     * <p>
-     * If this key is not set the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
-     * environment variable to retrieve the credentials file.
-     *
-     * @see #DialogFlowApi(EventDefinitionRegistry, Configuration)
-     */
-    public static String GOOGLE_CREDENTIALS_PATH_KEY = "xatkit.dialogflow.credentials.path";
-
-    /**
-     * The default language processed by DialogFlow.
-     */
-    public static String DEFAULT_LANGUAGE_CODE = "en-US";
-
-    /**
-     * The {@link Configuration} key to store whether to clean the {@link #registeredIntents} and
-     * {@link #registeredEntityTypes} when initializing the {@link DialogFlowApi}.
-     * <p>
-     * This property is disabled by default. Enabling it allows to easily re-deploy chatbots under development, but
-     * complete agent cleaning should not be done on production-ready bots (re-training such bots may take a long time).
-     */
-    public static String CLEAN_AGENT_ON_STARTUP_KEY = "xatkit.dialogflow.clean_on_startup";
-
-    /**
-     * The {@link Configuration} key to store whether to initialize the {@link #registeredIntents} {@link Map} with
-     * the {@link Intent}s already stored in the DialogFlow project.
-     * <p>
-     * Intent loading is enabled by default, and should not be an issue when using the {@link DialogFlowApi} in
-     * development context. However, creating multiple instances of the {@link DialogFlowApi} (e.g. when running the
-     * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
-     * avoid Intent loading, limiting the number of queries to the DialogFlow API.
-     * <p>
-     * Note that disabling {@link Intent} loading may create consistency issues between the DialogFlow agent and the
-     * local {@link DialogFlowApi}, and is not recommended in development environment.
-     */
-    public static String ENABLE_INTENT_LOADING_KEY = "xatkit.dialogflow.intent.loading";
-
-    /**
-     * The {@link Configuration} key to store whether to initialize the {@link #registeredEntityTypes} {@link Map}
-     * with the {@link EntityType}s already stored in the DialogFlow project.
-     * <p>
-     * Entity loading is enabled by default, and should not be an issue when using the {@link DialogFlowApi} in
-     * development context. However, creating multiple instances of the {@link DialogFlowApi} (e.g. when running the
-     * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
-     * avoid Entity loading, limiting the number of queries to the DialogFlow API.
-     * <p>
-     * Note that disabling {@link EntityType} loading may create consistency issues between the DialogFlow agent and
-     * the local {@link DialogFlowApi}, and is not recommended in development environment.
-     */
-    public static String ENABLE_ENTITY_LOADING_KEY = "xatkit.dialogflow.entity.loading";
-
-    /**
-     * The {@link Configuration} key to store whether to merge the local {@link XatkitSession} in the DialogFlow one.
-     * <p>
-     * This option is enabled by default to ensure consistency between the local {@link XatkitSession} and the
-     * DialogFlow's one. However, bot implementations that strictly rely on the DialogFlow API and do not use local
-     * {@link XatkitSession}s can disable this option to improve the bot's performances and reduce the number of
-     * calls to the remote DialogFlow API.
-     * <p>
-     * Note that disabling this option for a bot implementation that manipulates local {@link XatkitSession}s may
-     * generate consistency issues and unexpected behaviors (such as unmatched intents and context value overwriting).
-     */
-    public static String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "xatkit.dialogflow.context.merge";
-
-    /**
-     * The {@link Configuration} key to store the lifespan value to use when creating followup intents.
-     * <p>
-     * This option is set to {@code 2} by default (which corresponds to the DialogFlow default value). Changing it to
-     * a higher value allows to match followup intents after multiple inputs. Note that changing it to a smaller
-     * value may result in unmatched intents.
-     */
-    public static String CUSTOM_FOLLOWUP_LIFESPAN = "xatkit.dialogflow.followup.lifespan";
-
-    /**
-     * The {@link Configuration} key to store the DialogFlow confidence threshold.
-     * <p>
-     * This threshold is used to accept/reject a matched intent based on its confidence. The default value is {@code
-     * 0} (accept all intents).
-     * <p>
-     * <b>Note</b>: recognized intents that contain an {@code any} entity are never rejected based on the threshold,
-     * these entities typically have a low confidence value.
-     */
-    public static String CONFIDENCE_THRESHOLD_KEY = "xatkit.dialogflow.confidence.threshold";
-
 
     /**
      * The DialogFlow Default Fallback Intent that is returned when the user input does not match any registered Intent.
@@ -220,89 +115,9 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     private EventDefinitionRegistry eventRegistry;
 
     /**
-     * The {@link Configuration} used to initialize this class.
-     * <p>
-     * This {@link Configuration} is used to retrieve the underlying DialogFlow project identifier, language, and
-     * customize {@link XatkitSession} and {@link RuntimeContexts}s.
+     * The {@link DialogFlowConfiguration} extracted from the provided {@link Configuration}.
      */
-    private Configuration configuration;
-
-    /**
-     * The unique identifier of the DialogFlow project.
-     *
-     * @see #PROJECT_ID_KEY
-     */
-    private String projectId;
-
-    /**
-     * The language code of the DialogFlow project.
-     *
-     * @see #LANGUAGE_CODE_KEY
-     */
-    private String languageCode;
-
-    /**
-     * A flag allowing the {@link DialogFlowApi} to perform a complete clean of the agent before its initialization.
-     * <p>
-     * This option is set to {@code false} by default. Setting it to {@code true} allows to easily re-deploy bots
-     * under development, but should not be used in production-ready bots (re-training the agent may take a while to
-     * complete).
-     *
-     * @see #CLEAN_AGENT_ON_STARTUP_KEY
-     */
-    private boolean cleanAgentOnStartup;
-
-    /**
-     * A flag allowing the {@link DialogFlowApi} to load previously registered {@link Intent} from the DialogFlow agent.
-     * <p>
-     * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
-     * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
-     * {@link DialogFlowApi}.
-     *
-     * @see #ENABLE_INTENT_LOADING_KEY
-     */
-    private boolean enableIntentLoader;
-
-    /**
-     * A flag allowing the {@link DialogFlowApi} to load previously registered {@link EntityType}s from the
-     * DialogFlow agent.
-     * <p>
-     * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
-     * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
-     * {@link DialogFlowApi}.
-     *
-     * @see #ENABLE_ENTITY_LOADING_KEY
-     */
-    private boolean enableEntityLoader;
-
-    /**
-     * A flag allowing the {@link DialogFlowApi} to merge local {@link XatkitSession}s in the DialogFlow one.
-     * <p>
-     * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
-     * sent to the DialogFlow API, but may generate consistency issues and unexpected behaviors for bot
-     * implementations that manipulate local {@link XatkitSession}s.
-     *
-     * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
-     */
-    private boolean enableContextMerge;
-
-    /**
-     * The custom lifespan value to use when creating followup intents.
-     * <p>
-     * This option is set to {@code 2} by default (which corresponds to the DialogFlow default value). Changing it to
-     * a higher value allows to match followup intents after multiple inputs. Note that changing it to a smaller
-     * value may result in unmatched intents.
-     */
-    private int customFollowupLifespan;
-
-    /**
-     * The DialogFlow confidence threshold used to accept/reject intents based on their confidence score.
-     * <p>
-     * This option is set to {@code 0} by default (accept all intents).
-     * <b>Note</b>: recognized intents that contain an {@code any} entity are never rejected based on the threshold,
-     * these entities typically have a low confidence value.
-     */
-    private float confidenceThreshold;
+    private DialogFlowConfiguration configuration;
 
     /**
      * Represents the DialogFlow project name.
@@ -437,28 +252,8 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     /**
      * Constructs a {@link DialogFlowApi} with the provided {@code configuration}.
      * <p>
-     * The provided {@code configuration} must provide values for the following keys:
-     * <ul>
-     * <li><b>xatkit.dialogflow.projectId</b>: the unique identifier of the DialogFlow project</li>
-     * </ul>
-     * The value <b>xatkit.dialogflow.language</b> is not mandatory: if no language code is provided in the
-     * {@link Configuration} the default one ({@link #DEFAULT_LANGUAGE_CODE} will be used.
-     * <p>
-     * The value <b>xatkit.dialogflow.credentials.path</b> is not mandatory either: if no credential path is provided
-     * in the {@link Configuration} the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
-     * environment variable to retrieve the credentials file.
-     * <p>
-     * The value <b>xatkit.dialogflow.intent.loading</b> is not mandatory and allows to tune whether the
-     * {@link DialogFlowApi} should load registered DialogFlow {@link Intent}. This option is set to {@code true} by
-     * default. Disabling it will reduce the number of queries sent to the DialogFlow API, but may generate
-     * consistency issues between the DialogFlow agent and the local {@link DialogFlowApi}.
-     * <p>
-     * The vaule <b>xatkit.dialogflow.context.merge</b> is not mandatory and allows to tune whether the
-     * {@link DialogFlowApi} should merge the local {@link XatkitSession} in the DialogFlow one. This option is set
-     * to {@code true} by default, and may be set to {@code false} to improve the performances of bot implementations
-     * that strictly rely on the DialogFlow API, and do not manipulate local {@link XatkitSession}s. Disabling this
-     * option for a bot implementation that manipulates local {@link XatkitSession}s may generate consistency issues
-     * and unexpected behaviors (such as unmatched intents and context value overwriting).
+     * The behavior of this class can be customized in the provided {@code configuration}. See
+     * {@link DialogFlowConfiguration} for more information on the configuration options.
      *
      * @param eventRegistry      the {@link EventDefinitionRegistry} containing the events defined in the current bot
      * @param configuration      the {@link Configuration} holding the DialogFlow project ID and language code
@@ -466,11 +261,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * @throws NullPointerException if the provided {@code eventRegistry}, {@code configuration} or one of the mandatory
      *                              {@code configuration} value is {@code null}.
      * @throws DialogFlowException  if the client failed to start a new session
-     * @see #PROJECT_ID_KEY
-     * @see #LANGUAGE_CODE_KEY
-     * @see #GOOGLE_CREDENTIALS_PATH_KEY
-     * @see #ENABLE_INTENT_LOADING_KEY
-     * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
+     * @see DialogFlowConfiguration
      */
     public DialogFlowApi(@Nonnull EventDefinitionRegistry eventRegistry, @Nonnull Configuration configuration,
                          @Nullable RecognitionMonitor recognitionMonitor) {
@@ -480,39 +271,16 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                 Configuration.class.getSimpleName(), configuration);
         Log.info("Starting DialogFlow Client");
         this.eventRegistry = eventRegistry;
-        this.configuration = configuration;
-        this.loadConfiguration(configuration);
-        this.projectAgentName = ProjectAgentName.of(projectId);
-        this.buildDialogFlowClients(configuration);
-        this.projectName = ProjectName.of(projectId);
+        this.configuration = new DialogFlowConfiguration(configuration);
+        this.projectAgentName = ProjectAgentName.of(this.configuration.getProjectId());
+        this.buildDialogFlowClients(this.configuration);
+        this.projectName = ProjectName.of(this.configuration.getProjectId());
         this.intentFactory = IntentFactory.eINSTANCE;
         this.entityMapper = new DialogFlowEntityMapper();
         this.cleanAgent();
         this.importRegisteredIntents();
         this.importRegisteredEntities();
         this.recognitionMonitor = recognitionMonitor;
-
-    }
-
-    /**
-     * Initializes the class' attributes from the provided {@code configuration}.
-     *
-     * @param configuration the {@link Configuration} to retrieve the attribute values from
-     */
-    private void loadConfiguration(Configuration configuration) {
-        this.projectId = configuration.getString(PROJECT_ID_KEY);
-        checkNotNull(projectId, "Cannot construct a Xatkit instance from a null projectId");
-        this.languageCode = configuration.getString(LANGUAGE_CODE_KEY);
-        if (isNull(languageCode)) {
-            Log.warn("No language code provided, using the default one ({0})", DEFAULT_LANGUAGE_CODE);
-            languageCode = DEFAULT_LANGUAGE_CODE;
-        }
-        this.cleanAgentOnStartup = configuration.getBoolean(CLEAN_AGENT_ON_STARTUP_KEY, false);
-        this.enableIntentLoader = configuration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
-        this.enableEntityLoader = configuration.getBoolean(ENABLE_ENTITY_LOADING_KEY, true);
-        this.enableContextMerge = configuration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
-        this.customFollowupLifespan = configuration.getInt(CUSTOM_FOLLOWUP_LIFESPAN, 2);
-        this.confidenceThreshold = configuration.getFloat(CONFIDENCE_THRESHOLD_KEY, 0);
     }
 
     /**
@@ -530,7 +298,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * @throws DialogFlowException if the provided {@code configuration} or {@code GOOGLE_APPLICATION_CREDENTIALS}
      *                             environment variable does not contain a valid credentials file path
      */
-    private void buildDialogFlowClients(Configuration configuration) {
+    private void buildDialogFlowClients(DialogFlowConfiguration configuration) {
         CredentialsProvider credentialsProvider = getCredentialsProvider(configuration);
         AgentsSettings agentsSettings;
         IntentsSettings intentsSettings;
@@ -578,13 +346,13 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * not specify a credentials file path
      * @throws DialogFlowException if an error occurred when loading the credentials file
      */
-    private CredentialsProvider getCredentialsProvider(Configuration configuration) {
-        String credentialsPath = configuration.getString(GOOGLE_CREDENTIALS_PATH_KEY);
+    private CredentialsProvider getCredentialsProvider(DialogFlowConfiguration configuration) {
+        String credentialsPath = configuration.getGoogleCredentialsPath();
         if (nonNull(credentialsPath)) {
             Log.info("Loading Google Credentials file {0}", credentialsPath);
             InputStream credentialsInputStream;
             try {
-                File credentialsFile = FileUtils.getFile(credentialsPath, configuration);
+                File credentialsFile = FileUtils.getFile(credentialsPath, configuration.getBaseConfiguration());
                 if (credentialsFile.exists()) {
                     credentialsInputStream = new FileInputStream(credentialsFile);
                 } else {
@@ -613,7 +381,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * be cleaned on startup: re-training the ML engine can take a while.
      */
     private void cleanAgent() {
-        if (cleanAgentOnStartup) {
+        if (this.configuration.isCleanAgentOnStartup()) {
             Log.info("Cleaning agent DialogFlow agent");
             List<Intent> registeredIntents = getRegisteredIntents();
             for (Intent intent : registeredIntents) {
@@ -637,11 +405,11 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      */
     private void importRegisteredIntents() {
         this.registeredIntents = new HashMap<>();
-        if (cleanAgentOnStartup) {
+        if (this.configuration.isCleanAgentOnStartup()) {
             Log.info("Skipping intent import, the agent has been cleaned on startup");
             return;
         }
-        if (enableIntentLoader) {
+        if (configuration.isEnableIntentLoader()) {
             Log.info("Loading Intents previously registered in the DialogFlow project {0}", projectName
                     .getProject());
             for (Intent intent : getRegisteredIntents()) {
@@ -662,11 +430,11 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      */
     private void importRegisteredEntities() {
         this.registeredEntityTypes = new HashMap<>();
-        if (cleanAgentOnStartup) {
+        if (this.configuration.isCleanAgentOnStartup()) {
             Log.info("Skipping entity types import, the agent has been cleaned on startup");
             return;
         }
-        if (enableEntityLoader) {
+        if (this.configuration.isEnableIntentLoader()) {
             Log.info("Loading Entities previously registered in the DialogFlow project {0}", projectName.getProject());
             for (EntityType entityType : getRegisteredEntityTypes()) {
                 registeredEntityTypes.put(entityType.getDisplayName(), entityType);
@@ -675,24 +443,6 @@ public class DialogFlowApi extends IntentRecognitionProvider {
             Log.info("Entity loading is disabled, existing Entities in the DialogFlow project {0} will not be " +
                     "imported", projectName.getProject());
         }
-    }
-
-    /**
-     * Returns the DialogFlow project unique identifier.
-     *
-     * @return the DialogFlow project unique identifier
-     */
-    public String getProjectId() {
-        return projectId;
-    }
-
-    /**
-     * Returns the code of the language processed by DialogFlow.
-     *
-     * @return the code of the language processed by DialogFlow
-     */
-    public String getLanguageCode() {
-        return languageCode;
     }
 
     /**
@@ -1121,7 +871,8 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         List<String> results = new ArrayList<>();
         Collection<IntentDefinition> topLevelIntents = ExecutionModelHelper.getInstance().getTopLevelIntents();
         if (!topLevelIntents.contains(intentDefinition)) {
-            ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
+            ContextName contextName = ContextName.of(this.configuration.getProjectId(),
+                    SessionName.of(this.configuration.getProjectId(), "setup").getSession(),
                     "Enable" + intentDefinition.getName());
             results.add(contextName.toString());
         }
@@ -1149,7 +900,9 @@ public class DialogFlowApi extends IntentRecognitionProvider {
             /*
              * Use a dummy session to create the context.
              */
-            ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
+            // TODO duplicated from above?
+            ContextName contextName = ContextName.of(this.configuration.getProjectId(),
+                    SessionName.of(this.configuration.getProjectId(), "setup").getSession(),
                     context.getName());
             Context dialogFlowContext = Context.newBuilder().setName(contextName.toString()).setLifespanCount(context
                     .getLifeSpan()).build();
@@ -1180,9 +933,10 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         checkArgument(nonNull(parentIntentDefinition.getName()) && !parentIntentDefinition.getName().isEmpty(),
                 "Cannot get the follow(up context name for the provided %s %s, the name %s is invalid",
                 IntentDefinition.class.getSimpleName(), parentIntentDefinition, parentIntentDefinition.getName());
-        ContextName contextName = ContextName.of(projectId, SessionName.of(projectId, "setup").getSession(),
+        ContextName contextName = ContextName.of(this.configuration.getProjectId(),
+                SessionName.of(this.configuration.getProjectId(), "setup").getSession(),
                 parentIntentDefinition.getName() + "_followUp");
-        return Context.newBuilder().setName(contextName.toString()).setLifespanCount(customFollowupLifespan).build();
+        return Context.newBuilder().setName(contextName.toString()).setLifespanCount(this.configuration.getCustomFollowupLifespan()).build();
     }
 
     /**
@@ -1385,8 +1139,8 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot create a new Session, the DialogFlow API is shutdown");
         }
-        SessionName sessionName = SessionName.of(projectId, sessionId);
-        return new DialogFlowSession(sessionName, configuration);
+        SessionName sessionName = SessionName.of(this.configuration.getProjectId(), sessionId);
+        return new DialogFlowSession(sessionName, this.configuration.getBaseConfiguration());
     }
 
     /**
@@ -1415,8 +1169,9 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                     String contextName = contextEntry.getKey();
                     int contextLifespanCount = dialogFlowSession.getRuntimeContexts().getContextLifespanCount
                             (contextName);
-                    Context.Builder builder = Context.newBuilder().setName(ContextName.of(projectId,
-                            dialogFlowSession.getSessionName().getSession(), contextName).toString());
+                    Context.Builder builder =
+                            Context.newBuilder().setName(ContextName.of(this.configuration.getProjectId(),
+                                    dialogFlowSession.getSessionName().getSession(), contextName).toString());
                     Map<String, Object> contextVariables = contextEntry.getValue();
                     Map<String, Value> dialogFlowContextVariables = new HashMap<>();
                     contextVariables.entrySet().stream().forEach(contextVariableEntry -> {
@@ -1515,12 +1270,13 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         checkArgument(session instanceof DialogFlowSession, "Cannot handle the message, expected session type to be " +
                 "%s, found %s", DialogFlowSession.class.getSimpleName(), session.getClass().getSimpleName());
-        TextInput.Builder textInput = TextInput.newBuilder().setText(input).setLanguageCode(languageCode);
+        TextInput.Builder textInput =
+                TextInput.newBuilder().setText(input).setLanguageCode(this.configuration.getLanguageCode());
         QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
         DetectIntentResponse response;
 
         DialogFlowSession dialogFlowSession = (DialogFlowSession) session;
-        if (enableContextMerge) {
+        if (this.configuration.isEnableContextMerge()) {
             mergeLocalSessionInDialogFlow(dialogFlowSession);
         } else {
             Log.debug("Local context not merged in DialogFlow, context merging has been disabled");
@@ -1579,7 +1335,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
          * Handle the confidence threshold: if the matched intent's confidence is lower than the defined threshold we
          *  set its definition to DEFAULT_FALLBACK_INTENT and we skip context registration.
          */
-        if (!recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT) && recognizedIntent.getRecognitionConfidence() < confidenceThreshold) {
+        if (!recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT) && recognizedIntent.getRecognitionConfidence() < this.configuration.getConfidenceThreshold()) {
             boolean containsAnyEntity =
                     recognizedIntent.getDefinition().getOutContexts().stream().flatMap(c -> c.getParameters().stream())
                             .anyMatch(
@@ -1594,7 +1350,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                 Log.debug("Confidence for matched intent {0} (input = \"{1}\", confidence = {2}) is lower than the " +
                                 "configured threshold ({3}), overriding the matched intent with {4}",
                         recognizedIntent.getDefinition().getName(), recognizedIntent.getMatchedInput(),
-                        recognizedIntent.getRecognitionConfidence(), confidenceThreshold,
+                        recognizedIntent.getRecognitionConfidence(), this.configuration.getConfidenceThreshold(),
                         DEFAULT_FALLBACK_INTENT.getName());
                 recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
                 return recognizedIntent;
