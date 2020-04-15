@@ -34,7 +34,6 @@ import com.google.longrunning.Operation;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.xatkit.core.EventDefinitionRegistry;
-import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
@@ -102,14 +101,14 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     /**
      * The {@link Configuration} key to store the unique identifier of the DialogFlow project.
      *
-     * @see #DialogFlowApi(XatkitCore, Configuration)
+     * @see #DialogFlowApi(EventDefinitionRegistry, Configuration)
      */
     public static String PROJECT_ID_KEY = "xatkit.dialogflow.projectId";
 
     /**
      * The {@link Configuration} key to store the code of the language processed by DialogFlow.
      *
-     * @see #DialogFlowApi(XatkitCore, Configuration)
+     * @see #DialogFlowApi(EventDefinitionRegistry, Configuration)
      */
     public static String LANGUAGE_CODE_KEY = "xatkit.dialogflow.language";
 
@@ -119,7 +118,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * If this key is not set the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
      * environment variable to retrieve the credentials file.
      *
-     * @see #DialogFlowApi(XatkitCore, Configuration)
+     * @see #DialogFlowApi(EventDefinitionRegistry, Configuration)
      */
     public static String GOOGLE_CREDENTIALS_PATH_KEY = "xatkit.dialogflow.credentials.path";
 
