@@ -1,33 +1,20 @@
 package com.xatkit.core.recognition.dialogflow;
 
 import com.google.api.core.ApiFuture;
-import com.google.api.gax.core.CredentialsProvider;
-import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.FailedPreconditionException;
 import com.google.api.gax.rpc.InvalidArgumentException;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.dialogflow.v2.AgentsClient;
-import com.google.cloud.dialogflow.v2.AgentsSettings;
 import com.google.cloud.dialogflow.v2.Context;
 import com.google.cloud.dialogflow.v2.ContextName;
-import com.google.cloud.dialogflow.v2.ContextsClient;
-import com.google.cloud.dialogflow.v2.ContextsSettings;
 import com.google.cloud.dialogflow.v2.DetectIntentResponse;
 import com.google.cloud.dialogflow.v2.EntityType;
-import com.google.cloud.dialogflow.v2.EntityTypesClient;
-import com.google.cloud.dialogflow.v2.EntityTypesSettings;
 import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.IntentView;
-import com.google.cloud.dialogflow.v2.IntentsClient;
-import com.google.cloud.dialogflow.v2.IntentsSettings;
 import com.google.cloud.dialogflow.v2.ListIntentsRequest;
 import com.google.cloud.dialogflow.v2.ProjectAgentName;
 import com.google.cloud.dialogflow.v2.ProjectName;
 import com.google.cloud.dialogflow.v2.QueryInput;
 import com.google.cloud.dialogflow.v2.QueryResult;
 import com.google.cloud.dialogflow.v2.SessionName;
-import com.google.cloud.dialogflow.v2.SessionsClient;
-import com.google.cloud.dialogflow.v2.SessionsSettings;
 import com.google.cloud.dialogflow.v2.TextInput;
 import com.google.cloud.dialogflow.v2.TrainAgentRequest;
 import com.google.longrunning.Operation;
@@ -38,7 +25,6 @@ import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.RecognitionMonitor;
-import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
@@ -57,17 +43,11 @@ import com.xatkit.intent.MappingEntityDefinitionEntry;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.intent.TextFragment;
 import com.xatkit.util.ExecutionModelHelper;
-import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.MessageFormat;
@@ -120,6 +100,11 @@ public class DialogFlowApi extends IntentRecognitionProvider {
     private DialogFlowConfiguration configuration;
 
     /**
+     * The clients used to access the DialogFlow API.
+     */
+    private DialogFlowClients dialogFlowClients;
+
+    /**
      * Represents the DialogFlow project name.
      * <p>
      * This attribute is used to compute project-level operations, such as the training of the underlying
@@ -139,63 +124,6 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * @see #deleteIntentDefinition(IntentDefinition)
      */
     private ProjectAgentName projectAgentName;
-
-    /**
-     * The client instance managing DialogFlow agent-related queries.
-     * <p>
-     * This client is used to compute project-level operations, such as the training of the underlying DialogFlow's
-     * agent.
-     *
-     * @see #trainMLEngine()
-     */
-    private AgentsClient agentsClient;
-
-    /**
-     * The client instance managing DialogFlow intent-related queries.
-     * <p>
-     * This client is used to compute intent-level operations, such as retrieving the list of registered
-     * {@link Intent}s, or deleting specific {@link Intent}s.
-     *
-     * @see #registerIntentDefinition(IntentDefinition)
-     * @see #deleteIntentDefinition(IntentDefinition)
-     */
-    private IntentsClient intentsClient;
-
-    /**
-     * The client instance managing DialogFlow entity-related queries.
-     * <p>
-     * This client is used to compute entity-level operations, such as retrieving the list of registered
-     * {@link com.google.cloud.dialogflow.v2.EntityType.Entity} instances, or deleting specific
-     * {@link com.google.cloud.dialogflow.v2.EntityType.Entity}.
-     *
-     * @see #registerEntityDefinition(EntityDefinition)
-     * @see #deleteEntityDefinition(EntityDefinition)
-     */
-    private EntityTypesClient entityTypesClient;
-
-    /**
-     * The client instance managing DialogFlow sessions.
-     * <p>
-     * This instance is used to initiate new sessions (see {@link #createSession(String)}) and send {@link Intent}
-     * detection queries to the DialogFlow engine.
-     */
-    private SessionsClient sessionsClient;
-
-    /**
-     * The client instance managing DialogFlow contexts.
-     * <p>
-     * This {@link ContextsClient} is used to merge local context information in the DialogFlow session. This enables
-     * to match {@link IntentDefinition} with input contexts set from local computation (such as received events,
-     * custom variables, etc).
-     * <p>
-     * <b>Note:</b> the local {@link RuntimeContexts} is merged in DialogFlow before each
-     * intent recognition query (see {@link #getIntent(String, XatkitSession)}. This behavior can be disabled by
-     * setting the {@link #ENABLE_LOCAL_CONTEXT_MERGE_KEY} to {@code false} in the provided {@link Configuration}.
-     *
-     * @see #getIntent(String, XatkitSession)
-     * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
-     */
-    private ContextsClient contextsClient;
 
     /**
      * The {@link IntentFactory} used to create {@link RecognizedIntent} instances from DialogFlow computed
@@ -273,7 +201,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         this.eventRegistry = eventRegistry;
         this.configuration = new DialogFlowConfiguration(configuration);
         this.projectAgentName = ProjectAgentName.of(this.configuration.getProjectId());
-        this.buildDialogFlowClients(this.configuration);
+        this.dialogFlowClients = new DialogFlowClients(this.configuration);
         this.projectName = ProjectName.of(this.configuration.getProjectId());
         this.intentFactory = IntentFactory.eINSTANCE;
         this.entityMapper = new DialogFlowEntityMapper();
@@ -281,96 +209,6 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         this.importRegisteredIntents();
         this.importRegisteredEntities();
         this.recognitionMonitor = recognitionMonitor;
-    }
-
-    /**
-     * Initializes the DialogFlow clients using the provided {@code configuration}.
-     * <p>
-     * This method builds the DialogFlow's {@link AgentsClient}, {@link SessionsClient},
-     * {@link EntityTypesClient}, {@link IntentsClient}, and {@link ContextsClient}, and initializes them with the
-     * credentials file path provided in the {@code configuration}.
-     * <p>
-     * If the provided {@code configuration} does not define a credentials file path the created clients are
-     * initialized from the credentials file path stored in the {@code GOOGLE_APPLICATION_CREDENTIALS} environment
-     * variable.
-     *
-     * @param configuration the {@link Configuration} containing the credentials file path
-     * @throws DialogFlowException if the provided {@code configuration} or {@code GOOGLE_APPLICATION_CREDENTIALS}
-     *                             environment variable does not contain a valid credentials file path
-     */
-    private void buildDialogFlowClients(DialogFlowConfiguration configuration) {
-        CredentialsProvider credentialsProvider = getCredentialsProvider(configuration);
-        AgentsSettings agentsSettings;
-        IntentsSettings intentsSettings;
-        EntityTypesSettings entityTypesSettings;
-        SessionsSettings sessionsSettings;
-        ContextsSettings contextsSettings;
-        try {
-            if (isNull(credentialsProvider)) {
-                /*
-                 * No credentials provided, using the GOOGLE_APPLICATION_CREDENTIALS environment variable.
-                 */
-                Log.warn("No credentials file provided, using GOOGLE_APPLICATION_CREDENTIALS environment variable");
-                agentsSettings = AgentsSettings.newBuilder().build();
-                intentsSettings = IntentsSettings.newBuilder().build();
-                entityTypesSettings = EntityTypesSettings.newBuilder().build();
-                sessionsSettings = SessionsSettings.newBuilder().build();
-                contextsSettings = ContextsSettings.newBuilder().build();
-            } else {
-                agentsSettings = AgentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
-                intentsSettings = IntentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
-                entityTypesSettings = EntityTypesSettings.newBuilder().setCredentialsProvider(credentialsProvider)
-                        .build();
-                sessionsSettings = SessionsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
-                contextsSettings = ContextsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
-            }
-            this.agentsClient = AgentsClient.create(agentsSettings);
-            this.sessionsClient = SessionsClient.create(sessionsSettings);
-            this.intentsClient = IntentsClient.create(intentsSettings);
-            this.entityTypesClient = EntityTypesClient.create(entityTypesSettings);
-            this.contextsClient = ContextsClient.create(contextsSettings);
-        } catch (IOException e) {
-            throw new DialogFlowException("An error occurred when initializing the DialogFlow clients, see attached " +
-                    "exception", e);
-        }
-    }
-
-    /**
-     * Creates the Google's {@link CredentialsProvider} from the provided {@code configuration}.
-     * <p>
-     * This method loads the credentials file provided in the {@link Configuration} with the key
-     * {@link #GOOGLE_CREDENTIALS_PATH_KEY}. If the file does not exist it attempts to load it from the classpath.
-     *
-     * @param configuration the {@link Configuration} containing the credentials file path
-     * @return the created {@link CredentialsProvider}, or {@code null} if the provided {@code configuration} does
-     * not specify a credentials file path
-     * @throws DialogFlowException if an error occurred when loading the credentials file
-     */
-    private CredentialsProvider getCredentialsProvider(DialogFlowConfiguration configuration) {
-        String credentialsPath = configuration.getGoogleCredentialsPath();
-        if (nonNull(credentialsPath)) {
-            Log.info("Loading Google Credentials file {0}", credentialsPath);
-            InputStream credentialsInputStream;
-            try {
-                File credentialsFile = FileUtils.getFile(credentialsPath, configuration.getBaseConfiguration());
-                if (credentialsFile.exists()) {
-                    credentialsInputStream = new FileInputStream(credentialsFile);
-                } else {
-                    Log.warn("Cannot load the credentials file at {0}, trying to load it from the classpath",
-                            credentialsPath);
-                    String classpathCredentialsPath = this.getClass().getClassLoader().getResource(credentialsPath)
-                            .getFile();
-                    credentialsInputStream = new FileInputStream(classpathCredentialsPath);
-                }
-                return FixedCredentialsProvider.create(GoogleCredentials.fromStream(credentialsInputStream));
-            } catch (FileNotFoundException e) {
-                throw new DialogFlowException(MessageFormat.format("Cannot find the credentials file at {0}",
-                        credentialsPath), e);
-            } catch (IOException e) {
-                throw new DialogFlowException("Cannot retrieve the credentials provider, see attached exception", e);
-            }
-        }
-        return null;
     }
 
     /**
@@ -386,12 +224,12 @@ public class DialogFlowApi extends IntentRecognitionProvider {
             List<Intent> registeredIntents = getRegisteredIntents();
             for (Intent intent : registeredIntents) {
                 if (!intent.getDisplayName().equals(DEFAULT_FALLBACK_INTENT.getName())) {
-                    intentsClient.deleteIntent(intent.getName());
+                    this.dialogFlowClients.getIntentsClient().deleteIntent(intent.getName());
                 }
             }
             List<EntityType> registeredEntityTypes = getRegisteredEntityTypes();
             for (EntityType entityType : registeredEntityTypes) {
-                entityTypesClient.deleteEntityType(entityType.getName());
+                this.dialogFlowClients.getEntityTypesClient().deleteEntityType(entityType.getName());
             }
         }
     }
@@ -458,7 +296,8 @@ public class DialogFlowApi extends IntentRecognitionProvider {
             throw new DialogFlowException("Cannot retrieve the registered Entities, the DialogFlow API is shutdown");
         }
         List<EntityType> registeredEntityTypes = new ArrayList<>();
-        for (EntityType entityType : entityTypesClient.listEntityTypes(projectAgentName).iterateAll()) {
+        for (EntityType entityType :
+                this.dialogFlowClients.getEntityTypesClient().listEntityTypes(projectAgentName).iterateAll()) {
             registeredEntityTypes.add(entityType);
         }
         return registeredEntityTypes;
@@ -484,7 +323,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         List<Intent> registeredIntents = new ArrayList<>();
         ListIntentsRequest request = ListIntentsRequest.newBuilder().setIntentView(IntentView.INTENT_VIEW_FULL)
                 .setParent(projectAgentName.toString()).build();
-        for (Intent intent : intentsClient.listIntents(request).iterateAll()) {
+        for (Intent intent : this.dialogFlowClients.getIntentsClient().listIntents(request).iterateAll()) {
             registeredIntents.add(intent);
         }
         return registeredIntents;
@@ -507,7 +346,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                     "is shutdown");
         }
         List<Intent> registeredIntents = new ArrayList<>();
-        for (Intent intent : intentsClient.listIntents(projectAgentName).iterateAll()) {
+        for (Intent intent : this.dialogFlowClients.getIntentsClient().listIntents(projectAgentName).iterateAll()) {
             registeredIntents.add(intent);
         }
         return registeredIntents;
@@ -542,7 +381,9 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                      * Store the EntityType returned by the DialogFlow API: some fields such as the name are
                      * automatically set by the platform.
                      */
-                    EntityType createdEntityType = entityTypesClient.createEntityType(projectAgentName, entityType);
+                    EntityType createdEntityType =
+                            this.dialogFlowClients.getEntityTypesClient().createEntityType(projectAgentName,
+                                    entityType);
                     this.registeredEntityTypes.put(entityDefinition.getName(), createdEntityType);
                 } catch (FailedPreconditionException e) {
                     throw new DialogFlowException(MessageFormat.format("Cannot register the entity {0}, the entity " +
@@ -765,7 +606,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
 
         Intent intent = builder.build();
         try {
-            Intent response = intentsClient.createIntent(projectAgentName, intent);
+            Intent response = this.dialogFlowClients.getIntentsClient().createIntent(projectAgentName, intent);
             registeredIntents.put(response.getDisplayName(), response);
             Log.debug("Intent {0} successfully registered", response.getDisplayName());
         } catch (FailedPreconditionException | InvalidArgumentException e) {
@@ -1036,7 +877,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                     return;
                 }
             }
-            entityTypesClient.deleteEntityType(entityType.getName());
+            this.dialogFlowClients.getEntityTypesClient().deleteEntityType(entityType.getName());
             Log.debug("{0} {1} successfully deleted", EntityType.class.getSimpleName(), entityType.getDisplayName());
             /*
              * Remove the deleted EntityType from the local cache.
@@ -1079,7 +920,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                 return;
             }
         }
-        intentsClient.deleteIntent(intent.getName());
+        this.dialogFlowClients.getIntentsClient().deleteIntent(intent.getName());
         Log.debug("{0} {1} successfully deleted", Intent.class.getSimpleName(), intentDefinition.getName());
         /*
          * Remove the deleted Intent from the local cache.
@@ -1105,7 +946,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         TrainAgentRequest request = TrainAgentRequest.newBuilder()
                 .setParent(projectName.toString())
                 .build();
-        ApiFuture<Operation> future = agentsClient.trainAgentCallable().futureCall(request);
+        ApiFuture<Operation> future = this.dialogFlowClients.getAgentsClient().trainAgentCallable().futureCall(request);
         try {
             Operation operation = future.get();
             while (!operation.getDone()) {
@@ -1113,7 +954,8 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                 /*
                  * Retrieve the new version of the Operation from the API.
                  */
-                operation = agentsClient.getOperationsClient().getOperation(operation.getName());
+                operation =
+                        this.dialogFlowClients.getAgentsClient().getOperationsClient().getOperation(operation.getName());
             }
             Log.info("ML Engine Training completed");
         } catch (InterruptedException | ExecutionException e) {
@@ -1161,6 +1003,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * @see #getIntent(String, XatkitSession)
      */
     public void mergeLocalSessionInDialogFlow(DialogFlowSession dialogFlowSession) {
+        // TODO should we move this in DialogFlow session?
         Log.debug("Merging local context in the DialogFlow session {0}", dialogFlowSession.getSessionId());
         checkNotNull(dialogFlowSession, "Cannot merge the provided %s %s", DialogFlowSession.class.getSimpleName(),
                 dialogFlowSession);
@@ -1183,7 +1026,8 @@ public class DialogFlowApi extends IntentRecognitionProvider {
                      */
                     builder.setParameters(Struct.newBuilder().putAllFields(dialogFlowContextVariables))
                             .setLifespanCount(contextLifespanCount);
-                    contextsClient.createContext(dialogFlowSession.getSessionName(), builder.build());
+                    this.dialogFlowClients.getContextsClient().createContext(dialogFlowSession.getSessionName(),
+                            builder.build());
                 }
         );
     }
@@ -1283,7 +1127,9 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         }
 
         try {
-            response = sessionsClient.detectIntent(((DialogFlowSession) session).getSessionName(), queryInput);
+            response =
+                    this.dialogFlowClients.getSessionsClient().detectIntent(((DialogFlowSession) session).getSessionName(),
+                    queryInput);
         } catch (Exception e) {
             throw new DialogFlowException(e);
         }
@@ -1494,10 +1340,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         if (isShutdown()) {
             throw new DialogFlowException("Cannot perform shutdown, DialogFlow API is already shutdown");
         }
-        this.sessionsClient.shutdownNow();
-        this.intentsClient.shutdownNow();
-        this.contextsClient.shutdownNow();
-        this.agentsClient.shutdownNow();
+        this.dialogFlowClients.shutdown();
         if (nonNull(this.recognitionMonitor)) {
             this.recognitionMonitor.shutdown();
         }
@@ -1517,29 +1360,6 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      */
     @Override
     public boolean isShutdown() {
-        return this.sessionsClient.isShutdown() && this.intentsClient.isShutdown() && this.agentsClient.isShutdown()
-                && contextsClient.isShutdown();
-    }
-
-    /**
-     * Closes the DialogFlow session if it is not shutdown yet.
-     */
-    @Override
-    protected void finalize() {
-        if (!sessionsClient.isShutdown()) {
-            Log.warn("DialogFlow session was not closed properly, calling automatic shutdown");
-            this.sessionsClient.shutdownNow();
-        }
-        if (!intentsClient.isShutdown()) {
-            Log.warn("DialogFlow Intent client was not closed properly, calling automatic shutdown");
-            this.intentsClient.shutdownNow();
-        }
-        if (!contextsClient.isShutdown()) {
-            this.contextsClient.shutdownNow();
-        }
-        if (!agentsClient.isShutdown()) {
-            Log.warn("DialogFlow Agent client was not closed properly, calling automatic shutdown");
-            this.agentsClient.shutdownNow();
-        }
+        return this.dialogFlowClients.isShutdown();
     }
 }
