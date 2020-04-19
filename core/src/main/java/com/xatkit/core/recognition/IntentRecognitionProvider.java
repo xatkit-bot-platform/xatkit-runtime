@@ -6,6 +6,7 @@ import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
@@ -22,6 +23,19 @@ import java.util.List;
  * input text.
  */
 public abstract class IntentRecognitionProvider {
+
+    /**
+     * The Default Fallback Intent that is returned when the user input does not match any registered Intent.
+     */
+    public static IntentDefinition DEFAULT_FALLBACK_INTENT = IntentFactory.eINSTANCE.createIntentDefinition();
+
+    /*
+     * Initializes the {@link #DEFAULT_FALLBACK_INTENT}'s name.
+     */
+    static {
+        DEFAULT_FALLBACK_INTENT.setName("Default_Fallback_Intent");
+    }
+
 
     /**
      * The {@link List} of {@link InputPreProcessor}s set for this {@link IntentRecognitionProvider}.

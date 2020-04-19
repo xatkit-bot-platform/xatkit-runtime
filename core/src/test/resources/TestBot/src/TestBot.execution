@@ -5,11 +5,14 @@ use provider StubRuntimePlatform.StubInputProvider
 
 Init {
 	Next {
-		intent == HelloWorld --> HandleHelloWorld
+		intent == SimpleIntent --> HandleAny
+		intent == SystemEntityIntent --> HandleAny
+		intent == MappingEntityIntent --> HandleAny
+		intent == CompositeEntityIntent --> HandleAny
 	}
 }
 
-HandleHelloWorld {
+HandleAny {
 	Body {
 		StubRuntimePlatform.StubRuntimeAction
 	}
