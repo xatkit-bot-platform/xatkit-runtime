@@ -640,7 +640,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      *                                  underlying DialogFlow engine
      */
     @Override
-    public RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session) {
+    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session) {
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         checkArgument(session instanceof DialogFlowSession, "Cannot handle the message, expected session type to be " +
