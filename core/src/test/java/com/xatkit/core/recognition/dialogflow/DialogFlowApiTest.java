@@ -2,11 +2,15 @@ package com.xatkit.core.recognition.dialogflow;
 
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
+import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.MappingEntityDefinition;
+import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.test.util.TestBotExecutionModel;
 import com.xatkit.test.util.TestModelLoader;
 import com.xatkit.test.util.VariableLoaderHelper;
@@ -19,8 +23,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -291,8 +297,113 @@ public class DialogFlowApiTest extends AbstractXatkitTest {
         assertThat(session).isNotNull();
     }
 
+    @Test(expected = NullPointerException.class)
+    public void getIntentNullInput() {
+        dialogFlowApi = getValidDialogFlowApi();
+        dialogFlowApi.getIntent(null, dialogFlowApi.createSession("TEST"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getIntentNullSession() {
+        dialogFlowApi = getValidDialogFlowApi();
+        dialogFlowApi.getIntent("Intent", null);
+    }
+
+    @Test
+    public void getIntentNotRegistered() {
+        dialogFlowApi = getValidDialogFlowApi();
+        RecognizedIntent recognizedIntent = dialogFlowApi.getIntent("Error", dialogFlowApi.createSession("TEST"));
+        assertThatRecognizedIntentHasDefinition(recognizedIntent,
+                IntentRecognitionProvider.DEFAULT_FALLBACK_INTENT.getName());
+    }
+
+    @Test
+    public void getSimpleIntent() {
+        dialogFlowApi = getValidDialogFlowApi();
+        registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
+        dialogFlowApi.registerIntentDefinition(registeredIntentDefinition);
+        dialogFlowApi.trainMLEngine();
+        RecognizedIntent recognizedIntent = dialogFlowApi.getIntent("Greetings", dialogFlowApi.createSession("TEST"));
+        assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
+    }
+
+    @Test
+    public void getSystemEntityIntent() {
+        dialogFlowApi = getValidDialogFlowApi();
+        registeredIntentDefinition = testBotExecutionModel.getSystemEntityIntent();
+        dialogFlowApi.registerIntentDefinition(registeredIntentDefinition);
+        dialogFlowApi.trainMLEngine();
+        RecognizedIntent recognizedIntent = dialogFlowApi.getIntent("Hello Test", dialogFlowApi.createSession("TEST"));
+        assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
+        ContextInstance context = recognizedIntent.getOutContextInstance("Hello");
+        assertThat(context).isNotNull();
+        assertThatContextContainsParameterWithValue(context, "helloTo", "Test");
+    }
+
+    @Test
+    public void getMappingEntityIntent() {
+        dialogFlowApi = getValidDialogFlowApi();
+        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
+        dialogFlowApi.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
+        registeredIntentDefinition = testBotExecutionModel.getMappingEntityIntent();
+        dialogFlowApi.registerIntentDefinition(registeredIntentDefinition);
+        dialogFlowApi.trainMLEngine();
+        RecognizedIntent recognizedIntent = dialogFlowApi.getIntent("Give me some information about Gwendal",
+                dialogFlowApi.createSession("TEST"));
+        assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
+        ContextInstance context = recognizedIntent.getOutContextInstance("Founder");
+        assertThat(context).isNotNull();
+        assertThatContextContainsParameterWithValue(context, "name", "Gwendal");
+    }
+
+    @Test
+    public void getCompositeEntityIntent() {
+        dialogFlowApi = getValidDialogFlowApi();
+        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
+        dialogFlowApi.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
+        registeredEntityDefinitions.add(testBotExecutionModel.getCompositeEntity());
+        dialogFlowApi.registerEntityDefinition(testBotExecutionModel.getCompositeEntity());
+        registeredIntentDefinition = testBotExecutionModel.getCompositeEntityIntent();
+        dialogFlowApi.registerIntentDefinition(registeredIntentDefinition);
+        dialogFlowApi.trainMLEngine();
+        RecognizedIntent recognizedIntent = dialogFlowApi.getIntent("Does Jordi knows Barcelona?",
+                dialogFlowApi.createSession("TEST"));
+        assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
+        ContextInstance context = recognizedIntent.getOutContextInstance("Query");
+        assertThat(context).isNotNull();
+        assertThatContextContainsParameterValue(context, "founderCity");
+        Object parameterValue = context.getValues().stream()
+                .filter(p -> p.getContextParameter().getName().equals("founderCity"))
+                .map(ContextParameterValue::getValue).findAny().get();
+        assertThat(parameterValue).isInstanceOf(Map.class);
+        Map<String, String> mapParameterValue = (Map<String, String>) parameterValue;
+        assertThat(mapParameterValue).contains(new AbstractMap.SimpleEntry<>("city", "Barcelona"));
+        assertThat(mapParameterValue).contains(new AbstractMap.SimpleEntry<>("XatkitFounder", "Jordi"));
+    }
+
+
     private DialogFlowApi getValidDialogFlowApi() {
         return new DialogFlowApi(eventRegistry, buildConfiguration(), null);
+    }
+
+    private void assertThatRecognizedIntentHasDefinition(RecognizedIntent recognizedIntent, String definitionName) {
+        assertThat(recognizedIntent).isNotNull();
+        assertThat(recognizedIntent.getDefinition()).isNotNull();
+        assertThat(recognizedIntent.getDefinition().getName()).isEqualTo(definitionName);
+    }
+
+    private void assertThatContextContainsParameterValue(ContextInstance contextInstance, String parameterName) {
+        assertThat(contextInstance.getValues()).isNotEmpty();
+        assertThat(contextInstance.getValues()).anyMatch(p -> p.getContextParameter().getName().equals(parameterName));
+    }
+
+    private void assertThatContextContainsParameterWithValue(ContextInstance contextInstance, String parameterName,
+                                                         Object value) {
+        assertThatContextContainsParameterValue(contextInstance, parameterName);
+        /*
+         * Separate the two checks to have a better log error.
+         */
+        assertThat(contextInstance.getValues()).anyMatch(p -> p.getContextParameter().getName().equals(parameterName) && p.getValue().equals(value));
     }
 
 }
