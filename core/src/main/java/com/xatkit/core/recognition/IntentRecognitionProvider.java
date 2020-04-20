@@ -9,6 +9,7 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
@@ -57,8 +58,9 @@ public abstract class IntentRecognitionProvider {
      * Sets the {@link InputPreProcessor}s.
      *
      * @param preProcessors the {@link InputPreProcessor} to set
+     * @throws NullPointerException if the provided {@code preProcessors} is {@code null}
      */
-    public final void setPreProcessors(List<? extends InputPreProcessor> preProcessors) {
+    public final void setPreProcessors(@NonNull List<? extends InputPreProcessor> preProcessors) {
         this.preProcessors = preProcessors;
     }
 
@@ -66,8 +68,9 @@ public abstract class IntentRecognitionProvider {
      * Set the {@link IntentPostProcessor}s.
      *
      * @param postProcessors the {@link IntentPostProcessor} to set
+     * @throws NullPointerException if the provided {@code postProcessors} is {@code null}
      */
-    public final void setPostProcessors(List<? extends IntentPostProcessor> postProcessors) {
+    public final void setPostProcessors(@NonNull List<? extends IntentPostProcessor> postProcessors) {
         this.postProcessors = postProcessors;
     }
 
@@ -102,9 +105,10 @@ public abstract class IntentRecognitionProvider {
      * {@link #trainMLEngine()} to train the ML engine.
      *
      * @param entityDefinition the {@link EntityDefinition} to delete from the underlying intent recognition provider
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      * @see #trainMLEngine()
      */
-    public abstract void registerEntityDefinition(EntityDefinition entityDefinition);
+    public abstract void registerEntityDefinition(@NonNull EntityDefinition entityDefinition);
 
     /**
      * Registers the provided {@code intentDefinition} in the underlying intent recognition provider.
@@ -115,9 +119,10 @@ public abstract class IntentRecognitionProvider {
      * {@link #trainMLEngine()} to train the ML engine.
      *
      * @param intentDefinition the {@link IntentDefinition} to register to the underlying intent recognition provider
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      * @see #trainMLEngine()
      */
-    public abstract void registerIntentDefinition(IntentDefinition intentDefinition);
+    public abstract void registerIntentDefinition(@NonNull IntentDefinition intentDefinition);
 
     /**
      * Deletes the provided {@code entityDefinition} from the underlying intent recognition provider.
@@ -128,9 +133,10 @@ public abstract class IntentRecognitionProvider {
      * {@link #trainMLEngine()} to train the ML engine.
      *
      * @param entityDefinition the {@link EntityDefinition} to delete from the underlying intent recognition provider
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      * @see #trainMLEngine()
      */
-    public abstract void deleteEntityDefinition(EntityDefinition entityDefinition);
+    public abstract void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition);
 
     /**
      * Deletes the provided {@code intentDefinition} from the underlying intent recognition provider.
@@ -141,9 +147,10 @@ public abstract class IntentRecognitionProvider {
      * {@link #trainMLEngine()} to train the ML engine.
      *
      * @param intentDefinition the {@link IntentDefinition} to delete from the underlying intent recognition provider
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      * @see #trainMLEngine()
      */
-    public abstract void deleteIntentDefinition(IntentDefinition intentDefinition);
+    public abstract void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition);
 
     /**
      * Trains the underlying intent recognition provider.
@@ -158,8 +165,9 @@ public abstract class IntentRecognitionProvider {
      *
      * @param sessionId the identifier to create a session from
      * @return a new {@link XatkitSession} for the provided {@code sessionId}
+     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
-    public abstract XatkitSession createSession(String sessionId);
+    public abstract XatkitSession createSession(@NonNull String sessionId);
 
     /**
      * Shuts down the intent recognition provider client and invalidates the remaining sessions.
@@ -188,9 +196,10 @@ public abstract class IntentRecognitionProvider {
      * @param input   the {@link String} representing the textual input to process and extract the intent from
      * @param session the {@link XatkitSession} used to access context information
      * @return the post-processed {@link RecognizedIntent} extracted from the provided {@code input} and {@code session}
+     * @throws NullPointerException if the provided {@code input} or {@code session} is {@code null}
      * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitCore, Configuration)
      */
-    public final RecognizedIntent getIntent(String input, XatkitSession session) {
+    public final RecognizedIntent getIntent(@NonNull String input, @NonNull XatkitSession session) {
         String preProcessedInput = input;
         for (InputPreProcessor preProcessor : this.preProcessors) {
             long preStart = System.currentTimeMillis();
@@ -225,8 +234,9 @@ public abstract class IntentRecognitionProvider {
      * @param input   the textual input to process and extract the intent from
      * @param session the {@link XatkitSession} used to access context information
      * @return the {@link RecognizedIntent} extracted from the provided {@code input} and {@code session}
+     * @throws NullPointerException if the provided {@code input} or {@code session} is {@code null}
      */
-    protected abstract RecognizedIntent getIntentInternal(String input, XatkitSession session);
+    protected abstract RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session);
 
     /**
      * Returns the {@link RecognitionMonitor} associated to this intent recognition provider.
