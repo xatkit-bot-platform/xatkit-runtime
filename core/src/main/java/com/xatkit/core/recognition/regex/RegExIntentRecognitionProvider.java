@@ -223,7 +223,10 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
                 sb.append("(");
                 for (TextFragment fragment : entry.getFragments()) {
                     if (fragment instanceof LiteralTextFragment) {
-                        sb.append(escapeRegExpReservedCharacters(((LiteralTextFragment) fragment).getValue()));
+                        /*
+                         * Add spaces around pure textual fragments, they are removed by the Xtext parser.
+                         */
+                        sb.append(" " + escapeRegExpReservedCharacters(((LiteralTextFragment) fragment).getValue()) + " ");
                     } else if (fragment instanceof EntityTextFragment) {
                         EntityDefinition fragmentEntity =
                                 ((EntityTextFragment) fragment).getEntityReference().getReferredEntity();
