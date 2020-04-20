@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowApi> {
 
 
-    private static Configuration buildConfiguration() {
+    public static Configuration buildConfiguration() {
         return buildConfiguration(VariableLoaderHelper.getXatkitDialogFlowProject(), VariableLoaderHelper
                 .getXatkitDialogFlowLanguage());
     }
