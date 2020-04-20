@@ -286,6 +286,13 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         assertThat(mapParameterValue).contains(new AbstractMap.SimpleEntry<>("XatkitFounder", "Jordi"));
     }
 
+    @Test
+    public void shutdown() {
+        intentRecognitionProvider = getIntentRecognitionProvider();
+        intentRecognitionProvider.shutdown();
+        assertThat(intentRecognitionProvider.isShutdown()).isTrue();
+    }
+
     protected abstract T getIntentRecognitionProvider();
 
     protected void assertThatRecognizedIntentHasDefinition(RecognizedIntent recognizedIntent, String definitionName) {
