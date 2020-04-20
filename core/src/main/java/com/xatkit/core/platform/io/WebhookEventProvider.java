@@ -95,7 +95,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends 
      *
      * @return the {@link RestHandler} embedded in this provider
      */
-    public final H getRestHandler() {
+    public H getRestHandler() {
         return this.restHandler;
     }
 
