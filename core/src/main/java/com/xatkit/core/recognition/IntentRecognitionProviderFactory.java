@@ -11,17 +11,12 @@ import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.Loader;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static java.util.Objects.isNull;
 
 /**
  * Builds {@link IntentRecognitionProvider}s from the provided {@code configuration}.
@@ -41,84 +36,59 @@ import static java.util.Objects.isNull;
 public class IntentRecognitionProviderFactory {
 
     /**
-     * The {@link Configuration} key used to specify whether to enable intent recognition monitoring.
-     * <p>
-     * Intent recognition monitoring is enabled by default, and stores the results in the {@code data/analytics}
-     * folder. It can be disabled by explicitly setting this property to {@code false} in the {@link Configuration}
-     * file.
-     */
-    public static String ENABLE_RECOGNITION_ANALYTICS = "xatkit.recognition.enable_monitoring";
-
-    /**
-     * The {@link Configuration} key used to specify the {@link InputPreProcessor}s associated to the created
-     * {@link IntentRecognitionProvider}.
-     * <p>
-     * {@link InputPreProcessor}s are specified as a comma-separated list of processor's names.
-     */
-    public static String RECOGNITION_PREPROCESSORS_KEY = "xatkit.recognition.preprocessors";
-
-    /**
-     * The {@link Configuration} key used to specify the {@link IntentPostProcessor}s associated to the created
-     * {@link IntentRecognitionProvider}.
-     * <p>
-     * {@link IntentPostProcessor}s are specified as a comma-separated list of processor's names.
-     */
-    public static String RECOGNITION_POSTPROCESSORS_KEY = "xatkit.recognition.postprocessors";
-
-    /**
      * Returns the {@link IntentRecognitionProvider} matching the provided {@code configuration}.
      * <p>
      * If the provided {@code configuration} does not define any {@link IntentRecognitionProvider}, a
-     * {@link RegExIntentRecognitionProvider} is returned, providing minimal support to
-     * {@link XatkitSession} management.
+     * {@link RegExIntentRecognitionProvider} is returned, providing minimal support to {@link XatkitSession}
+     * management.
      * <p>
      * The created {@link IntentRecognitionProvider} embeds a {@link RecognitionMonitor} that logs monitoring
      * information regarding the intent recognition. The {@link RecognitionMonitor} can be disabled by setting the
-     * {@link #ENABLE_RECOGNITION_ANALYTICS} property to {@code false} in the configuration.
+     * {@link IntentRecognitionProviderFactoryConfiguration#ENABLE_RECOGNITION_ANALYTICS} property to {@code false}
+     * in the configuration.
      * <p>
      * This method retrieves the list of {@link InputPreProcessor}s and {@link IntentPostProcessor}s from the
      * provided {@code configuration} and bind them to the returned {@link IntentRecognitionProvider}. Pre/post
-     * -processors are specified with the configuration keys {@link #RECOGNITION_PREPROCESSORS_KEY} and
-     * {@link #RECOGNITION_POSTPROCESSORS_KEY}, respectively, and are specified as comma-separated list of
-     * processor's names.
+     * -processors are specified with the configuration keys
+     * {@link IntentRecognitionProviderFactoryConfiguration#RECOGNITION_PREPROCESSORS_KEY} and
+     * {@link IntentRecognitionProviderFactoryConfiguration#RECOGNITION_POSTPROCESSORS_KEY}, respectively, and are
+     * specified as comma-separated list of processor's names.
      *
-     * @param xatkitCore    the {@link XatkitCore} instance to build the {@link IntentRecognitionProvider} from
-     * @param configuration the {@link Configuration} used to define the {@link IntentRecognitionProvider} to build
+     * @param xatkitCore        the {@link XatkitCore} instance to build the {@link IntentRecognitionProvider} from
+     * @param baseConfiguration the {@link Configuration} used to define the {@link IntentRecognitionProvider} to build
      * @return the {@link IntentRecognitionProvider} matching the provided {@code configuration}
-     * @throws XatkitException if an error occurred when loading the pre/post processors.
-     * @see #getRecognitionMonitor(XatkitCore, Configuration)
-     * @see #getPreProcessors(Configuration)
-     * @see #getPostProcessors(Configuration)
-     * @see #RECOGNITION_PREPROCESSORS_KEY
-     * @see #RECOGNITION_POSTPROCESSORS_KEY
+     * @throws XatkitException      if an error occurred when loading the pre/post processors.
+     * @throws NullPointerException if the provided {@code xatkitCore} is {@code null}
+     * @see IntentRecognitionProviderFactoryConfiguration#RECOGNITION_PREPROCESSORS_KEY
+     * @see IntentRecognitionProviderFactoryConfiguration#RECOGNITION_POSTPROCESSORS_KEY
      */
-    public static IntentRecognitionProvider getIntentRecognitionProvider(XatkitCore xatkitCore, Configuration
-            configuration) {
-        checkNotNull(xatkitCore, "Cannot get an %s from the provided %s %s", IntentRecognitionProvider.class
-                .getSimpleName(), XatkitCore.class.getSimpleName(), xatkitCore);
-        checkNotNull(configuration, "Cannot get an %s the provided %s %s", IntentRecognitionProvider.class
-                .getSimpleName(), Configuration.class.getSimpleName(), configuration);
+    public static IntentRecognitionProvider getIntentRecognitionProvider(@NonNull XatkitCore xatkitCore,
+                                                                         @NonNull Configuration baseConfiguration) {
+        IntentRecognitionProviderFactoryConfiguration configuration =
+                new IntentRecognitionProviderFactoryConfiguration(baseConfiguration);
+
         RecognitionMonitor recognitionMonitor = getRecognitionMonitor(xatkitCore, configuration);
 
-        List<? extends InputPreProcessor> preProcessors = getPreProcessors(configuration);
-        List<? extends IntentPostProcessor> postProcessors = getPostProcessors(configuration);
+        List<? extends InputPreProcessor> preProcessors = loadPreProcessors(configuration.getPreProcessorNames());
+        List<? extends IntentPostProcessor> postProcessors = loadPostProcessors(configuration.getPostProcessorNames());
 
         IntentRecognitionProvider provider;
 
-        if (configuration.containsKey(DialogFlowConfiguration.PROJECT_ID_KEY)) {
+        if (baseConfiguration.containsKey(DialogFlowConfiguration.PROJECT_ID_KEY)) {
             /*
              * The provided configuration contains DialogFlow-related information.
              */
-            provider = new DialogFlowApi(xatkitCore.getEventDefinitionRegistry(), configuration, recognitionMonitor);
+            provider = new DialogFlowApi(xatkitCore.getEventDefinitionRegistry(), baseConfiguration,
+                    recognitionMonitor);
         } else {
             /*
              * The provided configuration does not contain any IntentRecognitionProvider information, returning a
              * RegExIntentRecognitionProvider.
              */
-            provider = new RegExIntentRecognitionProvider(configuration, recognitionMonitor);
+            provider = new RegExIntentRecognitionProvider(baseConfiguration, recognitionMonitor);
         }
         provider.setPreProcessors(preProcessors);
-        for(InputPreProcessor preProcessor : preProcessors) {
+        for (InputPreProcessor preProcessor : preProcessors) {
             /*
              * Initialize the pre-processors once they have all been constructed, this way we can initialize third
              * party services that are used by multiple pre-processors.
@@ -126,7 +96,7 @@ public class IntentRecognitionProviderFactory {
             preProcessor.init();
         }
         provider.setPostProcessors(postProcessors);
-        for(IntentPostProcessor postProcessor : postProcessors) {
+        for (IntentPostProcessor postProcessor : postProcessors) {
             /*
              * Initialize the post-processors once they have all been constructed, this way we can initialize third
              * party services that are used by multiple post-processors.
@@ -143,21 +113,22 @@ public class IntentRecognitionProviderFactory {
      * @param configuration the {@link Configuration} used to initialize the {@link RecognitionMonitor}
      * @return the created {@link RecognitionMonitor}, or {@code null} intent recognition monitoring is disabled in
      * the provided {@link Configuration}
-     * @see #ENABLE_RECOGNITION_ANALYTICS
+     * @see IntentRecognitionProviderFactoryConfiguration#ENABLE_RECOGNITION_ANALYTICS
      */
     @Nullable
     private static RecognitionMonitor getRecognitionMonitor(XatkitCore xatkitCore,
-                                                            Configuration configuration) {
-        boolean enableRecognitionAnalytics = configuration.getBoolean(ENABLE_RECOGNITION_ANALYTICS, true);
+                                                            IntentRecognitionProviderFactoryConfiguration configuration) {
+        /*
+         * TODO this should be extracted in XatkitCore
+         */
         RecognitionMonitor monitor = null;
-        if (enableRecognitionAnalytics) {
-            monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration);
+        if (configuration.isEnableRecognitionAnalytics()) {
+            monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
         }
         return monitor;
     }
 
-    private static List<? extends InputPreProcessor> getPreProcessors(Configuration configuration) {
-        List<String> preProcessorNames = getList(configuration, RECOGNITION_PREPROCESSORS_KEY);
+    private static List<? extends InputPreProcessor> loadPreProcessors(List<String> preProcessorNames) {
         return preProcessorNames.stream().map(preProcessorName -> {
             Class<? extends InputPreProcessor> processor;
             try {
@@ -175,8 +146,7 @@ public class IntentRecognitionProviderFactory {
         }).collect(Collectors.toList());
     }
 
-    private static List<? extends IntentPostProcessor> getPostProcessors(Configuration configuration) {
-        List<String> postProcessorNames = getList(configuration, RECOGNITION_POSTPROCESSORS_KEY);
+    private static List<? extends IntentPostProcessor> loadPostProcessors(List<String> postProcessorNames) {
         return postProcessorNames.stream().map(postProcessorName -> {
             Class<? extends IntentPostProcessor> processor;
             try {
@@ -193,25 +163,5 @@ public class IntentRecognitionProviderFactory {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * Returns a {@link List} extracted from the value associated to the provided {@code key} in the given {@code
-     * configuration}.
-     * <p>
-     * <b>Note</b>: this method is a workaround, the correct way to implement it is to use {@code configuration
-     * .setListDelimiterHandler}, but this method does not work with the DefaultConversionHandler embedded in the
-     * configuration.
-     *
-     * @param configuration the {@link Configuration} to get the {@link List} from
-     * @param key           the key to retrieve the {@link List} from
-     * @return the {@link List}, or {@code null} if the provided {@code key} is not contained in the {@code
-     * configuration}
-     */
-    private static @Nonnull
-    List<String> getList(Configuration configuration, String key) {
-        String value = configuration.getString(key);
-        if (isNull(value)) {
-            return Collections.emptyList();
-        }
-        return Arrays.stream(value.split(",")).map(String::trim).collect(Collectors.toList());
-    }
+
 }
