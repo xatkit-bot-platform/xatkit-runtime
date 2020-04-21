@@ -5,7 +5,7 @@ import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.MappingEntityDefinition;
-import com.xatkit.util.ExecutionModelHelper;
+import com.xatkit.util.ExecutionModelUtils;
 import lombok.Getter;
 
 import java.text.MessageFormat;
@@ -36,8 +36,8 @@ public class TestBotExecutionModel {
     private CompositeEntityDefinition compositeEntity;
 
     public TestBotExecutionModel(ExecutionModel baseModel) {
-        ExecutionModelHelper executionModelHelper = ExecutionModelHelper.create(baseModel);
-        for (EventDefinition eventDefinition : executionModelHelper.getAllAccessedEvents()) {
+        this.baseModel = baseModel;
+        for (EventDefinition eventDefinition : ExecutionModelUtils.getAllAccessedEvents(this.baseModel)) {
             if (eventDefinition instanceof IntentDefinition) {
                 IntentDefinition intent = (IntentDefinition) eventDefinition;
                 switch (intent.getName()) {
