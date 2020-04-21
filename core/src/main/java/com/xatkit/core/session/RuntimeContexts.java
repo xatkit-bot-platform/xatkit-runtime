@@ -9,9 +9,11 @@ import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.ContextParameterValue;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.NonNull;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -103,9 +104,7 @@ public class RuntimeContexts {
      * @param configuration the {@link Configuration} parameterizing the {@link RuntimeContexts}
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
      */
-    public RuntimeContexts(Configuration configuration) {
-        checkNotNull(configuration, "Cannot construct a %s from the provided %s: %s", RuntimeContexts.class
-                .getSimpleName(), Configuration.class.getSimpleName(), configuration);
+    public RuntimeContexts(@NonNull Configuration configuration) {
         /*
          * Use ConcurrentHashMaps: the RuntimeContexts may be accessed and modified by multiple threads, in case of
          * multiple input messages or parallel RuntimeAction execution.
@@ -147,9 +146,7 @@ public class RuntimeContexts {
      * @throws NullPointerException     if the provided {@code contextInstance} is {@code null}
      * @throws IllegalArgumentException if the provided {@code contextInstance}'s {@code definition} is not set
      */
-    public Map<String, Object> setContext(ContextInstance contextInstance) {
-        checkNotNull(contextInstance, "Cannot set the context from the provided %s %s", ContextInstance.class,
-                contextInstance);
+    public Map<String, Object> setContext(@NonNull ContextInstance contextInstance) {
         checkArgument(nonNull(contextInstance.getDefinition()), "Cannot set the context from the provided %s %s, the " +
                         "provided %s does not have a definition", ContextInstance.class.getSimpleName(),
                 contextInstance, ContextInstance.class.getSimpleName());
@@ -181,8 +178,7 @@ public class RuntimeContexts {
      * @see #setContextValue(String, int, String, Object)
      * @see #decrementLifespanCounts()
      */
-    public Map<String, Object> setContext(String context, int lifespanCount) {
-        checkNotNull(context, "Cannot set the provided context %s", context);
+    public Map<String, Object> setContext(@NonNull String context, int lifespanCount) {
         checkArgument(lifespanCount > 0, "Cannot set the context lifespan count to %s, the lifespan count should be " +
                 "strictly greater than 0", lifespanCount);
         Map<String, Object> contextMap;
@@ -244,9 +240,7 @@ public class RuntimeContexts {
      * @see #getContextLifespanCount(String)
      * @see #decrementLifespanCounts()
      */
-    public void setContextValue(String context, int lifespanCount, String key, Object value) {
-        checkNotNull(context, "Cannot set the context value from the provided context %s", context);
-        checkNotNull(key, "Cannot set the context vaule value from the provided key %s", key);
+    public void setContextValue(@NonNull String context, int lifespanCount, @NonNull String key, Object value) {
         checkArgument(lifespanCount > 0, "Cannot set the context lifespan count to %s, the lifespan count should be " +
                 "strictly greater than 0", lifespanCount);
         Log.debug("Setting context variable {0}.{1} to {2}", context, key, value);
@@ -267,9 +261,7 @@ public class RuntimeContexts {
      * @throws NullPointerException if the provided {@code contextParameterValue} is {@code null}
      * @see #setContextValue(String, int, String, Object)
      */
-    public void setContextValue(ContextParameterValue contextParameterValue) {
-        checkNotNull(contextParameterValue, "Cannot set the context value from the provided %s %s",
-                ContextParameterValue.class.getSimpleName(), contextParameterValue);
+    public void setContextValue(@NonNull ContextParameterValue contextParameterValue) {
         String contextName = ((Context) contextParameterValue.getContextParameter().eContainer()).getName();
         String parameterName = contextParameterValue.getContextParameter().getName();
         Object parameterValue = contextParameterValue.getValue();
@@ -288,13 +280,12 @@ public class RuntimeContexts {
      * @throws NullPointerException if the provided {@code context} is {@code null}
      * @see #getContextValue(String, String)
      */
-    public Map<String, Object> getContextVariables(String context) {
-        checkNotNull(context, "Cannot retrieve the context variables from the null context");
+    public @Nullable
+    Map<String, Object> getContextVariables(@NonNull String context) {
         if (contexts.containsKey(context)) {
             return Collections.unmodifiableMap(contexts.get(context));
         } else {
             return null;
-//            return Collections.emptyMap();
         }
     }
 
@@ -313,9 +304,8 @@ public class RuntimeContexts {
      * @throws NullPointerException if the provided {@code context} or {@code key} is {@code null}
      * @see #getContextVariables(String)
      */
-    public Object getContextValue(String context, String key) {
-        checkNotNull(context, "Cannot find the context value from the null context");
-        checkNotNull(key, "Cannot find the value of the context %s with the key null", context);
+    public @Nullable
+    Object getContextValue(@NonNull String context, @NonNull String key) {
         Map<String, Object> contextVariables = getContextVariables(context);
         if (nonNull(contextVariables)) {
             return contextVariables.get(key);
@@ -337,8 +327,7 @@ public class RuntimeContexts {
      * @see #setContextValue(String, int, String, Object)
      * @see #decrementLifespanCounts()
      */
-    public int getContextLifespanCount(String context) {
-        checkNotNull(context, "Cannot find the lifespan count of context %s", context);
+    public int getContextLifespanCount(@NonNull String context) {
         Integer lifespanCount = this.lifespanCounts.get(context);
         if (nonNull(lifespanCount)) {
             return lifespanCount;
@@ -402,8 +391,7 @@ public class RuntimeContexts {
      * @throws XatkitException if the provided {@link RuntimeContexts} defines at least one {@code context} with the
      *                         same name as one of the {@code contexts} stored in this {@link RuntimeContexts}
      */
-    public void merge(RuntimeContexts other) {
-        checkNotNull(other, "Cannot merge the provided %s %s", RuntimeContexts.class.getSimpleName(), other);
+    public void merge(@NonNull RuntimeContexts other) {
         other.getContextMap().forEach((k, v) -> {
             Map<String, Object> variableMap = new HashMap<>();
             if (this.contexts.containsKey(k)) {
