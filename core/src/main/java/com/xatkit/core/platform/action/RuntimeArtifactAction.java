@@ -7,14 +7,16 @@ import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.NonNull;
 
 import java.io.IOException;
 
 import static java.util.Objects.nonNull;
 
 /**
- * An abstract {@link RuntimeAction}.
+ * An abstract {@link RuntimeAction} processing an artifact.
  * <p>
+ * The processed artifact can be a message, a file to upload, or anything provided by the platform.
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the action
  * @see RuntimePlatform
@@ -76,7 +78,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * @see XatkitSession
      * @see RuntimeContexts
      */
-    public RuntimeArtifactAction(T runtimePlatform, XatkitSession session) {
+    public RuntimeArtifactAction(@NonNull T runtimePlatform, @NonNull XatkitSession session) {
         super(runtimePlatform, session);
         this.messageDelay = this.runtimePlatform.getConfiguration().getInt(MESSAGE_DELAY_KEY, DEFAULT_MESSAGE_DELAY);
         Log.debug("{0} message delay: {1}", this.getClass().getSimpleName(), messageDelay);

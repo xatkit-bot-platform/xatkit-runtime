@@ -1,5 +1,9 @@
 package com.xatkit.core.platform.action;
 
+import lombok.Getter;
+
+import javax.annotation.Nullable;
+
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;
 
@@ -22,6 +26,7 @@ public class RuntimeActionResult {
      *
      * @see #getResult()
      */
+    @Getter
     private Object result;
 
     /**
@@ -29,6 +34,7 @@ public class RuntimeActionResult {
      *
      * @see #getExecutionTime()
      */
+    @Getter
     private long executionTime;
 
     /**
@@ -39,6 +45,7 @@ public class RuntimeActionResult {
      * @see #getThrowable()
      * @see #isError()
      */
+    @Getter
     private Throwable throwable;
 
     /**
@@ -66,12 +73,12 @@ public class RuntimeActionResult {
      * This constructor sets the {@code executionTime} attribute, that can be accessed through the
      * {@link #getExecutionTime()} method.
      *
-     * @param partialResult   the partial raw result that has been computed before failing
-     * @param throwable the {@link Throwable} that has been thrown during the computation
-     * @param executionTime   the execution time (in milliseconds)
+     * @param partialResult the partial raw result that has been computed before failing
+     * @param throwable     the {@link Throwable} that has been thrown during the computation
+     * @param executionTime the execution time (in milliseconds)
      * @throws IllegalArgumentException if the provided {@code executionTime < 0}
      */
-    public RuntimeActionResult(Object partialResult, Throwable throwable, long executionTime) {
+    public RuntimeActionResult(@Nullable Object partialResult, @Nullable Throwable throwable, long executionTime) {
         checkArgument(executionTime >= 0, "Cannot construct a %s from the provided execution time: expected a " +
                 "positive value (in ms), found %s", this.getClass().getSimpleName(), executionTime);
         this.result = partialResult;
@@ -80,45 +87,13 @@ public class RuntimeActionResult {
     }
 
     /**
-     * Returns the raw result stored in this {@link RuntimeActionResult}.
-     *
-     * @return the raw result stored in this {@link RuntimeActionResult}
-     */
-    public Object getResult() {
-        return this.result;
-    }
-
-    /**
-     * Returns the execution time value (in milliseconds) stored in this {@link RuntimeActionResult}.
-     *
-     * @return the execution time value stored in this {@link RuntimeActionResult}
-     */
-    public long getExecutionTime() {
-        return this.executionTime;
-    }
-
-    /**
-     * Return the {@link Exception} that has been thrown during the computation.
-     * <p>
-     * If this value is {@code null}, the {@link #isError()} method returns {@code false}, meaning that this
-     * {@link RuntimeActionResult} does not represent an errored computation. If the {@link #isError()} method returns
-     * {@code true} that {@link Exception} that has been thrown during the errored computation can be retrieved
-     * through this method.
-     *
-     * @return the {@link Exception} that has been thrown during the computation
-     * @see #isError() }
-     */
-    public Throwable getThrowable() {
-        return this.throwable;
-    }
-
-    /**
      * Returns whether the {@link RuntimeActionResult} represents an errored computation.
      * <p>
      * If this method returns {@code true} the {@link Exception} that has been thrown during the errored computation
      * can be retrieved by calling {@link #getThrowable()}.
      *
-     * @return {@code true} if the {@link RuntimeActionResult} represents an errored computation, {@code false} otherwise
+     * @return {@code true} if the {@link RuntimeActionResult} represents an errored computation, {@code false}
+     * otherwise
      * @see #getThrowable()
      */
     public boolean isError() {

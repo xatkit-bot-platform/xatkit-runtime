@@ -42,7 +42,7 @@ public class RuntimeActionResultTest extends AbstractXatkitTest {
         result = new RuntimeActionResult(null, e, 3);
         assertThat(result.getResult()).as("Null result").isNull();
         assertThat(result.getExecutionTime()).as("Valid execution time").isEqualTo(3);
-        assertThat(result.getThrownException()).as("Valid exception").isEqualTo(e);
+        assertThat(result.getThrowable()).as("Valid exception").isEqualTo(e);
         assertThat(result.isError()).as("Is error").isTrue();
     }
 
@@ -51,7 +51,7 @@ public class RuntimeActionResultTest extends AbstractXatkitTest {
         result = new RuntimeActionResult(null, null, 3);
         assertThat(result.getResult()).as("Null result").isNull();
         assertThat(result.getExecutionTime()).as("Valid execution time").isEqualTo(3);
-        assertThat(result.getThrownException()).as("Null exception").isNull();
+        assertThat(result.getThrowable()).as("Null exception").isNull();
         assertThat(result.isError()).as("Not error").isFalse();
     }
 
@@ -62,7 +62,7 @@ public class RuntimeActionResultTest extends AbstractXatkitTest {
         result = new RuntimeActionResult(rawResult, e, 3);
         assertThat(result.getResult()).as("Valid result").isEqualTo(rawResult);
         assertThat(result.getExecutionTime()).as("Valid execution time").isEqualTo(3);
-        assertThat(result.getThrownException()).as("Valid exception").isEqualTo(e);
+        assertThat(result.getThrowable()).as("Valid exception").isEqualTo(e);
         assertThat(result.isError()).as("Is error").isTrue();
     }
 
@@ -72,7 +72,7 @@ public class RuntimeActionResultTest extends AbstractXatkitTest {
         result = new RuntimeActionResult(rawResult, null, 3);
         assertThat(result.getResult()).as("Valid result").isEqualTo(rawResult);
         assertThat(result.getExecutionTime()).as("Valid execution time").isEqualTo(3);
-        assertThat(result.getThrownException()).as("Null exception").isNull();
+        assertThat(result.getThrowable()).as("Null exception").isNull();
         assertThat(result.isError()).as("Not error").isFalse();
     }
 
@@ -104,7 +104,7 @@ public class RuntimeActionResultTest extends AbstractXatkitTest {
      * Checks the {@code result} values that should not be modified after calling RuntimeActionResult(Object, long).
      */
     private void assertActionResultIsNotErrorOrException(RuntimeActionResult result) {
-        assertThat(result.getThrownException()).as("No thrown exception").isNull();
+        assertThat(result.getThrowable()).as("No thrown exception").isNull();
         assertThat(result.isError()).as("Not error").isFalse();
     }
 

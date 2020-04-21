@@ -5,10 +5,10 @@ import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.platform.ActionDefinition;
+import lombok.Getter;
+import lombok.NonNull;
 
 import java.util.concurrent.Callable;
-
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 /**
  * The concrete implementation of an {@link ActionDefinition} definition.
@@ -38,6 +38,7 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
     /**
      * The {@link XatkitSession} associated to this action.
      */
+    @Getter
     protected XatkitSession session;
 
     /**
@@ -47,11 +48,7 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
      * @param session         the {@link XatkitSession} associated to this action
      * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
      */
-    public RuntimeAction(T runtimePlatform, XatkitSession session) {
-        checkNotNull(runtimePlatform, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName
-                (), RuntimePlatform.class.getSimpleName(), runtimePlatform);
-        checkNotNull(session, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName(),
-                XatkitSession.class.getSimpleName(), session);
+    public RuntimeAction(@NonNull T runtimePlatform, @NonNull XatkitSession session) {
         this.runtimePlatform = runtimePlatform;
         this.session = session;
     }
@@ -105,19 +102,6 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
          * value for the thrownException parameter, that will set accordingly the isError() helper.
          */
         return new RuntimeActionResult(computationResult, callThrowable, (after - before));
-    }
-
-    /**
-     * Returns the {@link XatkitSession} used to compute this action.
-     * <p>
-     * The returned {@link XatkitSession} can be different from the one provided in the constructor if the
-     * {@link RuntimeAction} needs to create a dedicated session. This is for example the case with messaging
-     * actions, that typically need to create a session representing the {@code channel} to send messages to.
-     *
-     * @return the {@link XatkitSession} used to compute this action
-     */
-    public XatkitSession getSession() {
-        return session;
     }
 
     /**

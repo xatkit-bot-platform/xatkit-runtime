@@ -144,7 +144,7 @@ public abstract class RuntimePlatform {
      *
      * @return the platform's {@link Configuration}
      */
-    public final Configuration getConfiguration() {
+    public Configuration getConfiguration() {
         return this.configuration;
     }
 
