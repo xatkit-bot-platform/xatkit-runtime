@@ -1,76 +1,51 @@
 package com.xatkit.core.platform;
 
 import com.xatkit.AbstractXatkitTest;
-import com.xatkit.common.CommonFactory;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.Parameter;
 import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.platform.PlatformFactory;
 import com.xatkit.stubs.EmptyRuntimePlatform;
-import com.xatkit.stubs.StubXatkitCore;
 import com.xatkit.stubs.action.StubRuntimeActionNoParameter;
-import com.xatkit.stubs.io.StubInputProvider;
+import com.xatkit.stubs.io.StubInputProvider2;
 import com.xatkit.stubs.io.StubInputProviderNoConfigurationConstructor;
 import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
 import com.xatkit.test.util.ElementFactory;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.JUnitSoftAssertions;
 import org.assertj.core.util.Arrays;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Collections;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RuntimePlatformTest extends AbstractXatkitTest {
 
-    private static ExecutionFactory executionFactory = ExecutionFactory.eINSTANCE;
-
-    private static CommonFactory commonFactory = CommonFactory.eINSTANCE;
-
     private RuntimePlatform runtimePlatform;
 
-    private static XatkitCore xatkitCore;
+    private XatkitCore mockedXatkitCore;
 
-    @BeforeClass
-    public static void setUpBeforeClass() {
-        xatkitCore = new StubXatkitCore();
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        if (nonNull(xatkitCore)) {
-            xatkitCore.shutdown();
-        }
-    }
-
-    @Rule
-    public final JUnitSoftAssertions softly = new JUnitSoftAssertions();
+    private XatkitServer mockedXatkitServer;
 
     @Before
     public void setUp() {
-        runtimePlatform = new EmptyRuntimePlatform(xatkitCore);
-        if (nonNull(xatkitCore)) {
-            /*
-             * Unregister the WebhookEventProviders that may have been set as side effect of startEventProvider
-             */
-            XatkitServer xatkitServer = xatkitCore.getXatkitServer();
-            xatkitServer.clearRegisteredRestHandlers();
-        }
+        mockedXatkitCore = mock(XatkitCore.class);
+        mockedXatkitServer = mock(XatkitServer.class);
+        when(mockedXatkitCore.getXatkitServer()).thenReturn(mockedXatkitServer);
+        runtimePlatform = new EmptyRuntimePlatform(mockedXatkitCore);
     }
 
     @After
@@ -97,7 +72,7 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     @Test
     public void getXatkitCore() {
         Assertions.assertThat(runtimePlatform.getXatkitCore()).as("Not null XatkitCore").isNotNull();
-        Assertions.assertThat(runtimePlatform.getXatkitCore()).as("Valid XatkitCore").isEqualTo(xatkitCore);
+        Assertions.assertThat(runtimePlatform.getXatkitCore()).as("Valid XatkitCore").isEqualTo(mockedXatkitCore);
     }
 
     @Test(expected = NullPointerException.class)
@@ -115,7 +90,7 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     @Test
     public void startValidEventProviderNotWebhook() {
         EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
-        eventProviderDefinition.setName("StubInputProvider");
+        eventProviderDefinition.setName("StubInputProvider2");
         runtimePlatform.startEventProvider(eventProviderDefinition);
         assertThat(runtimePlatform.getEventProviderMap()).as("Not empty RuntimeEventProvider map").isNotEmpty();
         assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid " +
@@ -123,11 +98,12 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
-        softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
-                (StubInputProvider.class);
-        softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers()).as("Empty registered handlers " +
-                "in XatkitServer").isEmpty();
+        assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
+                (StubInputProvider2.class);
+        assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
+        /*
+         * Dont' check the server for non-webhook providers
+         */
     }
 
     @Test
@@ -141,17 +117,16 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
-        softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
+        assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubInputProviderNoConfigurationConstructor.class);
-        softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers()).as("Empty registered handlers " +
-                "in XatkitServer").isEmpty();
+        assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
     }
 
     @Test
     public void startValidEventProviderWebhook() {
         EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
         eventProviderDefinition.setName("StubJsonWebhookEventProvider");
+        System.out.println(mockedXatkitCore.getXatkitServer());
         runtimePlatform.startEventProvider(eventProviderDefinition);
         assertThat(runtimePlatform.getEventProviderMap()).as("Not empty RuntimeEventProvider map").isNotEmpty();
         assertThat(runtimePlatform.getEventProviderMap().get(eventProviderDefinition.getName())).as("Valid " +
@@ -159,13 +134,11 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
                 "entry").isNotNull();
         RuntimePlatform.EventProviderThread eventProviderThread = runtimePlatform.getEventProviderMap().get
                 (eventProviderDefinition.getName());
-        softly.assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
+        assertThat(eventProviderThread.getRuntimeEventProvider()).as("RuntimeEventProvider in thread is valid").isInstanceOf
                 (StubJsonWebhookEventProvider.class);
-        softly.assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
-        assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers()).as("RestHandler provider " +
-                "registered" + "in XatkitServer").hasSize(1);
-        softly.assertThat(xatkitCore.getXatkitServer().getRegisteredRestHandlers().iterator().next()).as
-                ("Valid RestHandler registered in XatkitServer").isEqualTo(StubJsonWebhookEventProvider.handler);
+        StubJsonWebhookEventProvider runtimeProvider = (StubJsonWebhookEventProvider) eventProviderThread.getRuntimeEventProvider();
+        assertThat(eventProviderThread.isAlive()).as("RuntimeEventProvider thread is alive").isTrue();
+        verify(mockedXatkitServer).registerWebhookEventProvider(runtimeProvider);
     }
 
     @Test(expected = XatkitException.class)
@@ -250,7 +223,7 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     @Test
     public void shutdownRegisteredEventProviderAndActionDefinition() {
         EventProviderDefinition eventProviderDefinition = PlatformFactory.eINSTANCE.createEventProviderDefinition();
-        eventProviderDefinition.setName("StubInputProvider");
+        eventProviderDefinition.setName("StubInputProvider2");
         runtimePlatform.startEventProvider(eventProviderDefinition);
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         // Enables the actionDefinition in the RuntimePlatform
