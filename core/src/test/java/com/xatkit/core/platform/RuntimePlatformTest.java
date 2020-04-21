@@ -16,10 +16,15 @@ import com.xatkit.stubs.action.StubRuntimeActionNoParameter;
 import com.xatkit.stubs.io.StubInputProvider2;
 import com.xatkit.stubs.io.StubInputProviderNoConfigurationConstructor;
 import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
-import com.xatkit.test.util.ElementFactory;
+import com.xatkit.util.EMFUtils;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Arrays;
+import org.eclipse.xtext.common.types.JvmGenericType;
+import org.eclipse.xtext.common.types.JvmOperation;
+import org.eclipse.xtext.common.types.TypesFactory;
+import org.eclipse.xtext.xbase.XFeatureCall;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
+import org.eclipse.xtext.xbase.XbaseFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -188,7 +193,7 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     @Test(expected = XatkitException.class)
     public void createRuntimeActionNotEnabledAction() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
-        XMemberFeatureCall featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        XMemberFeatureCall featureCall = createXMemberFeatureCall(actionDefinition);
         runtimePlatform.createRuntimeAction(featureCall, Collections.emptyList(), new XatkitSession("id"));
     }
 
@@ -196,7 +201,7 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     public void createRuntimeActionValidActionInstanceNoParameters() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         runtimePlatform.enableAction(actionDefinition);
-        XMemberFeatureCall featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        XMemberFeatureCall featureCall = createXMemberFeatureCall(actionDefinition);
         RuntimeAction runtimeAction = runtimePlatform.createRuntimeAction(featureCall, Collections.emptyList(),
                 new XatkitSession("sessionID"));
         assertThat(runtimeAction).as("Created RuntimeAction type is valid").isInstanceOf(StubRuntimeActionNoParameter
@@ -207,7 +212,7 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     public void createRuntimeActionTooManyArguments() {
         ActionDefinition actionDefinition = getNoParameterActionDefinition();
         runtimePlatform.enableAction(actionDefinition);
-        XMemberFeatureCall featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        XMemberFeatureCall featureCall = createXMemberFeatureCall(actionDefinition);
         runtimePlatform.createRuntimeAction(featureCall, Arrays.asList(new String[]{"a", "b", "c"}), new XatkitSession(
                 "sessionID"));
     }
@@ -215,7 +220,7 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
     @Test(expected = XatkitException.class)
     public void createRuntimeActionInvalidParameterType() {
         ActionDefinition actionDefinition = getParameterActionDefinition();
-        XMemberFeatureCall featureCall = ElementFactory.createXMemberFeatureCall(actionDefinition);
+        XMemberFeatureCall featureCall = createXMemberFeatureCall(actionDefinition);
         runtimePlatform.createRuntimeAction(featureCall, Arrays.asList(new Integer[]{1}), new XatkitSession(
                 "sessionId"));
     }
@@ -260,5 +265,19 @@ public class RuntimePlatformTest extends AbstractXatkitTest {
         platformDefinition.setName("StubRuntimePlatform");
         platformDefinition.getActions().add(actionDefinition);
         return actionDefinition;
+    }
+
+    private XMemberFeatureCall createXMemberFeatureCall(ActionDefinition actionDefinition) {
+        XMemberFeatureCall actionCall = XbaseFactory.eINSTANCE.createXMemberFeatureCall();
+        JvmGenericType jvmGenericType = TypesFactory.eINSTANCE.createJvmGenericType();
+        jvmGenericType.setSimpleName(EMFUtils.getName(actionDefinition.eContainer()));
+        JvmOperation jvmOperation = TypesFactory.eINSTANCE.createJvmOperation();
+        jvmOperation.setSimpleName(actionDefinition.getName());
+        jvmGenericType.getMembers().add(jvmOperation);
+        actionCall.setFeature(jvmOperation);
+        XFeatureCall feature = XbaseFactory.eINSTANCE.createXFeatureCall();
+        feature.setFeature(jvmGenericType);
+        actionCall.setMemberCallTarget(feature);
+        return actionCall;
     }
 }
