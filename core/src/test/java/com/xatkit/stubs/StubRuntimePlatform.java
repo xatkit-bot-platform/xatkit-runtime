@@ -6,7 +6,7 @@ import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.stubs.action.ErroringStubRuntimeAction;
 import com.xatkit.stubs.action.StubRuntimeAction;
-import com.xatkit.util.XbaseUtils;
+import com.xatkit.util.ExecutionModelUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
 
@@ -40,13 +40,13 @@ public class StubRuntimePlatform extends RuntimePlatform {
     @Override
     public RuntimeAction createRuntimeAction(XMemberFeatureCall actionCall, List<Object> arguments,
                                              XatkitSession session) {
-        if (XbaseUtils.getActionName(actionCall).equals("StubRuntimeAction")) {
+        if (ExecutionModelUtils.getActionName(actionCall).equals("StubRuntimeAction")) {
             return runtimeAction;
-        } else if (XbaseUtils.getActionName(actionCall).equals("ErroringStubRuntimeAction")) {
+        } else if (ExecutionModelUtils.getActionName(actionCall).equals("ErroringStubRuntimeAction")) {
             return erroringRuntimeAction;
         } else {
             throw new RuntimeException(MessageFormat.format("Cannot create the action {0}",
-                    XbaseUtils.getActionName(actionCall)));
+                    ExecutionModelUtils.getActionName(actionCall)));
         }
     }
 
