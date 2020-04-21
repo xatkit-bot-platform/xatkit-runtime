@@ -6,6 +6,7 @@ import com.xatkit.execution.State;
 import com.xatkit.execution.Transition;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
+import lombok.NonNull;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmField;
 import org.eclipse.xtext.common.types.JvmGenericType;
@@ -23,183 +24,12 @@ import java.util.Set;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static fr.inria.atlanmod.commons.Preconditions.checkState;
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
-/**
- * An utility class the eases the access to {@link ExecutionModel}'s features.
- * <p>
- * The singleton instance of this class is initialized from an {@link ExecutionModel} instance, and provide
- * high-level method to retrieve <i>Init</i> and <i>Default_Fallback</i> states, compute top-level
- * {@link IntentDefinition}, or retrieve accessed {@link EventDefinition}.
- */
-public class ExecutionModelHelper {
+public class ExecutionModelUtils {
 
-    /**
-     * The singleton instance of this class.
-     */
-    private static ExecutionModelHelper INSTANCE = null;
+    private ExecutionModelUtils() {
 
-    /**
-     * Initializes the {@link ExecutionModelHelper} singleton instance with the provided {@code executionModel}.
-     * <p>
-     * This method must be called before any access to the singleton instance.
-     *
-     * @param executionModel the {@link ExecutionModel} used to initialize the singleton instance
-     * @return the created {@link ExecutionModelHelper}
-     */
-    public static ExecutionModelHelper create(ExecutionModel executionModel) {
-        if (nonNull(INSTANCE)) {
-            throw new IllegalStateException("Cannot create an ExecutionModelHelper, it already exists");
-        } else {
-            INSTANCE = new ExecutionModelHelper(executionModel);
-            return INSTANCE;
-        }
-    }
-
-    /**
-     * Returns the singleton instance of {@link ExecutionModelHelper}.
-     * <p>
-     * The singleton instance must have been initialized with {@link ExecutionModelHelper#create(ExecutionModel)}
-     * before accessing it.
-     *
-     * @return the singleton instance of {@link ExecutionModelHelper}
-     * @throws IllegalStateException if the singleton instance has not been initialized
-     * @see #create(ExecutionModel)
-     */
-    public static ExecutionModelHelper getInstance() {
-        if (isNull(INSTANCE)) {
-            throw new IllegalStateException(MessageFormat.format("Cannot access the {0} instance, the {0} has not " +
-                    "been initialized. Use {0}.create to initialize it.", ExecutionModelHelper.class.getSimpleName()));
-        }
-        return INSTANCE;
-    }
-
-    /**
-     * The underlying {@link ExecutionModel}.
-     */
-    private ExecutionModel executionModel;
-
-    /**
-     * The <i>Init</i> {@link State} of the {@link ExecutionModel}.
-     */
-    private State initState;
-
-    /**
-     * The <i>Default_Fallback</i> {@link State} of the {@link ExecutionModel}.
-     */
-    private State fallbackState;
-
-    /**
-     * The cached collection of top-level {@link IntentDefinition} associated to the {@link ExecutionModel}.
-     * <p>
-     * Top-level intents are intents that do not require any context to get matched. They are defined as part of the
-     * <i>Init</i> state's transitions, or in states that can be reached from the <i>Init</i> through wildcard
-     * transitions.
-     */
-    private Collection<IntentDefinition> topLevelIntents;
-
-    /**
-     * The cached collection of all accessed {@link EventDefinition}.
-     */
-    private Collection<EventDefinition> allAccessedEvents;
-
-    /**
-     * Initializes the {@link ExecutionModelHelper} with the provided {@link ExecutionModel}.
-     * <p>
-     * This constructor retrieves the <i>Init</i> and <i>Default_Fallback</i> {@link State}s from the provided
-     * {@link ExecutionModel}, and compute high-level information such as the top-level {@link IntentDefinition}s or
-     * the accessed {@link EventDefinition}.
-     *
-     * @param executionModel the {@link ExecutionModel} used to initialize the helper
-     */
-    private ExecutionModelHelper(ExecutionModel executionModel) {
-        this.executionModel = executionModel;
-        for (State s : executionModel.getStates()) {
-            if (s.getName().equals("Init")) {
-                this.initState = s;
-            } else if (s.getName().equals("Default_Fallback")) {
-                this.fallbackState = s;
-            }
-        }
-        this.topLevelIntents = computeTopLevelIntents();
-        this.allAccessedEvents = getAccessedEvents(executionModel::eAllContents);
-    }
-
-    /**
-     * Returns the underlying {@link ExecutionModel}.
-     *
-     * @return the underlying {@link ExecutionModel}
-     */
-    public ExecutionModel getExecutionModel() {
-        return this.executionModel;
-    }
-
-    /**
-     * Returns the <i>Init</i> {@link State} of the {@link ExecutionModel}.
-     *
-     * @return the <i>Init</i> {@link State} of the {@link ExecutionModel}
-     */
-    public State getInitState() {
-        return this.initState;
-    }
-
-    /**
-     * Returns the <i>Default_Fallback</i> {@link State} of the {@link ExecutionModel}.
-     *
-     * @return the <i>Default_Fallback</i> {@link State} of the {@link ExecutionModel}.
-     */
-    public State getFallbackState() {
-        return this.fallbackState;
-    }
-
-    /**
-     * Returns the top-level {@link IntentDefinition}s of the {@link ExecutionModel}.
-     * <p>
-     * Top-level intents are intents that do not require any context to get matched. They are defined as part of the
-     * <i>Init</i> state's transitions, or in states that can be reached from the <i>Init</i> through wildcard
-     * transitions.
-     *
-     * @return the top-level {@link IntentDefinition}s of the {@link ExecutionModel}.
-     */
-    public Collection<IntentDefinition> getTopLevelIntents() {
-        return this.topLevelIntents;
-    }
-
-    /**
-     * Returns all the {@link EventDefinition}s accessed in the {@link ExecutionModel}.
-     * <p>
-     * This method does not filter where the {@link EventDefinition}s are accessed. If you need precise filtering you
-     * can check {@link #getAccessedEvents(Transition)} to retrieve the {@link EventDefinition}s accessed in a
-     * {@link Transition}.
-     *
-     * @return the {@link EventDefinition}s accessed in the {@link ExecutionModel}
-     * @see #getAccessedEvents(Transition)
-     */
-    public Collection<EventDefinition> getAllAccessedEvents() {
-        return this.allAccessedEvents;
-    }
-
-    /**
-     * Retrieves the top-level {@link IntentDefinition}s of the {@link ExecutionModel}.
-     * <p>
-     * Top-level intents are intents that do not require any context to get matched. They are defined as part of the
-     * <i>Init</i> state's transitions, or in states that can be reached from the <i>Init</i> through wildcard
-     * transitions.
-     *
-     * @return the top-level {@link IntentDefinition}s of the {@link ExecutionModel}
-     */
-    private Collection<IntentDefinition> computeTopLevelIntents() {
-        Set<IntentDefinition> result = new HashSet<>();
-        Collection<State> topLevelStates = getAllStatesReachableWithWildcard(initState);
-        topLevelStates.stream().flatMap(state -> state.getTransitions().stream()).forEach(t -> {
-            getAccessedEvents(t).forEach(e -> {
-                if (e instanceof IntentDefinition) {
-                    result.add((IntentDefinition) e);
-                }
-            });
-        });
-        return result;
     }
 
     /**
@@ -212,10 +42,8 @@ public class ExecutionModelHelper {
      * @see #getAllStatesReachableWithWildcard(State) to retrieve all the {@link State}s that can be transitively
      * reached with a wildcard {@link Transition} from the provided {@code state}
      */
-    public @Nullable
-    State getStateReachableWithWildcard(State state) {
-        checkNotNull(state, "Cannot retrieve the state reachable with wildcard transition from the provided state %s"
-                , state);
+    public static @Nullable
+    State getStateReachableWithWildcard(@NonNull State state) {
         State result = null;
         if (state.getTransitions().stream().anyMatch(Transition::isIsWildcard)) {
             if (state.getTransitions().size() > 1) {
@@ -242,7 +70,7 @@ public class ExecutionModelHelper {
      * @see Transition#isIsWildcard()
      * @see #getAllStatesReachableWithWildcard(State, Set)
      */
-    public Collection<State> getAllStatesReachableWithWildcard(State state) {
+    public static Collection<State> getAllStatesReachableWithWildcard(State state) {
         return getAllStatesReachableWithWildcard(state, new HashSet<>());
     }
 
@@ -262,7 +90,7 @@ public class ExecutionModelHelper {
      * @throws IllegalStateException if the provided {@code state} contains more than one transition and at least one
      *                               is a wildcard
      */
-    private Collection<State> getAllStatesReachableWithWildcard(State state, Set<State> result) {
+    private static Collection<State> getAllStatesReachableWithWildcard(State state, Set<State> result) {
         boolean added = result.add(state);
         if (added) {
             State otherState = getStateReachableWithWildcard(state);
@@ -279,6 +107,7 @@ public class ExecutionModelHelper {
         }
     }
 
+
     /**
      * Returns the {@link EventDefinition}s accessed from the provided {@link Transition}.
      * <p>
@@ -289,7 +118,7 @@ public class ExecutionModelHelper {
      * @param transition the {@link Transition} to retrieve the {@link EventDefinition} accesses from
      * @return the {@link EventDefinition}s accessed in the provided {@link Transition}
      */
-    public Collection<EventDefinition> getAccessedEvents(Transition transition) {
+    public static Collection<EventDefinition> getAccessedEvents(Transition transition) {
         Iterable<EObject> transitionContents = transition::eAllContents;
         return getAccessedEvents(transitionContents);
     }
@@ -302,7 +131,7 @@ public class ExecutionModelHelper {
      * @param eObjects the {@link EObject}s to retrieve the {@link EventDefinition} accesses from
      * @return the accessed {@link EventDefinition}s
      */
-    private Collection<EventDefinition> getAccessedEvents(Iterable<EObject> eObjects) {
+    private static Collection<EventDefinition> getAccessedEvents(Iterable<EObject> eObjects) {
         Set<EventDefinition> result = new HashSet<>();
         for (EObject e : eObjects) {
             if (e instanceof XFeatureCall) {
@@ -346,7 +175,7 @@ public class ExecutionModelHelper {
      * otherwise
      * @see #getAccessedEventDefinition(JvmIdentifiableElement)
      */
-    private boolean isEventDefinitionAccess(JvmIdentifiableElement element) {
+    private static boolean isEventDefinitionAccess(JvmIdentifiableElement element) {
         if (element instanceof JvmGenericType) {
             JvmGenericType typeFeature = (JvmGenericType) element;
             if (typeFeature.getSuperTypes().stream().anyMatch(t -> t.getIdentifier().equals(EventDefinition.class.getName()))) {
@@ -381,7 +210,7 @@ public class ExecutionModelHelper {
      * @return the associated {@link EventDefinition} if it exists, {@code null} otherwise
      * @see #isEventDefinitionAccess(JvmIdentifiableElement)
      */
-    private @Nullable
+    private static @Nullable
     EventDefinition getAccessedEventDefinition(JvmIdentifiableElement element) {
         if (element instanceof JvmGenericType) {
             JvmGenericType typeFeature = (JvmGenericType) element;
@@ -407,7 +236,7 @@ public class ExecutionModelHelper {
      *                    {@link com.xatkit.platform.PlatformDefinition}s.
      * @return {@code true} if the provided {@code featureCall} is a platform's action call, {@code false} otherwise
      */
-    public boolean isPlatformActionCall(XMemberFeatureCall featureCall, RuntimePlatformRegistry registry) {
+    public static boolean isPlatformActionCall(XMemberFeatureCall featureCall, RuntimePlatformRegistry registry) {
         String platformName;
         try {
             platformName = getPlatformName(featureCall);
@@ -433,7 +262,7 @@ public class ExecutionModelHelper {
      * @throws IllegalStateException if the {@code actionCall}'s qualified name doesn't follow the {@code Platform
      *                               .Action} template
      */
-    public String getPlatformName(XMemberFeatureCall actionCall) {
+    public static String getPlatformName(XMemberFeatureCall actionCall) {
         checkNotNull(actionCall, "Cannot retrieve the platform name of the provided %s %s",
                 XMemberFeatureCall.class.getSimpleName(), actionCall);
         String[] splittedActionName = splitActionCallName(actionCall);
@@ -452,11 +281,51 @@ public class ExecutionModelHelper {
      * @throws IllegalStateException if the {@code actionCall}'s qualified name doesn't follow the {@code Platform
      *                               .Action} template
      */
-    public String getActionName(XMemberFeatureCall actionCall) {
+    public static String getActionName(XMemberFeatureCall actionCall) {
         checkNotNull(actionCall, "Cannot retrieve the action name of the provided %s %s",
                 XMemberFeatureCall.class.getSimpleName(), actionCall);
         String[] splittedActionName = splitActionCallName(actionCall);
         return splittedActionName[1];
+    }
+
+    public static @Nullable ExecutionModel getContainingExecutionModel(@NonNull EObject e) {
+        EObject currentEObject = e;
+        while(nonNull(currentEObject)) {
+            if(currentEObject.eContainer() instanceof ExecutionModel) {
+                return (ExecutionModel) currentEObject.eContainer();
+            } else {
+                currentEObject = currentEObject.eContainer();
+            }
+        }
+        return null;
+    }
+
+    public static State getInitState(ExecutionModel executionModel) {
+        return executionModel.getStates().stream().filter(s -> s.getName().equals("Init")).findAny()
+                .orElseThrow(() -> new IllegalStateException("The execution model does not contain an Init State"));
+    }
+
+    public static State getFallbackState(ExecutionModel executionModel) {
+        return executionModel.getStates().stream().filter(s -> s.getName().equals("Default_Fallback")).findAny()
+                .orElseThrow(() -> new IllegalStateException("The execution model does not contain a Default_Fallback" +
+                        " state"));
+    }
+
+    public static Collection<EventDefinition> getAllAccessedEvents(ExecutionModel executionModel) {
+        return getAccessedEvents(executionModel::eAllContents);
+    }
+
+    public static Collection<IntentDefinition> getTopLevelIntents(ExecutionModel executionModel) {
+        Set<IntentDefinition> result = new HashSet<>();
+        Collection<State> topLevelStates = getAllStatesReachableWithWildcard(getInitState(executionModel));
+        topLevelStates.stream().flatMap(state -> state.getTransitions().stream()).forEach(t -> {
+            getAccessedEvents(t).forEach(e -> {
+                if (e instanceof IntentDefinition) {
+                    result.add((IntentDefinition) e);
+                }
+            });
+        });
+        return result;
     }
 
     /**

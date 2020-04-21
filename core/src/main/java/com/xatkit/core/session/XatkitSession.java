@@ -1,10 +1,11 @@
 package com.xatkit.core.session;
 
 import com.xatkit.core.XatkitCore;
+import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.State;
 import com.xatkit.execution.Transition;
 import com.xatkit.intent.IntentDefinition;
-import com.xatkit.util.ExecutionModelHelper;
+import com.xatkit.util.ExecutionModelUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -148,11 +149,12 @@ public class XatkitSession {
         checkNotNull(state, "Cannot set the provided %s %s", State.class.getSimpleName(), state);
         Log.debug("Session {0} - State set to {1}", this.getSessionId(), state.getName());
         this.state = state;
+        ExecutionModel executionModel = ExecutionModelUtils.getContainingExecutionModel(state);
         for(Transition t : state.getTransitions()) {
-            ExecutionModelHelper.getInstance().getAccessedEvents(t).forEach(e -> {
+            ExecutionModelUtils.getAccessedEvents(t).forEach(e -> {
                 if(e instanceof IntentDefinition) {
                     IntentDefinition i = (IntentDefinition)e;
-                    if(!ExecutionModelHelper.getInstance().getTopLevelIntents().contains(i)) {
+                    if(ExecutionModelUtils.getTopLevelIntents(executionModel).contains(i)) {
                         this.runtimeContexts.setContext("Enable" + i.getName(), 2);
                     }
                 }

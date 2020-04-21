@@ -21,10 +21,12 @@ import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
-import com.xatkit.util.ExecutionModelHelper;
+import com.xatkit.util.ExecutionModelUtils;
 import com.xatkit.util.Loader;
 import com.xatkit.util.ModelLoader;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
 
@@ -81,6 +83,7 @@ public class XatkitCore {
     /**
      * The {@link IntentRecognitionProvider} used to compute {@link RecognizedIntent}s from input text.
      */
+    @Getter
     private IntentRecognitionProvider intentRecognitionProvider;
 
     /**
@@ -89,6 +92,7 @@ public class XatkitCore {
      *
      * @see #getRuntimePlatformRegistry()
      */
+    @Getter
     private RuntimePlatformRegistry runtimePlatformRegistry;
 
     /**
@@ -99,6 +103,7 @@ public class XatkitCore {
      *
      * @see #getEventDefinitionRegistry() ()
      */
+    @Getter
     private EventDefinitionRegistry eventDefinitionRegistry;
 
     /**
@@ -108,7 +113,8 @@ public class XatkitCore {
      * @see ExecutionService#handleEventInstance(EventInstance, XatkitSession)
      * @see RuntimeAction
      */
-    protected ExecutionService executionService;
+    @Getter
+    private ExecutionService executionService;
 
     /**
      * The {@link Map} used to store and retrieve {@link XatkitSession}s associated to users.
@@ -120,6 +126,7 @@ public class XatkitCore {
     /**
      * The {@link XatkitServer} instance used to capture incoming webhooks.
      */
+    @Getter
     private XatkitServer xatkitServer;
 
     /**
@@ -143,9 +150,7 @@ public class XatkitCore {
      * @see ExecutionModel
      * @see ModelLoader
      */
-    public XatkitCore(Configuration configuration) {
-        checkNotNull(configuration, "Cannot construct a %s instance from a null configuration",
-                this.getClass().getSimpleName());
+    public XatkitCore(@NonNull Configuration configuration) {
         try {
             this.configuration = configuration;
             this.runtimePlatformRegistry = new RuntimePlatformRegistry();
@@ -154,7 +159,6 @@ public class XatkitCore {
             ExecutionModel executionModel = modelLoader.loadExecutionModel(configuration);
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
                     .getSimpleName(), ExecutionModel.class.getSimpleName());
-            ExecutionModelHelper.create(executionModel);
 
             this.formatters = new HashMap<>();
             this.registerFormatter("Default", new Formatter());
@@ -230,7 +234,7 @@ public class XatkitCore {
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");
 
-        Iterable<EventDefinition> accessedEvents = ExecutionModelHelper.getInstance().getAllAccessedEvents();
+        Iterable<EventDefinition> accessedEvents = ExecutionModelUtils.getAllAccessedEvents(executionModel);
         for (EventDefinition e : accessedEvents) {
             intentRegistered |= this.registerEventDefinition(e);
         }
@@ -331,9 +335,9 @@ public class XatkitCore {
         state.eAllContents().forEachRemaining(e -> {
                     if (e instanceof XMemberFeatureCall) {
                         XMemberFeatureCall featureCall = (XMemberFeatureCall) e;
-                        if (ExecutionModelHelper.getInstance().isPlatformActionCall(featureCall,
+                        if (ExecutionModelUtils.isPlatformActionCall(featureCall,
                                 this.runtimePlatformRegistry)) {
-                            String platformName = ExecutionModelHelper.getInstance().getPlatformName(featureCall);
+                            String platformName = ExecutionModelUtils.getPlatformName(featureCall);
 
                             PlatformDefinition platformDefinition =
                                     this.runtimePlatformRegistry.getPlatformDefinition(platformName);
@@ -407,63 +411,6 @@ public class XatkitCore {
         RuntimePlatform runtimePlatform = Loader.constructRuntimePlatform(runtimePlatformClass, this, configuration);
         this.runtimePlatformRegistry.registerRuntimePlatform(platformDefinition.getName(), runtimePlatform);
         return runtimePlatform;
-    }
-
-    /**
-     * Returns the underlying {@link ExecutionService}.
-     *
-     * @return the underlying {@link ExecutionService}
-     */
-    public ExecutionService getExecutionService() {
-        return this.executionService;
-    }
-
-    /**
-     * Returns the underlying {@link IntentRecognitionProvider}.
-     * <p>
-     * <b>Note:</b> this method is designed to ease debugging and testing, direct interactions with the
-     * {@link IntentRecognitionProvider} API may create consistency issues. In particular, xatkit does not ensure
-     * that {@link RuntimeAction}s will be triggered in case of direct queries to the
-     * {@link IntentRecognitionProvider} API.
-     *
-     * @return the underlying {@link IntentRecognitionProvider}
-     */
-    public IntentRecognitionProvider getIntentRecognitionProvider() {
-        return intentRecognitionProvider;
-    }
-
-    /**
-     * Returns the {@link EventDefinitionRegistry} associated to this instance.
-     * <p>
-     * This registry is used to cache {@link EventDefinition}s and {@link IntentDefinition}s from the input
-     * {@link ExecutionModel} and provides utility methods to retrieve specific {@link EventDefinition} and
-     * {@link IntentDefinition} and clear the cache.
-     *
-     * @return the {@link EventDefinitionRegistry} associated to this instance
-     */
-    public EventDefinitionRegistry getEventDefinitionRegistry() {
-        return eventDefinitionRegistry;
-    }
-
-    /**
-     * Returns the {@link RuntimePlatformRegistry} associated to this instance.
-     * <p>
-     * This registry is used to cache loaded {@link RuntimePlatform}s, and provides utility method to retrieve,
-     * unregister, and clear them.
-     *
-     * @return the {@link RuntimePlatformRegistry} associated to this instance
-     */
-    public RuntimePlatformRegistry getRuntimePlatformRegistry() {
-        return runtimePlatformRegistry;
-    }
-
-    /**
-     * Returns the {@link XatkitServer} used to capture incoming webhooks.
-     *
-     * @return the {@link XatkitServer} used to capture incoming webhooks
-     */
-    public XatkitServer getXatkitServer() {
-        return xatkitServer;
     }
 
     /**

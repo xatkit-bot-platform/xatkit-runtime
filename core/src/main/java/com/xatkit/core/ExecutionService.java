@@ -13,8 +13,9 @@ import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.metamodels.utils.EventWrapper;
 import com.xatkit.metamodels.utils.RuntimeModel;
-import com.xatkit.util.ExecutionModelHelper;
+import com.xatkit.util.ExecutionModelUtils;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.ConfigurationConverter;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -130,14 +131,9 @@ public class ExecutionService extends XbaseInterpreter {
      * @throws NullPointerException if the provided {@code executionModel} or {@code runtimePlatformRegistry} is
      *                              {@code null}
      */
-    public ExecutionService(ExecutionModel executionModel, RuntimePlatformRegistry runtimePlatformRegistry,
-                            Configuration configuration) {
-        checkNotNull(executionModel, "Cannot construct a %s from the provided %s %s", this.getClass()
-                .getSimpleName(), ExecutionModel.class.getSimpleName(), executionModel);
-        checkNotNull(runtimePlatformRegistry, "Cannot construct a %s from the provided %s %s", this.getClass()
-                .getSimpleName(), RuntimePlatformRegistry.class.getSimpleName(), runtimePlatformRegistry);
-        checkNotNull(configuration, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
-                Configuration.class.getSimpleName(), configuration);
+    public ExecutionService(@NonNull ExecutionModel executionModel, @NonNull RuntimePlatformRegistry runtimePlatformRegistry,
+                            @NonNull Configuration configuration) {
+        this.executionModel = executionModel;
         this.runtimePlatformRegistry = runtimePlatformRegistry;
         this.configuration = configuration;
         this.configurationMap = ConfigurationConverter.getMap(configuration);
@@ -192,9 +188,8 @@ public class ExecutionService extends XbaseInterpreter {
      * @param session the {@link XatkitSession} to initialize
      * @throws NullPointerException if the provided {@code session} is {@code null}
      */
-    public void initSession(@Nonnull XatkitSession session) {
-        checkNotNull(session, "Cannot initialize the provided %s %s", XatkitSession.class.getSimpleName(), session);
-        session.setState(ExecutionModelHelper.getInstance().getInitState());
+    public void initSession(@NonNull XatkitSession session) {
+        session.setState(ExecutionModelUtils.getInitState(executionModel));
         this.executeBody(session.getState(), session);
     }
 
@@ -240,7 +235,7 @@ public class ExecutionService extends XbaseInterpreter {
          * Look for wildcard transitions and navigate them. We don't need to wait here, we can just move to the next
          * state that defines non-wildcard transitions.
          */
-        State stateReachableWithWildcard = ExecutionModelHelper.getInstance().getStateReachableWithWildcard(state);
+        State stateReachableWithWildcard = ExecutionModelUtils.getStateReachableWithWildcard(state);
         if (nonNull(stateReachableWithWildcard)) {
             session.setState(stateReachableWithWildcard);
             executeBody(stateReachableWithWildcard, session);
@@ -265,7 +260,7 @@ public class ExecutionService extends XbaseInterpreter {
                 , state.getName(), XatkitSession.class.getSimpleName(), session);
         XExpression fallbackExpression = state.getFallback();
         if (isNull(fallbackExpression)) {
-            executeBody(ExecutionModelHelper.getInstance().getFallbackState(), session);
+            executeBody(ExecutionModelUtils.getFallbackState(executionModel), session);
         } else {
             /*
              * The event instance that made the state machine move to the current state. This event instance is set
@@ -479,7 +474,7 @@ public class ExecutionService extends XbaseInterpreter {
     protected Object doEvaluate(XExpression expression, IEvaluationContext context, CancelIndicator indicator) {
         if (expression instanceof XMemberFeatureCall) {
             XMemberFeatureCall featureCall = (XMemberFeatureCall) expression;
-            if (ExecutionModelHelper.getInstance().isPlatformActionCall(featureCall, this.runtimePlatformRegistry)) {
+            if (ExecutionModelUtils.isPlatformActionCall(featureCall, this.runtimePlatformRegistry)) {
                 XatkitSession session = (XatkitSession) context.getValue(EVALUATION_CONTEXT_SESSION_KEY);
                 List<Object> evaluatedArguments = new ArrayList<>();
                 for (XExpression xExpression : featureCall.getActualArguments()) {
@@ -574,7 +569,7 @@ public class ExecutionService extends XbaseInterpreter {
      */
     private RuntimeAction getRuntimeActionFromXMemberFeatureCall(XMemberFeatureCall actionCall, List<Object> arguments,
                                                                  XatkitSession session) {
-        String platformName = ExecutionModelHelper.getInstance().getPlatformName(actionCall);
+        String platformName = ExecutionModelUtils.getPlatformName(actionCall);
         RuntimePlatform runtimePlatform = this.getRuntimePlatformRegistry().getRuntimePlatform(platformName);
         return runtimePlatform.createRuntimeAction(actionCall, arguments, session);
     }

@@ -7,6 +7,7 @@ import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.ExecutionModel;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinitionEntry;
@@ -25,7 +26,7 @@ import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.intent.TextFragment;
-import com.xatkit.util.ExecutionModelHelper;
+import com.xatkit.util.ExecutionModelUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
@@ -490,7 +491,8 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
     private List<IntentDefinition> getMatchableIntents(@NonNull Set<IntentDefinition> intentDefinitions,
                                                        @NonNull XatkitSession session) {
         RuntimeContexts runtimeContexts = session.getRuntimeContexts();
-        Collection<IntentDefinition> topLevelIntents = ExecutionModelHelper.getInstance().getTopLevelIntents();
+        ExecutionModel executionModel = ExecutionModelUtils.getContainingExecutionModel(session.getState());
+        Collection<IntentDefinition> topLevelIntents = ExecutionModelUtils.getTopLevelIntents(executionModel);
         List<IntentDefinition> result = new ArrayList<>();
         for (IntentDefinition intentDefinition : intentDefinitions) {
             if (topLevelIntents.contains(intentDefinition)) {
