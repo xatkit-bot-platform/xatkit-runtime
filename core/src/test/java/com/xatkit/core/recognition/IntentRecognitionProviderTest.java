@@ -10,6 +10,7 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.test.util.TestBotExecutionModel;
 import com.xatkit.test.util.TestModelLoader;
+import com.xatkit.util.ExecutionModelUtils;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.junit.After;
 import org.junit.Before;
@@ -214,8 +215,9 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void getIntentNotRegistered() {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Error",
-                intentRecognitionProvider.createSession("TEST"));
+        XatkitSession session = intentRecognitionProvider.createSession("TEST");
+        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
+        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Error", session);
         assertThatRecognizedIntentHasDefinition(recognizedIntent,
                 IntentRecognitionProvider.DEFAULT_FALLBACK_INTENT.getName());
     }
@@ -226,8 +228,10 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
+        XatkitSession session = intentRecognitionProvider.createSession("TEST");
+        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Greetings",
-                intentRecognitionProvider.createSession("TEST"));
+                session);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
     }
 
@@ -237,8 +241,9 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         registeredIntentDefinition = testBotExecutionModel.getSystemEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Hello Test",
-                intentRecognitionProvider.createSession("TEST"));
+        XatkitSession session = intentRecognitionProvider.createSession("TEST");
+        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
+        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Hello Test", session);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
         ContextInstance context = recognizedIntent.getOutContextInstance("Hello");
         assertThat(context).isNotNull();
@@ -253,8 +258,10 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         registeredIntentDefinition = testBotExecutionModel.getMappingEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
+        XatkitSession session = intentRecognitionProvider.createSession("TEST");
+        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Give me some information about " +
-                "Gwendal", intentRecognitionProvider.createSession("TEST"));
+                "Gwendal", session);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
         ContextInstance context = recognizedIntent.getOutContextInstance("Founder");
         assertThat(context).isNotNull();
@@ -271,8 +278,9 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         registeredIntentDefinition = testBotExecutionModel.getCompositeEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Does Jordi knows Barcelona?",
-                intentRecognitionProvider.createSession("TEST"));
+        XatkitSession session = intentRecognitionProvider.createSession("TEST");
+        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
+        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Does Jordi knows Barcelona?", session);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
         ContextInstance context = recognizedIntent.getOutContextInstance("Query");
         assertThat(context).isNotNull();

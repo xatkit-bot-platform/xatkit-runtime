@@ -6,6 +6,7 @@ import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.util.ExecutionModelUtils;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -47,8 +48,10 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
     public void getIntentValidIntentDefinitionNoOutContextUpperCase() {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.registerIntentDefinition(testBotExecutionModel.getSimpleIntent());
+        XatkitSession session = new XatkitSession("sessionId");
+        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Greetings".toUpperCase(),
-                new XatkitSession("sessionID"));
+                session);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, testBotExecutionModel.getSimpleIntent().getName());
     }
 
@@ -64,6 +67,7 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
          * We need to set the context manually because the intent is not part of the loaded model.
          */
         session.getRuntimeContexts().setContext("Enable" + intentDefinition.getName(), 1);
+        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("$test", session);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, intentDefinition.getName());
     }
