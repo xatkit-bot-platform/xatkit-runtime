@@ -184,7 +184,6 @@ public class ModelLoader {
             try {
                 executionModelResource = executionResourceSet.getResource(uri, true);
             } catch (Exception e) {
-                e.printStackTrace();
                 throw new XatkitException(MessageFormat.format("Cannot load the {0} at the given location: {1}",
                         ExecutionModel.class.getSimpleName(), uri.toString()), e);
             }
