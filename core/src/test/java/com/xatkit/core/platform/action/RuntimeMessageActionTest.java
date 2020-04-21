@@ -32,7 +32,7 @@ public class RuntimeMessageActionTest extends AbstractActionTest<RuntimeMessageA
         new StubRuntimeMessageAction(getPlatform(), null, MESSAGE);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void constructRuntimeMessageActionNullMessage() {
         new StubRuntimeMessageAction(getPlatform(), session, null);
     }
