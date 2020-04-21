@@ -1,34 +1,26 @@
 package com.xatkit;
 
+import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.stubs.StubXatkitCore;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 import static java.util.Objects.nonNull;
+import static org.mockito.Mockito.mock;
 
 /**
  * A generic test case that defines utility methods to test {@link RuntimeEventProvider} subclasses.
  * <p>
  * Test cases targeting {@link RuntimeEventProvider}s can extend this class to reuse the initialized
- * {@link RuntimePlatform} and a {@link StubXatkitCore} instance. This class takes care of the life-cycle of the
- * initialized {@link RuntimePlatform} and {@link com.xatkit.core.XatkitCore}.
+ * {@link RuntimePlatform} and a mocked {@link XatkitCore} instance. This class takes care of the life-cycle of the
+ * initialized {@link RuntimePlatform} and {@link XatkitCore}.
  *
  * @param <E> the {@link RuntimeEventProvider} {@link Class} under test
  * @param <P> the {@link RuntimePlatform} containing the provider under test
  */
 public abstract class AbstractEventProviderTest<E extends RuntimeEventProvider<P>, P extends RuntimePlatform> {
-
-    /**
-     * The {@link StubXatkitCore} used to initialize the {@link RuntimePlatform}.
-     * <p>
-     * This field is static, meaning that the same {@link StubXatkitCore} instance will be used for all the tests.
-     */
-    protected static StubXatkitCore XATKIT_CORE;
 
     /**
      * The {@link RuntimePlatform} instance containing the provider under test.
@@ -41,28 +33,16 @@ public abstract class AbstractEventProviderTest<E extends RuntimeEventProvider<P
     protected E provider;
 
     /**
-     * Initializes the {@link StubXatkitCore} instance.
+     * A mock of the {@link XatkitCore}.
      */
-    @BeforeClass
-    public static void setUpBeforeClass() {
-        XATKIT_CORE = new StubXatkitCore();
-    }
-
-    /**
-     * Shutdown the {@link StubXatkitCore} instance.
-     */
-    @AfterClass
-    public static void tearDownAfterClass() {
-        if (nonNull(XATKIT_CORE) && !XATKIT_CORE.isShutdown()) {
-            XATKIT_CORE.shutdown();
-        }
-    }
+    protected XatkitCore mockedXatkitCore;
 
     /**
      * Initializes the {@link RuntimePlatform} and the empty {@link XatkitSession}.
      */
     @Before
     public void setUp() {
+        mockedXatkitCore = mock(XatkitCore.class);
         platform = getPlatform();
     }
 
