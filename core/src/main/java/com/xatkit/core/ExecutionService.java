@@ -15,6 +15,7 @@ import com.xatkit.metamodels.utils.EventWrapper;
 import com.xatkit.metamodels.utils.RuntimeModel;
 import com.xatkit.util.ExecutionModelUtils;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.ConfigurationConverter;
@@ -31,7 +32,6 @@ import org.eclipse.xtext.xbase.interpreter.IEvaluationContext;
 import org.eclipse.xtext.xbase.interpreter.IEvaluationResult;
 import org.eclipse.xtext.xbase.interpreter.impl.XbaseInterpreter;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -79,6 +79,7 @@ public class ExecutionService extends XbaseInterpreter {
      * The {@link ExecutionModel} used to retrieve the {@link RuntimeAction}s to compute from the handled
      * {@link EventInstance}s.
      */
+    @Getter
     private ExecutionModel executionModel;
 
     /**
@@ -93,6 +94,7 @@ public class ExecutionService extends XbaseInterpreter {
      *
      * @see #getRuntimePlatformRegistry()
      */
+    @Getter
     private RuntimePlatformRegistry runtimePlatformRegistry;
 
     /**
@@ -114,6 +116,7 @@ public class ExecutionService extends XbaseInterpreter {
      * @see RuntimePlatform
      * @see RuntimeAction
      */
+    @Getter
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
@@ -142,37 +145,6 @@ public class ExecutionService extends XbaseInterpreter {
          * https://www.eclipse.org/forums/index.php/t/1095731/)
          */
         EcoreUtil.resolveAll(executionModel);
-    }
-
-    /**
-     * Returns the {@link ExecutorService} used to process {@link RuntimeAction}s.
-     * <p>
-     * <b>Note:</b> this method is designed to ease testing, and should not be accessed by client applications.
-     * Manipulating {@link XatkitCore}'s {@link ExecutorService} may create consistency issues on currently executed
-     * {@link RuntimeAction}s.
-     *
-     * @return the {@link ExecutorService} used to process {@link RuntimeAction}s
-     */
-    protected ExecutorService getExecutorService() {
-        return executorService;
-    }
-
-    /**
-     * Returns the {@link ExecutionModel} associated to this {@link ExecutionService}.
-     *
-     * @return the {@link ExecutionModel} associated to this {@link ExecutionService}
-     */
-    public ExecutionModel getExecutionModel() {
-        return executionModel;
-    }
-
-    /**
-     * Returns the {@link RuntimePlatformRegistry} associated to this {@link ExecutionService}.
-     *
-     * @return the {@link RuntimePlatformRegistry} associated to this {@link ExecutionService}
-     */
-    public RuntimePlatformRegistry getRuntimePlatformRegistry() {
-        return runtimePlatformRegistry;
     }
 
     /**
@@ -207,10 +179,7 @@ public class ExecutionService extends XbaseInterpreter {
      * @param session the {@link XatkitSession} holding the contextual information
      * @throws NullPointerException if the provided {@code state} or {@code session} is {@code null}
      */
-    private void executeBody(@Nonnull State state, @Nonnull XatkitSession session) {
-        checkNotNull(state, "Cannot execute the body of the provided %s %s", State.class.getSimpleName(), state);
-        checkNotNull(session, "Cannot execute the body of %s %s with the provided %s %s", State.class.getSimpleName()
-                , state.getName(), XatkitSession.class.getSimpleName(), session);
+    private void executeBody(@NonNull State state, @NonNull XatkitSession session) {
         XExpression bodyExpression = state.getBody();
         if (isNull(bodyExpression)) {
             Log.debug("{0}'s body section is null, skipping its execution", state.getName());
@@ -253,11 +222,7 @@ public class ExecutionService extends XbaseInterpreter {
      * @param session the {@link XatkitSession} holding the contextual information
      * @throws NullPointerException if the provided {@code state} or {@code session} is {@code null}
      */
-    private void executeFallback(@Nonnull State state, @Nonnull XatkitSession session) {
-        checkNotNull(state, "Cannot execute the fallback of the provided %s %s", State.class.getSimpleName(), state);
-        checkNotNull(session, "Cannot execute the fallback of %s %s with the provided %s %s",
-                State.class.getSimpleName()
-                , state.getName(), XatkitSession.class.getSimpleName(), session);
+    private void executeFallback(@NonNull State state, @NonNull XatkitSession session) {
         XExpression fallbackExpression = state.getFallback();
         if (isNull(fallbackExpression)) {
             executeBody(ExecutionModelUtils.getFallbackState(executionModel), session);
@@ -303,11 +268,9 @@ public class ExecutionService extends XbaseInterpreter {
      * @return the created {@link IEvaluationContext}
      * @throws NullPointerException if the provided {@link XatkitSession} is {@code null}
      */
-    private @Nonnull
+    private @NonNull
     IEvaluationContext createXatkitEvaluationContext(@Nullable EventInstance eventInstance,
-                                                     @Nonnull XatkitSession session) {
-        checkNotNull(session, "Cannot create the %s from the provided %s %s",
-                IEvaluationContext.class.getSimpleName(), XatkitSession.class.getSimpleName(), session);
+                                                     @NonNull XatkitSession session) {
         IEvaluationContext evaluationContext = this.createContext();
         RuntimeModel runtimeModel = new RuntimeModel(session.getRuntimeContexts().getContextMap(),
                 session.getSessionVariables(), configurationMap,
@@ -336,13 +299,8 @@ public class ExecutionService extends XbaseInterpreter {
      * @throws NullPointerException if the provided {@code eventInstance}, {@code state}, or {@code session} is
      *                              {@code null}
      */
-    private List<Transition> getNavigableTransitions(EventInstance eventInstance, State state, XatkitSession session) {
-        checkNotNull(eventInstance, "Cannot compute the navigable transitions from the provided %s %s",
-                EventInstance.class.getSimpleName());
-        checkNotNull(state, "Cannot compute the navigable transitions from the provided %s %s",
-                State.class.getSimpleName(), state);
-        checkNotNull(session, "Cannot compute the navigable transitions from the provided %s %s",
-                XatkitSession.class.getSimpleName(), session);
+    private List<Transition> getNavigableTransitions(@NonNull EventInstance eventInstance, @NonNull State state,
+                                                     @NonNull XatkitSession session) {
         List<Transition> result = new ArrayList<>();
         for (Transition t : state.getTransitions()) {
             /*
@@ -404,9 +362,7 @@ public class ExecutionService extends XbaseInterpreter {
      * @param session       the {@link XatkitSession} used to define and access context variables
      * @throws NullPointerException if the provided {@code eventInstance} or {@code session} is {@code null}
      */
-    public void handleEventInstance(EventInstance eventInstance, XatkitSession session) {
-        checkNotNull(eventInstance, "Cannot handle the %s %s", EventInstance.class.getSimpleName(), eventInstance);
-        checkNotNull(session, "Cannot handle the %s %s", XatkitSession.class.getSimpleName(), session);
+    public void handleEventInstance(@NonNull EventInstance eventInstance, @NonNull XatkitSession session) {
         checkNotNull(session.getState(), "Cannot handle the %s %s, the provided %s's state hasn't been initialized",
                 EventInstance.class.getSimpleName(), eventInstance, XatkitSession.class.getSimpleName());
         CompletableFuture.runAsync(() -> {
@@ -532,8 +488,7 @@ public class ExecutionService extends XbaseInterpreter {
      * @param action the {@link RuntimeAction} to execute
      * @throws NullPointerException if the provided {@code action} is {@code null}
      */
-    private RuntimeActionResult executeRuntimeAction(RuntimeAction action) {
-        checkNotNull(action, "Cannot execute the provided %s %s", RuntimeAction.class.getSimpleName(), action);
+    private RuntimeActionResult executeRuntimeAction(@NonNull RuntimeAction action) {
         RuntimeActionResult result = action.call();
         if (result.isError()) {
             Log.error("An error occurred when executing the action {0}", action.getClass().getSimpleName());
