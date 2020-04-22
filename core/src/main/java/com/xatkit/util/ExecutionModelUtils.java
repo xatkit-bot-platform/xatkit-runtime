@@ -5,7 +5,6 @@ import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.State;
 import com.xatkit.execution.Transition;
 import com.xatkit.intent.EventDefinition;
-import com.xatkit.intent.IntentDefinition;
 import lombok.NonNull;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.common.types.JvmField;
@@ -313,19 +312,6 @@ public class ExecutionModelUtils {
 
     public static Collection<EventDefinition> getAllAccessedEvents(ExecutionModel executionModel) {
         return getAccessedEvents(executionModel::eAllContents);
-    }
-
-    public static Collection<IntentDefinition> getTopLevelIntents(ExecutionModel executionModel) {
-        Set<IntentDefinition> result = new HashSet<>();
-        Collection<State> topLevelStates = getAllStatesReachableWithWildcard(getInitState(executionModel));
-        topLevelStates.stream().flatMap(state -> state.getTransitions().stream()).forEach(t -> {
-            getAccessedEvents(t).forEach(e -> {
-                if (e instanceof IntentDefinition) {
-                    result.add((IntentDefinition) e);
-                }
-            });
-        });
-        return result;
     }
 
     /**

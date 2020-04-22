@@ -1,7 +1,6 @@
 package com.xatkit.core.session;
 
 import com.xatkit.core.XatkitCore;
-import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.State;
 import com.xatkit.execution.Transition;
 import com.xatkit.intent.IntentDefinition;
@@ -115,14 +114,11 @@ public class XatkitSession {
     public void setState(@NonNull State state) {
         Log.debug("Session {0} - State set to {1}", this.getSessionId(), state.getName());
         this.state = state;
-        ExecutionModel executionModel = ExecutionModelUtils.getContainingExecutionModel(state);
         for(Transition t : state.getTransitions()) {
             ExecutionModelUtils.getAccessedEvents(t).forEach(e -> {
                 if(e instanceof IntentDefinition) {
                     IntentDefinition i = (IntentDefinition)e;
-                    if(ExecutionModelUtils.getTopLevelIntents(executionModel).contains(i)) {
-                        this.runtimeContexts.setContext("Enable" + i.getName(), 2);
-                    }
+                    this.runtimeContexts.setContext("Enable" + i.getName(), 2);
                 }
             });
         }

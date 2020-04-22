@@ -6,7 +6,6 @@ import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.SessionName;
 import com.xatkit.core.recognition.dialogflow.DialogFlowCheckingUtils;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
-import com.xatkit.execution.ExecutionModel;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.IntentDefinition;
 import fr.inria.atlanmod.commons.log.Log;
@@ -194,30 +193,21 @@ public class DialogFlowIntentMapper {
     /**
      * Creates the DialogFlow input {@link Context} names for the provided {@code intentDefinition}.
      * <p>
-     * This method creates an input {@link Context} for every {@link IntentDefinition} which is not a top-level
-     * intent (see {@link com.xatkit.util.ExecutionModelUtils#getTopLevelIntents(ExecutionModel)}). This means that
-     * these intents can be matched iff the input context is set in the DialogFlow session.
+     * This method creates an input {@link Context} for every {@link IntentDefinition}. This means that these intents
+     * can be matched iff the input context is set in the DialogFlow session.
      * <p>
      * This method returns an empty {@link List} if the provided {@code intentDefinition} is a top-level intent.
      *
      * @param intentDefinition the {@link IntentDefinition} to create the DialogFlow input {@link Context}s from
      * @return the created {@link List} of DialogFlow {@link Context} identifiers
      * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
-     * @see com.xatkit.util.ExecutionModelUtils#getTopLevelIntents(ExecutionModel)
      */
     private List<String> createInContextNames(@NonNull IntentDefinition intentDefinition) {
         List<String> results = new ArrayList<>();
-        /*
-         * Dirty hack, this means top-level DialogFlow intents cannot be matched.
-         * TODO rethink the implementation of intent levels, do we really need top-level intents?
-         */
-//        Collection<IntentDefinition> topLevelIntents = ExecutionModelHelper2.getInstance().getTopLevelIntents();
-//        if (!topLevelIntents.contains(intentDefinition)) {
         ContextName contextName = ContextName.of(this.configuration.getProjectId(),
                 SessionName.of(this.configuration.getProjectId(), "setup").getSession(),
                 "Enable" + intentDefinition.getName());
         results.add(contextName.toString());
-//        }
         return results;
     }
 
