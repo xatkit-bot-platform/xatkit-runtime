@@ -113,15 +113,6 @@ public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowA
         assertThatThrownBy(() -> intentRecognitionProvider.deleteEntityDefinition(testBotExecutionModel.getMappingEntity())).isInstanceOf(DialogFlowException.class);
     }
 
-    @Test
-    public void deleteEntityReferencedInComposite() {
-        intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredEntityDefinitions.add(testBotExecutionModel.getCompositeEntity());
-        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getCompositeEntity());
-        assertThatThrownBy(() -> intentRecognitionProvider.deleteEntityDefinition(testBotExecutionModel.getMappingEntity())).isInstanceOf(DialogFlowException.class);
-    }
-
     @Override
     protected DialogFlowApi getIntentRecognitionProvider() {
         return new DialogFlowApi(eventRegistry, buildConfiguration(), null);
