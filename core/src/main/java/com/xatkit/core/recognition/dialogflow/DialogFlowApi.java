@@ -1,6 +1,5 @@
 package com.xatkit.core.recognition.dialogflow;
 
-import com.google.api.core.ApiFuture;
 import com.google.api.gax.rpc.FailedPreconditionException;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.cloud.dialogflow.v2.Context;
@@ -45,7 +44,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -424,7 +422,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
             }
             try {
                 this.dialogFlowClients.getEntityTypesClient().deleteEntityType(entityType.getName());
-            } catch(InvalidArgumentException e) {
+            } catch (InvalidArgumentException e) {
                 throw new DialogFlowException(MessageFormat.format("An error occurred while deleting entity {0}",
                         entityDefinition.getName()), e);
             }
@@ -490,23 +488,30 @@ public class DialogFlowApi extends IntentRecognitionProvider {
         TrainAgentRequest request = TrainAgentRequest.newBuilder()
                 .setParent(projectName.toString())
                 .build();
-        ApiFuture<Operation> future = this.dialogFlowClients.getAgentsClient().trainAgentCallable().futureCall(request);
+        Operation operation = this.dialogFlowClients.getAgentsClient().trainAgentCallable().call(request);
         try {
-            Operation operation = future.get();
-            while (!operation.getDone()) {
-                Thread.sleep(1000);
-                /*
-                 * Retrieve the new version of the Operation from the API.
-                 */
-                operation =
-                        this.dialogFlowClients.getAgentsClient().getOperationsClient().getOperation(operation.getName());
-            }
-            Log.info("ML Engine Training completed");
-        } catch (InterruptedException | ExecutionException e) {
-            String errorMessage = "An error occurred during the ML Engine Training";
-            Log.error(errorMessage);
-            throw new DialogFlowException(errorMessage, e);
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new DialogFlowException("An error occurred during the DialogFlow agent training", e);
         }
+        Log.warn("Cannot check if the DialogFlow agent has been trained, assuming it is. If the bot does not behave " +
+                "as expected try to restart it (see this issue for more information https://github" +
+                ".com/xatkit-bot-platform/xatkit-runtime/issues/294).");
+        // This is how we should properly do it, but we can't because if this issue https://github
+        // .com/xatkit-bot-platform/xatkit-runtime/issues/294
+//        boolean isDone = false;
+//        try {
+//            isDone =
+//                    this.dialogFlowClients.getAgentsClient().trainAgentAsync(request).getPollingFuture().get()
+//                    .isDone();
+//        } catch(InterruptedException | ExecutionException e) {
+//            throw new DialogFlowException("An error occurred during the DialogFlow agent training", e);
+//        }
+//        if(!isDone) {
+//            throw new DialogFlowException("Failed to train the DialogFlow agent, returned Operation#getDone
+//            returned " +
+//                    "false");
+//        }
     }
 
     /**
@@ -516,7 +521,7 @@ public class DialogFlowApi extends IntentRecognitionProvider {
      * conversation parts from a given user.
      * <p>
      * The returned {@link XatkitSession} is configured by the global {@link Configuration} provided in
-     * {@link #DialogFlowApi(EventDefinitionRegistry, Configuration)}.
+     * {@link #DialogFlowApi(EventDefinitionRegistry, Configuration, RecognitionMonitor)}.
      *
      * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
