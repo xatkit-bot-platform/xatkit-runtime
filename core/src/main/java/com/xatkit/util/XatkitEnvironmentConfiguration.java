@@ -29,7 +29,7 @@ public class XatkitEnvironmentConfiguration extends MapConfiguration {
      * This method first looks for an exact match of the provided {@code key}. If there is no value associated to it
      * (i.e. the method returns {@code null}) an additional lookup for environment variables is performed for {@code
      * key.toUpperCase().replaceAll("\\.", "_")}. See
-     * <a href="https://github.com/xatkit-bot-platform/xatkit-runtime/wiki/Xatkit-Options">the documentation</a>
+     * <a href="https://github.com/xatkit-bot-platform/xatkit/wiki/Xatkit-Options">the documentation</a>
      * for additional information.
      *
      * @param key the key of the property to retrieve
@@ -51,7 +51,7 @@ public class XatkitEnvironmentConfiguration extends MapConfiguration {
      * This method first looks for an exact match of the provided {@code key}. If there is no value associated to it
      * (i.e. the method returns {@code false}) an additional lookup for environment variables is performed for {@code
      * key.toUpperCase().replaceAll("\\.", "_")}. See
-     * <a href="https://github.com/xatkit-bot-platform/xatkit-runtime/wiki/Xatkit-Options">the documentation</a>
+     * <a href="https://github.com/xatkit-bot-platform/xatkit/wiki/Xatkit-Options">the documentation</a>
      * for additional information.
      *
      * @param key the key of the property to check
@@ -71,7 +71,7 @@ public class XatkitEnvironmentConfiguration extends MapConfiguration {
      * <p>
      * This method returns the provided {@code key} in upper case, with its {@code .} replaced by {@code _} ({@code
      * key.toUpperCase().replaceAll("\\.", "_")}). See
-     * <a href="https://github.com/xatkit-bot-platform/xatkit-runtime/wiki/Xatkit-Options">the documentation</a>
+     * <a href="https://github.com/xatkit-bot-platform/xatkit/wiki/Xatkit-Options">the documentation</a>
      * for additional information.
      *
      * @param key the key to translate to an environment variable name

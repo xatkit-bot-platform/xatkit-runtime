@@ -46,7 +46,7 @@ public class Xatkit {
      * use to start Xatkit. If Xatkit is started without a {@code .properties} file it will try to load its
      * properties from the {@link System#getenv()} map. In this case the property keys must be upper cased, and
      * {@code .} must be replaced by {@code _}. See
-     * <a href="https://github.com/xatkit-bot-platform/xatkit-runtime/wiki/Xatkit-Options">the documentation</a>
+     * <a href="https://github.com/xatkit-bot-platform/xatkit/wiki/Xatkit-Options">the documentation</a>
      * for more information.
      *
      * @param args the program's arguments
