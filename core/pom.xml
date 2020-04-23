@@ -17,7 +17,7 @@
     <name>Xatkit core infrastructure</name>
 
     <properties>
-        <dialogflow.version>0.53.0-alpha</dialogflow.version>
+        <dialogflow.version>1.0.0</dialogflow.version>
         <commons-beanutils.version>1.9.3</commons-beanutils.version>
         <httpcomponents.version>4.4.10</httpcomponents.version>
         <unirest.version>1.4.9</unirest.version>
@@ -25,6 +25,7 @@
         <gson.version>2.8.5</gson.version>
         <commons-io.version>2.4</commons-io.version>
         <eclipse-collections.version>9.2.0</eclipse-collections.version>
+        <lombok.version>1.18.12</lombok.version>
     </properties>
 
     <dependencies>
@@ -52,6 +53,11 @@
         </dependency>
 
         <!-- Utils -->
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.mashape.unirest</groupId>
@@ -205,6 +211,11 @@
             <type>test-jar</type>
         </dependency>
 
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>
@@ -236,6 +247,13 @@
             </dependency>
 
             <!-- Utils -->
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <dependency>
                 <groupId>com.mashape.unirest</groupId>

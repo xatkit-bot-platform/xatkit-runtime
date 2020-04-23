@@ -1,0 +1,13 @@
+Platform StubRuntimePlatform
+
+path "com.xatkit.stubs.StubRuntimePlatform"
+
+providers {
+	input StubInputProvider {
+		
+	}
+}
+
+actions {
+	StubRuntimeAction
+}

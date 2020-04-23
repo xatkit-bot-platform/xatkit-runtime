@@ -1,0 +1,46 @@
+Library TestBot
+
+mapping XatkitFounder {
+	value Gwendal synonyms: gdaniel zelus
+	value Jordi synonyms: jcabot
+}
+
+composite FounderCity {
+	value XatkitFounder "knows" city
+}
+
+intent SimpleIntent {
+	inputs {
+		"Greetings"
+	}
+}
+
+intent SystemEntityIntent {
+	inputs {
+		"Hello World"
+	}
+	creates context Hello {
+		sets parameter helloTo from fragment "World" (entity any)
+	}
+}
+
+intent MappingEntityIntent {
+	inputs {
+		"Give me some information about FOUNDER"
+	}
+	creates context Founder {
+		sets parameter name from fragment "FOUNDER" (entity XatkitFounder)
+	}
+}
+
+intent CompositeEntityIntent {
+	inputs {
+		"Does Jordi knows Barcelona?"
+	}
+	creates context Query {
+		sets parameter founderCity from fragment "Jordi knows Barcelona" (entity FounderCity)
+	}
+}
+
+
+

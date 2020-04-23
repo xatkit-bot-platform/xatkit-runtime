@@ -6,6 +6,7 @@ import com.xatkit.core.platform.io.WebhookEventProvider;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.http.Header;
 import org.apache.http.NameValuePair;
@@ -14,7 +15,6 @@ import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.ssl.SSLContexts;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -119,9 +119,7 @@ public class XatkitServer {
      * @see #start()
      * @see #stop()
      */
-    public XatkitServer(Configuration configuration) {
-        checkNotNull(configuration, "Cannot start the %s with the provided %s: %s", this.getClass().getSimpleName
-                (), Configuration.class.getSimpleName(), configuration);
+    public XatkitServer(@NonNull Configuration configuration) {
         this.isStarted = false;
         if (configuration.containsKey(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY)
                 && !configuration.containsKey(XatkitServerUtils.SERVER_PUBLIC_URL_KEY)) {
@@ -163,8 +161,8 @@ public class XatkitServer {
                 .setSslContext(sslContext)
                 .setSocketConfig(socketConfig)
                 .setExceptionLogger(e -> {
-                    if(e instanceof SocketTimeoutException || (e instanceof IOException && e.getMessage().equals(
-                        "Connection reset by peer"))) {
+                    if (e instanceof SocketTimeoutException || (e instanceof IOException && e.getMessage().equals(
+                            "Connection reset by peer"))) {
                         /*
                          * SocketTimeoutExceptions are thrown after each query, we can log them as debug to avoid
                          * polluting the application log.
@@ -193,9 +191,7 @@ public class XatkitServer {
      *                              store/key password
      */
     private @Nullable
-    SSLContext createSSLContext(@Nonnull Configuration configuration) {
-        checkNotNull(configuration, "Cannot get the %s from the provided %s %s", SSLContext.class.getSimpleName(),
-                Configuration.class.getSimpleName(), configuration);
+    SSLContext createSSLContext(@NonNull Configuration configuration) {
         String keystorePath = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY);
         if (isNull(keystorePath)) {
             Log.debug("No SSL context to load");
@@ -323,14 +319,10 @@ public class XatkitServer {
      * @throws NullPointerException     if the provided {@code uri} or {@code handler} is {@code null}
      * @throws IllegalArgumentException if the provided {@code uri} does not start with a leading {@code /}
      */
-    public void registerRestEndpoint(HttpMethod httpMethod, String uri, RestHandler handler) {
-        checkNotNull(httpMethod, "Cannot register a REST endpoint for the provided %s %s",
-                HttpMethod.class.getSimpleName(), httpMethod);
-        checkNotNull(uri, "Cannot register a REST endpoint for the provided URI %s", uri);
+    public void registerRestEndpoint(@NonNull HttpMethod httpMethod, @NonNull String uri,
+                                     @NonNull RestHandler handler) {
         checkArgument(uri.startsWith("/"), "Cannot register a REST endpoint for the provided URI %s, the URI must " +
                 "start with a \"/\"", uri);
-        checkNotNull(handler, "Cannot register the provided %s %s (uri=%s)", JsonRestHandler.class.getSimpleName(),
-                handler, uri);
         String normalizedUri = normalizeURI(uri);
         this.restEndpoints.put(EndpointEntry.of(httpMethod, normalizeURI(uri)), handler);
         Log.info("Registered REST handler {0} at URI {1} (method={2})", handler.getClass().getSimpleName(),
@@ -345,9 +337,7 @@ public class XatkitServer {
      * @return {@code true} if there is a REST endpoint associated to the provided {@code uri}, {@code false} otherwise
      * @throws NullPointerException if the provided {@code uri} is {@code null}
      */
-    public boolean isRestEndpoint(HttpMethod httpMethod, String uri) {
-        checkNotNull(uri, "Cannot check if the provided URI (%s) corresponds to a REST endpoint, please provide a " +
-                "non-null URI", uri);
+    public boolean isRestEndpoint(HttpMethod httpMethod, @NonNull String uri) {
         return this.restEndpoints.containsKey(EndpointEntry.of(httpMethod, normalizeURI(uri)));
     }
 
@@ -397,11 +387,9 @@ public class XatkitServer {
      * @throws RestHandlerException if an error occurred when processing the {@link RestHandler}'s logic
      * @see #registerRestEndpoint(HttpMethod, String, RestHandler)
      */
-    public Object notifyRestHandler(HttpMethod httpMethod, String uri, List<Header> headers, List<NameValuePair> params,
-                                    @Nullable Object content, String contentType) throws RestHandlerException {
-        checkNotNull(uri, "Cannot notify the REST endpoint %s, please provide a non-null URI", uri);
-        checkNotNull(headers, "Cannot notify the REST endpoint %s, the headers list is null", uri);
-        checkNotNull(params, "Cannot notify the REST endpoint %s, the parameters list is null", uri);
+    public Object notifyRestHandler(HttpMethod httpMethod, @NonNull String uri, @NonNull List<Header> headers,
+                                    @NonNull List<NameValuePair> params, @Nullable Object content,
+                                    String contentType) throws RestHandlerException {
         RestHandler handler = this.getRegisteredRestHandler(httpMethod, uri);
         if (isNull(handler)) {
             throw new XatkitException(MessageFormat.format("Cannot notify the REST endpoint {0}, there is no handler " +
@@ -432,9 +420,7 @@ public class XatkitServer {
      * @see RestHandler#acceptContentType(String)
      * @see RestHandler#handleContent(List, List, Object)
      */
-    public void registerWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
-        checkNotNull(webhookEventProvider, "Cannot register the provided %s: %s", WebhookEventProvider.class
-                .getSimpleName(), webhookEventProvider);
+    public void registerWebhookEventProvider(@NonNull WebhookEventProvider webhookEventProvider) {
         this.registerRestEndpoint(webhookEventProvider.getEndpointMethod(), webhookEventProvider.getEndpointURI(),
                 webhookEventProvider.getRestHandler());
     }
@@ -448,10 +434,7 @@ public class XatkitServer {
      * @param webhookEventProvider the {@link WebhookEventProvider} to unregister
      * @throws NullPointerException if the provided {@code webhookEventProvider} is {@code null}
      */
-    public void unregisterWebhookEventProvider(WebhookEventProvider webhookEventProvider) {
-        checkNotNull(webhookEventProvider, "Cannot unregister the provided %s: %s", WebhookEventProvider.class
-                .getSimpleName(), webhookEventProvider);
-
+    public void unregisterWebhookEventProvider(@NonNull WebhookEventProvider webhookEventProvider) {
         this.restEndpoints.remove(EndpointEntry.of(webhookEventProvider.getEndpointMethod(),
                 webhookEventProvider.getEndpointURI()));
     }
@@ -464,8 +447,9 @@ public class XatkitServer {
      *
      * @param uri the {@code URI} to normalize
      * @return the normalized URI
+     * @throws NullPointerException if the provided {@code uri} is {@code null}
      */
-    private String normalizeURI(String uri) {
+    private String normalizeURI(@NonNull String uri) {
         if (uri.length() > 1 && uri.endsWith("/")) {
             return uri.substring(0, uri.length() - 1);
         } else {
@@ -489,8 +473,7 @@ public class XatkitServer {
      *                              {@code path} refers to an illegal location
      * @see #createOrReplacePublicFile(XatkitSession, String, String)
      */
-    public File createOrReplacePublicFile(XatkitSession session, String path, File origin) {
-        checkNotNull(origin, "Cannot create a public file from the provided origin file %s", origin);
+    public File createOrReplacePublicFile(XatkitSession session, String path, @NonNull File origin) {
         byte[] fileContent;
         try {
             fileContent = org.apache.commons.io.FileUtils.readFileToByteArray(origin);
@@ -510,15 +493,12 @@ public class XatkitServer {
      * @param path    the the path of the file to create
      * @param content the content of the file to create
      * @return the created {@link File}
-     * @throws NullPointerException if the provided {@code session} or {@code path} is {@code null}
+     * @throws NullPointerException if the provided {@code session}, {@code path}, or {@code content} is {@code null}
      * @throws XatkitException      if an error occurred when computing the provided {@code path}, or if the existing
      *                              file at the given {@code path} cannot be deleted, or if the provided {@code path}
      *                              refers to an illegal location
      */
-    public File createOrReplacePublicFile(XatkitSession session, String path, String content) {
-        checkNotNull(session, "Cannot create a public file from the provided %s %s",
-                XatkitSession.class.getSimpleName(), session);
-        checkNotNull(path, "Cannot create a public file with the provided path %s", path);
+    public File createOrReplacePublicFile(@NonNull XatkitSession session, @NonNull String path, @NonNull String content) {
         return this.createOrReplacePublicFile(session, path, content.getBytes());
     }
 
@@ -578,8 +558,7 @@ public class XatkitServer {
      * @throws XatkitException      if the provided {@code file} corresponds to an illegal location
      */
     public @Nullable
-    String getPublicURL(File file) {
-        checkNotNull(file, "Cannot retrieve the public URL of the provided file %s", file);
+    String getPublicURL(@NonNull File file) {
         Path filePath;
         try {
             filePath = Paths.get(file.getAbsolutePath()).toRealPath(LinkOption.NOFOLLOW_LINKS);
@@ -618,10 +597,7 @@ public class XatkitServer {
      * @see #getPublicFile(String)
      */
     public @Nullable
-    File getPublicFile(XatkitSession session, String filePath) {
-        checkNotNull(session, "Cannot retrieve the public file from the provided %s %s",
-                XatkitSession.class.getSimpleName(), session);
-        checkNotNull(filePath, "Cannot retrieve the provided file %s", filePath);
+    File getPublicFile(@NonNull XatkitSession session, @NonNull String filePath) {
         return getPublicFile(session.getSessionId() + "/" + filePath);
     }
 
@@ -640,8 +616,7 @@ public class XatkitServer {
      * @see #getPublicFile(XatkitSession, String)
      */
     public @Nullable
-    File getPublicFile(String filePath) {
-        checkNotNull(filePath, "Cannot retrieve the public file from the provided path %s", filePath);
+    File getPublicFile(@NonNull String filePath) {
         Path p = Paths.get(contentDirectory.getAbsolutePath(), filePath);
         try {
             p = p.toRealPath(LinkOption.NOFOLLOW_LINKS);
@@ -669,7 +644,7 @@ public class XatkitServer {
      * @return the {@link File}
      * @see #getSessionFile(XatkitSession)
      */
-    private @Nonnull
+    private @NonNull
     File getOrCreateSessionFile(XatkitSession session) {
         File sessionFile = this.getSessionFile(session);
         if (!sessionFile.exists()) {
@@ -688,7 +663,7 @@ public class XatkitServer {
      * @return the retrieved {@link File}
      * @see #getOrCreateSessionFile(XatkitSession)
      */
-    private @Nonnull
+    private @NonNull
     File getSessionFile(XatkitSession session) {
         File sessionFile = new File(this.contentDirectory, session.getSessionId());
         return sessionFile;

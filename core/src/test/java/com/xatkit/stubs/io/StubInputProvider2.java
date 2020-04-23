@@ -1,16 +1,16 @@
 package com.xatkit.stubs.io;
 
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.stubs.StubRuntimePlatform;
+import com.xatkit.stubs.EmptyRuntimePlatform;
 import org.apache.commons.configuration2.Configuration;
 
-public class StubInputProvider extends RuntimeEventProvider<StubRuntimePlatform> {
+public class StubInputProvider2 extends RuntimeEventProvider<EmptyRuntimePlatform> {
 
-    public StubInputProvider(StubRuntimePlatform runtimePlatform) {
+    public StubInputProvider2(EmptyRuntimePlatform runtimePlatform) {
         super(runtimePlatform);
     }
 
-    public StubInputProvider(StubRuntimePlatform runtimePlatform, Configuration configuration) {
+    public StubInputProvider2(EmptyRuntimePlatform runtimePlatform, Configuration configuration) {
         this(runtimePlatform);
     }
 

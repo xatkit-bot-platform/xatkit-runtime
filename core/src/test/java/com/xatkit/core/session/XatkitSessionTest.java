@@ -1,6 +1,8 @@
 package com.xatkit.core.session;
 
 import com.xatkit.AbstractXatkitTest;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.State;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
@@ -12,6 +14,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class XatkitSessionTest extends AbstractXatkitTest {
+
+    private static State TEST_STATE = ExecutionFactory.eINSTANCE.createState();
+
+    static {
+        TEST_STATE.setName("Test_State");
+    }
 
     private XatkitSession session;
 
@@ -117,6 +125,35 @@ public class XatkitSessionTest extends AbstractXatkitTest {
         session.store("key", "value2");
         Object result = session.get("key");
         assertThat(result).as("Valid single-valued result").isEqualTo("value2");
+    }
+
+    @Test
+    public void getStateNewSession() {
+        session = new XatkitSession("sessionID");
+        assertThat(session.getState()).as("Session state is null").isNull();
+    }
+
+    @Test
+    public void setStateNewSession() {
+        session = new XatkitSession("sessionId");
+        session.setState(TEST_STATE);
+        assertThat(session.getState()).as("State has been set").isEqualTo(TEST_STATE);
+    }
+
+    @Test
+    public void setStateErasePreviousState() {
+        session = new XatkitSession("sessionId");
+        session.setState(TEST_STATE);
+        State testState2 = ExecutionFactory.eINSTANCE.createState();
+        testState2.setName("Test_State2");
+        session.setState(testState2);
+        assertThat(session.getState()).as("State correctly erased").isEqualTo(testState2);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void setNullState() {
+        session = new XatkitSession("sessionId");
+        session.setState(null);
     }
 
     private void assertValidXatkitSession(XatkitSession session) {

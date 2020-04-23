@@ -11,9 +11,10 @@ import com.xatkit.intent.EventInstance;
 import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
+import com.xatkit.util.ExecutionModelUtils;
 import com.xatkit.util.Loader;
-import com.xatkit.util.XbaseUtils;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.NonNull;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
@@ -28,7 +29,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 
 /**
@@ -97,11 +97,7 @@ public abstract class RuntimePlatform {
      * @throws NullPointerException if the provided {@code xatkitCore} or {@code configuration} is {@code null}
      * @see #RuntimePlatform(XatkitCore)
      */
-    public RuntimePlatform(XatkitCore xatkitCore, Configuration configuration) {
-        checkNotNull(xatkitCore, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
-                XatkitCore.class.getSimpleName(), xatkitCore);
-        checkNotNull(configuration, "Cannot construct a %s from the provided %s %s", this.getClass().getSimpleName(),
-                Configuration.class.getSimpleName(), configuration);
+    public RuntimePlatform(@NonNull XatkitCore xatkitCore, @NonNull Configuration configuration) {
         this.xatkitCore = xatkitCore;
         this.configuration = configuration;
         this.actionMap = new HashMap<>();
@@ -117,7 +113,7 @@ public abstract class RuntimePlatform {
      * @throws NullPointerException if the provided {@code xatkitCore} is {@code null}
      * @see #RuntimePlatform(XatkitCore, Configuration)
      */
-    public RuntimePlatform(XatkitCore xatkitCore) {
+    public RuntimePlatform(@NonNull XatkitCore xatkitCore) {
         this(xatkitCore, new BaseConfiguration());
     }
 
@@ -148,7 +144,7 @@ public abstract class RuntimePlatform {
      *
      * @return the platform's {@link Configuration}
      */
-    public final Configuration getConfiguration() {
+    public Configuration getConfiguration() {
         return this.configuration;
     }
 
@@ -169,11 +165,7 @@ public abstract class RuntimePlatform {
      * @see RuntimeEventProvider#run()
      * @see XatkitServer#registerWebhookEventProvider(WebhookEventProvider)
      */
-    public final void startEventProvider(EventProviderDefinition eventProviderDefinition) {
-        checkNotNull(eventProviderDefinition, "Cannot start the provided %s %s", EventProviderDefinition.class
-                .getSimpleName(), eventProviderDefinition);
-        checkNotNull(xatkitCore, "Cannot start the provided %s with the given %s %s", eventProviderDefinition
-                .getClass().getSimpleName(), XatkitCore.class.getSimpleName(), xatkitCore);
+    public final void startEventProvider(@NonNull EventProviderDefinition eventProviderDefinition) {
         Log.info("Starting {0}", eventProviderDefinition.getName());
         String eventProviderQualifiedName = this.getClass().getPackage().getName() + ".io." + eventProviderDefinition
                 .getName();
@@ -268,15 +260,9 @@ public abstract class RuntimePlatform {
      * @throws XatkitException      if the provided {@code actionCall} does not match any {@link RuntimeAction},
      *                              or if an error occurred when building the {@link RuntimeAction}
      */
-    public RuntimeAction createRuntimeAction(XMemberFeatureCall actionCall, List<Object> arguments,
-                                             XatkitSession session) {
-        checkNotNull(actionCall, "Cannot construct a %s from the provided %s %s", RuntimeAction.class
-                .getSimpleName(), XMemberFeatureCall.class.getSimpleName(), actionCall);
-        checkNotNull(arguments, "Cannot construct a %s from the provided argument list %s",
-                RuntimeAction.class.getSimpleName(), arguments);
-        checkNotNull(session, "Cannot construct a %s from the provided %s %s", RuntimeAction.class.getSimpleName(),
-                XatkitSession.class.getSimpleName(), session);
-        String actionName = XbaseUtils.getActionName(actionCall);
+    public RuntimeAction createRuntimeAction(@NonNull XMemberFeatureCall actionCall, @NonNull List<Object> arguments,
+                                             @NonNull XatkitSession session) {
+        String actionName = ExecutionModelUtils.getActionName(actionCall);
 
         Class<? extends RuntimeAction> runtimeActionClass = actionMap.get(actionName);
         if (isNull(runtimeActionClass)) {

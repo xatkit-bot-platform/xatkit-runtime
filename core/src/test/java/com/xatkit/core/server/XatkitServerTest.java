@@ -4,10 +4,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitException;
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.platform.io.WebhookEventProvider;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.stubs.EmptyRuntimePlatform;
-import com.xatkit.stubs.StubXatkitCore;
-import com.xatkit.stubs.io.StubJsonWebhookEventProvider;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -26,6 +25,8 @@ import java.util.Collections;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class XatkitServerTest extends AbstractXatkitTest {
 
@@ -51,8 +52,6 @@ public class XatkitServerTest extends AbstractXatkitTest {
      */
     private XatkitServer server2;
 
-    private StubXatkitCore stubXatkitCore;
-
     @BeforeClass
     public static void setUpBeforeClass() {
         VALID_REST_HANDLER = RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
@@ -62,21 +61,31 @@ public class XatkitServerTest extends AbstractXatkitTest {
         });
     }
 
+    private WebhookEventProvider<RuntimePlatform, JsonRestHandler> eventProvider;
+
+    private boolean eventReceived = false;
+
     @Before
     public void setUp() throws IOException {
         File publicFile = new File(XatkitServerUtils.PUBLIC_DIRECTORY_NAME);
         if (publicFile.exists()) {
             FileUtils.forceDelete(publicFile);
         }
+        eventProvider = mock(WebhookEventProvider.class);
+        when(eventProvider.getEndpointURI()).thenReturn("/stubJsonProvider");
+        when(eventProvider.getEndpointMethod()).thenReturn(HttpMethod.POST);
+        JsonRestHandler providerHandler = RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
+            eventReceived = true;
+            return null;
+        }));
+        when(eventProvider.getRestHandler()).thenReturn(providerHandler);
     }
 
     @After
     public void tearDown() throws IOException {
+        eventReceived = false;
         if (nonNull(server) && server.isStarted()) {
             server.stop();
-        }
-        if (nonNull(stubXatkitCore)) {
-            stubXatkitCore.shutdown();
         }
         if (nonNull(server2) && server2.isStarted()) {
             server2.stop();
@@ -181,11 +190,10 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void registerValidWebhookEventProvider() {
         this.server = getValidXatkitServer();
-        StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
-        this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
+        this.server.registerWebhookEventProvider(eventProvider);
         Assertions.assertThat(server.getRegisteredRestHandlers()).as("RestHandler collection size is 1").hasSize(1);
         Assertions.assertThat(server.getRegisteredRestHandlers().iterator().next()).as("Valid " +
-                "RestHandler").isEqualTo(stubJsonWebhookEventProvider.getRestHandler());
+                "RestHandler").isEqualTo(eventProvider.getRestHandler());
     }
 
     @Test(expected = NullPointerException.class)
@@ -197,34 +205,29 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void unregisterValidWebhookEventProvider() {
         this.server = getValidXatkitServer();
-        StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
-        this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
-        this.server.unregisterWebhookEventProvider(stubJsonWebhookEventProvider);
+        this.server.registerWebhookEventProvider(eventProvider);
+        this.server.unregisterWebhookEventProvider(eventProvider);
         Assertions.assertThat(server.getRegisteredRestHandlers()).as("RestHandler collection is empty").isEmpty();
     }
 
     @Test
     public void notifyAcceptedContentType() throws RestHandlerException {
         this.server = getValidXatkitServer();
-        StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
-        this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
-        this.server.notifyRestHandler(HttpMethod.POST, stubJsonWebhookEventProvider.getEndpointURI(),
+        this.server.registerWebhookEventProvider(eventProvider);
+        this.server.notifyRestHandler(HttpMethod.POST, eventProvider.getEndpointURI(),
                 Collections.emptyList(),
                 Collections.emptyList(), "{field: value}", ContentType.APPLICATION_JSON.getMimeType());
-        assertThat(stubJsonWebhookEventProvider.hasReceivedEvent()).as("WebhookEventProvider has received an event")
-                .isTrue();
+        assertThat(eventReceived).isTrue();
     }
 
     @Test
     public void notifyNotAcceptedContentType() throws RestHandlerException {
         this.server = getValidXatkitServer();
-        StubJsonWebhookEventProvider stubJsonWebhookEventProvider = getStubWebhookEventProvider();
-        this.server.registerWebhookEventProvider(stubJsonWebhookEventProvider);
-        this.server.notifyRestHandler(HttpMethod.POST, stubJsonWebhookEventProvider.getEndpointURI(),
+        this.server.registerWebhookEventProvider(eventProvider);
+        this.server.notifyRestHandler(HttpMethod.POST, eventProvider.getEndpointURI(),
                 Collections.emptyList(),
                 Collections.emptyList(), "test", "not valid");
-        assertThat(stubJsonWebhookEventProvider.hasReceivedEvent()).as("WebhookEventProvider hasn't received an " +
-                "event").isFalse();
+        assertThat(eventReceived).isFalse();
     }
 
     @Test(expected = NullPointerException.class)
@@ -524,9 +527,6 @@ public class XatkitServerTest extends AbstractXatkitTest {
 
     /**
      * Returns a valid {@link XatkitServer} instance listening to port {@code 1234}.
-     * <p>
-     * This method avoid port conflicts when starting the {@link StubXatkitCore}, and should be used in tests that do
-     * not require specific {@link XatkitServer} ports.
      *
      * @return a valid {@link XatkitServer} instance listening to port {@code 1234}
      */
@@ -535,21 +535,6 @@ public class XatkitServerTest extends AbstractXatkitTest {
         configuration.setProperty(XatkitServerUtils.SERVER_PORT_KEY, 1234);
         this.server = new XatkitServer(configuration);
         return this.server;
-    }
-
-    /**
-     * Returns a valid {@link StubJsonWebhookEventProvider}.
-     * <p>
-     * This method starts a {@link StubXatkitCore} instance to create the {@link StubJsonWebhookEventProvider}, since
-     * the {@link StubXatkitCore} instance listens to port {@code 5000} it is recommended to get a valid
-     * {@link XatkitServer} instance with {@link #getValidXatkitServer()} to avoid port conflicts.
-     *
-     * @return a valid {@link StubJsonWebhookEventProvider}
-     */
-    private StubJsonWebhookEventProvider getStubWebhookEventProvider() {
-        stubXatkitCore = new StubXatkitCore();
-        EmptyRuntimePlatform emptyRuntimePlatform = new EmptyRuntimePlatform(stubXatkitCore);
-        return new StubJsonWebhookEventProvider(emptyRuntimePlatform);
     }
 
     private void assertXatkitServerState(XatkitServer server) {

@@ -1,7 +1,0 @@
-Platform ExamplePlatform
-
-path "com.xatkit.example.ExamplePlatform"
-
-actions {
-	ExampleAction
-}

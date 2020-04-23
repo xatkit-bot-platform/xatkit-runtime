@@ -1,8 +1,5 @@
 package com.xatkit.core;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.xatkit.common.CommonPackage;
 import com.xatkit.core.platform.Formatter;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
@@ -13,57 +10,29 @@ import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ExecutionModel;
-import com.xatkit.execution.ExecutionPackage;
-import com.xatkit.execution.ExecutionRule;
+import com.xatkit.execution.State;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentDefinition;
-import com.xatkit.intent.IntentPackage;
-import com.xatkit.intent.Library;
 import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.language.common.CommonStandaloneSetup;
-import com.xatkit.language.execution.ExecutionRuntimeModule;
-import com.xatkit.language.execution.ExecutionStandaloneSetup;
-import com.xatkit.language.intent.IntentStandaloneSetup;
-import com.xatkit.language.platform.PlatformStandaloneSetup;
-import com.xatkit.metamodels.utils.LibraryLoaderUtils;
-import com.xatkit.metamodels.utils.PlatformLoaderUtils;
 import com.xatkit.platform.ActionDefinition;
 import com.xatkit.platform.EventProviderDefinition;
 import com.xatkit.platform.PlatformDefinition;
-import com.xatkit.platform.PlatformPackage;
-import com.xatkit.util.EMFUtils;
-import com.xatkit.util.FileUtils;
+import com.xatkit.util.ExecutionModelUtils;
 import com.xatkit.util.Loader;
-import com.xatkit.util.XbaseUtils;
-import com.xatkit.utils.XatkitImportHelper;
+import com.xatkit.util.ModelLoader;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
-import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.xtext.resource.XtextResourceSet;
 import org.eclipse.xtext.xbase.XMemberFeatureCall;
-import org.eclipse.xtext.xbase.XbasePackage;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -86,42 +55,9 @@ import static java.util.Objects.nonNull;
 public class XatkitCore {
 
     /**
-     * The {@link Configuration} key to store the {@link ExecutionModel} to use.
-     *
-     * @see #XatkitCore(Configuration)
-     */
-    public static String EXECUTION_MODEL_KEY = "xatkit.execution.model";
-
-    /**
      * The {@link Configuration} key to store the configuration folder path.
      */
     public static String CONFIGURATION_FOLDER_PATH_KEY = "xatkit.core.configuration.path";
-
-    /**
-     * The {@link Configuration} key prefix to store the custom platform paths.
-     * <p>
-     * This prefix is used to specify the paths of the custom platforms that are needed by the provided
-     * {@link ExecutionModel}. Note that custom platform path properties are only required if the
-     * {@link ExecutionModel} defines an {@code alias} for the imported platform models. {@link ExecutionModel}s
-     * relying on absolute paths are directly loaded from the file system, but are not portable.
-     * <p>
-     * Custom platform properties must be set following this pattern: {@code CUSTOM_PLATFORMS_KEY_PREFIX + <platform
-     * alias> = <platform path>}.
-     */
-    public static String CUSTOM_PLATFORMS_KEY_PREFIX = "xatkit.platforms.custom.";
-
-    /**
-     * The {@link Configuration} key prefix to store the custom library paths.
-     * <p>
-     * This prefix is used to specify the paths of the custom libraries that are needed by the provided
-     * {@link ExecutionModel}. Note that custom library path properties are only required if the
-     * {@link ExecutionModel} defines an {@code alias} for the imported library models. {@link ExecutionModel}s
-     * relying on absolute paths are directly loaded from the file system, but are not portable.
-     * <p>
-     * Custom library properties must be set following this pattern: {@code CUSTOM_LIBRARIES_KEY_PREFIX + <library
-     * alias> = <library path>}.
-     */
-    public static String CUSTOM_LIBRARIES_KEY_PREFIX = "xatkit.libraries.custom.";
 
     /**
      * The {@link Configuration} key prefix to store the abstract platform bindings.
@@ -147,6 +83,7 @@ public class XatkitCore {
     /**
      * The {@link IntentRecognitionProvider} used to compute {@link RecognizedIntent}s from input text.
      */
+    @Getter
     private IntentRecognitionProvider intentRecognitionProvider;
 
     /**
@@ -155,6 +92,7 @@ public class XatkitCore {
      *
      * @see #getRuntimePlatformRegistry()
      */
+    @Getter
     private RuntimePlatformRegistry runtimePlatformRegistry;
 
     /**
@@ -165,19 +103,8 @@ public class XatkitCore {
      *
      * @see #getEventDefinitionRegistry() ()
      */
+    @Getter
     private EventDefinitionRegistry eventDefinitionRegistry;
-
-    /**
-     * The {@link ResourceSet} used to load the {@link ExecutionModel} and the referenced models.
-     * <p>
-     * The {@code executionResourceSet} is initialized with the {@link #initializeExecutionResourceSet()}
-     * method, that loads the core platforms models from the classpath, and dynamically retrieves the custom
-     * platforms and library models.
-     *
-     * @see #CUSTOM_PLATFORMS_KEY_PREFIX
-     * @see #CUSTOM_LIBRARIES_KEY_PREFIX
-     */
-    protected ResourceSet executionResourceSet;
 
     /**
      * The {@link ExecutionService} used to handle {@link EventInstance}s and execute the associated
@@ -186,7 +113,8 @@ public class XatkitCore {
      * @see ExecutionService#handleEventInstance(EventInstance, XatkitSession)
      * @see RuntimeAction
      */
-    protected ExecutionService executionService;
+    @Getter
+    private ExecutionService executionService;
 
     /**
      * The {@link Map} used to store and retrieve {@link XatkitSession}s associated to users.
@@ -198,17 +126,13 @@ public class XatkitCore {
     /**
      * The {@link XatkitServer} instance used to capture incoming webhooks.
      */
+    @Getter
     private XatkitServer xatkitServer;
 
     /**
      * The {@link Formatter}s used to format execution-level {@link Object}s into {@link String}.
      */
     private Map<String, Formatter> formatters;
-
-    /**
-     * The {@link Guice} injector used to initialize execution-related {@link Resource}s.
-     */
-    private Injector executionInjector;
 
     /**
      * Constructs a new {@link XatkitCore} instance from the provided {@code configuration}.
@@ -224,17 +148,18 @@ public class XatkitCore {
      * @throws NullPointerException if the provided {@code configuration} or one of the mandatory values is {@code null}
      * @throws XatkitException      if the framework is not able to retrieve the {@link ExecutionModel}
      * @see ExecutionModel
+     * @see ModelLoader
      */
-    public XatkitCore(Configuration configuration) {
-        checkNotNull(configuration, "Cannot construct a %s instance from a null configuration",
-                this.getClass().getSimpleName());
+    public XatkitCore(@NonNull Configuration configuration) {
         try {
             this.configuration = configuration;
             this.runtimePlatformRegistry = new RuntimePlatformRegistry();
-            initializeExecutionResourceSet();
-            ExecutionModel executionModel = getExecutionModel(configuration);
+            this.eventDefinitionRegistry = new EventDefinitionRegistry();
+            ModelLoader modelLoader = new ModelLoader(this.runtimePlatformRegistry);
+            ExecutionModel executionModel = modelLoader.loadExecutionModel(configuration);
             checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
                     .getSimpleName(), ExecutionModel.class.getSimpleName());
+
             this.formatters = new HashMap<>();
             this.registerFormatter("Default", new Formatter());
             /*
@@ -246,8 +171,7 @@ public class XatkitCore {
                     configuration);
             this.sessions = new HashMap<>();
             this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry, configuration);
-            this.executionInjector.injectMembers(executionService);
-            this.eventDefinitionRegistry = new EventDefinitionRegistry();
+            modelLoader.getExecutionInjector().injectMembers(executionService);
             this.loadExecutionModel(executionModel);
             xatkitServer.start();
             Log.info("Xatkit bot started");
@@ -294,7 +218,7 @@ public class XatkitCore {
      * This method starts the {@link RuntimeEventProvider}s, builds the {@link RuntimePlatform}s, and enables their
      * {@link RuntimeAction}s from the definitions specified in the provided {@code executionModel}.
      * <p>
-     * This method also registers the {@link IntentDefinition}s used in the provided {@code executionModel} in the
+     * This method also registers the {@link EventDefinition}s used in the provided {@code executionModel} in the
      * {@link IntentRecognitionProvider}.
      * <p>
      * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@link ExecutionModel} have to be
@@ -302,16 +226,20 @@ public class XatkitCore {
      *
      * @param executionModel the {@link ExecutionModel} to load the runtime instances from
      * @see #startEventProviders(ExecutionModel)
-     * @see #registerExecutionRuleEvent(ExecutionRule)
-     * @see #enableExecutionRuleActions(ExecutionRule)
+     * @see #registerEventDefinition(EventDefinition)
+     * @see #enableStateActions(State)
      */
     private void loadExecutionModel(ExecutionModel executionModel) {
         boolean intentRegistered = false;
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");
-        for (ExecutionRule rule : executionModel.getExecutionRules()) {
-            intentRegistered |= this.registerExecutionRuleEvent(rule);
-            this.enableExecutionRuleActions(rule);
+
+        Iterable<EventDefinition> accessedEvents = ExecutionModelUtils.getAllAccessedEvents(executionModel);
+        for (EventDefinition e : accessedEvents) {
+            intentRegistered |= this.registerEventDefinition(e);
+        }
+        for (State s : executionModel.getStates()) {
+            this.enableStateActions(s);
         }
         if (intentRegistered) {
             /*
@@ -351,23 +279,20 @@ public class XatkitCore {
     }
 
     /**
-     * Registers the {@link EventDefinition} of the provided {@code rule} to the {@link IntentRecognitionProvider}.
+     * Registers the provided {@link EventDefinition}.
      * <p>
-     * If the provided {@code rule} contains an {@link IntentDefinition} this method also attempts to register its
-     * contexts if they are required in its training sentences.
+     * The provided {@code eventDefinition} is added to the {@link EventDefinitionRegistry}. If the {@code
+     * eventDefinition} is an {@link IntentDefinition} this method also takes care of registering it to the
+     * {@link IntentRecognitionProvider}.
      *
-     * @param rule the {@link ExecutionRule} to register the {@link EventDefinition} from
-     * @return {@code true} if the {@link EventDefinition} was registered in the {@link IntentRecognitionProvider},
-     * {@code false} otherwise
-     * @see IntentRecognitionProvider#registerEntityDefinition(EntityDefinition)
+     * @param eventDefinition the {@link EventDefinition} to register
+     * @return {@code true} if the event has been registered to the {@link IntentRecognitionProvider}, {@code false}
+     * otherwise
+     * @see EventDefinitionRegistry
      * @see IntentRecognitionProvider#registerIntentDefinition(IntentDefinition)
+     * @see IntentRecognitionProvider#registerEntityDefinition(EntityDefinition)
      */
-    private boolean registerExecutionRuleEvent(ExecutionRule rule) {
-        /*
-         * We don't need to check whether the EventDefinition is a proxy, EventDefinitions are contained in
-         * EventProviderDefinitions, that have been checked before.
-         */
-        EventDefinition eventDefinition = rule.getEvent();
+    private boolean registerEventDefinition(EventDefinition eventDefinition) {
         this.eventDefinitionRegistry.registerEventDefinition(eventDefinition);
         Log.debug("Registering event {0}", eventDefinition.getName());
         if (eventDefinition instanceof IntentDefinition) {
@@ -401,17 +326,18 @@ public class XatkitCore {
      * This method instantiates the {@link RuntimePlatform}s containing the {@link RuntimeAction}s if necessary (i.e.
      * if they have not been initialized before).
      *
-     * @param rule
+     * @param state
      */
-    private void enableExecutionRuleActions(ExecutionRule rule) {
+    private void enableStateActions(State state) {
         /*
          * Load the action platforms
          */
-        rule.eAllContents().forEachRemaining(e -> {
+        state.eAllContents().forEachRemaining(e -> {
                     if (e instanceof XMemberFeatureCall) {
                         XMemberFeatureCall featureCall = (XMemberFeatureCall) e;
-                        if (XbaseUtils.isPlatformActionCall(featureCall, this.runtimePlatformRegistry)) {
-                            String platformName = XbaseUtils.getPlatformName(featureCall);
+                        if (ExecutionModelUtils.isPlatformActionCall(featureCall,
+                                this.runtimePlatformRegistry)) {
+                            String platformName = ExecutionModelUtils.getPlatformName(featureCall);
 
                             PlatformDefinition platformDefinition =
                                     this.runtimePlatformRegistry.getPlatformDefinition(platformName);
@@ -433,8 +359,8 @@ public class XatkitCore {
                              * Enable inherited actions, they are not defined in the platform file.
                              */
                             PlatformDefinition parent = platformDefinition.getExtends();
-                            if(nonNull(parent)) {
-                                for(ActionDefinition actionDefinition : parent.getActions()) {
+                            if (nonNull(parent)) {
+                                for (ActionDefinition actionDefinition : parent.getActions()) {
                                     runtimePlatform.enableAction(actionDefinition);
                                 }
                             }
@@ -443,358 +369,6 @@ public class XatkitCore {
                     }
                 }
         );
-    }
-
-    /**
-     * Retrieves the {@link ExecutionModel} from the provided {@code property}.
-     * <p>
-     * This method checks if the provided {@code property} is already an in-memory {@link ExecutionModel}
-     * instance, or if it is defined by a {@link String} or an {@link URI} representing the path of the model. In
-     * that case, the method attempts to load the model at the provided location and returns it.
-     * <p>
-     * This method supports loading of model path defined by {@link String}s and {@link URI}s. Support for additional
-     * types is planned in the next releases.
-     *
-     * @param configuration the {@link Configuration} to retrieve the {@link ExecutionModel} from
-     * @return the {@link ExecutionModel} from the provided {@code property}
-     * @throws XatkitException      if the provided {@code property} type is not handled, if the
-     *                              underlying {@link Resource} cannot be loaded or if it does not contain an
-     *                              {@link ExecutionModel} top-level element, or if the loaded
-     *                              {@link ExecutionModel} is empty.
-     * @throws NullPointerException if the provided {@code property} is {@code null}
-     */
-    protected ExecutionModel getExecutionModel(Configuration configuration) {
-        Object property = configuration.getProperty(EXECUTION_MODEL_KEY);
-        checkNotNull(property, "Cannot retrieve the %s from the property %s, please ensure it is " +
-                        "set in the %s property of the Xatkit configuration", ExecutionModel.class.getSimpleName(),
-                property, EXECUTION_MODEL_KEY);
-        if (property instanceof ExecutionModel) {
-            return (ExecutionModel) property;
-        } else {
-            URI uri;
-            if (property instanceof String) {
-                File executionModelFile = FileUtils.getFile((String) property, configuration);
-                uri = URI.createFileURI(executionModelFile.getAbsolutePath());
-            } else if (property instanceof URI) {
-                uri = (URI) property;
-            } else {
-                /*
-                 * Unknown property type
-                 */
-                throw new XatkitException(MessageFormat.format("Cannot retrieve the {0} from the " +
-                        "provided property {1}, the property type ({2}) is not supported", ExecutionModel.class
-                        .getSimpleName(), property, property.getClass().getSimpleName()));
-            }
-            Resource executionModelResource;
-            try {
-                executionModelResource = executionResourceSet.getResource(uri, true);
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new XatkitException(MessageFormat.format("Cannot load the {0} at the given location: {1}",
-                        ExecutionModel.class.getSimpleName(), uri.toString()), e);
-            }
-            executionInjector.injectMembers(executionModelResource);
-            EcoreUtil.resolveAll(executionModelResource);
-            if (isNull(executionModelResource)) {
-                throw new XatkitException(MessageFormat.format("Cannot load the provided {0} (uri: {1})",
-                        ExecutionModel.class.getSimpleName(), uri));
-            }
-            if (executionModelResource.getContents().isEmpty()) {
-                throw new XatkitException(MessageFormat.format("The provided {0} is empty (uri: {1})", ExecutionModel
-                        .class.getSimpleName(), executionModelResource.getURI()));
-            }
-            ExecutionModel executionModel;
-            try {
-                executionModel = (ExecutionModel) executionModelResource.getContents().get(0);
-            } catch (ClassCastException e) {
-                throw new XatkitException(MessageFormat.format("The provided {0} does not contain an " +
-                                "{0} top-level element (uri: {1})", ExecutionModel.class.getSimpleName(),
-                        executionModelResource.getURI()), e);
-            }
-            return executionModel;
-        }
-    }
-
-    /**
-     * Creates and initializes the {@link ResourceSet} used to load the provided {@link ExecutionModel}.
-     * <p>
-     * This method registers the Xatkit language's {@link EPackage}s, loads the core <i>library</i> and
-     * <i>platform</i> {@link Resource}s, and loads the custom <i>library</i> and <i>platforms</i> specified in the
-     * {@link Configuration}.
-     * <p>
-     * <i>Core platforms</i> loading is done by searching in the classpath the {@code core_platforms/platforms/} folder,
-     * and loads each {@code xmi} file it contains as a platform {@link Resource}. Note that this method loads
-     * <b>all</b> the <i>core platforms</i> {@link Resource}s, even if they are not used in the application's
-     * {@link ExecutionModel}.
-     * <p>
-     * <b>Note:</b> this method loads the {@code platforms/} folder from the {@code core_platforms} jar file if the
-     * application is executed in a standalone mode. In a development environment (i.e. with all the project
-     * sources imported) this method will retrieve the {@code platforms/} folder from the local installation, if it
-     * exist.
-     * <p>
-     * <i>Custom platforms</i> loading is done by searching in the provided {@link Configuration} file the entries
-     * starting with {@link #CUSTOM_PLATFORMS_KEY_PREFIX}. These entries are handled as absolute paths to the
-     * <i>custom platform</i> {@link Resource}s, and are configured to be the target of the corresponding custom
-     * platform proxies in the provided {@link ExecutionModel}.
-     * <p>
-     * <i>Custom libraries</i> loading is done by searching in the provided {@link Configuration} file the entries
-     * starting with {@link #CUSTOM_LIBRARIES_KEY_PREFIX}. These entries are handled as absolute paths to the
-     * <i>custom library</i> {@link Resource}s, and are configured to be the target of the corresponding custom
-     * library proxies in the provided {@link ExecutionModel}.
-     * <p>
-     * This method ensures that the loaded {@link Resource}s corresponds to the {@code pathmaps} specified in the
-     * provided {@code xmi} file. See
-     * {@link LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP}, {@link PlatformLoaderUtils#CORE_PLATFORM_PATHMAP} and
-     * {@link PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP} for further information.
-     *
-     * @throws XatkitException if an error occurred when loading the {@link Resource}s
-     * @see #loadCoreLibraries()
-     * @see #loadCustomLibraries()
-     * @see #loadCorePlatforms()
-     * @see #loadCustomPlatforms()
-     * @see PlatformLoaderUtils#CORE_PLATFORM_PATHMAP
-     * @see PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP
-     * @see LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP
-     */
-    private void initializeExecutionResourceSet() {
-        EPackage.Registry.INSTANCE.put(XbasePackage.eINSTANCE.getNsURI(), XbasePackage.eINSTANCE);
-        EPackage.Registry.INSTANCE.put(CommonPackage.eINSTANCE.getNsURI(), CommonPackage.eINSTANCE);
-        EPackage.Registry.INSTANCE.put(IntentPackage.eNS_URI, IntentPackage.eINSTANCE);
-        EPackage.Registry.INSTANCE.put(PlatformPackage.eNS_URI, PlatformPackage.eINSTANCE);
-        EPackage.Registry.INSTANCE.put(ExecutionPackage.eNS_URI, ExecutionPackage.eINSTANCE);
-
-        CommonStandaloneSetup.doSetup();
-        IntentStandaloneSetup.doSetup();
-        PlatformStandaloneSetup.doSetup();
-        ExecutionStandaloneSetup.doSetup();
-        executionInjector = Guice.createInjector(new ExecutionRuntimeModule());
-        executionResourceSet = executionInjector.getInstance(XtextResourceSet.class);
-        /*
-         * Share the ResourceSet with the ImportRegistry. This way platforms loaded from both sides can be accessed
-         * by the Xatkit runtime component.
-         */
-        loadCoreLibraries();
-        loadCustomLibraries();
-        loadCorePlatforms();
-        loadCustomPlatforms();
-    }
-
-    /**
-     * Loads the core <i>libraries</i> in this class' {@link ResourceSet}.
-     * <p>
-     * <i>Core libraries</i> are loaded from {@code <xatkit>/plugins/libraries}, where {@code <xatkit>} is the Xatkit
-     * installation directory. This method crawls the sub-directories and loads all the {@code .xmi} files as libraries.
-     *
-     * @see #loadCoreResources(String, String, String, Class)
-     */
-    private void loadCoreLibraries() {
-        Log.info("Loading Xatkit core libraries");
-        loadCoreResources("plugins" + File.separator + "libraries", LibraryLoaderUtils.CORE_LIBRARY_PATHMAP, ".intent"
-                , Library.class);
-    }
-
-    /**
-     * Loads the core <i>platforms</i>.
-     * <p>
-     * <i>Core platforms</i> are loaded from {@code <xatkit>/plugins/platforms}, where {@code <xatkit>} is the Xatkit
-     * installation directory. This method crawls the sub-directories and loads all the {@code .xmi} files as platforms.
-     *
-     * @see #loadCoreResources(String, String, String, Class)
-     */
-    private void loadCorePlatforms() {
-        Log.info("Loading Xatkit core platforms");
-        Collection<PlatformDefinition> loadedPlatforms = loadCoreResources("plugins" + File.separator + "platforms",
-                PlatformLoaderUtils.CORE_PLATFORM_PATHMAP, ".platform", PlatformDefinition.class);
-        for (PlatformDefinition platformDefinition : loadedPlatforms) {
-            this.runtimePlatformRegistry.registerLoadedPlatformDefinition(platformDefinition);
-        }
-    }
-
-    /**
-     * Loads the core {@link Resource}s in the provided {@code directoryPath}, using the specified {@code
-     * pathmapPrefix}.
-     * <p>
-     * This method crawls the content of the provided {@code directoryPath} (including sub-folders), and tries to
-     * load each file as an EMF {@link Resource} using the specified {@code pathmapPrefix}. This method also verifies
-     * that the root element of the loaded {@link Resource} is an instance of the provided {@code rootElementEClass}
-     * in order to prevent invalid resource loading.
-     * <p>
-     * <b>Note</b>: {@code directoryPath} is relative to the Xatkit installation directory, for example loading
-     * resources located in {@code xatkit/foo/bar} is done by using the {@code foo/bar} {@code directoryPath}.
-     *
-     * @param directoryPath    the path of the directory containing the resources to load (<b>relative</b> to the
-     *                         Xatkit
-     *                         installation directory)
-     * @param pathmapPrefix    the pathmap used to prefix core {@link Resource}'s {@link URI}
-     * @param rootElementClass the expected type of  the root element of the loaded {@link Resource}
-     * @throws XatkitException if an error occurred when crawling the directory's content or when loading a core
-     *                         {@link Resource}
-     */
-    private <T> Collection<T> loadCoreResources(String directoryPath, String pathmapPrefix, String fileExtension,
-                                                Class<T> rootElementClass) {
-        File xatkitDirectory;
-        try {
-            xatkitDirectory = FileUtils.getXatkitDirectory();
-        } catch (FileNotFoundException e) {
-            Log.warn("Xatkit environment variable not set, no core {0} to import. If this is not expected check" +
-                    " this tutorial article to see how to install Xatkit: https://github" +
-                    ".com/xatkit-bot-platform/xatkit-releases/wiki/Installation", rootElementClass.getSimpleName());
-            return Collections.emptyList();
-        }
-        List<T> result = new ArrayList<>();
-        try {
-            Files.walk(Paths.get(xatkitDirectory.getAbsolutePath() + File.separator + directoryPath), Integer.MAX_VALUE)
-                    .filter(filePath ->
-                            !Files.isDirectory(filePath) && filePath.toString().endsWith(fileExtension)
-                    ).forEach(resourcePath -> {
-                try {
-                    InputStream is = Files.newInputStream(resourcePath);
-                    URI resourceURI = URI.createURI(resourcePath.getFileName().toString());
-                    URI resourcePathmapURI = URI.createURI(pathmapPrefix + resourcePath.getFileName());
-                    executionResourceSet.getURIConverter().getURIMap().put(resourcePathmapURI, resourceURI);
-                    Resource resource = executionResourceSet.createResource(resourcePathmapURI);
-                    resource.load(is, Collections.emptyMap());
-                    is.close();
-                    /*
-                     * Check that the top level element in the resource is an instance of the provided
-                     * rootElementClass.
-                     */
-                    EObject rootElement = resource.getContents().get(0);
-                    if (rootElementClass.isInstance(rootElement)) {
-                        Log.info("\t{0} loaded", EMFUtils.getName(rootElement));
-                        Log.debug("\tPath: {0}", resourcePath);
-                        result.add((T) rootElement);
-                    } else {
-                        throw new XatkitException(MessageFormat.format("Cannot load the resource at {0}, expected" +
-                                        " a {1} root element but found {2}", resourcePath,
-                                rootElementClass.getSimpleName(), rootElement.eClass().getName()));
-                    }
-                } catch (IOException e) {
-                    throw new XatkitException(MessageFormat.format("An error occurred when loading the {0}, see " +
-                            "attached exception", resourcePath), e);
-                }
-            });
-            return result;
-        } catch (IOException e) {
-            throw new XatkitException(MessageFormat.format("An error occurred when crawling the core {0} at the " +
-                            "location {1}, see attached exception", rootElementClass.getSimpleName(),
-                    xatkitDirectory.getAbsolutePath()), e);
-        }
-    }
-
-    /**
-     * Loads the custom <i>libraries</i> specified in the Xatkit {@link Configuration}.
-     * <p>
-     * <i>Custom libraries</i> loading is done by searching in the provided {@link Configuration} file the entries
-     * starting with {@link #CUSTOM_LIBRARIES_KEY_PREFIX}. These entries are handled as absolute paths to the
-     * <i>custom library</i> {@link Resource}s, and are loaded using the
-     * {@link LibraryLoaderUtils#CUSTOM_LIBRARY_PATHMAP} pathmap prefix, enabling proxy resolution from the provided
-     * {@link ExecutionModel}.
-     *
-     * @see #loadCustomResource(String, URI, Class)
-     */
-    private void loadCustomLibraries() {
-        Log.info("Loading Xatkit custom libraries");
-        configuration.getKeys().forEachRemaining(key -> {
-            /*
-             * Also accept upper case with '.' replaced by '_', this is the case when running Xatkit from environment
-             * variables.
-             */
-            if (key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX)
-                    || key.startsWith(CUSTOM_LIBRARIES_KEY_PREFIX.toUpperCase().replaceAll("\\.", "_"))) {
-                String libraryPath = configuration.getString(key);
-                /*
-                 * This works with XatkitEnvironmentConfiguration because the key length is preserved.
-                 * TODO find a better fix
-                 */
-                String libraryName = key.substring(CUSTOM_LIBRARIES_KEY_PREFIX.length());
-                URI pathmapURI = URI.createURI(LibraryLoaderUtils.CUSTOM_LIBRARY_PATHMAP + libraryName + ".intent");
-                Library library = loadCustomResource(libraryPath, pathmapURI, Library.class);
-                XatkitImportHelper.getInstance().ignoreAlias(executionResourceSet, libraryName);
-            }
-        });
-    }
-
-    /**
-     * Loads the custom <i>platforms</i> specified in the Xatkit {@link Configuration}.
-     * <p>
-     * <i>Custom platforms</i> loading is done by searching in the provided {@link Configuration} file the entries
-     * starting with {@link #CUSTOM_PLATFORMS_KEY_PREFIX}. These entries are handled as absolute paths to the
-     * <i>custom platform</i> {@link Resource}s, and are loaded using the
-     * {@link PlatformLoaderUtils#CUSTOM_PLATFORM_PATHMAP} pathmap prefix, enabling proxy resolution from the
-     * provided {@link ExecutionModel}.
-     */
-    private void loadCustomPlatforms() {
-        Log.info("Loading Xatkit custom platforms");
-        configuration.getKeys().forEachRemaining(key -> {
-            /*
-             * Also accept upper case with '.' replaced by '_', this is the case when running Xatkit from environment
-             * variables.
-             */
-            if (key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX)
-                    || key.startsWith(CUSTOM_PLATFORMS_KEY_PREFIX.toUpperCase().replaceAll("\\.", "_"))) {
-                String platformPath = configuration.getString(key);
-                /*
-                 * This works with XatkitEnvironmentConfiguration because the key length is preserved.
-                 * TODO find a better fix
-                 */
-                String platformName = key.substring(CUSTOM_PLATFORMS_KEY_PREFIX.length());
-                URI pathmapURI = URI.createURI(PlatformLoaderUtils.CUSTOM_PLATFORM_PATHMAP + platformName +
-                        ".platform");
-                PlatformDefinition platformDefinition = loadCustomResource(platformPath, pathmapURI,
-                        PlatformDefinition.class);
-                XatkitImportHelper.getInstance().ignoreAlias(executionResourceSet, platformName);
-                this.runtimePlatformRegistry.registerLoadedPlatformDefinition(platformDefinition);
-            }
-        });
-    }
-
-    /**
-     * Loads the custom {@link Resource} located at the provided {@code path}, using the given {@code pathmapURI}.
-     * <p>
-     * This method checks that the provided {@code path} is a valid {@link File}, and tries to load it as an EMF
-     * {@link Resource} using the specified {@code pathmapURI}. This method also verifies that the top-level element
-     * of the loaded {@link Resource} is an instance of the provided {@code topLevelElementType} in order to prevent
-     * invalid {@link Resource} loading.
-     * <p>
-     * Note that the provided {@code path} can be either absolute or relative. Relative paths are resolved against
-     * the configuration location.
-     * <p>
-     * The provided {@code pathmapURI} allows to load custom {@link Resource}s independently of their concrete
-     * location. This allows to load custom {@link Resource}s from {@link ExecutionModel} designed in a different
-     * environment.
-     *
-     * @param path                the path of the file to load
-     * @param pathmapURI          the pathmap {@link URI} used to load the {@link Resource}
-     * @param topLevelElementType the expected type of the top-level element of the loaded {@link Resource}
-     * @param <T>                 the type of the top-level element
-     * @throws XatkitException if an error occurred when loading the {@link Resource}
-     */
-    private <T extends EObject> T loadCustomResource(String path, URI pathmapURI, Class<T> topLevelElementType) {
-        /*
-         * The provided path is handled as a File path. Loading custom resources from external jars is left for a
-         * future release.
-         */
-        String baseConfigurationPath = this.configuration.getString(CONFIGURATION_FOLDER_PATH_KEY, "");
-        File resourceFile = new File(path);
-        /*
-         * '/' comparison is a quickfix for windows, see https://bugs.openjdk.java.net/browse/JDK-8130462
-         */
-        if (!resourceFile.isAbsolute() && path.charAt(0) != '/') {
-            resourceFile = new File(baseConfigurationPath + File.separator + path);
-        }
-        if (resourceFile.exists() && resourceFile.isFile()) {
-            URI resourceFileURI = URI.createFileURI(resourceFile.getAbsolutePath());
-            executionResourceSet.getURIConverter().getURIMap().put(pathmapURI, resourceFileURI);
-            Resource resource = executionResourceSet.getResource(pathmapURI, true);
-            T topLevelElement = (T) resource.getContents().get(0);
-            Log.info("\t{0} loaded", EMFUtils.getName(topLevelElement));
-            Log.debug("\tPath: {0}", resourceFile.toString());
-            return topLevelElement;
-        } else {
-            throw new XatkitException(MessageFormat.format("Cannot load the custom {0}, the provided path {1} is not " +
-                    "a valid file", topLevelElementType.getSimpleName(), path));
-        }
     }
 
     /**
@@ -837,63 +411,6 @@ public class XatkitCore {
         RuntimePlatform runtimePlatform = Loader.constructRuntimePlatform(runtimePlatformClass, this, configuration);
         this.runtimePlatformRegistry.registerRuntimePlatform(platformDefinition.getName(), runtimePlatform);
         return runtimePlatform;
-    }
-
-    /**
-     * Returns the underlying {@link ExecutionService}.
-     *
-     * @return the underlying {@link ExecutionService}
-     */
-    public ExecutionService getExecutionService() {
-        return this.executionService;
-    }
-
-    /**
-     * Returns the underlying {@link IntentRecognitionProvider}.
-     * <p>
-     * <b>Note:</b> this method is designed to ease debugging and testing, direct interactions with the
-     * {@link IntentRecognitionProvider} API may create consistency issues. In particular, xatkit does not ensure
-     * that {@link RuntimeAction}s will be triggered in case of direct queries to the
-     * {@link IntentRecognitionProvider} API.
-     *
-     * @return the underlying {@link IntentRecognitionProvider}
-     */
-    public IntentRecognitionProvider getIntentRecognitionProvider() {
-        return intentRecognitionProvider;
-    }
-
-    /**
-     * Returns the {@link EventDefinitionRegistry} associated to this instance.
-     * <p>
-     * This registry is used to cache {@link EventDefinition}s and {@link IntentDefinition}s from the input
-     * {@link ExecutionModel} and provides utility methods to retrieve specific {@link EventDefinition} and
-     * {@link IntentDefinition} and clear the cache.
-     *
-     * @return the {@link EventDefinitionRegistry} associated to this instance
-     */
-    public EventDefinitionRegistry getEventDefinitionRegistry() {
-        return eventDefinitionRegistry;
-    }
-
-    /**
-     * Returns the {@link RuntimePlatformRegistry} associated to this instance.
-     * <p>
-     * This registry is used to cache loaded {@link RuntimePlatform}s, and provides utility method to retrieve,
-     * unregister, and clear them.
-     *
-     * @return the {@link RuntimePlatformRegistry} associated to this instance
-     */
-    public RuntimePlatformRegistry getRuntimePlatformRegistry() {
-        return runtimePlatformRegistry;
-    }
-
-    /**
-     * Returns the {@link XatkitServer} used to capture incoming webhooks.
-     *
-     * @return the {@link XatkitServer} used to capture incoming webhooks
-     */
-    public XatkitServer getXatkitServer() {
-        return xatkitServer;
     }
 
     /**
@@ -994,6 +511,10 @@ public class XatkitCore {
         if (isNull(session)) {
             session = this.intentRecognitionProvider.createSession(sessionId);
             sessions.put(sessionId, session);
+            /*
+             * The executor service takes care of configuring the new session and setting the init state.
+             */
+            executionService.initSession(session);
         }
         return session;
     }

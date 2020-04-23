@@ -26,6 +26,7 @@ import com.xatkit.intent.MappingEntityDefinitionEntry;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.intent.TextFragment;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
@@ -37,7 +38,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -62,32 +62,6 @@ import static java.util.Objects.nonNull;
  * @see IntentRecognitionProviderFactory
  */
 public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
-
-    /**
-     * The Default Fallback Intent that is returned when the user input does not match any registered Intent.
-     */
-    /*
-     * TODO this attribute is copied from DialogFlowApi, and should be refactored in a common class accessible by all
-     * providers.
-     */
-    public static IntentDefinition DEFAULT_FALLBACK_INTENT = IntentFactory.eINSTANCE.createIntentDefinition();
-
-    /*
-     * Initializes the {@link #DEFAULT_FALLBACK_INTENT}'s name.
-     * <p>
-     * TODO this block is copied from DialogFlowApi, and should be refactored in a common class accessible by all
-     * providers.
-     */
-    static {
-        DEFAULT_FALLBACK_INTENT.setName("Default_Fallback_Intent");
-    }
-
-    /**
-     * The context name suffix used to identify follow-up contexts.
-     *
-     * @see #setFollowUpContexts(IntentDefinition, RecognizedIntent)
-     */
-    protected static String FOLLOW_CONTEXT_NAME_SUFFIX = "_follow";
 
     /**
      * The delimiter used to separate context and parameter names in RegExp group names.
@@ -128,7 +102,7 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      *
      * @see #registerEntityDefinition(EntityDefinition)
      */
-    protected EntityMapper entityMapper;
+    private EntityMapper entityMapper;
 
     /**
      * The {@link Map} used to store RegExp {@link Pattern}s associated to the registered {@link IntentDefinition}.
@@ -137,26 +111,10 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * {@link IntentDefinition}. Note that the stored {@link Pattern}s are strict and match exactly the training
      * sentence used to create them.
      */
-    protected Map<IntentDefinition, List<Pattern>> intentPatterns;
+    private Map<IntentDefinition, List<Pattern>> intentPatterns;
 
     @Nullable
     private RecognitionMonitor recognitionMonitor;
-
-    /**
-     * Constructs a {@link RegExIntentRecognitionProvider} with the provided {@link Configuration}.
-     * <p>
-     * This constructor is a placeholder for
-     * {@link #RegExIntentRecognitionProvider(Configuration, RecognitionMonitor)} with a {@code null}
-     * {@link RecognitionMonitor}.
-     *
-     * @param configuration the {@link Configuration} the {@link Configuration} used to customize the created
-     *                      {@link XatkitSession}s
-     * @throws NullPointerException if the provided {@code configuration} is {@code null}
-     * @see #RegExIntentRecognitionProvider(Configuration, RecognitionMonitor)
-     */
-    public RegExIntentRecognitionProvider(Configuration configuration) {
-        this(configuration, null);
-    }
 
     /**
      * Constructs a {@link RegExIntentRecognitionProvider} with the provided {@code configuration}.
@@ -166,10 +124,8 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      *                      matching information
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
      */
-    public RegExIntentRecognitionProvider(Configuration configuration,
+    public RegExIntentRecognitionProvider(@NonNull Configuration configuration,
                                           @Nullable RecognitionMonitor recognitionMonitor) {
-        checkNotNull(configuration, "Cannot create a %s with the provided %s %s", this.getClass().getSimpleName(),
-                Configuration.class.getSimpleName(), configuration);
         Log.info("Starting {0}", this.getClass().getSimpleName());
         this.configuration = configuration;
         this.isShutdown = false;
@@ -185,10 +141,11 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * are matched against user inputs.
      *
      * @param entityDefinition the {@link EntityDefinition} to register to the underlying intent recognition provider
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      * @see #registerIntentDefinition(IntentDefinition)
      */
     @Override
-    public void registerEntityDefinition(EntityDefinition entityDefinition) {
+    public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) {
         if (entityDefinition instanceof BaseEntityDefinition) {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
             Log.trace("Skipping registration of {0} ({1}), {0} are natively supported",
@@ -206,8 +163,9 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * the registered {@link MappingEntityDefinition}s does not allow for synonym matching.
      *
      * @param entityDefinition the {@link CustomEntityDefinition} to register
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
-    private void registerCustomEntityDefinition(CustomEntityDefinition entityDefinition) {
+    private void registerCustomEntityDefinition(@NonNull CustomEntityDefinition entityDefinition) {
         if (entityDefinition instanceof MappingEntityDefinition) {
             MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) entityDefinition;
             List<String> entityValues = new ArrayList<>();
@@ -228,7 +186,10 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
                 sb.append("(");
                 for (TextFragment fragment : entry.getFragments()) {
                     if (fragment instanceof LiteralTextFragment) {
-                        sb.append(escapeRegExpReservedCharacters(((LiteralTextFragment) fragment).getValue()));
+                        /*
+                         * Add spaces around pure textual fragments, they are removed by the Xtext parser.
+                         */
+                        sb.append(" " + escapeRegExpReservedCharacters(((LiteralTextFragment) fragment).getValue()) + " ");
                     } else if (fragment instanceof EntityTextFragment) {
                         EntityDefinition fragmentEntity =
                                 ((EntityTextFragment) fragment).getEntityReference().getReferredEntity();
@@ -253,8 +214,9 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * register {@link BaseEntityDefinition} since they are natively supported by the {@link RegExEntityMapper}.
      *
      * @param entityDefinition the {@link CompositeEntityDefinition} to register the referenced entities from
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
-    private void registerReferencedEntityDefinitions(CompositeEntityDefinition entityDefinition) {
+    private void registerReferencedEntityDefinitions(@NonNull CompositeEntityDefinition entityDefinition) {
         for (CompositeEntityDefinitionEntry entry : entityDefinition.getEntries()) {
             for (EntityDefinition referredEntityDefinition : entry.getEntities()) {
                 if (referredEntityDefinition instanceof CustomEntityDefinition) {
@@ -275,10 +237,11 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * {@link #registerEntityDefinition(EntityDefinition)}.
      *
      * @param intentDefinition the {@link IntentDefinition} to register to the underlying intent recognition provider
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      * @see #registerEntityDefinition(EntityDefinition)
      */
     @Override
-    public void registerIntentDefinition(IntentDefinition intentDefinition) {
+    public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) {
         /*
          * This method does not register the parent of the provided intentDefinition. This is not required: if the
          * parent is not registered the intent will not be matched anyways (see #getMatchableIntentDefinition).
@@ -295,8 +258,9 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      *
      * @param intentDefinition the {@link IntentDefinition} to create {@link Pattern}s from
      * @return the created {@link Pattern}s
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      */
-    private List<Pattern> createPatterns(IntentDefinition intentDefinition) {
+    private List<Pattern> createPatterns(@NonNull IntentDefinition intentDefinition) {
         List<Pattern> patterns = new ArrayList<>();
         for (String trainingSentence : intentDefinition.getTrainingSentences()) {
             trainingSentence = escapeRegExpReservedCharacters(trainingSentence);
@@ -326,8 +290,9 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      *
      * @param from the {@link String} to replace the RegExp special characters of
      * @return a new {@link String} with the RegExp special characters escaped
+     * @throws NullPointerException if the provided {@link String} is {@code null}
      */
-    private String escapeRegExpReservedCharacters(String from) {
+    private String escapeRegExpReservedCharacters(@NonNull String from) {
         return SPECIAL_REGEX_CHARS.matcher(from).replaceAll("\\\\$0");
     }
 
@@ -344,8 +309,11 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * @param parameter        the {@link ContextParameter} to build a named group from
      * @param entityDefinition the {@link EntityDefinition} to build a named group from
      * @return the {@link String} representing the built RegExp group
+     * @throws NullPointerException if the provided {@code context}, {@code parameter}, or {@code entityDefinition}
+     *                              is {@code null}
      */
-    private String buildRegExpGroup(Context context, ContextParameter parameter, EntityDefinition entityDefinition) {
+    private String buildRegExpGroup(@NonNull Context context, @NonNull ContextParameter parameter,
+                                    @NonNull EntityDefinition entityDefinition) {
         StringBuilder sb = new StringBuilder();
         sb.append("(?<");
         sb.append(context.getName());
@@ -361,9 +329,10 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * Deletes the provided {@code entityDefinition}.
      *
      * @param entityDefinition the {@link EntityDefinition} to delete from the underlying intent recognition provider
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
     @Override
-    public void deleteEntityDefinition(EntityDefinition entityDefinition) {
+    public void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) {
         /*
          * Quick fix: should be done properly.
          */
@@ -377,18 +346,17 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * that the intent won't be matched by the provider anymore.
      *
      * @param intentDefinition the {@link IntentDefinition} to delete from the underlying intent recognition provider
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      */
     @Override
-    public void deleteIntentDefinition(IntentDefinition intentDefinition) {
+    public void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) {
         this.intentPatterns.remove(intentDefinition);
     }
 
     /**
-     * This method is not implemented and throws an {@link UnsupportedOperationException}.
+     * This provider does not rely on any ML engine, calling this method does not do anything.
      * <p>
      * Use valid {@link IntentRecognitionProvider}s to enable ML training.
-     *
-     * @throws UnsupportedOperationException when called
      */
     @Override
     public void trainMLEngine() {
@@ -401,7 +369,7 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * {@inheritDoc}
      */
     @Override
-    public XatkitSession createSession(String sessionId) {
+    public XatkitSession createSession(@NonNull String sessionId) {
         return new XatkitSession(sessionId, configuration);
     }
 
@@ -455,9 +423,10 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * @param input   the {@link String} representing the textual input to process and extract the intent from
      * @param session the {@link XatkitSession} used to access context information
      * @return the {@link RecognizedIntent} matched from the provided {@code input}
+     * @throws NullPointerException if the provided {@code input} or {@code session} is {@code null}
      */
     @Override
-    public RecognizedIntent getIntentInternal(String input, XatkitSession session) {
+    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session) {
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
         /*
          * The recognitionConfidence is always 1 with the RegExIntentRecognitionProvider since it always returns
@@ -479,7 +448,6 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
                      * Sets additional values that are not part of the matched expressions. These values can be
                      * follow-up contexts, or empty contexts.
                      */
-                    setFollowUpContexts(intentDefinition, recognizedIntent);
                     setEmptyContexts(intentDefinition, recognizedIntent);
                     /*
                      * Return the first one we find, no need to iterate the rest of the map
@@ -515,29 +483,16 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * @param session           the {@link XatkitSession} storing contextual values
      * @return the {@link List} of {@link IntentDefinition} that can be matched according to the provided {@code
      * session}
-     * @see #setFollowUpContexts(IntentDefinition, RecognizedIntent)
+     * @throws NullPointerException if the provided {@code intentDefinitions} or {@code session} is {@code null}
      */
-    private List<IntentDefinition> getMatchableIntents(Set<IntentDefinition> intentDefinitions, XatkitSession session) {
+    private List<IntentDefinition> getMatchableIntents(@NonNull Set<IntentDefinition> intentDefinitions,
+                                                       @NonNull XatkitSession session) {
         RuntimeContexts runtimeContexts = session.getRuntimeContexts();
         List<IntentDefinition> result = new ArrayList<>();
         for (IntentDefinition intentDefinition : intentDefinitions) {
-            if (nonNull(intentDefinition.getFollows())) {
-                // cannot use getVariables because it always return an empty map
-                if (isNull(runtimeContexts.getContextVariables(intentDefinition.getFollows().getName() + FOLLOW_CONTEXT_NAME_SUFFIX))) {
-                    continue;
-                }
+            if (nonNull(runtimeContexts.getContextMap().get("Enable" + intentDefinition.getName()))) {
+                result.add(intentDefinition);
             }
-            boolean error = false;
-            for (Context inContext : intentDefinition.getInContexts()) {
-                if (isNull(runtimeContexts.getContextVariables(inContext.getName()))) {
-                    error = true;
-                    break;
-                }
-            }
-            if (error) {
-                continue;
-            }
-            result.add(intentDefinition);
         }
         return result;
     }
@@ -551,19 +506,14 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * @param matcher          the matcher to retrieve the {@link ContextParameter}s from
      * @param intentDefinition the {@link IntentDefinition} containing the {@link ContextParameter} to retrieve
      * @param recognizedIntent the {@link RecognizedIntent} to set the created {@link ContextParameterValue} of
-     * @throws NullPointerException if the provided {@code matcher}, {@code intentDefintiion}, or {@code
+     * @throws NullPointerException if the provided {@code matcher}, {@code intentDefinition}, or {@code
      *                              recognizedIntent} is {@code null}
      * @see #getOrCreateContextInstance(RecognizedIntent, Context)
      * @see #createContextParameterValue(ContextParameter, String)
      */
-    private void setContextParameterValuesFromMatcher(Matcher matcher, IntentDefinition intentDefinition,
-                                                      RecognizedIntent recognizedIntent) {
-        checkNotNull(matcher, "Cannot retrieve the %s from the provided %s %s",
-                ContextParameterValue.class.getSimpleName(), Matcher.class.getSimpleName(), matcher);
-        checkNotNull(intentDefinition, "Cannot retrieve the %s from the provided %s %s",
-                ContextParameterValue.class.getSimpleName(), IntentDefinition.class.getSimpleName(), intentDefinition);
-        checkNotNull(recognizedIntent, "Cannot set the %s of the provided %s %s",
-                ContextParameterValue.class.getSimpleName(), RecognizedIntent.class.getSimpleName(), recognizedIntent);
+    private void setContextParameterValuesFromMatcher(@NonNull Matcher matcher,
+                                                      @NonNull IntentDefinition intentDefinition,
+                                                      @NonNull RecognizedIntent recognizedIntent) {
         for (Context context : intentDefinition.getOutContexts()) {
             for (ContextParameter contextParameter : context.getParameters()) {
                 String groupName =
@@ -589,32 +539,15 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
     }
 
     /**
-     * Sets the {@link ContextInstance} representing implicit follow-up contexts in the provided {@code
-     * reccognizedIntent}.
-     * <p>
-     * This method sets the {@link ContextInstance}'s lifespan count to 3, allowing to recover from an unmatched
-     * intent before discarding it.
-     *
-     * @param intentDefinition the {@link IntentDefinition} defining the follow-up relationship
-     * @param recognizedIntent the {@link RecognizedIntent} to set the {@link ContextInstance} of
-     */
-    private void setFollowUpContexts(IntentDefinition intentDefinition, RecognizedIntent recognizedIntent) {
-        if (!intentDefinition.getFollowedBy().isEmpty()) {
-            Context followContext = IntentFactory.eINSTANCE.createContext();
-            followContext.setName(intentDefinition.getName() + FOLLOW_CONTEXT_NAME_SUFFIX);
-            followContext.setLifeSpan(2);
-            getOrCreateContextInstance(recognizedIntent, followContext);
-        }
-    }
-
-    /**
      * Creates and sets the {@link ContextInstance}s corresponding to empty {@link Context}s from the provided {@code
      * intentDefinition}.
      *
      * @param intentDefinition the {@link IntentDefinition} containing the {@link Context} definitions
      * @param recognizedIntent the {@link RecognizedIntent} to set the {@link ContextInstance}s of
+     * @throws NullPointerException if the provided {@code intentDefinition} or {@code recognizedIntent} is {@code null}
      */
-    private void setEmptyContexts(IntentDefinition intentDefinition, RecognizedIntent recognizedIntent) {
+    private void setEmptyContexts(@NonNull IntentDefinition intentDefinition,
+                                  @NonNull RecognizedIntent recognizedIntent) {
         intentDefinition.getOutContexts().stream()
                 .filter(context -> context.getParameters().isEmpty())
                 .forEach(context -> getOrCreateContextInstance(recognizedIntent, context));
@@ -631,11 +564,8 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * @return the created {@link ContextParameterValue}
      * @throws NullPointerException if the provided {@code contextParameter} or {@code value} is {@code null}
      */
-    private ContextParameterValue createContextParameterValue(ContextParameter contextParameter, String value) {
-        checkNotNull(contextParameter, "Cannot create a %s from the provided %s %s",
-                ContextParameterValue.class.getSimpleName(), ContextParameter.class.getSimpleName(), contextParameter);
-        checkNotNull(value, "Cannot create a %s from the provided value %s",
-                ContextParameterValue.class.getSimpleName(), value);
+    private ContextParameterValue createContextParameterValue(@NonNull ContextParameter contextParameter,
+                                                              @NonNull String value) {
         ContextParameterValue contextParameterValue = IntentFactory.eINSTANCE.createContextParameterValue();
         contextParameterValue.setContextParameter(contextParameter);
         contextParameterValue.setValue(value);
@@ -651,11 +581,8 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * @return the {@link ContextInstance}
      * @throws NullPointerException if the provided {@code recognizedIntent} or {@code context} is {@code null}
      */
-    private ContextInstance getOrCreateContextInstance(RecognizedIntent recognizedIntent, Context context) {
-        checkNotNull(recognizedIntent, "Cannot retrieve context instance from the provided %s %s",
-                RecognizedIntent.class.getSimpleName(), recognizedIntent);
-        checkNotNull("Cannot retrieve the context instance from the provided %s %s", Context.class.getSimpleName(),
-                context);
+    private ContextInstance getOrCreateContextInstance(@NonNull RecognizedIntent recognizedIntent,
+                                                       @NonNull Context context) {
         ContextInstance contextInstance = recognizedIntent.getOutContextInstance(context.getName());
         if (isNull(contextInstance)) {
             contextInstance = IntentFactory.eINSTANCE.createContextInstance();

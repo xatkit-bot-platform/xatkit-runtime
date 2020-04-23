@@ -1,4 +1,4 @@
-package com.xatkit.core.recognition.dialogflow;
+package com.xatkit.core.recognition.dialogflow.mapper;
 
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.intent.CustomEntityDefinition;
@@ -14,12 +14,12 @@ import static com.xatkit.intent.EntityType.*;
  * This class provides a mapping of {@link com.xatkit.intent.EntityType}s to DialogFlow's system entities. Mapped
  * entities can be accessed by calling {@link #getMappingFor(EntityDefinition)}.
  */
-public class DialogFlowEntityMapper extends EntityMapper {
+public class DialogFlowEntityReferenceMapper extends EntityMapper {
 
     /**
-     * Constructs a {@link DialogFlowEntityMapper} initialized with DialogFlow's system entities.
+     * Constructs a {@link DialogFlowEntityReferenceMapper} initialized with DialogFlow's system entities.
      */
-    public DialogFlowEntityMapper() {
+    public DialogFlowEntityReferenceMapper() {
         super();
         this.registerDateTimeEntities();
         this.registerNumberEntities();
@@ -139,11 +139,11 @@ public class DialogFlowEntityMapper extends EntityMapper {
     }
 
     /**
-     * This method is disabled for {@link DialogFlowEntityMapper}.
+     * This method is disabled for {@link DialogFlowEntityReferenceMapper}.
      * <p>
      * DialogFlow entities are registered independently from the intents. This two-step process allows to reference
      * entities with their names, and do not require to store any mapping information in the
-     * {@link DialogFlowEntityMapper}.
+     * {@link DialogFlowEntityReferenceMapper}.
      *
      * @param entityDefinition the {@link CustomEntityDefinition} to map
      * @param concreteEntity   the mapped value associated to the provided {@code entityDefinition}
@@ -164,7 +164,7 @@ public class DialogFlowEntityMapper extends EntityMapper {
      * <p>
      * DialogFlow entities are registered independently from the intents. This two-step process allows to reference
      * entities with their names, and do not require to store any mapping information in the
-     * {@link DialogFlowEntityMapper}.
+     * {@link DialogFlowEntityReferenceMapper}.
      *
      * @param customEntityDefinition the {@link CustomEntityDefinition} to retrieve the concrete entity
      *                               {@link String} from

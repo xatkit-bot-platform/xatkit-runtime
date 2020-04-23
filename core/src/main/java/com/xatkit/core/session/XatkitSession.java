@@ -1,7 +1,13 @@
 package com.xatkit.core.session;
 
 import com.xatkit.core.XatkitCore;
+import com.xatkit.execution.State;
+import com.xatkit.execution.Transition;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.util.ExecutionModelUtils;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
@@ -11,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 
 /**
@@ -29,11 +34,26 @@ public class XatkitSession {
     /**
      * The unique identifier of the {@link XatkitSession}.
      */
+    @Getter
     private String sessionId;
+
+    /**
+     * The runtime {@link State} associated to the {@link XatkitSession}.
+     * <p>
+     * The session's state represents the point in the conversation graph where the user is. {@link XatkitSession}s
+     * initialized with {@link com.xatkit.core.ExecutionService#initSession(XatkitSession)} have their state
+     * automatically set with the {@code Init} {@link State} of the bot's execution model.
+     *
+     * @see #setState(State)
+     * @see com.xatkit.core.ExecutionService#initSession(XatkitSession)
+     */
+    @Getter
+    private State state;
 
     /**
      * The {@link RuntimeContexts} used to store context-related variables.
      */
+    @Getter
     private RuntimeContexts runtimeContexts;
 
     /**
@@ -43,15 +63,8 @@ public class XatkitSession {
      * are used to store results of specific actions, or set global variables that can be accessed along the
      * conversation.
      */
+    @Getter
     private Map<String, Object> sessionVariables;
-
-    /**
-     * The {@link Configuration} used to define the session behavior.
-     * <p>
-     * This {@link Configuration} can be accessed by {@code config()} operations in execution models to retrieve
-     * user-defined configuration values.
-     */
-    private Configuration configuration;
 
     /**
      * Constructs a new, empty {@link XatkitSession} with the provided {@code sessionId}.
@@ -60,7 +73,7 @@ public class XatkitSession {
      *
      * @param sessionId the unique identifier of the {@link XatkitSession}
      */
-    public XatkitSession(String sessionId) {
+    public XatkitSession(@NonNull String sessionId) {
         this(sessionId, new BaseConfiguration());
     }
 
@@ -69,48 +82,46 @@ public class XatkitSession {
      * <p>
      * This constructor forwards the provided {@link Configuration} to the underlying {@link RuntimeContexts} and can
      * be used to customize {@link RuntimeContexts} properties.
+     * <p>
+     * <b>Note</b>: this method does <i>not</i> set the {@link State} associated to the {@link XatkitSession}. This
+     * can be done by calling {@link XatkitSession#setState(State)}. {@link XatkitSession}s created with
+     * {@link com.xatkit.core.ExecutionService#initSession(XatkitSession)} are automatically initialized with the {@code
+     * Init} {@link State} of the bot's execution model.
      *
      * @param sessionId     the unique identifier of the {@link XatkitSession}
      * @param configuration the {@link Configuration} parameterizing the {@link XatkitSession}
      * @throws NullPointerException if the provided {@code sessionId} or {@code configuration} is {@code null}
+     * @see #setState(State)
+     * @see com.xatkit.core.ExecutionService#initSession(XatkitSession)
      */
-    public XatkitSession(String sessionId, Configuration configuration) {
-        checkNotNull(sessionId, "Cannot construct a %s with the session Id %s", XatkitSession.class.getSimpleName(),
-                sessionId);
-        checkNotNull(configuration, "Cannot construct a %s with the provided %s: %s", XatkitSession.class
-                .getSimpleName(), Configuration.class.getSimpleName(), configuration);
+    public XatkitSession(@NonNull String sessionId, @NonNull Configuration configuration) {
         this.sessionId = sessionId;
         this.runtimeContexts = new RuntimeContexts(configuration);
         this.sessionVariables = new HashMap<>();
-        this.configuration = configuration;
         Log.info("{0} {1} created", XatkitSession.class.getSimpleName(), this.sessionId);
     }
 
     /**
-     * Returns the unique identifier of the {@link XatkitSession}.
+     * Sets the session's {@link State}.
+     * <p>
+     * The session's state represents the point in the conversation graph where the user is. It is used by the Xatkit
+     * {@link com.xatkit.core.ExecutionService} to execute the logic of the bot and compute actionable transitions.
+     * <p>
+     * This method also sets the context parameters needed to match the next {@link IntentDefinition}s, if they exist.
      *
-     * @return the unique identifier of the {@link XatkitSession}
+     * @param state the {@link State} to set
      */
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    /**
-     * Returns the session's {@link RuntimeContexts} holding context-related variables.
-     *
-     * @return the session's {@link RuntimeContexts} holding context-related variables
-     */
-    public RuntimeContexts getRuntimeContexts() {
-        return runtimeContexts;
-    }
-
-    /**
-     * Returns the {@link Configuration} defining the session behavior.
-     *
-     * @return the {@link Configuration} defining the session behavior
-     */
-    public Configuration getConfiguration() {
-        return configuration;
+    public void setState(@NonNull State state) {
+        Log.debug("Session {0} - State set to {1}", this.getSessionId(), state.getName());
+        this.state = state;
+        for(Transition t : state.getTransitions()) {
+            ExecutionModelUtils.getAccessedEvents(t).forEach(e -> {
+                if(e instanceof IntentDefinition) {
+                    IntentDefinition i = (IntentDefinition)e;
+                    this.runtimeContexts.setContext("Enable" + i.getName(), 2);
+                }
+            });
+        }
     }
 
     /**
@@ -126,9 +137,7 @@ public class XatkitSession {
      * @param value the value to store
      * @throws NullPointerException if the provided {@code key} is {@code null}
      */
-    public void store(String key, Object value) {
-        checkNotNull(key, "Cannot store the provided session variable %s (value=%s), please provide a non-null key",
-                key, value);
+    public void store(@NonNull String key, Object value) {
         this.sessionVariables.put(key, value);
     }
 
@@ -145,9 +154,7 @@ public class XatkitSession {
      * @param key   the key of the {@link List} to store the provided {@code value}
      * @param value the value to store in a {@link List}
      */
-    public void storeList(String key, Object value) {
-        checkNotNull(key, "Cannot store the provided session variable %s (value=%s), please provide a non-null key",
-                key, value);
+    public void storeList(@NonNull String key, Object value) {
         Object storedValue = this.sessionVariables.get(key);
         List list;
         if (storedValue instanceof List) {
@@ -160,20 +167,11 @@ public class XatkitSession {
     }
 
     /**
-     * Returns a {@link Map} containing the session variables.
-     *
-     * @return a {@link Map} containing the session variables
-     */
-    public Map<String, Object> getSessionVariables() {
-        return this.sessionVariables;
-    }
-
-    /**
      * Merges this {@link XatkitSession} with the provided {@code other}.
      *
      * @param other the {@link XatkitSession} to merge in the current one
      */
-    public void merge(XatkitSession other) {
+    public void merge(@NonNull XatkitSession other) {
         other.sessionVariables.entrySet().forEach(v -> {
             if (sessionVariables.containsKey(v.getKey())) {
                 if (v.getValue() instanceof Map) {
