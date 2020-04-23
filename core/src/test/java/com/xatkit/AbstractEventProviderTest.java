@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
  * @param <E> the {@link RuntimeEventProvider} {@link Class} under test
  * @param <P> the {@link RuntimePlatform} containing the provider under test
  */
-public abstract class AbstractEventProviderTest<E extends RuntimeEventProvider<P>, P extends RuntimePlatform> {
+public abstract class AbstractEventProviderTest<E extends RuntimeEventProvider<P>, P extends RuntimePlatform> extends AbstractXatkitTest {
 
     /**
      * The {@link RuntimePlatform} instance containing the provider under test.

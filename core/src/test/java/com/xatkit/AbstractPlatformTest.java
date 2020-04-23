@@ -18,7 +18,7 @@ import static org.mockito.Mockito.mock;
  *
  * @param <P> the {@link RuntimePlatform} {@link Class} under test
  */
-public class AbstractPlatformTest<P extends RuntimePlatform> {
+public class AbstractPlatformTest<P extends RuntimePlatform> extends AbstractXatkitTest {
 
     /**
      * The {@link RuntimePlatform} under test
