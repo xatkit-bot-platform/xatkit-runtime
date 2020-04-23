@@ -17,7 +17,7 @@
     <name>Xatkit core infrastructure</name>
 
     <properties>
-        <dialogflow.version>0.53.0-alpha</dialogflow.version>
+        <dialogflow.version>1.0.0</dialogflow.version>
         <commons-beanutils.version>1.9.3</commons-beanutils.version>
         <httpcomponents.version>4.4.10</httpcomponents.version>
         <unirest.version>1.4.9</unirest.version>
