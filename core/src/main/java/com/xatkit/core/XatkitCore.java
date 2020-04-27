@@ -504,9 +504,7 @@ public class XatkitCore {
      * @return the {@link XatkitSession} associated to the provided {@code sessionId}
      * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
-    public XatkitSession getOrCreateXatkitSession(String sessionId) {
-        checkNotNull(sessionId, "Cannot create or retrieve the %s from the provided session ID %s", XatkitSession
-                .class.getSimpleName(), sessionId);
+    public XatkitSession getOrCreateXatkitSession(@NonNull String sessionId) {
         XatkitSession session = getXatkitSession(sessionId);
         if (isNull(session)) {
             session = this.intentRecognitionProvider.createSession(sessionId);
@@ -526,8 +524,7 @@ public class XatkitCore {
      * @return the {@link XatkitSession} associated to the provided {@code sessionId}
      * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
-    public XatkitSession getXatkitSession(String sessionId) {
-        checkNotNull(sessionId, "Cannot retrieve a session from null as the session ID");
+    public XatkitSession getXatkitSession(@NonNull String sessionId) {
         return sessions.get(sessionId);
     }
 
