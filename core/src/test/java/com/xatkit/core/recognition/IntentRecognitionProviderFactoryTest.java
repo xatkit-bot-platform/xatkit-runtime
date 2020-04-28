@@ -36,7 +36,13 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
     @After
     public void tearDown() {
         if (nonNull(provider) && !provider.isShutdown()) {
-            provider.shutdown();
+            try {
+                provider.shutdown();
+            } catch(IntentRecognitionProviderException e) {
+                /*
+                 * Nothing to do, the provider will be re-created anyways.
+                 */
+            }
         }
     }
 

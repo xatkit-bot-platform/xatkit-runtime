@@ -6,6 +6,7 @@ import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.NonNull;
 
 /**
  * A helper class that provides method to extract intents from input text.
@@ -42,7 +43,8 @@ public class IntentRecognitionHelper {
      *                                            shutdown or if an exception is thrown by the
      *                                            underlying intent recognition engine
      */
-    public static RecognizedIntent getRecognizedIntent(String input, XatkitSession session, XatkitCore xatkitCore) {
+    public static RecognizedIntent getRecognizedIntent(@NonNull String input, @NonNull XatkitSession session,
+                                                       @NonNull XatkitCore xatkitCore) throws IntentRecognitionProviderException {
         session.getRuntimeContexts().decrementLifespanCounts();
         RecognizedIntent recognizedIntent = xatkitCore.getIntentRecognitionProvider().getIntent(input, session);
         Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\" ({3})",

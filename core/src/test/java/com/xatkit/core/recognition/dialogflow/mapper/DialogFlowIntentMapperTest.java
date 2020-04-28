@@ -1,6 +1,7 @@
 package com.xatkit.core.recognition.dialogflow.mapper;
 
 import com.google.cloud.dialogflow.v2.Intent;
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
@@ -45,20 +46,20 @@ public class DialogFlowIntentMapperTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void mapNull() {
+    public void mapNull() throws IntentRecognitionProviderException {
         mapper = new DialogFlowIntentMapper(getValidConfiguration(), new DialogFlowEntityReferenceMapper());
         mapper.mapIntentDefinition(null);
     }
 
     @Test
-    public void mapSimpleIntent() {
+    public void mapSimpleIntent() throws IntentRecognitionProviderException {
         mapper = new DialogFlowIntentMapper(getValidConfiguration(), new DialogFlowEntityReferenceMapper());
         Intent intent = mapper.mapIntentDefinition(testBotExecutionModel.getSimpleIntent());
         assertCorrectMappingForIntentDefinition(testBotExecutionModel.getSimpleIntent(), intent);
     }
 
     @Test
-    public void mapSystemEntityIntent() {
+    public void mapSystemEntityIntent() throws IntentRecognitionProviderException {
         mapper = new DialogFlowIntentMapper(getValidConfiguration(), new DialogFlowEntityReferenceMapper());
         Intent intent = mapper.mapIntentDefinition(testBotExecutionModel.getSystemEntityIntent());
         assertCorrectMappingForIntentDefinitionWithEntityReference(testBotExecutionModel.getSystemEntityIntent(),
@@ -66,7 +67,7 @@ public class DialogFlowIntentMapperTest {
     }
 
     @Test
-    public void mapMappingEntityIntent() {
+    public void mapMappingEntityIntent() throws IntentRecognitionProviderException {
         mapper = new DialogFlowIntentMapper(getValidConfiguration(), new DialogFlowEntityReferenceMapper());
         Intent intent = mapper.mapIntentDefinition(testBotExecutionModel.getMappingEntityIntent());
         assertCorrectMappingForIntentDefinitionWithEntityReference(testBotExecutionModel.getMappingEntityIntent(),
@@ -74,7 +75,7 @@ public class DialogFlowIntentMapperTest {
     }
 
     @Test
-    public void mapCompositeEntityIntent() {
+    public void mapCompositeEntityIntent() throws IntentRecognitionProviderException {
         mapper = new DialogFlowIntentMapper(getValidConfiguration(), new DialogFlowEntityReferenceMapper());
         Intent intent = mapper.mapIntentDefinition(testBotExecutionModel.getCompositeEntityIntent());
         assertCorrectMappingForIntentDefinitionWithEntityReference(testBotExecutionModel.getCompositeEntityIntent(),

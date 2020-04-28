@@ -1,5 +1,6 @@
 package com.xatkit.core.recognition.regex;
 
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderTest;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.ContextInstance;
@@ -31,7 +32,7 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
      * Should be enabled to test #261 (https://github.com/xatkit-bot-platform/xatkit-runtime/issues/261)
      */
     @Test
-    public void getIntentValidIntentDefinitionWithOutContextMappingUpperCase() {
+    public void getIntentValidIntentDefinitionWithOutContextMappingUpperCase() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
         intentRecognitionProvider.registerIntentDefinition(testBotExecutionModel.getMappingEntityIntent());
@@ -45,7 +46,7 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
     }
 
     @Test
-    public void getIntentValidIntentDefinitionNoOutContextUpperCase() {
+    public void getIntentValidIntentDefinitionNoOutContextUpperCase() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.registerIntentDefinition(testBotExecutionModel.getSimpleIntent());
         XatkitSession session = new XatkitSession("sessionId");
@@ -56,7 +57,7 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
     }
 
     @Test
-    public void getIntentValidIntentDefinitionWithReservedRegExpCharacters() {
+    public void getIntentValidIntentDefinitionWithReservedRegExpCharacters() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         IntentDefinition intentDefinition = IntentFactory.eINSTANCE.createIntentDefinition();
         intentDefinition.setName("TestReservedRegExpCharacters");
@@ -75,7 +76,7 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
     @Ignore
     @Test
     @Override
-    public void getCompositeEntityIntent() {
+    public void getCompositeEntityIntent() throws IntentRecognitionProviderException {
         /*
          * Composite entities are not supported in the RegExp provider (see https://github
          * .com/xatkit-bot-platform/xatkit-runtime/issues/272)

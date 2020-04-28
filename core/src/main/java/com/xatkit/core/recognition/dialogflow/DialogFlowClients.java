@@ -14,6 +14,7 @@ import com.google.cloud.dialogflow.v2.IntentsClient;
 import com.google.cloud.dialogflow.v2.IntentsSettings;
 import com.google.cloud.dialogflow.v2.SessionsClient;
 import com.google.cloud.dialogflow.v2.SessionsSettings;
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -96,10 +97,11 @@ public class DialogFlowClients {
      * variable.
      *
      * @param configuration the {@link Configuration} containing the credentials file path
-     * @throws DialogFlowException if the provided {@code configuration} or {@code GOOGLE_APPLICATION_CREDENTIALS}
-     *                             environment variable does not contain a valid credentials file path
+     * @throws IntentRecognitionProviderException if the provided {@code configuration} or {@code
+     *                                            GOOGLE_APPLICATION_CREDENTIALS} environment variable does not
+     *                                            contain a valid credentials file path
      */
-    public DialogFlowClients(@NonNull DialogFlowConfiguration configuration) {
+    public DialogFlowClients(@NonNull DialogFlowConfiguration configuration) throws IntentRecognitionProviderException {
         CredentialsProvider credentialsProvider = getCredentialsProvider(configuration);
         AgentsSettings agentsSettings;
         IntentsSettings intentsSettings;
@@ -131,8 +133,8 @@ public class DialogFlowClients {
             this.entityTypesClient = EntityTypesClient.create(entityTypesSettings);
             this.contextsClient = ContextsClient.create(contextsSettings);
         } catch (IOException e) {
-            throw new DialogFlowException("An error occurred when initializing the DialogFlow clients, see attached " +
-                    "exception", e);
+            throw new IntentRecognitionProviderException("An error occurred when initializing the DialogFlow clients," +
+                    " see attached exception", e);
         }
     }
 
@@ -203,10 +205,10 @@ public class DialogFlowClients {
      * @param configuration the {@link DialogFlowConfiguration} containing the credentials file path
      * @return the created {@link CredentialsProvider}, or {@code null} if the provided {@code configuration} does
      * not specify a credentials file path
-     * @throws DialogFlowException if an error occurred when loading the credentials file
+     * @throws IntentRecognitionProviderException if an error occurred when loading the credentials file
      */
     private @Nullable
-    CredentialsProvider getCredentialsProvider(@NonNull DialogFlowConfiguration configuration) {
+    CredentialsProvider getCredentialsProvider(@NonNull DialogFlowConfiguration configuration) throws IntentRecognitionProviderException {
         String credentialsPath = configuration.getGoogleCredentialsPath();
         if (nonNull(credentialsPath)) {
             Log.info("Loading Google Credentials file {0}", credentialsPath);
@@ -224,10 +226,11 @@ public class DialogFlowClients {
                 }
                 return FixedCredentialsProvider.create(GoogleCredentials.fromStream(credentialsInputStream));
             } catch (FileNotFoundException e) {
-                throw new DialogFlowException(MessageFormat.format("Cannot find the credentials file at {0}",
-                        credentialsPath), e);
+                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot find the credentials file " +
+                        "at {0}", credentialsPath), e);
             } catch (IOException e) {
-                throw new DialogFlowException("Cannot retrieve the credentials provider, see attached exception", e);
+                throw new IntentRecognitionProviderException("Cannot retrieve the credentials provider, see attached " +
+                        "exception", e);
             }
         }
         return null;

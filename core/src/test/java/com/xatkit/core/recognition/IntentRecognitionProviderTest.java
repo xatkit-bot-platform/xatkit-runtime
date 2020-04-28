@@ -43,7 +43,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     protected List<EntityDefinition> registeredEntityDefinitions = new ArrayList<>();
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         eventRegistry = new EventDefinitionRegistry();
         eventRegistry.registerEventDefinition(testBotExecutionModel.getSimpleIntent());
         eventRegistry.registerEventDefinition(testBotExecutionModel.getSystemEntityIntent());
@@ -52,7 +52,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         /*
          * Default implementation that shuts down the provider. Advanced providers may need to override this method
          * to perform advanced cleaning (e.g. delete registered intents and entities).
@@ -67,13 +67,13 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test(expected = NullPointerException.class)
-    public void registerNullIntent() {
+    public void registerNullIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.registerIntentDefinition(null);
     }
 
     @Test
-    public void registerSimpleIntent() {
+    public void registerSimpleIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
@@ -83,7 +83,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void registerSystemEntityIntent() {
+    public void registerSystemEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredIntentDefinition = testBotExecutionModel.getSystemEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
@@ -93,7 +93,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void registerMappingEntityIntent() {
+    public void registerMappingEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredIntentDefinition = testBotExecutionModel.getMappingEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
@@ -103,20 +103,20 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void registerCompositeEntityIntent() {
+    public void registerCompositeEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredIntentDefinition = testBotExecutionModel.getCompositeEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
     }
 
     @Test(expected = NullPointerException.class)
-    public void deleteNullIntent() {
+    public void deleteNullIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.deleteIntentDefinition(null);
     }
 
     @Test
-    public void deleteExistingIntent() {
+    public void deleteExistingIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
@@ -128,13 +128,13 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test(expected = NullPointerException.class)
-    public void registerNullEntity() {
+    public void registerNullEntity() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.registerEntityDefinition(null);
     }
 
     @Test
-    public void registerMappingEntity() {
+    public void registerMappingEntity() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
         intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
@@ -144,7 +144,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void registerCompositeEntityReferencedEntitiesAlreadyRegistered() {
+    public void registerCompositeEntityReferencedEntitiesAlreadyRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
         intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
@@ -156,7 +156,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void registerCompositeEntityReferencedEntitiesNotRegistered() {
+    public void registerCompositeEntityReferencedEntitiesNotRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredEntityDefinitions.add(testBotExecutionModel.getCompositeEntity());
         /*
@@ -170,13 +170,13 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test(expected = NullPointerException.class)
-    public void deleteNullEntity() {
+    public void deleteNullEntity() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.registerEntityDefinition(null);
     }
 
     @Test
-    public void deleteEntityNotReferenced() {
+    public void deleteEntityNotReferenced() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
         intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
@@ -188,32 +188,32 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test(expected = NullPointerException.class)
-    public void createSessionNullSessionId() {
+    public void createSessionNullSessionId() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.createSession(null);
     }
 
     @Test
-    public void createSessionValidSessionId() {
+    public void createSessionValidSessionId() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         XatkitSession session = intentRecognitionProvider.createSession("TEST");
         assertThat(session).isNotNull();
     }
 
     @Test(expected = NullPointerException.class)
-    public void getIntentNullInput() {
+    public void getIntentNullInput() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.getIntent(null, intentRecognitionProvider.createSession("TEST"));
     }
 
     @Test(expected = NullPointerException.class)
-    public void getIntentNullSession() {
+    public void getIntentNullSession() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.getIntent("Intent", null);
     }
 
     @Test
-    public void getIntentNotRegistered() {
+    public void getIntentNotRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         XatkitSession session = intentRecognitionProvider.createSession("TEST");
         session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
@@ -223,7 +223,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void getSimpleIntent() {
+    public void getSimpleIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
@@ -236,7 +236,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void getSystemEntityIntent() {
+    public void getSystemEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredIntentDefinition = testBotExecutionModel.getSystemEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
@@ -251,7 +251,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void getMappingEntityIntent() {
+    public void getMappingEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
         intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
@@ -269,7 +269,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void getCompositeEntityIntent() {
+    public void getCompositeEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
         intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
@@ -295,7 +295,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test
-    public void shutdown() {
+    public void shutdown() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.shutdown();
         assertThat(intentRecognitionProvider.isShutdown()).isTrue();

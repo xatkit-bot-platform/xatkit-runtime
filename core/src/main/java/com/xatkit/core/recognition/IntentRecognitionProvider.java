@@ -67,7 +67,7 @@ public interface IntentRecognitionProvider {
      * @param entityDefinition the {@link EntityDefinition} to delete from the underlying intent recognition provider
      * @see #trainMLEngine()
      */
-    void registerEntityDefinition(@NonNull EntityDefinition entityDefinition);
+    void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException;
 
     /**
      * Registers the provided {@code intentDefinition} in the underlying intent recognition provider.
@@ -78,9 +78,10 @@ public interface IntentRecognitionProvider {
      * {@link #trainMLEngine()} to train the ML engine.
      *
      * @param intentDefinition the {@link IntentDefinition} to register to the underlying intent recognition provider
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      * @see #trainMLEngine()
      */
-    void registerIntentDefinition(@NonNull IntentDefinition intentDefinition);
+    void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException;
 
     /**
      * Deletes the provided {@code entityDefinition} from the underlying intent recognition provider.
@@ -91,9 +92,10 @@ public interface IntentRecognitionProvider {
      * {@link #trainMLEngine()} to train the ML engine.
      *
      * @param entityDefinition the {@link EntityDefinition} to delete from the underlying intent recognition provider
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      * @see #trainMLEngine()
      */
-    void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition);
+    void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException;
 
     /**
      * Deletes the provided {@code intentDefinition} from the underlying intent recognition provider.
@@ -104,33 +106,39 @@ public interface IntentRecognitionProvider {
      * {@link #trainMLEngine()} to train the ML engine.
      *
      * @param intentDefinition the {@link IntentDefinition} to delete from the underlying intent recognition provider
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      * @see #trainMLEngine()
      */
-    void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition);
+    void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException;
 
     /**
      * Trains the underlying intent recognition provider.
      * <p>
      * <b>Note:</b> this method returns once the intent recognition provider's training is complete. However, the
      * propagation of the training information may not be complete when this method returns.
+     *
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    void trainMLEngine();
+    void trainMLEngine() throws IntentRecognitionProviderException;
 
     /**
      * Creates a new {@link XatkitSession} from the provided {@code sessionId}.
      *
      * @param sessionId the identifier to create a session from
      * @return a new {@link XatkitSession} for the provided {@code sessionId}
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    XatkitSession createSession(@NonNull String sessionId);
+    XatkitSession createSession(@NonNull String sessionId) throws IntentRecognitionProviderException;
 
     /**
      * Shuts down the intent recognition provider client and invalidates the remaining sessions.
      * <p>
      * <b>Note:</b> calling this method invalidates the intent recognition provider client connection, and thus this
      * class cannot be used to access the intent recognition provider anymore.
+     *
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    void shutdown();
+    void shutdown() throws IntentRecognitionProviderException;
 
     /**
      * Returns whether the intent recognition provider client is shutdown.
@@ -154,9 +162,10 @@ public interface IntentRecognitionProvider {
      * @param input   the {@link String} representing the textual input to process and extract the intent from
      * @param session the {@link XatkitSession} used to access context information
      * @return the post-processed {@link RecognizedIntent} extracted from the provided {@code input} and {@code session}
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      * @see #DEFAULT_FALLBACK_INTENT
      */
-    @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull XatkitSession session);
+    @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull XatkitSession session) throws IntentRecognitionProviderException;
 
     /**
      * Returns the {@link RecognitionMonitor} associated to this intent recognition provider.

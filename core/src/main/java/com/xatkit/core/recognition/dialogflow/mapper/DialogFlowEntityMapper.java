@@ -1,7 +1,6 @@
 package com.xatkit.core.recognition.dialogflow.mapper;
 
 import com.google.cloud.dialogflow.v2.EntityType;
-import com.xatkit.core.recognition.dialogflow.DialogFlowException;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinitionEntry;
@@ -59,7 +58,9 @@ public class DialogFlowEntityMapper {
      * @param entityDefinition the {@link EntityDefinition} to map
      * @return the created {@link EntityType}
      * @throws NullPointerException     if the provided {@code entityDefinition} is {@code null}
-     * @throws IllegalArgumentException if the provided {@code entityDefinition} is a {@link BaseEntityDefinition}
+     * @throws IllegalArgumentException if the provided {@code entityDefinition} is a
+     *                                  {@link BaseEntityDefinition}, or if the provided {@code entityDefinition}'s
+     *                                  type is not supported
      */
     public EntityType mapEntityDefinition(@NonNull EntityDefinition entityDefinition) {
         if (entityDefinition instanceof BaseEntityDefinition) {
@@ -69,8 +70,9 @@ public class DialogFlowEntityMapper {
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             return mapCustomEntityDefinition((CustomEntityDefinition) entityDefinition);
         } else {
-            throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
-                    entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
+            throw new IllegalArgumentException(MessageFormat.format("Cannot register the provided {0}, " +
+                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+                    EntityDefinition.class.getSimpleName()));
         }
     }
 
@@ -81,8 +83,7 @@ public class DialogFlowEntityMapper {
      * @return the created {@link EntityType}
      * @throws NullPointerException     if the provided {@code entityDefinition} is {@code null}
      * @throws IllegalArgumentException if the {@code customEntityDefinition}'s type is not supported
-     * 
-     * @see #createEntitiesForMapping(MappingEntityDefinition) 
+     * @see #createEntitiesForMapping(MappingEntityDefinition)
      * @see #createEntitiesForComposite(CompositeEntityDefinition)
      */
     private EntityType mapCustomEntityDefinition(@NonNull CustomEntityDefinition customEntityDefinition) {

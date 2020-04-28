@@ -4,6 +4,7 @@ import com.google.cloud.dialogflow.v2.Context;
 import com.google.cloud.dialogflow.v2.ContextName;
 import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.SessionName;
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowCheckingUtils;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
 import com.xatkit.intent.ContextParameter;
@@ -65,9 +66,11 @@ public class DialogFlowIntentMapper {
      *
      * @param intentDefinition the {@link IntentDefinition} to map
      * @return the created {@link Intent}
-     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
+     * @throws NullPointerException               if the provided {@code intentDefinition} is {@code null}
+     * @throws IntentRecognitionProviderException if the mapper could not create an {@link Intent} from the provided
+     *                                            {@code intentDefinition}
      */
-    public Intent mapIntentDefinition(@NonNull IntentDefinition intentDefinition) {
+    public Intent mapIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
         checkNotNull(intentDefinition.getName(), "Cannot map the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());
         Intent.Builder builder = Intent.newBuilder()
@@ -219,10 +222,12 @@ public class DialogFlowIntentMapper {
      *
      * @param intentDefinition the {@link IntentDefinition} to create the DialogFlow output {@link Context}s from
      * @return the created {@link List} of DialogFlow {@link Context}s
-     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
+     * @throws NullPointerException               if the provided {@code intentDefinition} is {@code null}
+     * @throws IntentRecognitionProviderException if there is no training sentence containing a provided {@code
+     *                                            intentDefinition}'s parameter fragment
      * @see IntentDefinition#getOutContexts()
      */
-    private List<Context> createOutContexts(@NonNull IntentDefinition intentDefinition) {
+    private List<Context> createOutContexts(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
         DialogFlowCheckingUtils.checkOutContexts(intentDefinition);
         List<com.xatkit.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
         List<Context> results = new ArrayList<>();

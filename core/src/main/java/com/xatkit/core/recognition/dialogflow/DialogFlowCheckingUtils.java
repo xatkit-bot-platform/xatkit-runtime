@@ -1,5 +1,6 @@
 package com.xatkit.core.recognition.dialogflow;
 
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.EntityDefinition;
@@ -34,8 +35,10 @@ public class DialogFlowCheckingUtils {
      * throw an exception.
      *
      * @param intentDefinition the {@link IntentDefinition} to check the out {@link Context} of
+     * @throws IntentRecognitionProviderException if there is no training sentence containing a provided {@code
+     *                                            intentDefinition}'s parameter fragment
      */
-    public static void checkOutContexts(IntentDefinition intentDefinition) {
+    public static void checkOutContexts(IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
         for (Context outContext : intentDefinition.getOutContexts()) {
             for (ContextParameter contextParameter : outContext.getParameters()) {
                 checkContextParameterFragmentIsValidMappingEntityValue(contextParameter);
@@ -75,14 +78,15 @@ public class DialogFlowCheckingUtils {
      * Checks that the provided {@code parameter}'s fragment is contained in a training sentence of its containing
      * {@link IntentDefinition}.
      * <p>
-     * This method throws a {@link DialogFlowException} if there is no training sentence containing the provided
-     * {@code parameter}'s fragment. Such consistency issue prevents the bot deployment, because it would generate
-     * context parameters that are never matched by the recognition engine.
+     * This method throws a {@link IntentRecognitionProviderException} if there is no training sentence containing
+     * the provided {@code parameter}'s fragment. Such consistency issue prevents the bot deployment, because it
+     * would generate context parameters that are never matched by the recognition engine.
      *
      * @param parameter the {@link ContextParameter} to check
-     * @throws DialogFlowException if there is no training sentence containing the provided {@code paramter}'s fragment
+     * @throws IntentRecognitionProviderException if there is no training sentence containing the provided {@code
+     *                                            paramter}'s fragment
      */
-    private static void checkContextParameterFragmentIsInTrainingSentence(ContextParameter parameter) {
+    private static void checkContextParameterFragmentIsInTrainingSentence(ContextParameter parameter) throws IntentRecognitionProviderException {
         String textFragment = parameter.getTextFragment();
         Context context = (Context) parameter.eContainer();
         if (context.eContainer() instanceof IntentDefinition) {
@@ -90,9 +94,9 @@ public class DialogFlowCheckingUtils {
             Optional<String> fragmentTrainingSentence = intentDefinition.getTrainingSentences().stream().filter
                     (trainingSentence -> trainingSentence.contains(textFragment)).findAny();
             if (!fragmentTrainingSentence.isPresent()) {
-                throw new DialogFlowException(MessageFormat.format("The text fragment {0} is not contained in a " +
-                        "training sentence of intent {1}, cannot deploy the bot, the context parameter {2} " +
-                        "will never be matched", textFragment, intentDefinition.getName(), parameter.getName()));
+                throw new IntentRecognitionProviderException(MessageFormat.format("The text fragment {0} is not " +
+                        "contained in a training sentence of intent {1}, cannot deploy the bot, the context parameter" +
+                        " {2} will never be matched", textFragment, intentDefinition.getName(), parameter.getName()));
             }
         }
     }

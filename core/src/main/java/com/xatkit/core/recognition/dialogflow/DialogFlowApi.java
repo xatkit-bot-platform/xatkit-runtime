@@ -20,6 +20,7 @@ import com.google.protobuf.Value;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowEntityMapper;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowEntityReferenceMapper;
@@ -144,7 +145,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent matching information
      * @throws NullPointerException if the provided {@code eventRegistry}, {@code configuration} or one of the mandatory
      *                              {@code configuration} value is {@code null}.
-     * @throws DialogFlowException  if the client failed to start a new session
+     * @throws XatkitException      if an internal error occurred while creating the DialogFlow connector
      * @see DialogFlowConfiguration
      */
     public DialogFlowApi(@NonNull EventDefinitionRegistry eventRegistry, @NonNull Configuration configuration,
@@ -152,16 +153,26 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
         Log.info("Starting DialogFlow Client");
         this.configuration = new DialogFlowConfiguration(configuration);
         this.projectAgentName = ProjectAgentName.of(this.configuration.getProjectId());
-        this.dialogFlowClients = new DialogFlowClients(this.configuration);
+        try {
+            this.dialogFlowClients = new DialogFlowClients(this.configuration);
+        } catch (IntentRecognitionProviderException e) {
+            throw new XatkitException("An error occurred when creating the DialogFlow clients, see attached " +
+                    "exception", e);
+        }
         this.projectName = ProjectName.of(this.configuration.getProjectId());
         this.dialogFlowEntityReferenceMapper = new DialogFlowEntityReferenceMapper();
         this.dialogFlowIntentMapper = new DialogFlowIntentMapper(this.configuration,
                 this.dialogFlowEntityReferenceMapper);
         this.dialogFlowEntityMapper = new DialogFlowEntityMapper(this.dialogFlowEntityReferenceMapper);
         this.recognizedIntentMapper = new RecognizedIntentMapper(this.configuration, eventRegistry);
-        this.cleanAgent();
-        this.importRegisteredIntents();
-        this.importRegisteredEntities();
+        try {
+            this.cleanAgent();
+            this.importRegisteredIntents();
+            this.importRegisteredEntities();
+        } catch (IntentRecognitionProviderException e) {
+            throw new XatkitException(MessageFormat.format("Cannot start the {0}, see attached exception",
+                    this.getClass().getSimpleName()), e);
+        }
         this.recognitionMonitor = recognitionMonitor;
     }
 
@@ -171,8 +182,10 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * Agent cleaning is enabled by setting the property {@link DialogFlowConfiguration#CLEAN_AGENT_ON_STARTUP_KEY}
      * in the xatkit configuration file, and allows to easily re-deploy bots under development. Production-ready
      * agents should not be cleaned on startup: re-training the ML engine can take a while.
+     *
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    private void cleanAgent() {
+    private void cleanAgent() throws IntentRecognitionProviderException {
         if (this.configuration.isCleanAgentOnStartup()) {
             Log.info("Cleaning agent DialogFlow agent");
             List<Intent> registeredIntents = getRegisteredIntents();
@@ -195,8 +208,10 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * {@link DialogFlowConfiguration#ENABLE_INTENT_LOADING_KEY} property to {@code false} in the provided
      * {@link Configuration}. Note that disabling intents import may generate consistency issues when creating,
      * deleting, and matching intents.
+     *
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    private void importRegisteredIntents() {
+    private void importRegisteredIntents() throws IntentRecognitionProviderException {
         this.registeredIntents = new HashMap<>();
         if (this.configuration.isCleanAgentOnStartup()) {
             Log.info("Skipping intent import, the agent has been cleaned on startup");
@@ -221,8 +236,10 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * {@link DialogFlowConfiguration#ENABLE_ENTITY_LOADING_KEY} property to {@code false} in the provided
      * {@link Configuration}. Note that disabling entities import may generate consistency issues when creating,
      * deleting, and matching intents.
+     *
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    private void importRegisteredEntities() {
+    private void importRegisteredEntities() throws IntentRecognitionProviderException {
         this.registeredEntityTypes = new HashMap<>();
         if (this.configuration.isCleanAgentOnStartup()) {
             Log.info("Skipping entity types import, the agent has been cleaned on startup");
@@ -243,9 +260,9 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * Returns the description of the {@link EntityType}s that are registered in the DialogFlow project.
      *
      * @return the descriptions of the {@link EntityType}s that are registered in the DialogFlow project
-     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    private List<EntityType> getRegisteredEntityTypes() {
+    private List<EntityType> getRegisteredEntityTypes() throws IntentRecognitionProviderException {
         checkNotShutdown();
         List<EntityType> registeredEntityTypes = new ArrayList<>();
         for (EntityType entityType :
@@ -261,9 +278,9 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * The partial descriptions of the {@link Intent}s does not include the {@code training phrases}.
      *
      * @return the partial descriptions of the {@link Intent}s that are registered in the DialogFlow project
-     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    private List<Intent> getRegisteredIntents() {
+    private List<Intent> getRegisteredIntents() throws IntentRecognitionProviderException {
         checkNotShutdown();
         List<Intent> registeredIntents = new ArrayList<>();
         for (Intent intent : this.dialogFlowClients.getIntentsClient().listIntents(projectAgentName).iterateAll()) {
@@ -279,10 +296,9 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * DialogFlow {@link EntityType} and add it to the current project.
      *
      * @param entityDefinition the {@link EntityDefinition} to register to the DialogFlow project
-     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown, or if the {@link EntityType} already
-     *                             exists in the DialogFlow project
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
-    public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) {
+    public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
         checkNotShutdown();
         if (entityDefinition instanceof BaseEntityDefinition) {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
@@ -307,16 +323,17 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
                                     entityType);
                     this.registeredEntityTypes.put(entityDefinition.getName(), createdEntityType);
                 } catch (FailedPreconditionException e) {
-                    throw new DialogFlowException(MessageFormat.format("Cannot register the entity {0}, the entity " +
-                            "already exists", entityDefinition), e);
+                    throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
+                            "{0}, the entity already exists", entityDefinition), e);
                 }
             } else {
                 Log.debug("{0} {1} is already registered", EntityType.class.getSimpleName(),
                         entityDefinition.getName());
             }
         } else {
-            throw new DialogFlowException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
-                    entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the provided {0}, " +
+                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+                    EntityDefinition.class.getSimpleName()));
         }
     }
 
@@ -341,7 +358,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
                      */
                     try {
                         this.registerEntityDefinition(referredEntityDefinition);
-                    } catch (DialogFlowException e) {
+                    } catch (IntentRecognitionProviderException e) {
                         /*
                          * Simply log a warning here, the entity may have been registered before.
                          */
@@ -359,18 +376,17 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * DialogFlow {@link Intent} and add it to the current project.
      *
      * @param intentDefinition the {@link IntentDefinition} to register to the DialogFlow project
-     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown, or if the {@link Intent} already exists in
-     *                             the DialogFlow project
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      * @see DialogFlowIntentMapper
      */
     @Override
-    public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) {
+    public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkNotNull(intentDefinition.getName(), "Cannot register the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName());
         if (this.registeredIntents.containsKey(intentDefinition.getName())) {
-            throw new DialogFlowException(MessageFormat.format("Cannot register the intent {0}, the intent " +
-                    "already exists", intentDefinition.getName()));
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the intent {0}, the " +
+                    "intent already exists", intentDefinition.getName()));
         }
         Log.debug("Registering DialogFlow intent {0}", intentDefinition.getName());
         Intent intent = dialogFlowIntentMapper.mapIntentDefinition(intentDefinition);
@@ -380,8 +396,8 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
             Log.debug("Intent {0} successfully registered", response.getDisplayName());
         } catch (FailedPreconditionException | InvalidArgumentException e) {
             if (e.getMessage().contains("already exists")) {
-                throw new DialogFlowException(MessageFormat.format("Cannot register the intent {0}, the intent " +
-                        "already exists", intentDefinition.getName()), e);
+                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the intent {0}, " +
+                        "the intent already exists", intentDefinition.getName()), e);
             }
         }
     }
@@ -389,10 +405,10 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
     /**
      * {@inheritDoc}
      *
-     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
+     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
     @Override
-    public void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) {
+    public void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
         checkNotShutdown();
         if (entityDefinition instanceof BaseEntityDefinition) {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
@@ -423,8 +439,8 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
             try {
                 this.dialogFlowClients.getEntityTypesClient().deleteEntityType(entityType.getName());
             } catch (InvalidArgumentException e) {
-                throw new DialogFlowException(MessageFormat.format("An error occurred while deleting entity {0}",
-                        entityDefinition.getName()), e);
+                throw new IntentRecognitionProviderException(MessageFormat.format("An error occurred while deleting " +
+                        "entity {0}", entityDefinition.getName()), e);
             }
             Log.debug("{0} {1} successfully deleted", EntityType.class.getSimpleName(), entityType.getDisplayName());
             /*
@@ -432,18 +448,19 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
              */
             this.registeredEntityTypes.remove(entityType.getDisplayName());
         } else {
-            throw new DialogFlowException(MessageFormat.format("Cannot delete the provided {0}, unsupported {1}",
-                    entityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot delete the provided {0}, " +
+                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+                    EntityDefinition.class.getSimpleName()));
         }
     }
 
     /**
      * {@inheritDoc}
      *
-     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      */
     @Override
-    public void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) {
+    public void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkNotNull(intentDefinition.getName(), "Cannot delete the IntentDefinition with null as its name");
         /*
@@ -478,11 +495,9 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * This method checks every second whether the underlying ML Engine has finished its training. Note that this
      * method is blocking as long as the ML Engine training is not terminated, and may not terminate if an issue
      * occurred on the DialogFlow side.
-     *
-     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
      */
     @Override
-    public void trainMLEngine() {
+    public void trainMLEngine() throws IntentRecognitionProviderException {
         checkNotShutdown();
         Log.info("Starting ML Engine Training (this may take a few minutes)");
         TrainAgentRequest request = TrainAgentRequest.newBuilder()
@@ -492,7 +507,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
-            throw new DialogFlowException("An error occurred during the DialogFlow agent training", e);
+            throw new IntentRecognitionProviderException("An error occurred during the DialogFlow agent training", e);
         }
         Log.warn("Cannot check if the DialogFlow agent has been trained, assuming it is. If the bot does not behave " +
                 "as expected try to restart it (see this issue for more information https://github" +
@@ -523,10 +538,10 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * The returned {@link XatkitSession} is configured by the global {@link Configuration} provided in
      * {@link #DialogFlowApi(EventDefinitionRegistry, Configuration, RecognitionMonitor)}.
      *
-     * @throws DialogFlowException if the {@link DialogFlowApi} is shutdown
+     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
     @Override
-    public XatkitSession createSession(@NonNull String sessionId) {
+    public XatkitSession createSession(@NonNull String sessionId) throws IntentRecognitionProviderException {
         checkNotShutdown();
         SessionName sessionName = SessionName.of(this.configuration.getProjectId(), sessionId);
         return new DialogFlowSession(sessionName, this.configuration.getBaseConfiguration());
@@ -641,11 +656,9 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      *
      * @throws NullPointerException     if the provided {@code input} or {@code session} is {@code null}
      * @throws IllegalArgumentException if the provided {@code input} is empty
-     * @throws DialogFlowException      if the {@link DialogFlowApi} is shutdown or if an exception is thrown by the
-     *                                  underlying DialogFlow engine
      */
     @Override
-    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session) {
+    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session) throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         checkArgument(session instanceof DialogFlowSession, "Cannot handle the message, expected session type to be " +
@@ -667,7 +680,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
                     this.dialogFlowClients.getSessionsClient().detectIntent(((DialogFlowSession) session).getSessionName(),
                             queryInput);
         } catch (Exception e) {
-            throw new DialogFlowException(e);
+            throw new IntentRecognitionProviderException(e);
         }
         QueryResult queryResult = response.getQueryResult();
         RecognizedIntent recognizedIntent = recognizedIntentMapper.mapQueryResult(queryResult);
@@ -681,7 +694,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * {@inheritDoc}
      */
     @Override
-    public void shutdown() {
+    public void shutdown() throws IntentRecognitionProviderException {
         checkNotShutdown();
         this.dialogFlowClients.shutdown();
         if (nonNull(this.recognitionMonitor)) {
@@ -690,17 +703,18 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
     }
 
     /**
-     * Throws a {@link DialogFlowException} if the provided {@link DialogFlowApi} is shutdown.
+     * Throws a {@link IntentRecognitionProviderException} if the provided {@link DialogFlowApi} is shutdown.
      * <p>
      * This method is typically called in methods that need to interact with the DialogFlow API, and cannot complete
      * if the connector is shutdown.
      *
-     * @throws DialogFlowException  if the provided {@code dialogFlowApi} is shutdown
-     * @throws NullPointerException if the provided {@code dialogFlowApi} is {@code null}
+     * @throws IntentRecognitionProviderException if the provided {@code dialogFlowApi} is shutdown
+     * @throws NullPointerException               if the provided {@code dialogFlowApi} is {@code null}
      */
-    private void checkNotShutdown() throws DialogFlowException {
+    private void checkNotShutdown() throws IntentRecognitionProviderException {
         if (this.isShutdown()) {
-            throw new DialogFlowException("Cannot perform the operation, the DialogFlow API is shutdown");
+            throw new IntentRecognitionProviderException("Cannot perform the operation, the DialogFlow API is " +
+                    "shutdown");
         }
     }
 

@@ -1,8 +1,10 @@
 package com.xatkit.core.recognition.dialogflow;
 
 import com.xatkit.core.EventDefinitionRegistry;
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderTest;
 import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.test.util.VariableLoaderHelper;
 import fr.inria.atlanmod.commons.log.Log;
@@ -41,7 +43,7 @@ public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowA
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws IntentRecognitionProviderException {
         if (nonNull(registeredIntentDefinition) || !registeredEntityDefinitions.isEmpty()) {
             if (isNull(intentRecognitionProvider)) {
                 /*
@@ -63,21 +65,27 @@ public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowA
              * First retrieve the CompositeEntityDefinitions and remove them, otherwise the framework will throw an
              * error when attempting to remove a MappingEntityDefinition that is referenced from a Composite one.
              */
-            registeredEntityDefinitions.stream().filter(e -> e instanceof CompositeEntityDefinition)
-                    .forEach(e -> intentRecognitionProvider.deleteEntityDefinition(e));
+            for (EntityDefinition registeredEntityDefinition : registeredEntityDefinitions) {
+                if (registeredEntityDefinition instanceof CompositeEntityDefinition) {
+                    intentRecognitionProvider.deleteEntityDefinition(registeredEntityDefinition);
+                }
+            }
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
                 Log.error(e);
             }
-            registeredEntityDefinitions.stream().filter(e -> e instanceof MappingEntityDefinition)
-                    .forEach(e -> intentRecognitionProvider.deleteEntityDefinition(e));
+            for (EntityDefinition e : registeredEntityDefinitions) {
+                if (e instanceof MappingEntityDefinition) {
+                    intentRecognitionProvider.deleteEntityDefinition(e);
+                }
+            }
             registeredEntityDefinitions.clear();
         }
         if (nonNull(intentRecognitionProvider)) {
             try {
                 intentRecognitionProvider.shutdown();
-            } catch (DialogFlowException e) {
+            } catch (IntentRecognitionProviderException e) {
                 /*
                  * Already shutdown, ignore.
                  */
@@ -96,21 +104,21 @@ public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowA
     }
 
     @Test
-    public void registerIntentDefinitionAlreadyRegistered() {
+    public void registerIntentDefinitionAlreadyRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
-        assertThatThrownBy(() -> intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition)).isInstanceOf(DialogFlowException.class);
+        assertThatThrownBy(() -> intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition)).isInstanceOf(IntentRecognitionProviderException.class);
     }
 
     @Test
-    public void deleteEntityReferencedInIntent() {
+    public void deleteEntityReferencedInIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
         intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
         registeredIntentDefinition = testBotExecutionModel.getMappingEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
-        assertThatThrownBy(() -> intentRecognitionProvider.deleteEntityDefinition(testBotExecutionModel.getMappingEntity())).isInstanceOf(DialogFlowException.class);
+        assertThatThrownBy(() -> intentRecognitionProvider.deleteEntityDefinition(testBotExecutionModel.getMappingEntity())).isInstanceOf(IntentRecognitionProviderException.class);
     }
 
     @Override

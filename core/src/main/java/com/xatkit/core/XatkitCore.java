@@ -246,7 +246,11 @@ public class XatkitCore {
              * New intents have been registered in the IntentRecognitionProvider, we should explicitly ask the
              * ML Engine to train in order to take them into account.
              */
-            intentRecognitionProvider.trainMLEngine();
+            try {
+                intentRecognitionProvider.trainMLEngine();
+            } catch (IntentRecognitionProviderException e) {
+                Log.error("Cannot train the ML engine, see attached exception", e);
+            }
         }
     }
 
@@ -507,7 +511,12 @@ public class XatkitCore {
     public XatkitSession getOrCreateXatkitSession(@NonNull String sessionId) {
         XatkitSession session = getXatkitSession(sessionId);
         if (isNull(session)) {
-            session = this.intentRecognitionProvider.createSession(sessionId);
+            try {
+                session = this.intentRecognitionProvider.createSession(sessionId);
+            } catch (IntentRecognitionProviderException e) {
+                throw new XatkitException(MessageFormat.format("Cannot create session {0}, see attached exception",
+                        sessionId), e);
+            }
             sessions.put(sessionId, session);
             /*
              * The executor service takes care of configuring the new session and setting the init state.

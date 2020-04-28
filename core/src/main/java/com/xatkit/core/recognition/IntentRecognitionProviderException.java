@@ -1,12 +1,10 @@
 package com.xatkit.core.recognition;
 
 
-import com.xatkit.core.XatkitException;
-
 /**
  * Wraps all the exceptions thrown by the {@link IntentRecognitionProvider}s.
  */
-public class IntentRecognitionProviderException extends XatkitException {
+public class IntentRecognitionProviderException extends Exception {
 
     /**
      * Constructs a new {@link IntentRecognitionProviderException}.
@@ -56,7 +54,6 @@ public class IntentRecognitionProviderException extends XatkitException {
      * @param cause              the exception's cause
      * @param enableSuppression  whether or not suppression is enabled or disabled
      * @param writableStackTrace whether or not stack trace should be writable
-     * @see RuntimeException#RuntimeException(String, Throwable, boolean, boolean)
      */
     public IntentRecognitionProviderException(String message, Throwable cause, boolean enableSuppression, boolean
             writableStackTrace) {

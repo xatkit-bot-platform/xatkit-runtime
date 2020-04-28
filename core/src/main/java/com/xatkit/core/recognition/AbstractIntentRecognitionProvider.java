@@ -55,6 +55,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
 
     /**
      * {@inheritDoc}
+     *
      * @throws NullPointerException if the provided {@code postProcessors} is {@code null}
      */
     @Override
@@ -80,50 +81,45 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
 
     /**
      * {@inheritDoc}
-     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
     @Override
-    public abstract void registerEntityDefinition(@NonNull EntityDefinition entityDefinition);
-
-    /**
-     * {@inheritDoc}
-     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
-     */
-    @Override
-    public abstract void registerIntentDefinition(@NonNull IntentDefinition intentDefinition);
-
-    /**
-     * {@inheritDoc}
-     * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
-     */
-    @Override
-    public abstract void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition);
-
-    /**
-     * {@inheritDoc}
-     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
-     */
-    @Override
-    public abstract void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition);
+    public abstract void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public abstract void trainMLEngine();
-
-    /**
-     * {@inheritDoc}
-     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
-     */
-    @Override
-    public abstract XatkitSession createSession(@NonNull String sessionId);
+    public abstract void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public abstract void shutdown();
+    public abstract void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public abstract void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public abstract void trainMLEngine() throws IntentRecognitionProviderException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public abstract XatkitSession createSession(@NonNull String sessionId) throws IntentRecognitionProviderException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public abstract void shutdown() throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
@@ -135,7 +131,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public final RecognizedIntent getIntent(@NonNull String input, @NonNull XatkitSession session) {
+    public final RecognizedIntent getIntent(@NonNull String input, @NonNull XatkitSession session) throws IntentRecognitionProviderException {
         String preProcessedInput = input;
         for (InputPreProcessor preProcessor : this.preProcessors) {
             long preStart = System.currentTimeMillis();
@@ -170,9 +166,10 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * @param input   the textual input to process and extract the intent from
      * @param session the {@link XatkitSession} used to access context information
      * @return the {@link RecognizedIntent} extracted from the provided {@code input} and {@code session}
-     * @throws NullPointerException if the provided {@code input} or {@code session} is {@code null}
+     * @throws NullPointerException               if the provided {@code input} or {@code session} is {@code null}
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    protected abstract RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session);
+    protected abstract RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session) throws IntentRecognitionProviderException;
 
     /**
      * Returns the {@link RecognitionMonitor} associated to this intent recognition provider.

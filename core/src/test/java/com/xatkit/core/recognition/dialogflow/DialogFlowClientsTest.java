@@ -1,5 +1,6 @@
 package com.xatkit.core.recognition.dialogflow;
 
+import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -34,12 +35,12 @@ public class DialogFlowClientsTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructNullConfiguration() {
+    public void constructNullConfiguration() throws IntentRecognitionProviderException {
         dialogFlowClients = new DialogFlowClients(null);
     }
 
     @Test
-    public void constructValidConfiguration() {
+    public void constructValidConfiguration() throws IntentRecognitionProviderException {
         dialogFlowClients = new DialogFlowClients(validConfiguration);
         assertThat(dialogFlowClients).isNotNull();
         assertThat(dialogFlowClients.isShutdown()).isFalse();
@@ -55,8 +56,8 @@ public class DialogFlowClientsTest {
         assertThat(dialogFlowClients.getContextsClient().isShutdown()).isFalse();
     }
 
-    @Test(expected = DialogFlowException.class)
-    public void constructNoPathInConfiguration() {
+    @Test(expected = IntentRecognitionProviderException.class)
+    public void constructNoPathInConfiguration() throws IntentRecognitionProviderException {
         Configuration configuration = this.validConfiguration.getBaseConfiguration();
         configuration.setProperty(DialogFlowConfiguration.GOOGLE_CREDENTIALS_PATH_KEY, null);
         DialogFlowConfiguration dialogFlowConfiguration = new DialogFlowConfiguration(configuration);
@@ -64,7 +65,7 @@ public class DialogFlowClientsTest {
     }
 
     @Test
-    public void shutdown() {
+    public void shutdown() throws IntentRecognitionProviderException {
         dialogFlowClients = new DialogFlowClients(validConfiguration);
         dialogFlowClients.shutdown();
         assertThat(dialogFlowClients.isShutdown()).isTrue();
