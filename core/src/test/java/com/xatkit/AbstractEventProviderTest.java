@@ -3,12 +3,14 @@ package com.xatkit;
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
+import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.session.XatkitSession;
 import org.junit.After;
 import org.junit.Before;
 
 import static java.util.Objects.nonNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * A generic test case that defines utility methods to test {@link RuntimeEventProvider} subclasses.
@@ -38,11 +40,20 @@ public abstract class AbstractEventProviderTest<E extends RuntimeEventProvider<P
     protected XatkitCore mockedXatkitCore;
 
     /**
+     * A mock of the {@link IntentRecognitionProvider}.
+     * <p>
+     * This mock is returned when calling {@code mockedXatkitCore.getIntentRecognitionProvider()}.
+     */
+    protected IntentRecognitionProvider mockedIntentRecognitionProvider;
+
+    /**
      * Initializes the {@link RuntimePlatform} and the empty {@link XatkitSession}.
      */
     @Before
     public void setUp() {
         mockedXatkitCore = mock(XatkitCore.class);
+        mockedIntentRecognitionProvider = mock(IntentRecognitionProvider.class);
+        when(mockedXatkitCore.getIntentRecognitionProvider()).thenReturn(mockedIntentRecognitionProvider);
         platform = getPlatform();
     }
 
