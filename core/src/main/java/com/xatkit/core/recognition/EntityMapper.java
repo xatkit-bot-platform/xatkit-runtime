@@ -21,7 +21,7 @@ import static java.util.Objects.nonNull;
  * <p>
  * This class is configured through the {@link #addEntityMapping(EntityType, String)} method, that allows to specify a
  * mapping from an abstract entity to a concrete entity name. This mapping is used to retrieve
- * {@link IntentRecognitionProvider} specific entities, and deploy xatkit generically on different platforms.
+ * {@link IntentRecognitionProvider}'s specific entities, and deploy xatkit generically on different platforms.
  * <p>
  * This class also defines the {@link #setFallbackEntityMapping(String)}, that allows to handle abstract entities
  * that do not have a concrete mapping in the {@link IntentRecognitionProvider} platform.
@@ -153,7 +153,7 @@ public class EntityMapper {
      * Sets the default mapping for {@code abstractEntities} that are not mapped to concrete implementations.
      * <p>
      * This method allows to specify a {@code concreteEntity} that will be mapped to all the {@code abstractEntities}
-     * that does not have a direct implementation in the {@link IntentRecognitionProvider} platform. (see
+     * that does not have a direct implementation in the {@link AbstractIntentRecognitionProvider} platform. (see
      * {@link #getMappingFor(EntityType)}).
      *
      * @param concreteEntity the {@link String} representing the concrete entity to use as fallback entity

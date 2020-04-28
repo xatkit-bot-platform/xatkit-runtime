@@ -3,7 +3,6 @@ package com.xatkit.core.session;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameter;
@@ -319,7 +318,7 @@ public class RuntimeContexts {
      * <p>
      * Context lifespan counts are set by {@link #setContextValue(String, int, String, Object)}, and decrementing after
      * each user input by {@link #decrementLifespanCounts()}, and are synchronized with the
-     * {@link IntentRecognitionProvider}'s remote context lifespan counts.
+     * {@link com.xatkit.core.recognition.IntentRecognitionProvider}'s remote context lifespan counts.
      *
      * @param context the context to retrieve the lifespan count of
      * @return the lifespan count of the provided {@code context}

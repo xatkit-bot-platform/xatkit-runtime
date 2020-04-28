@@ -19,7 +19,7 @@ import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.recognition.IntentRecognitionProvider;
+import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowEntityMapper;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowEntityReferenceMapper;
@@ -51,13 +51,13 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * A {@link IntentRecognitionProvider} implementation for the DialogFlow API.
+ * An {@link AbstractIntentRecognitionProvider} bound to the DialogFlow API.
  * <p>
  * This class is used to easily setup a connection to a given DialogFlow agent. The behavior of this connector can be
  * customized in the Xatkit {@link Configuration}, see {@link DialogFlowConfiguration} for more information on the
  * configuration options.
  */
-public class DialogFlowApi extends IntentRecognitionProvider {
+public class DialogFlowApi extends AbstractIntentRecognitionProvider {
 
     /**
      * The {@link DialogFlowConfiguration} extracted from the provided {@link Configuration}.

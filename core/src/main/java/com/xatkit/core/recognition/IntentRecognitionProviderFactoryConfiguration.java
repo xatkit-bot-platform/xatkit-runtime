@@ -33,7 +33,7 @@ public class IntentRecognitionProviderFactoryConfiguration {
 
     /**
      * The {@link Configuration} key used to specify the
-     * {@link com.xatkit.core.recognition.processor.InputPreProcessor}s to add to the created created
+     * {@link com.xatkit.core.recognition.processor.InputPreProcessor}s to add to the created
      * {@link IntentRecognitionProvider}.
      * <p>
      * {@link com.xatkit.core.recognition.processor.InputPreProcessor}s are specified as a comma-separated list of

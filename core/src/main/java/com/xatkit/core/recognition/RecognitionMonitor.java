@@ -209,17 +209,17 @@ public class RecognitionMonitor {
                         int sessionMatchedCount = sessionObject.get("matchedUtteranceCount").getAsInt();
                         matchedCount += sessionMatchedCount;
                         unmatchedCount += sessionObject.get("unmatchedUtteranceCount").getAsInt();
-                        if(sessionObject.has("avgSessionConfidence")) {
+                        if (sessionObject.has("avgSessionConfidence")) {
                             double avgSessionConfidence = sessionObject.get("avgSessionConfidence").getAsDouble();
-                            accRecognitionConfidence += avgSessionConfidence * (double)sessionMatchedCount;
+                            accRecognitionConfidence += avgSessionConfidence * (double) sessionMatchedCount;
                         }
                         nSessions++;
                         sessionsArray.add(sessionObject);
                     }
                     JsonObject globalInfo = new JsonObject();
                     globalInfo.addProperty("nSessions", nSessions);
-                    double aux = accRecognitionConfidence/(double) matchedCount;
-                    if(!Double.isNaN(aux) && Double.isFinite(aux)) {
+                    double aux = accRecognitionConfidence / (double) matchedCount;
+                    if (!Double.isNaN(aux) && Double.isFinite(aux)) {
                         globalInfo.addProperty("avgRecognitionConfidence", aux);
                     }
                     globalInfo.addProperty("totalUnmatchedUtterances", unmatchedCount);
@@ -285,11 +285,11 @@ public class RecognitionMonitor {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/session",
                 RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
                     String sessionId = HttpUtils.getParameterValue("sessionId", params);
-                    if(isNull(sessionId)) {
+                    if (isNull(sessionId)) {
                         throw new RestHandlerException(404, "Missing parameter sessionId");
                     }
                     Map<Long, IntentRecord> sessionRecords = records.get(sessionId);
-                    if(isNull(sessionRecords)) {
+                    if (isNull(sessionRecords)) {
                         throw new RestHandlerException(404, "Session " + sessionId + " not found");
                     } else {
                         return buildSessionObject(sessionId, sessionRecords);
@@ -485,9 +485,9 @@ public class RecognitionMonitor {
         }
         sessionObject.add("matchedUtteranceCount", new JsonPrimitive(matchedCount));
         sessionObject.add("unmatchedUtteranceCount", new JsonPrimitive(unmatchedCount));
-        if(matchedCount > 0) {
+        if (matchedCount > 0) {
             sessionObject.add("avgSessionConfidence",
-                    new JsonPrimitive(accConfidence/(double)matchedCount));
+                    new JsonPrimitive(accConfidence / (double) matchedCount));
         }
         return sessionObject;
     }
@@ -495,7 +495,7 @@ public class RecognitionMonitor {
     /**
      * Logs the recognition information from the provided {@code recognizedIntent} and {@code session}.
      *
-     * @param session the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
+     * @param session          the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
      * @param recognizedIntent the {@link RecognizedIntent} to log
      */
     public void logRecognizedIntent(XatkitSession session, RecognizedIntent recognizedIntent) {

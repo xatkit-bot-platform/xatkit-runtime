@@ -1,7 +1,6 @@
 package com.xatkit.core.platform.io;
 
 import com.xatkit.core.XatkitCore;
-import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
@@ -21,9 +20,9 @@ public class IntentRecognitionHelper {
      * Returns the {@link RecognizedIntent} from the provided user {@code input} and {@code session}.
      * <p>
      * This uses the provided {@code xatkitCore} to wrap the access to the underlying
-     * {@link IntentRecognitionProvider}, and avoid uncontrolled accesses to the
-     * {@link IntentRecognitionProvider} from {@link RuntimeEventProvider}s (such as intent creation,
-     * removal, and context manipulation).
+     * {@link com.xatkit.core.recognition.IntentRecognitionProvider}, and avoid uncontrolled accesses to the
+     * {@link com.xatkit.core.recognition.IntentRecognitionProvider} from {@link RuntimeEventProvider}s (such as
+     * intent creation, removal, and context manipulation).
      * <p>
      * <b>Note:</b> this method decrements the lifespan counts of the variables in the current context (context
      * lifespan are used to represent the number of user interaction to handled before deleting the variable).
@@ -32,12 +31,16 @@ public class IntentRecognitionHelper {
      * 1} will be immediately removed by the {@link RuntimeContexts#decrementLifespanCounts()} call).
      *
      * @param input   the textual user input to extract the {@link RecognizedIntent} from
-     * @param session the {@link XatkitSession} wrapping the underlying {@link IntentRecognitionProvider}'s session
-     * @return the {@link RecognizedIntent} computed by the {@link IntentRecognitionProvider}
+     * @param session the {@link XatkitSession} wrapping the underlying
+     *                {@link com.xatkit.core.recognition.IntentRecognitionProvider}'s session
+     * @return the {@link RecognizedIntent} computed by the
+     * {@link com.xatkit.core.recognition.IntentRecognitionProvider}
      * @throws NullPointerException               if the provided {@code text} or {@code session} is {@code null}
      * @throws IllegalArgumentException           if the provided {@code text} is empty
-     * @throws IntentRecognitionProviderException if the {@link IntentRecognitionProvider} is shutdown or if an
-     *                                            exception is thrown by the underlying intent recognition engine
+     * @throws IntentRecognitionProviderException if the
+     *                                            {@link com.xatkit.core.recognition.IntentRecognitionProvider} is
+     *                                            shutdown or if an exception is thrown by the
+     *                                            underlying intent recognition engine
      */
     public static RecognizedIntent getRecognizedIntent(String input, XatkitSession session, XatkitCore xatkitCore) {
         session.getRuntimeContexts().decrementLifespanCounts();

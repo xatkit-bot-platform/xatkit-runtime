@@ -1,8 +1,8 @@
 package com.xatkit.core.recognition.regex;
 
 import com.xatkit.core.XatkitCore;
+import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.EntityMapper;
-import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.session.RuntimeContexts;
@@ -42,26 +42,27 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * A default {@link IntentRecognitionProvider} that relies on RegExp to match user inputs.
+ * A {@link AbstractIntentRecognitionProvider} relying on RegExp to match user inputs.
  * <p>
  * This intent provider is designed to handle bot prototyping with a minimal support to match user inputs using
  * RegExp {@link Pattern}s. This provider should not be used if advanced input extraction capabilities are required.
  * <p>
  * <b>Note</b>: this class uses strict patterns that perform <b>exact</b> matches of the input. This exact
- * matching is case sensitive. You can check alternative {@link IntentRecognitionProvider}s if you need to
- * support advanced features such as partial matches.
+ * matching is case sensitive. You can check alternative
+ * {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support advanced features such as
+ * partial matches.
  * <p>
  * <b>Note</b>: the {@link RegExIntentRecognitionProvider} translates {@link EntityType}s into single-word
  * patterns. This means that the {@code any} entity will match "test", but not "test test", you can check
- * alternative {@link IntentRecognitionProvider}s if you need to support such features.
+ * alternative {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support such features.
  * <p>
  * The {@link RegExIntentRecognitionProvider} will be used by Xatkit if the application's {@link Configuration}
- * file does not contain specific {@link IntentRecognitionProvider} properties (see
+ * file does not contain specific {@link com.xatkit.core.recognition.IntentRecognitionProvider} properties (see
  * {@link IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitCore, Configuration)}).
  *
  * @see IntentRecognitionProviderFactory
  */
-public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
+public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
 
     /**
      * The delimiter used to separate context and parameter names in RegExp group names.
@@ -356,7 +357,7 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
     /**
      * This provider does not rely on any ML engine, calling this method does not do anything.
      * <p>
-     * Use valid {@link IntentRecognitionProvider}s to enable ML training.
+     * Use valid {@link com.xatkit.core.recognition.IntentRecognitionProvider}s to enable ML training.
      */
     @Override
     public void trainMLEngine() {
@@ -413,12 +414,13 @@ public class RegExIntentRecognitionProvider extends IntentRecognitionProvider {
      * {@code input} the returned {@link RecognizedIntent}'s definition will be the {@link #DEFAULT_FALLBACK_INTENT}.
      * <p>
      * <b>Note</b>: this class uses strict patterns that perform <b>exact</b> matches of the input. This exact
-     * matching is case sensitive. You can check alternative {@link IntentRecognitionProvider}s if you need to
-     * support advanced features such as partial matches.
+     * matching is case sensitive. You can check alternative
+     * {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support advanced features such
+     * as partial matches.
      * <p>
      * <b>Note</b>: the {@link RegExIntentRecognitionProvider} translates {@link EntityType}s into single-word
      * patterns. This means that the {@code any} entity will match "test", but not "test test", you can check
-     * alternative {@link IntentRecognitionProvider}s if you need to support such features.
+     * alternative {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support such features.
      *
      * @param input   the {@link String} representing the textual input to process and extract the intent from
      * @param session the {@link XatkitSession} used to access context information

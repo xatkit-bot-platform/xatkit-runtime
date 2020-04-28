@@ -36,27 +36,29 @@ import java.util.stream.Collectors;
 public class IntentRecognitionProviderFactory {
 
     /**
-     * Returns the {@link IntentRecognitionProvider} matching the provided {@code configuration}.
+     * Returns the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}.
      * <p>
-     * If the provided {@code configuration} does not define any {@link IntentRecognitionProvider}, a
+     * If the provided {@code configuration} does not define any {@link AbstractIntentRecognitionProvider}, a
      * {@link RegExIntentRecognitionProvider} is returned, providing minimal support to {@link XatkitSession}
      * management.
      * <p>
-     * The created {@link IntentRecognitionProvider} embeds a {@link RecognitionMonitor} that logs monitoring
+     * The created {@link AbstractIntentRecognitionProvider} embeds a {@link RecognitionMonitor} that logs monitoring
      * information regarding the intent recognition. The {@link RecognitionMonitor} can be disabled by setting the
      * {@link IntentRecognitionProviderFactoryConfiguration#ENABLE_RECOGNITION_ANALYTICS} property to {@code false}
      * in the configuration.
      * <p>
      * This method retrieves the list of {@link InputPreProcessor}s and {@link IntentPostProcessor}s from the
-     * provided {@code configuration} and bind them to the returned {@link IntentRecognitionProvider}. Pre/post
+     * provided {@code configuration} and bind them to the returned {@link AbstractIntentRecognitionProvider}. Pre/post
      * -processors are specified with the configuration keys
      * {@link IntentRecognitionProviderFactoryConfiguration#RECOGNITION_PREPROCESSORS_KEY} and
      * {@link IntentRecognitionProviderFactoryConfiguration#RECOGNITION_POSTPROCESSORS_KEY}, respectively, and are
      * specified as comma-separated list of processor's names.
      *
-     * @param xatkitCore        the {@link XatkitCore} instance to build the {@link IntentRecognitionProvider} from
-     * @param baseConfiguration the {@link Configuration} used to define the {@link IntentRecognitionProvider} to build
-     * @return the {@link IntentRecognitionProvider} matching the provided {@code configuration}
+     * @param xatkitCore        the {@link XatkitCore} instance to build the
+     * {@link AbstractIntentRecognitionProvider} from
+     * @param baseConfiguration the {@link Configuration} used to define the
+     * {@link AbstractIntentRecognitionProvider} to build
+     * @return the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}
      * @throws XatkitException      if an error occurred when loading the pre/post processors.
      * @throws NullPointerException if the provided {@code xatkitCore} is {@code null}
      * @see IntentRecognitionProviderFactoryConfiguration#RECOGNITION_PREPROCESSORS_KEY

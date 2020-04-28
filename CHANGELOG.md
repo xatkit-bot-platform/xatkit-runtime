@@ -30,6 +30,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - Monitoring endpoint `GET: /analytics/monitoring/session` now returns a `404` with an error message if the `sessionId` parameter is missing or if the corresponding session cannot be found. **This change breaks the public API**: client application expecting a status code `200` should be updated.
 - `EventInstanceBuilder#build()` now logs a `DEBUG` message for each parameter that has not been assigned a value. This change does not break the public API: the check only produces log messages that can be used to spot changes in external APIs.
 - `XatkitSession` now logs a message when constructed. This eases the reading of raw logs. The similar log message already defined in `DialogFlowApi` has been removed (this change tracks session created from any `IntentRecognitionProvider`).
+- `IntentRecognitionProvider` is now an interface, the abstract implementation including pre/post processing has been moved to `AbstractIntentRecognitionProvider`. This changes allows to mock `IntentRecognitionProvider`. **This change breaks the public API**.
 
 ## Removed
 

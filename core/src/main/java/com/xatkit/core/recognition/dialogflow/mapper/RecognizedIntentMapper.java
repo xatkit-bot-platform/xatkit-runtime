@@ -7,6 +7,7 @@ import com.google.cloud.dialogflow.v2.QueryResult;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.xatkit.core.EventDefinitionRegistry;
+import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.ContextInstance;
@@ -175,7 +176,7 @@ public class RecognizedIntentMapper {
      * <p>
      * This method looks in the {@link EventDefinitionRegistry} for an {@link IntentDefinition} associated to the
      * provided {@code intent}'s name and returns it. If there is no such {@link IntentDefinition} the
-     * {@link com.xatkit.core.recognition.IntentRecognitionProvider#DEFAULT_FALLBACK_INTENT} is returned.
+     * {@link AbstractIntentRecognitionProvider#DEFAULT_FALLBACK_INTENT} is returned.
      *
      * @param intent the DialogFlow {@link Intent} to retrieve the Xatkit {@link IntentDefinition} from
      * @return the {@link IntentDefinition} associated to the provided {@code intent}
