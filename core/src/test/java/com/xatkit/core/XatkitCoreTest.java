@@ -106,9 +106,9 @@ public class XatkitCoreTest extends AbstractXatkitTest {
         assertThat(session.getSessionId()).as("Valid session ID").contains("sessionID");
         assertThat(session.getRuntimeContexts()).as("Not null session context").isNotNull();
         /*
-         * Size = 4 because we have 4 outgoing transitions using intents in Init.
+         * Size = 5 because we have 5 outgoing transitions using intents in Init.
          */
-        assertThat(session.getRuntimeContexts().getContextMap()).hasSize(4);
+        assertThat(session.getRuntimeContexts().getContextMap()).hasSize(5);
     }
 
     @Test
