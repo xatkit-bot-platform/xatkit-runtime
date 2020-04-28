@@ -30,6 +30,9 @@ public class TestBotExecutionModel {
     private IntentDefinition compositeEntityIntent;
 
     @Getter
+    private IntentDefinition contextCheckingIntent;
+
+    @Getter
     private MappingEntityDefinition mappingEntity;
 
     @Getter
@@ -78,6 +81,14 @@ public class TestBotExecutionModel {
                                     "(value: {1})", intent.toString(), compositeEntityIntent.toString()));
                         }
                         break;
+                    case "ContextCheckingIntent":
+                        if(isNull(contextCheckingIntent)) {
+                            contextCheckingIntent = intent;
+                        } else {
+                            throw new IllegalStateException(MessageFormat.format("Cannot initialize the " +
+                                    "contextCheckingIntent field with {0}, the field has been set already " +
+                                    "(value: {1})", intent.toString(), contextCheckingIntent.toString()));
+                        }
                 }
             }
         }

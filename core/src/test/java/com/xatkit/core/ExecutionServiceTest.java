@@ -7,6 +7,7 @@ import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentFactory;
+import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.language.execution.ExecutionRuntimeModule;
 import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.stubs.StubRuntimePlatform;
@@ -143,6 +144,24 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
         /*
          * We stay in Init if the event does not trigger a transition.
          */
+        assertThat(session.getState().getName()).isEqualTo("Init");
+    }
+
+    /*
+     * Test for issue #295: https://github.com/xatkit-bot-platform/xatkit-runtime/issues/295.
+     * This test sends an event that make the engine enter a state that only checks for context value before moving
+     * back to the Init state (not that the value itself is not important here, the transition checks if the value
+     * exists or not, but in both cases points to the Init state).
+     */
+    @Test
+    public void handleEventToContextCheckingState() throws InterruptedException {
+        executionService = getValidExecutionService();
+        XatkitSession session =  new XatkitSession("sessionId");
+        executionService.initSession(session);
+        RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+        recognizedIntent.setDefinition(testBotExecutionModel.getContextCheckingIntent());
+        executionService.handleEventInstance(recognizedIntent, session);
+        Thread.sleep(1000);
         assertThat(session.getState().getName()).isEqualTo("Init");
     }
 

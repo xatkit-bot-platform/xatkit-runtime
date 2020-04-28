@@ -9,6 +9,19 @@ Init {
 		intent == SystemEntityIntent --> HandleAny
 		intent == MappingEntityIntent --> HandleAny
 		intent == CompositeEntityIntent --> HandleAny
+		intent == ContextCheckingIntent --> ContextCheckingState
+	}
+}
+
+ContextCheckingState {
+	Next {
+		/*
+		 * Whether the context parameter is set or not is not important here, this state is used
+		 * to check that context-based transitions are immediately computed after executing the 
+		 * state's body.
+		 */
+		context.get("Test").get("testValue") === null --> Init
+		context.get("Test").get("testValue") !== null --> Init
 	}
 }
 

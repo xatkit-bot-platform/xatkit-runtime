@@ -42,5 +42,14 @@ intent CompositeEntityIntent {
 	}
 }
 
+intent ContextCheckingIntent {
+	inputs {
+		"I like THIS"
+	}
+	creates context Test {
+		sets parameter testValue from fragment "THIS" (entity any)
+	}
+}
+
 
 
