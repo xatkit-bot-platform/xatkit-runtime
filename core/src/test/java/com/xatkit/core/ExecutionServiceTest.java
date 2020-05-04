@@ -157,6 +157,7 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     public void handleEventToContextCheckingState() throws InterruptedException {
         executionService = getValidExecutionService();
         XatkitSession session =  new XatkitSession("sessionId");
+        session.getRuntimeContexts().setContextValue("Test", 2, "testValue", "abc");
         executionService.initSession(session);
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
         recognizedIntent.setDefinition(testBotExecutionModel.getContextCheckingIntent());

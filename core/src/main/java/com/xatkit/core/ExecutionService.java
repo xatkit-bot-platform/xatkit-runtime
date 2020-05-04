@@ -134,7 +134,8 @@ public class ExecutionService extends XbaseInterpreter {
      * @throws NullPointerException if the provided {@code executionModel} or {@code runtimePlatformRegistry} is
      *                              {@code null}
      */
-    public ExecutionService(@NonNull ExecutionModel executionModel, @NonNull RuntimePlatformRegistry runtimePlatformRegistry,
+    public ExecutionService(@NonNull ExecutionModel executionModel,
+                            @NonNull RuntimePlatformRegistry runtimePlatformRegistry,
                             @NonNull Configuration configuration) {
         this.executionModel = executionModel;
         this.runtimePlatformRegistry = runtimePlatformRegistry;
@@ -204,11 +205,19 @@ public class ExecutionService extends XbaseInterpreter {
          * Look for wildcard transitions and navigate them. We don't need to wait here, we can just move to the next
          * state that defines non-wildcard transitions.
          */
-        State stateReachableWithWildcard = ExecutionModelUtils.getStateReachableWithWildcard(state);
-        if (nonNull(stateReachableWithWildcard)) {
-            session.setState(stateReachableWithWildcard);
-            executeBody(stateReachableWithWildcard, session);
+        Transition navigableTransition = getNavigableTransitions(null, state, session);
+        if (nonNull(navigableTransition)) {
+            /*
+             * Reset the matched event instance.
+             */
+            session.store(MATCHED_EVENT_SESSION_KEY, null);
+            session.setState(navigableTransition.getState());
+            executeBody(navigableTransition.getState(), session);
         }
+        /*
+         * Don't do anything if there is no navigable transition, this means that we are waiting an event to
+         * re-evaluate them.
+         */
     }
 
     /**
@@ -281,28 +290,41 @@ public class ExecutionService extends XbaseInterpreter {
     }
 
     /**
-     * Computes the {@link List} of {@link Transition}s that can be navigated from the provided {@code state}.
+     * Evaluates the provided {@code state}'s {@link Transition} and return the one that can be navigated.
      * <p>
      * This method checks, for all the {@link Transition}s, whether their condition is fulfilled or not. The
      * evaluation context of the conditions includes the provided {@code eventInstance} (bound to the {@code event
      * /intent} variable in the execution language, and the provided {@code session} (bound to the {@code session}
      * variable in the execution language).
      * <p>
-     * <b>Note</b>: this method should <b>not</b> return more than one transition. Multiple navigable transitions
-     * generally indicate an issue in the bot design.
+     * This method cannot return more than one {@link Transition}. Multiple navigable transitions are considered
+     * design issues making the bot behavior unreliable.
      *
      * @param eventInstance the {@link EventInstance} to use to check event mappings in the transitions' conditions
      * @param state         the current {@link State} to compute the navigable {@link Transition}s from
      * @param session       the {@link XatkitSession} holding the context information
-     * @return the {@link List} of navigable {@link Transition}s
-     * @throws XatkitException      if the evaluation of a {@link Transition}'s condition returns a non-boolean value
-     * @throws NullPointerException if the provided {@code eventInstance}, {@code state}, or {@code session} is
-     *                              {@code null}
+     * @return the navigable {@link Transition} if it exists, {@code null} otherwise
+     * @throws IllegalStateException if the evaluation of a {@link Transition}'s condition returns a non-boolean
+     *                               value, or if more than 1 navigable transition is found
+     * @throws NullPointerException  if the provided {@code state}, or {@code session} is
+     *                               {@code null}
      */
-    private List<Transition> getNavigableTransitions(@NonNull EventInstance eventInstance, @NonNull State state,
-                                                     @NonNull XatkitSession session) {
+    private @Nullable
+    Transition getNavigableTransitions(@Nullable EventInstance eventInstance, @NonNull State state,
+                                       @NonNull XatkitSession session) {
+        /*
+         * Use a list to store the navigable transitions so we can print a more useful error message is more than one
+         *  is found.
+         */
         List<Transition> result = new ArrayList<>();
         for (Transition t : state.getTransitions()) {
+            if (t.isIsWildcard()) {
+                /*
+                 * The transition is a wildcard, it is always navigable.
+                 */
+                result.add(t);
+                continue;
+            }
             /*
              * Create the context with the received EventInstance. This is the instance we want to use in the
              * transition conditions.
@@ -333,13 +355,21 @@ public class ExecutionService extends XbaseInterpreter {
                      * execution language grammar explicitly uses boolean operation rules to set transitions'
                      * conditions.
                      */
-                    throw new XatkitException(MessageFormat.format("An error occurred when evaluating {0}'s {1} " +
-                                    "conditions: expected a boolean value, found {2}", state.getName(),
+                    throw new IllegalStateException(MessageFormat.format("An error occurred when evaluating {0}'s {1}" +
+                                    " conditions: expected a boolean value, found {2}", state.getName(),
                             Transition.class.getSimpleName(), expressionValue));
                 }
             }
         }
-        return result;
+        if (result.size() > 1) {
+            throw new IllegalStateException(MessageFormat.format("Found several navigable transitions ({0}), cannot " +
+                    "decide which one to navigate", result.size()));
+        }
+        if (result.isEmpty()) {
+            return null;
+        } else {
+            return result.get(0);
+        }
     }
 
 
@@ -368,16 +398,10 @@ public class ExecutionService extends XbaseInterpreter {
         CompletableFuture.runAsync(() -> {
             State sessionState = session.getState();
 
-            List<Transition> transitions = getNavigableTransitions(eventInstance, sessionState, session);
-            if (transitions.size() > 1) {
-                throw new XatkitException(MessageFormat.format("Found several navigable transitions ({0}), cannot " +
-                        "decide which one to navigate", transitions.size()));
-                /*
-                 * TODO Here we are blocked, we need an error state or something
-                 */
-            } else if (transitions.size() == 0) {
+            Transition navigableTransition = getNavigableTransitions(eventInstance, sessionState, session);
+            if (isNull(navigableTransition)) {
                 session.store(MATCHED_EVENT_SESSION_KEY, eventInstance);
-                executeFallback(session.getState(), session);
+                executeFallback(sessionState, session);
             } else {
                 for (ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
                     /*
@@ -395,8 +419,8 @@ public class ExecutionService extends XbaseInterpreter {
                  * .g. analytics)
                  */
                 session.store(MATCHED_EVENT_SESSION_KEY, eventInstance);
-                session.setState(transitions.get(0).getState());
-                executeBody(transitions.get(0).getState(), session);
+                session.setState(navigableTransition.getState());
+                executeBody(navigableTransition.getState(), session);
             }
         }, executorService).exceptionally((throwable) -> {
             Log.error("An error occurred when running the actions associated to the event {0}. Check the logs for " +
