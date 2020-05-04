@@ -13,10 +13,8 @@ import org.apache.http.NameValuePair;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
-import org.apache.http.ssl.SSLContexts;
 
 import javax.annotation.Nullable;
-import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
 import java.net.BindException;
@@ -25,11 +23,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,7 +32,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 
 /**
@@ -108,8 +100,7 @@ public class XatkitServer {
      * <p>
      * The provided {@link Configuration} is used to specify the port the server should listen to (see
      * {@link XatkitServerUtils#SERVER_PORT_KEY}). If the {@link Configuration} does not specify a port the default
-     * value ({@code
-     * 5000}) is used.
+     * value ({@code 5000}) is used.
      * <p>
      * <b>Note:</b> this method does not start the underlying {@link HttpServer}. Use {@link #start()} to start the
      * {@link HttpServer} in a dedicated thread.
@@ -121,17 +112,6 @@ public class XatkitServer {
      */
     public XatkitServer(@NonNull Configuration configuration) {
         this.isStarted = false;
-        if (configuration.containsKey(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY)
-                && !configuration.containsKey(XatkitServerUtils.SERVER_PUBLIC_URL_KEY)) {
-            /*
-             * We could automatically set the default URL to https://localhost, but it doesn't really make sense. If
-             * this is an issue we can update XatkitServer's behavior to adapt the default public URL when there is
-             * an SSL context.
-             */
-            throw new XatkitException(MessageFormat.format("Cannot start the {0}: the configuration contains a " +
-                            "keystore location but does not contain the server''s public_url ({1}))",
-                    this.getClass().getSimpleName(), XatkitServerUtils.SERVER_PUBLIC_URL_KEY));
-        }
         String publicUrl = configuration.getString(XatkitServerUtils.SERVER_PUBLIC_URL_KEY,
                 XatkitServerUtils.DEFAULT_SERVER_LOCATION);
         this.port = configuration.getInt(XatkitServerUtils.SERVER_PORT_KEY, XatkitServerUtils.DEFAULT_SERVER_PORT);
@@ -145,7 +125,6 @@ public class XatkitServer {
         } catch (IOException e) {
             throw new XatkitException("Cannot initialize the Xatkit server, see the attached exception", e);
         }
-        SSLContext sslContext = createSSLContext(configuration);
 
         SocketConfig socketConfig = SocketConfig.custom()
                 .setSoTimeout(15000)
@@ -155,10 +134,6 @@ public class XatkitServer {
         server = ServerBootstrap.bootstrap()
                 .setListenerPort(port)
                 .setServerInfo("Xatkit/1.1")
-                /*
-                 * createSSLContext is @Nullable: setting a null SSLContext is similar to not setting it.
-                 */
-                .setSslContext(sslContext)
                 .setSocketConfig(socketConfig)
                 .setExceptionLogger(e -> {
                     if (e instanceof SocketTimeoutException || (e instanceof IOException && e.getMessage().equals(
@@ -177,51 +152,6 @@ public class XatkitServer {
                 .registerHandler("/content*", new ContentHttpHandler(this))
                 .registerHandler("*", new HttpHandler(this))
                 .create();
-    }
-
-    /**
-     * Creates a {@link SSLContext} from the provided {@code configuration}.
-     *
-     * @param configuration the {@link Configuration} containing the SSL configuration
-     * @return the {@link SSLContext}, or {@code null} if the provided {@code configuration} does not contain an SSL
-     * configuration
-     * @throws XatkitException      if the provided keystore does not exist of if an error occurred when loading the
-     *                              keystore content
-     * @throws NullPointerException if the {@code configuration} contains a keystore location but does not contain a
-     *                              store/key password
-     */
-    private @Nullable
-    SSLContext createSSLContext(@NonNull Configuration configuration) {
-        String keystorePath = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY);
-        if (isNull(keystorePath)) {
-            Log.debug("No SSL context to load");
-            return null;
-        }
-        File keystoreFile = FileUtils.getFile(keystorePath, configuration);
-        if (keystoreFile.exists()) {
-            String storePassword = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_STORE_PASSWORD_KEY);
-            String keyPassword = configuration.getString(XatkitServerUtils.SERVER_KEYSTORE_KEY_PASSWORD_KEY);
-            checkNotNull(storePassword, "Cannot load the provided keystore, property %s not set",
-                    XatkitServerUtils.SERVER_KEYSTORE_STORE_PASSWORD_KEY);
-            checkNotNull(keyPassword, "Cannot load the provided keystore, property %s not set",
-                    XatkitServerUtils.SERVER_KEYSTORE_KEY_PASSWORD_KEY);
-            SSLContext sslContext = null;
-
-            try {
-                sslContext = SSLContexts.custom().loadKeyMaterial(keystoreFile,
-                        storePassword.toCharArray(),
-                        keyPassword.toCharArray())
-                        .build();
-                return sslContext;
-            } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | CertificateException | IOException | KeyManagementException e) {
-                throw new XatkitException(MessageFormat.format("Cannot get the {0}: an error occurred when loading " +
-                        "the keystore, see attached exception", SSLContext.class.getSimpleName()));
-
-            }
-        } else {
-            throw new XatkitException(MessageFormat.format("Cannot get the {0} from the provided keystore location " +
-                    "{1}: the file does not exist", SSLContext.class.getSimpleName(), keystorePath));
-        }
     }
 
     /**

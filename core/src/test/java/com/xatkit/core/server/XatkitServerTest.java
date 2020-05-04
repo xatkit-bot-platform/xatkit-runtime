@@ -117,28 +117,6 @@ public class XatkitServerTest extends AbstractXatkitTest {
         this.server = new XatkitServer(configuration);
     }
 
-    @Test(expected = XatkitException.class)
-    public void constructConfigurationWithKeystoreNullPublicURL() {
-        Configuration configuration = new BaseConfiguration();
-        /*
-         * test.jks doesn't exist, but the exception should be thrown anyway.
-         */
-        configuration.setProperty(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY, "test.jks");
-        this.server = new XatkitServer(configuration);
-    }
-
-    @Test(expected = XatkitException.class)
-    public void constructConfigurationInvalidKeystoreLocation() {
-        Configuration configuration = new BaseConfiguration();
-        configuration.setProperty(XatkitServerUtils.SERVER_KEYSTORE_LOCATION_KEY, "test.jks");
-        configuration.setProperty(XatkitServerUtils.SERVER_PUBLIC_URL_KEY, "https://localhost");
-        this.server = new XatkitServer(configuration);
-    }
-
-    /*
-     * TODO test cases with valid keystore
-     */
-
     @Test
     public void startEmptyConfiguration() {
         this.server = new XatkitServer(new BaseConfiguration());
