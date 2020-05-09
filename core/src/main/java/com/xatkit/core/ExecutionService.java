@@ -482,14 +482,18 @@ public class ExecutionService extends XbaseInterpreter {
                                     ".xatkit.intent.EventDefinition"))) {
                                 EventWrapper wrapper = (EventWrapper) internalEvaluate(operation.getLeftOperand(),
                                         context, indicator);
-                                if (isNull(wrapper)) {
+                                if (isNull(wrapper) || isNull(wrapper.getEventInstance())) {
                                     /*
                                      * The wrapper can be null if use the "intent" accessor on a received event. In
                                      * this case the result of the comparison is always false.
+                                     * The wrapper does not contain any event if we are evaluating a transition
+                                     * before receiving an event. This happens after state's body execution, when the
+                                     *  engine tries to evaluate transitions that can be directly navigated (e.g.
+                                     * context-based transitions).
                                      */
                                     return false;
                                 } else {
-                                    return wrapper.getEventInstance().getDefinition().getName().equals(rightFeatureType.getSimpleName());
+                                     return wrapper.getEventInstance().getDefinition().getName().equals(rightFeatureType.getSimpleName());
                                 }
                             }
                         }
