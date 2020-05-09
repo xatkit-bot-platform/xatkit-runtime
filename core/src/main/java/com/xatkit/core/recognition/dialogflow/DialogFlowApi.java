@@ -3,25 +3,25 @@ package com.xatkit.core.recognition.dialogflow;
 import com.google.api.gax.rpc.FailedPreconditionException;
 import com.google.api.gax.rpc.InvalidArgumentException;
 import com.google.cloud.dialogflow.v2.Context;
-import com.google.cloud.dialogflow.v2.ContextName;
+import com.google.cloud.dialogflow.v2.DetectIntentRequest;
 import com.google.cloud.dialogflow.v2.DetectIntentResponse;
 import com.google.cloud.dialogflow.v2.EntityType;
 import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.ProjectAgentName;
 import com.google.cloud.dialogflow.v2.ProjectName;
 import com.google.cloud.dialogflow.v2.QueryInput;
+import com.google.cloud.dialogflow.v2.QueryParameters;
 import com.google.cloud.dialogflow.v2.QueryResult;
 import com.google.cloud.dialogflow.v2.SessionName;
 import com.google.cloud.dialogflow.v2.TextInput;
 import com.google.cloud.dialogflow.v2.TrainAgentRequest;
 import com.google.longrunning.Operation;
-import com.google.protobuf.Struct;
-import com.google.protobuf.Value;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.RecognitionMonitor;
+import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowContextMapper;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowEntityMapper;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowEntityReferenceMapper;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowIntentMapper;
@@ -122,6 +122,11 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
     private DialogFlowEntityMapper dialogFlowEntityMapper;
 
     /**
+     * The mapper creating DialogFlow {@link Context}s from {@link DialogFlowSession} instances.
+     */
+    private DialogFlowContextMapper dialogFlowContextMapper;
+
+    /**
      * The mapper creating DialogFlow entity references from {@link EntityDefinition} references.
      * <p>
      * These references are typically used to refer to {@link EntityType}s in {@link Intent}'s training sentences.
@@ -164,6 +169,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
         this.dialogFlowIntentMapper = new DialogFlowIntentMapper(this.configuration,
                 this.dialogFlowEntityReferenceMapper);
         this.dialogFlowEntityMapper = new DialogFlowEntityMapper(this.dialogFlowEntityReferenceMapper);
+        this.dialogFlowContextMapper = new DialogFlowContextMapper(this.configuration);
         this.recognizedIntentMapper = new RecognizedIntentMapper(this.configuration, eventRegistry);
         try {
             this.cleanAgent();
@@ -548,104 +554,10 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
     }
 
     /**
-     * Merges the local {@link DialogFlowSession} in the remote DialogFlow API one.
-     * <p>
-     * This method ensures that the remote DialogFlow API stays consistent with the local {@link XatkitSession} by
-     * setting all the local context variables in the remote session. This allows to match intents with input
-     * contexts that have been defined locally, such as received events, custom variables, etc.
-     * <p>
-     * Local context values that are already defined in the remote DialogFlow API will be overridden by this method.
-     * <p>
-     * This method sets all the variables from the local context in a single query in order to reduce the number of
-     * calls to the remote DialogFlow API.
-     *
-     * @param dialogFlowSession the local {@link DialogFlowSession} to merge in the remote one
-     * @throws XatkitException      if at least one of the local context values' type is not supported
-     * @throws NullPointerException if the provided {@code dialogFlowSession} is {@code null}
-     * @see #getIntent(String, XatkitSession)
-     */
-    public void mergeLocalSessionInDialogFlow(DialogFlowSession dialogFlowSession) {
-        Log.debug("Merging local context in the DialogFlow session {0}", dialogFlowSession.getSessionId());
-        checkNotNull(dialogFlowSession, "Cannot merge the provided %s %s", DialogFlowSession.class.getSimpleName(),
-                dialogFlowSession);
-        dialogFlowSession.getRuntimeContexts().getContextMap().entrySet().stream().forEach(contextEntry ->
-                {
-                    String contextName = contextEntry.getKey();
-                    int contextLifespanCount = dialogFlowSession.getRuntimeContexts().getContextLifespanCount
-                            (contextName);
-                    Context.Builder builder =
-                            Context.newBuilder().setName(ContextName.of(this.configuration.getProjectId(),
-                                    dialogFlowSession.getSessionName().getSession(), contextName).toString());
-                    Map<String, Object> contextVariables = contextEntry.getValue();
-                    Map<String, Value> dialogFlowContextVariables = new HashMap<>();
-                    contextVariables.entrySet().stream().forEach(contextVariableEntry -> {
-                        Value value = buildValue(contextVariableEntry.getValue());
-                        dialogFlowContextVariables.put(contextVariableEntry.getKey(), value);
-                    });
-                    /*
-                     * Need to put the lifespanCount otherwise the context is ignored.
-                     */
-                    builder.setParameters(Struct.newBuilder().putAllFields(dialogFlowContextVariables))
-                            .setLifespanCount(contextLifespanCount);
-                    this.dialogFlowClients.getContextsClient().createContext(dialogFlowSession.getSessionName(),
-                            builder.build());
-                }
-        );
-    }
-
-    /**
-     * Creates a protobuf {@link Value} from the provided {@link Object}.
-     * <p>
-     * This method supports {@link String} and {@link Map} as input, other data types should not be passed to this
-     * method, because all the values returned by DialogFlow are translated into {@link String} or {@link Map}.
-     *
-     * @param from the {@link Object} to translate to a protobuf {@link Value}
-     * @return the protobuf {@link Value}
-     * @throws IllegalArgumentException if the provided {@link Object}'s type is not supported
-     * @see #buildStruct(Map)
-     */
-    private Value buildValue(Object from) {
-        Value.Builder valueBuilder = Value.newBuilder();
-        if (from instanceof String) {
-            valueBuilder.setStringValue((String) from);
-            return valueBuilder.build();
-        } else if (from instanceof Map) {
-            Struct struct = buildStruct((Map<String, Object>) from);
-            return valueBuilder.setStructValue(struct).build();
-        } else {
-            throw new IllegalArgumentException(MessageFormat.format("Cannot build a protobuf value from {0}", from));
-        }
-    }
-
-    /**
-     * Creates a protobuf {@link Struct} from the provided {@link Map}.
-     * <p>
-     * This method deals with nested {@link Map}s, as long as their values are {@link String}s. The returned
-     * {@link Struct} reflects the {@link Map} nesting hierarchy.
-     *
-     * @param fromMap the {@link Map} to translate to a protobuf {@link Struct}
-     * @return the protobuf {@link Struct}
-     * @throws IllegalArgumentException if a nested {@link Map}'s value type is not {@link String} or {@link Map}
-     */
-    private Struct buildStruct(Map<String, Object> fromMap) {
-        Struct.Builder structBuilder = Struct.newBuilder();
-        for (Map.Entry<String, Object> entry : fromMap.entrySet()) {
-            if (entry.getValue() instanceof String) {
-                structBuilder.putFields(entry.getKey(),
-                        Value.newBuilder().setStringValue((String) entry.getValue()).build());
-            } else if (entry.getValue() instanceof Map) {
-                structBuilder.putFields(entry.getKey(), Value.newBuilder().setStructValue(buildStruct((Map<String,
-                        Object>) entry.getValue())).build());
-            } else {
-                throw new IllegalArgumentException(MessageFormat.format("Cannot build a protobuf struct " +
-                        "from {0}, unsupported data type", fromMap));
-            }
-        }
-        return structBuilder.build();
-    }
-
-    /**
      * {@inheritDoc}
+     * <p>
+     * This method ensures the the context values stored in the provided {@code session} are set in the DialogFlow
+     * agent when detecting the intent. This ensure that the current state is correctly reflected in DialogFlow.
      * <p>
      * The returned {@link RecognizedIntent} is constructed from the raw {@link Intent} returned by the DialogFlow
      * API, using the mapping defined in {@link RecognizedIntentMapper}.
@@ -663,22 +575,25 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         checkArgument(session instanceof DialogFlowSession, "Cannot handle the message, expected session type to be " +
                 "%s, found %s", DialogFlowSession.class.getSimpleName(), session.getClass().getSimpleName());
+        DialogFlowSession dialogFlowSession = (DialogFlowSession) session;
+
         TextInput.Builder textInput =
                 TextInput.newBuilder().setText(input).setLanguageCode(this.configuration.getLanguageCode());
         QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
+
+        Iterable<Context> contexts =
+                dialogFlowContextMapper.mapDialogFlowSession(dialogFlowSession);
+
+        DetectIntentRequest request = DetectIntentRequest.newBuilder().setQueryInput(queryInput)
+                .setQueryParams(QueryParameters.newBuilder()
+                        .addAllContexts(contexts)
+                        .build())
+                .setSession(dialogFlowSession.getSessionName().toString())
+                .build();
+
         DetectIntentResponse response;
-
-        DialogFlowSession dialogFlowSession = (DialogFlowSession) session;
-        if (this.configuration.isEnableContextMerge()) {
-            mergeLocalSessionInDialogFlow(dialogFlowSession);
-        } else {
-            Log.debug("Local context not merged in DialogFlow, context merging has been disabled");
-        }
-
         try {
-            response =
-                    this.dialogFlowClients.getSessionsClient().detectIntent(((DialogFlowSession) session).getSessionName(),
-                            queryInput);
+            response = this.dialogFlowClients.getSessionsClient().detectIntent(request);
         } catch (Exception e) {
             throw new IntentRecognitionProviderException(e);
         }

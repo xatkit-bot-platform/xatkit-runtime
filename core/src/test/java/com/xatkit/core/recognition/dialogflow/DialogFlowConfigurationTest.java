@@ -130,19 +130,6 @@ public class DialogFlowConfigurationTest {
     }
 
     @Test
-    public void constructWithEnableLocalContextMerge() {
-        baseConfiguration.addProperty(DialogFlowConfiguration.ENABLE_LOCAL_CONTEXT_MERGE_KEY, false);
-        configuration = new DialogFlowConfiguration(baseConfiguration);
-        assertThat(configuration.isEnableContextMerge()).isFalse();
-    }
-
-    @Test
-    public void constructWithoutEnableLocalContextMerge() {
-        configuration = new DialogFlowConfiguration(baseConfiguration);
-        assertThat(configuration.isEnableContextMerge()).isTrue();
-    }
-
-    @Test
     public void constructWithCustomFollowupLifespan() {
         baseConfiguration.addProperty(DialogFlowConfiguration.CUSTOM_FOLLOWUP_LIFESPAN, 10);
         configuration = new DialogFlowConfiguration(baseConfiguration);

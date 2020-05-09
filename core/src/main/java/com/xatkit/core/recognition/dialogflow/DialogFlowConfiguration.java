@@ -181,18 +181,6 @@ public class DialogFlowConfiguration {
     private boolean enableEntityLoader;
 
     /**
-     * A flag allowing the {@link DialogFlowApi} to merge local {@link com.xatkit.core.session.XatkitSession}s in the
-     * DialogFlow one.
-     * <p>
-     * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
-     * sent to the DialogFlow API, but may generate consistency issues and unexpected behaviors for bot
-     * implementations that manipulate local {@link com.xatkit.core.session.XatkitSession}s.
-     *
-     * @see #ENABLE_LOCAL_CONTEXT_MERGE_KEY
-     */
-    private boolean enableContextMerge;
-
-    /**
      * The custom lifespan value to use when creating followup intents.
      * <p>
      * This option is set to {@code 2} by default (which corresponds to the DialogFlow default value). Changing it to
@@ -234,7 +222,6 @@ public class DialogFlowConfiguration {
         this.cleanAgentOnStartup = baseConfiguration.getBoolean(CLEAN_AGENT_ON_STARTUP_KEY, false);
         this.enableIntentLoader = baseConfiguration.getBoolean(ENABLE_INTENT_LOADING_KEY, true);
         this.enableEntityLoader = baseConfiguration.getBoolean(ENABLE_ENTITY_LOADING_KEY, true);
-        this.enableContextMerge = baseConfiguration.getBoolean(ENABLE_LOCAL_CONTEXT_MERGE_KEY, true);
         this.customFollowupLifespan = baseConfiguration.getInt(CUSTOM_FOLLOWUP_LIFESPAN, 2);
         this.confidenceThreshold = baseConfiguration.getFloat(CONFIDENCE_THRESHOLD_KEY, 0);
     }

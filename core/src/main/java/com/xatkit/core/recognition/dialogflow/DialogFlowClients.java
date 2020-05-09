@@ -5,8 +5,6 @@ import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.v2.AgentsClient;
 import com.google.cloud.dialogflow.v2.AgentsSettings;
-import com.google.cloud.dialogflow.v2.ContextsClient;
-import com.google.cloud.dialogflow.v2.ContextsSettings;
 import com.google.cloud.dialogflow.v2.EntityTypesClient;
 import com.google.cloud.dialogflow.v2.EntityTypesSettings;
 import com.google.cloud.dialogflow.v2.Intent;
@@ -78,15 +76,6 @@ public class DialogFlowClients {
     private SessionsClient sessionsClient;
 
     /**
-     * The client instance managing DialogFlow contexts.
-     * <p>
-     * This {@link ContextsClient} is used to merge local context information in the DialogFlow session. This enables
-     * to match {@link com.xatkit.intent.IntentDefinition} with input contexts set from local computation (such as
-     * received events, custom variables, etc).
-     */
-    private ContextsClient contextsClient;
-
-    /**
      * Initializes the DialogFlow clients using the provided {@code configuration}.
      * <p>
      * The created clients are setup with the credential file located at
@@ -107,7 +96,6 @@ public class DialogFlowClients {
         IntentsSettings intentsSettings;
         EntityTypesSettings entityTypesSettings;
         SessionsSettings sessionsSettings;
-        ContextsSettings contextsSettings;
         try {
             if (isNull(credentialsProvider)) {
                 /*
@@ -118,20 +106,17 @@ public class DialogFlowClients {
                 intentsSettings = IntentsSettings.newBuilder().build();
                 entityTypesSettings = EntityTypesSettings.newBuilder().build();
                 sessionsSettings = SessionsSettings.newBuilder().build();
-                contextsSettings = ContextsSettings.newBuilder().build();
             } else {
                 agentsSettings = AgentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
                 intentsSettings = IntentsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
                 entityTypesSettings = EntityTypesSettings.newBuilder().setCredentialsProvider(credentialsProvider)
                         .build();
                 sessionsSettings = SessionsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
-                contextsSettings = ContextsSettings.newBuilder().setCredentialsProvider(credentialsProvider).build();
             }
             this.agentsClient = AgentsClient.create(agentsSettings);
             this.sessionsClient = SessionsClient.create(sessionsSettings);
             this.intentsClient = IntentsClient.create(intentsSettings);
             this.entityTypesClient = EntityTypesClient.create(entityTypesSettings);
-            this.contextsClient = ContextsClient.create(contextsSettings);
         } catch (IOException e) {
             throw new IntentRecognitionProviderException("An error occurred when initializing the DialogFlow clients," +
                     " see attached exception", e);
@@ -145,7 +130,6 @@ public class DialogFlowClients {
         this.sessionsClient.shutdownNow();
         this.intentsClient.shutdownNow();
         this.entityTypesClient.shutdownNow();
-        this.contextsClient.shutdownNow();
         this.agentsClient.shutdownNow();
     }
 
@@ -160,7 +144,6 @@ public class DialogFlowClients {
         return this.sessionsClient.isShutdown()
                 && this.intentsClient.isShutdown()
                 && this.entityTypesClient.isShutdown()
-                && this.contextsClient.isShutdown()
                 && this.agentsClient.isShutdown();
     }
 
@@ -183,10 +166,6 @@ public class DialogFlowClients {
         if (!this.entityTypesClient.isShutdown()) {
             Log.warn("DialogFlow EntityType client was not closed properly, calling automatic shutdown");
             this.entityTypesClient.shutdownNow();
-        }
-        if (!this.contextsClient.isShutdown()) {
-            Log.warn("DialogFlow Context client was not closed properly, calling automatic shutdown");
-            this.contextsClient.shutdownNow();
         }
         if (!this.agentsClient.isShutdown()) {
             Log.warn("DialogFlow Agent client was not closed properly, calling automatic shutdown");
