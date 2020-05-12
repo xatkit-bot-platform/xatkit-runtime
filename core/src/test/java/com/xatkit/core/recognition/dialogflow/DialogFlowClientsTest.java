@@ -52,8 +52,6 @@ public class DialogFlowClientsTest {
         assertThat(dialogFlowClients.getIntentsClient().isShutdown()).isFalse();
         assertThat(dialogFlowClients.getEntityTypesClient()).isNotNull();
         assertThat(dialogFlowClients.getEntityTypesClient().isShutdown()).isFalse();
-        assertThat(dialogFlowClients.getContextsClient()).isNotNull();
-        assertThat(dialogFlowClients.getContextsClient().isShutdown()).isFalse();
     }
 
     @Test(expected = IntentRecognitionProviderException.class)
@@ -73,6 +71,5 @@ public class DialogFlowClientsTest {
         assertThat(dialogFlowClients.getSessionsClient().isShutdown()).isTrue();
         assertThat(dialogFlowClients.getIntentsClient().isShutdown()).isTrue();
         assertThat(dialogFlowClients.getEntityTypesClient().isShutdown()).isTrue();
-        assertThat(dialogFlowClients.getContextsClient().isShutdown()).isTrue();
     }
 }
