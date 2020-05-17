@@ -36,6 +36,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 
 - Class `AdminHttpHandler`: this class was designed to test the *ReactPlatform*, it didn't make sense to keep it in *xatkit-runtime*. The functionality of the `AdminHttpHandler` are still available when starting a bot based on the *ReactPlatform*, but the handlers are now defined in the [*xatkit-react-platform*](https://github.com/xatkit-bot-platform/xatkit-react-platform) project.
 - Native support for deploying bots on HTTPS. Xatkit bots can be deployed behind a reverse proxy with HTTPS enabled, we don't need to provide an ad-hoc solution to support this. See [this wiki article](https://github.com/xatkit-bot-platform/xatkit/wiki/Deploy-a-Xatkit-bot-behind-a-reverse-proxy) for more  information.
+- Classes `RestAction`, `RestGetAction`, and `RestPostAction`. These classes are now defined in the [Rest Platform](https://github.com/xatkit-bot-platform/xatkit-rest-platform). The dependency to Unirest has been removed too and moved to the Rest Platform.
 
 ## Fixed
 
