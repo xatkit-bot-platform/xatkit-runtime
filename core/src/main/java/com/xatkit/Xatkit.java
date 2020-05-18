@@ -6,6 +6,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.logging.log4j.core.lookup.MainMapLookup;
 
 import java.io.File;
 
@@ -59,23 +60,28 @@ public class Xatkit {
         configuration = null;
         xatkitCore = null;
         if (isNull(args) || args.length != 1) {
+            /*
+             * Create the logs directory at the current location, we cannot access the bot base directory.
+             */
+            MainMapLookup.setMainArguments("logs");
             Log.warn("Xatkit started without a configuration file, loading Xatkit properties from environment " +
                     "variables. If you want to use a custom configuration file check our online tutorial " +
                     "here: {0}", CONFIGURATION_TUTORIAL_URL);
             configuration = new XatkitEnvironmentConfiguration();
         } else {
             String configurationFilePath = args[0];
-            Log.info("Starting Xatkit with the configuration file {0}", configurationFilePath);
             File propertiesFile = new File(configurationFilePath);
+            /*
+             * Need to call getAbsoluteFile() in case the provided path only contains the file name, otherwise
+             * getParentFile() returns null (see #202)
+             */
+            String botBasePath = propertiesFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+            MainMapLookup.setMainArguments(botBasePath);
+            Log.info("Starting Xatkit with the configuration file {0}", configurationFilePath);
             try {
                 Configurations configs = new Configurations();
                 configuration = configs.properties(propertiesFile);
-                /*
-                 * Need to call getAbsoluteFile() in case the provided path only contains the file name, otherwise
-                 * getParentFile() returns null (see #202)
-                 */
-                configuration.addProperty(XatkitCore.CONFIGURATION_FOLDER_PATH_KEY,
-                        propertiesFile.getAbsoluteFile().getParentFile().getAbsolutePath());
+                configuration.addProperty(XatkitCore.CONFIGURATION_FOLDER_PATH_KEY, botBasePath);
             } catch (ConfigurationException e) {
                 Log.error("Cannot load the configuration file at the given location {0}, please ensure the provided " +
                         "file is a valid properties file. You can check our online tutorial to learn how to provide a" +

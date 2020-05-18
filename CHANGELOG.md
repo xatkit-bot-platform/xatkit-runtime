@@ -20,6 +20,7 @@ The changelog format is based on [Keep a Changelog](https://keepachangelog.com/e
 - Support for `CompositeEntity` in the DialogFlow intent provider (see [#271](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/271)). The keyword was already present in the language but the mapping to DialogFlow wasn't working properly (nested values were not supported by the connector). `CompositeEntities` can be accessed as multi-level maps, e.g. `(context.get("context").get("composite") as Map).get("nested1")`.
 - New utility methods in `HttpEntityHelper` to create and parse `HttpEntity` instances.
 - New configuration option `xatkit.dialogflow.confidence.threshold` to set the minimum confidence level of matched intent. This threshold is used to discard matched intents that have a low confidence. The default value for this option is `0` (accept all intents). Note that intents using `any` entities cannot be filtered by the confidence threshold (these intents typically have a low confidence score)
+- File-based logging with rotation (fixes [#268](https://github.com/xatkit-bot-platform/xatkit-runtime/issues/268)). Xatkit now creates a `logs` directory next to the executed properties file to store the logs of the bot. The maximum size of a log fragment is 10MB and the default rollover strategy is 100. Archived logs are compressed. This feature is enabled for both the production and the test environments.
 
 ## Changed
 

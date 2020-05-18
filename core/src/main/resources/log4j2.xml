@@ -2,13 +2,33 @@
 <Configuration status="WARN" shutdownHook="disable">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout
-                    pattern="%-7level{WARN=[WARN], DEBUG=[DEBUG], ERROR=[ERROR], TRACE=[TRACE], INFO=[INFO]} %d{ABSOLUTE} - %msg%n%ex{full}" />
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
+        <Routing name="rollingFile">
+            <Routes pattern="$${main:0}">
+                <!-- This route is chosen if there is a value for main argument 0 -->
+                <Route>
+                    <RollingFile
+                            name="rollingFile"
+                            fileName="${main:0}/logs/application.log"
+                            filePattern="${main:0}/logs/application.%i.log.gz"
+                            ignoreExceptions="false">
+                        <PatternLayout>
+                            <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n</Pattern>
+                        </PatternLayout>
+                        <Policies>
+                            <SizeBasedTriggeringPolicy size="10MB" />
+                        </Policies>
+                        <DefaultRolloverStrategy max="100" />
+                    </RollingFile>
+                </Route>
+            </Routes>
+        </Routing>
     </Appenders>
     <Loggers>
         <Root level="INFO">
             <AppenderRef ref="Console" />
+            <AppenderRef ref="rollingFile" />
         </Root>
         <Logger name="org.apache.commons" level="OFF" additivity="false">
             <AppenderRef ref="Console" />
