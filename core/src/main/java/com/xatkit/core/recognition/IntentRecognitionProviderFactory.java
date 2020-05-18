@@ -36,6 +36,18 @@ import java.util.stream.Collectors;
 public class IntentRecognitionProviderFactory {
 
     /**
+     * The database model that will be used for this instance of Xatkit.
+     * <p>
+     * This property is optional, and it's default value is set to "MAPDB" if not specified
+     */
+    private static final String XATKIT_DATABASE_KEY = "xatkit.database.model";
+
+    /**
+     * The default value for xatkit.database.model in case it's not specified in the properties file.
+     */
+    private static final String DEFAULT_DATABASE = 'MAPDB';
+
+    /**
      * Returns the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}.
      * <p>
      * If the provided {@code configuration} does not define any {@link AbstractIntentRecognitionProvider}, a
@@ -125,7 +137,14 @@ public class IntentRecognitionProviderFactory {
          */
         RecognitionMonitor monitor = null;
         if (configuration.isEnableRecognitionAnalytics()) {
-            monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+            if(configuration.getBaseConfiguration().getString(XATKIT_DATABASE_KEY, DEFAULT_DATABASE).equals(DEFAULT_DATABASE)){
+                Log.info("Starting with mapdb");
+                monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+            }
+            else{ //We assume a different value means influxDB //TODO: Maybe we should ask for a specific input before using an influx instance like "INFLUX_DB"
+                Log.info("Starting with influxDB");
+                monitor = new RecognitionMonitorInflux(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+            }
         }
         return monitor;
     }
