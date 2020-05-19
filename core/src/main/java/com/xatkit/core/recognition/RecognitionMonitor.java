@@ -91,6 +91,15 @@ public class RecognitionMonitor {
     private DB db;
 
     /**
+     * Not sure how necessary is this, but I need to call a constructor from RecognitionMonitorInflux with super() and I don't think
+     * creating and initializing the mapDB instance is what we want here.
+     * TODO: Revisit this?
+     */
+    public RecognitionMonitor(){
+
+    }
+
+    /**
      * Constructs a {@link RecognitionMonitor} with the provided {@code xatkitServer} and {@code configuration}.
      * <p>
      * This constructor loads the stored information from the <i>analytics</i> database and create the in-memory

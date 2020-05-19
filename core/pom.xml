@@ -52,6 +52,13 @@
             <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
         </dependency>
 
+        <!-- InfluxDB -->
+        <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>influxdb-client-java</artifactId>
+            <version>1.7.0</version>
+        </dependency>
+
         <!-- Utils -->
 
         <dependency>

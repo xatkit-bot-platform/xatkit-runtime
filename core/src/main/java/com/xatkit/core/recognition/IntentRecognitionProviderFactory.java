@@ -12,6 +12,7 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.Loader;
 import lombok.NonNull;
+import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
@@ -45,7 +46,7 @@ public class IntentRecognitionProviderFactory {
     /**
      * The default value for xatkit.database.model in case it's not specified in the properties file.
      */
-    private static final String DEFAULT_DATABASE = 'MAPDB';
+    private static final String DEFAULT_DATABASE = "MAPDB";
 
     /**
      * Returns the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}.

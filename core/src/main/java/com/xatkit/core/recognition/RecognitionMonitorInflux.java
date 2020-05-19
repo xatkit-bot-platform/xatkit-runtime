@@ -13,6 +13,9 @@ import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.List;
 
 import com.influxdb.annotations.Column;
 import com.influxdb.annotations.Measurement;
@@ -51,7 +54,7 @@ import static java.util.Objects.isNull;
  * stored sessions (e.g. average time/session, average number of matched inputs/sessions, etc)</li>
  * </ul>
  */
-public class RecognitionMontorInflux extends RecognitionMonitor{
+public class RecognitionMonitorInflux extends RecognitionMonitor{
 
     /**
     * The {@link Configuration} key to specify the auth token for the bot to be able to store/query data from an influx bucket.
@@ -63,7 +66,7 @@ public class RecognitionMontorInflux extends RecognitionMonitor{
     /**
      * The TOKEN value specified in the {@link Configuration}, necessary to make petitions to the database.
      */
-    private static final char[] TOKEN;
+    private static char[] TOKEN;
 
     /**
     * The {@link Configuration} key to specify a custom bucket instance to store the analytics.
@@ -73,7 +76,7 @@ public class RecognitionMontorInflux extends RecognitionMonitor{
     /**
      * The BUCKET value specified in the {@link Configuration}, necessary for the petitions to the database.
      */
-    private static final String BUCKET;
+    private static String BUCKET;
 
     /**
     * The {@link Configuration} key to specify a custom organization workspace for influx.
@@ -83,7 +86,7 @@ public class RecognitionMontorInflux extends RecognitionMonitor{
     /**
      * The ORGANIZATION value specified in the {@link Configuration}, necessary for the petitions to the database.
      */
-    private static final String ORGANIZATION;
+    private static String ORGANIZATION;
 
     /**
      * The databases url key.
@@ -111,6 +114,8 @@ public class RecognitionMontorInflux extends RecognitionMonitor{
     *   BUCKET: named location where data is stored. It has a retention policy, a duration of time that each data point persists, etc.
     *   A bucket belongs to 1 organization.
     *   ORGANIZATION: it's the workspace/group of users.
+    *   @param xatkitServer  the {@link XatkitServer} instance used to register the REST endpoints
+    *   @param configuration the Xatkit {@link Configuration}
     */
     public RecognitionMonitorInflux(XatkitServer xatkitServer, Configuration configuration){
         Log.info("Starting new intent recognition monitoring with Influxdb");
@@ -124,9 +129,40 @@ public class RecognitionMontorInflux extends RecognitionMonitor{
         Log.info("Bucket: " + BUCKET);
         ORGANIZATION = configuration.getString(INFLUX_ORG_KEY); 
         Log.info("Organization: " + ORGANIZATION);
-        url = configuration.getString(INFLUX_URL_KEY, DEFAULT_URL);
-        Log.info(url);
+        String url = configuration.getString(INFLUX_URL_KEY, DEFAULT_URL);
+        Log.info("Influxdb url: " + url);
         db = InfluxDBClientFactory.create(url, TOKEN, ORGANIZATION, BUCKET);
+
+        //TODO: Add register endpoints
+        writeTest();
     }
 
-}
+    private void writeTest(){
+        try (WriteApi writer = db.getWriteApi()){
+            //Create data by data points:
+            Point point = Point.measurement("intent")
+                            .addTag("timestamp", String.valueOf(new Timestamp(System.currentTimeMillis())))
+                            .addTag("bot_id", "influx_bot")
+                            //.addTag("session-Id", "123456-df9")
+                            .addTag("isMatched", "True")
+                            .addTag("utterance", "How are yu?")
+                            .addTag("matched_intent", "Greetings")
+                            .addTag("origin", "nice origin")
+                            .addTag("platform", "Steam")
+                            .addTag("this_is_new", "new tag !!!!!!")
+                            .addField("confidence", 0.86)
+                            .addField("matched_parameters", "testing bot with influx parameter :))")
+                            .time(Instant.now().toEpochMilli(), WritePrecision.MS);
+
+            writer.writePoint(BUCKET, "05a3c86a2dcd8000", point); //TODO: This "code" is needed so... it should be in properties I guess?
+            Log.info("point written!");
+        }
+    }
+
+    /**
+     * Closes connection to database. Changes should be commited, but check influxDB doc in case some actions need to be performed!
+     */
+    public void shutdown(){
+        this.db.close();
+    }
+}   
