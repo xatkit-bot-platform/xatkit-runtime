@@ -101,6 +101,11 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     private static final String DEFAULT_URL = "http://localhost:7777";
 
     /**
+     * The default ID of the bot
+     */
+    private static final String DEFAULT_BOT_ID = "xatkitBot";
+
+    /**
      * The database persistent client to make the petitions :)
      */
      private InfluxDBClient db;
@@ -124,7 +129,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         //  organization name
         //  bucket name
         TOKEN = configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
-        Log.info("Token: " + TOKEN);
+        Log.info("Token: " + configuration.getString(INFLUX_TOKEN_KEY));
         BUCKET = configuration.getString(INFLUX_BUCKET_KEY);
         Log.info("Bucket: " + BUCKET);
         ORGANIZATION = configuration.getString(INFLUX_ORG_KEY); 
@@ -134,29 +139,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         db = InfluxDBClientFactory.create(url, TOKEN, ORGANIZATION, BUCKET);
 
         //TODO: Add register endpoints
-        writeTest();
-    }
-
-    private void writeTest(){
-        try (WriteApi writer = db.getWriteApi()){
-            //Create data by data points:
-            Point point = Point.measurement("intent")
-                            .addTag("timestamp", String.valueOf(new Timestamp(System.currentTimeMillis())))
-                            .addTag("bot_id", "influx_bot")
-                            //.addTag("session-Id", "123456-df9")
-                            .addTag("isMatched", "True")
-                            .addTag("utterance", "How are yu?")
-                            .addTag("matched_intent", "Greetings")
-                            .addTag("origin", "nice origin")
-                            .addTag("platform", "Steam")
-                            .addTag("this_is_new", "new tag !!!!!!")
-                            .addField("confidence", 0.86)
-                            .addField("matched_parameters", "testing bot with influx parameter :))")
-                            .time(Instant.now().toEpochMilli(), WritePrecision.MS);
-
-            writer.writePoint(BUCKET, "05a3c86a2dcd8000", point); //TODO: This "code" is needed so... it should be in properties I guess?
-            Log.info("point written!");
-        }
+        //registerEndpoints()
     }
 
     /**
@@ -164,5 +147,42 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
      */
     public void shutdown(){
         this.db.close();
+    }
+
+    /**
+     * Logs the recognition information from the provided {@code recognizedIntent} and {@code session}.
+     *
+     * @param session          the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
+     * @param recognizedIntent the {@link RecognizedIntent} to log
+     */
+    public void logRecognizedIntent(XatkitSession session, RecognizedIntent recognizedIntent) {
+        //Write intent data into db.
+        try (WriteApi writer = db.getWriteApi()){
+            Point point = generateIntentPoint(session, recognizedIntent);
+            Log.info("Point created! lets try to write :)");
+            writer.writePoint(point);
+            Log.info("allegedly performed a write :))");
+        }
+    }
+
+    /**
+     * Generates a point object to be written into the database, based on {@code recognizedIntent} and {@code session}.
+     * 
+     * @param session          the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
+     * @param recognizedIntent the {@link RecognizedIntent} to log
+     */
+    private Point generateIntentPoint(XatkitSession session, RecognizedIntent recognizedIntent){
+        boolean isMatched = !recognizedIntent.getDefinition().getName().equals("DEFAULT_FALLBACK_INTENT");
+        return          Point.measurement("intent")
+                            .addTag("timestamp",            String.valueOf(new Timestamp(System.currentTimeMillis())))
+                            .addTag("bot_id",               DEFAULT_BOT_ID)
+                            .addTag("is_Matched",           String.valueOf(isMatched))
+                            .addField("confidence",         recognizedIntent.getRecognitionConfidence())
+                            .addField("utterance",          recognizedIntent.getMatchedInput())
+                            .addField("matched_intent",     recognizedIntent.getDefinition().getName())
+                            .addField("origin",             "this is a placeholder for origin :)")
+                            .addField("platform",           "this is a placeholder for platform")
+                            .addField("matched_params",     "this is a placeholder for matched params")
+                            .addField("session_id",         session.getSessionId());
     }
 }   
