@@ -118,7 +118,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     *   TOKEN: this validates our bot into the database, so it will be authenticated.
     *   BUCKET: named location where data is stored. It has a retention policy, a duration of time that each data point persists, etc.
     *   A bucket belongs to 1 organization.
-    *   ORGANIZATION: it's the workspace/group of users.
+    *   ORGANIZATION:        it's the workspace/group of users. It can own multiple buckets.
     *   @param xatkitServer  the {@link XatkitServer} instance used to register the REST endpoints
     *   @param configuration the Xatkit {@link Configuration}
     */
@@ -129,7 +129,6 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         //  organization name
         //  bucket name
         TOKEN = configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
-        Log.info("Token: " + configuration.getString(INFLUX_TOKEN_KEY));
         BUCKET = configuration.getString(INFLUX_BUCKET_KEY);
         Log.info("Bucket: " + BUCKET);
         ORGANIZATION = configuration.getString(INFLUX_ORG_KEY); 
@@ -138,8 +137,50 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         Log.info("Influxdb url: " + url);
         db = InfluxDBClientFactory.create(url, TOKEN, ORGANIZATION, BUCKET);
 
-        //TODO: Add register endpoints
-        //registerEndpoints()
+        registerServerEndpoints(xatkitServer);
+    }
+
+    /**
+     * Registers the REST endpoints used to retrieve monitoring information.
+     *
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
+     */
+    private void registerServerEndpoints(XatkitServer xatkitServer) {
+        //this.registerGetMonitoringData(xatkitServer);
+        //this.registerGetMonitoringDataForSession(xatkitServer);
+        //this.registerGetUnmatchedUtterances(xatkitServer);
+        this.registerGetMatchedUtterances(xatkitServer);
+        //this.registerGetSessionsStats(xatkitServer);
+    }
+
+    /**
+    * Registers the {@code GET: /analytics/monitoring/matched} endpoint.
+    * <p>
+    * This endpoint returns a JSON array containing all  the matched intents (i.e. inputs that have been
+    * successfully translated into intents).
+    * <p>
+    * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
+    */
+    private void registerGetMatchedUtterances(XatkitServer xatkitServer){
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/matched", 
+            RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
+                JsonArray res = new JsonArray();
+                //Query database for matched intents and retrieve them.
+                //Query data;
+                String query = "from(bucket: \"" + BUCKET + "\") " +
+                "|> range(start: -30d) " + //range could be changed for some constant I guess
+                "|> filter(fn:(r) => r._measurement == \"intent\" and r.is_Matched == \"true\")";
+
+                List<FluxTable> tables = db.getQueryApi().query(query);
+                for(FluxTable table : tables){
+                    List<FluxRecord> records = table.getRecords();
+                    for(FluxRecord record : records){
+                        //figuring out how to do this properly :))
+                    }
+                }
+                return res;
+            })
+        );
     }
 
     /**
@@ -159,9 +200,9 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         //Write intent data into db.
         try (WriteApi writer = db.getWriteApi()){
             Point point = generateIntentPoint(session, recognizedIntent);
-            Log.info("Point created! lets try to write :)");
+            //Log.info("Point created! lets try to write :)");
             writer.writePoint(point);
-            Log.info("allegedly performed a write :))");
+            //Log.info("allegedly performed a write :))");
         }
     }
 
@@ -172,17 +213,20 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
      * @param recognizedIntent the {@link RecognizedIntent} to log
      */
     private Point generateIntentPoint(XatkitSession session, RecognizedIntent recognizedIntent){
-        boolean isMatched = !recognizedIntent.getDefinition().getName().equals("DEFAULT_FALLBACK_INTENT");
+        boolean isMatched = !recognizedIntent.getDefinition().getName().equals(new DefaultFallbackIntent().getName());
+        Log.info("is Matched = " + isMatched);
+        Log.info("Platform trigger: " + recognizedIntent.getTriggeredBy());
         return          Point.measurement("intent")
-                            .addTag("timestamp",            String.valueOf(new Timestamp(System.currentTimeMillis())))
-                            .addTag("bot_id",               DEFAULT_BOT_ID)
-                            .addTag("is_Matched",           String.valueOf(isMatched))
-                            .addField("confidence",         recognizedIntent.getRecognitionConfidence())
-                            .addField("utterance",          recognizedIntent.getMatchedInput())
-                            .addField("matched_intent",     recognizedIntent.getDefinition().getName())
-                            .addField("origin",             "this is a placeholder for origin :)")
-                            .addField("platform",           "this is a placeholder for platform")
-                            .addField("matched_params",     "this is a placeholder for matched params")
-                            .addField("session_id",         session.getSessionId());
+                            .addTag("bot_id",                   DEFAULT_BOT_ID)
+                            .addTag("is_Matched",               String.valueOf(isMatched))
+                            .addTag("session_id",               session.getSessionId())
+                            .addTag("origin",                   "this is a placeholder for origin :)")
+                            .addTag("platform",                 "recognizedIntent.getTriggeredBy()") //getTriggeredBy() is returning always null to me, causing the write into influx to fail :S (it's easy to catch but maybe we should know why this happens)
+                            .addField("confidence",             recognizedIntent.getRecognitionConfidence())
+                            .addField("utterance",              recognizedIntent.getMatchedInput())
+                            .addField("matched_intent",         recognizedIntent.getDefinition().getName())
+                            .addField("matched_params",         "this is a placeholder for matched params")
+                            .time(Instant.now().toEpochMilli(), WritePrecision.MS); //maybe not the best format? idk
+                            //.time(new Timestamp(System.currentTimeMillis()));
     }
 }   

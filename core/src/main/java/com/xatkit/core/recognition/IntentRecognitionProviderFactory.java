@@ -144,7 +144,7 @@ public class IntentRecognitionProviderFactory {
                 Log.info("Starting with mapdb");
                 monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
             }
-            else if(configuration.getBaseConfiguration().getString(XATKIT_DATABASE_KEY, DEFAULT_DATABASE).equals(INFLUX_DATABASE)){ //We assume a different value means influxDB //TODO: Maybe we should ask for a specific input before using an influx instance like "INFLUX_DB"
+            else if(configuration.getBaseConfiguration().getString(XATKIT_DATABASE_KEY, DEFAULT_DATABASE).equals(INFLUX_DATABASE)){
                 Log.info("Starting with influxDB");
                 monitor = new RecognitionMonitorInflux(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
             }
