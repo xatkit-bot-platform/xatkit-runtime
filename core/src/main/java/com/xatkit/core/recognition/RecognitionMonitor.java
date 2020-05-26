@@ -388,12 +388,11 @@ public class RecognitionMonitor {
                             IntentRecord intentRecord = sessionRecordEntry.getValue();
                             if (!intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
                                 JsonObject matchedUtteranceObject = new JsonObject();
-                                matchedUtteranceObject.addProperty("sessionId", sessionId);
-                                matchedUtteranceObject.addProperty("timestamp", timestamp);
-                                matchedUtteranceObject.addProperty("utterance", intentRecord.getUtterance());
-                                matchedUtteranceObject.addProperty("intent", intentRecord.getIntentName());
-                                matchedUtteranceObject.addProperty("confidence",
-                                        intentRecord.getRecognitionConfidence());
+                                matchedUtteranceObject.addProperty("sessionId",     sessionId);
+                                matchedUtteranceObject.addProperty("timestamp",     timestamp);
+                                matchedUtteranceObject.addProperty("utterance",     intentRecord.getUtterance());
+                                matchedUtteranceObject.addProperty("intent",        intentRecord.getIntentName());
+                                matchedUtteranceObject.addProperty("confidence",    intentRecord.getRecognitionConfidence());
                                 result.add(matchedUtteranceObject);
                             }
                         }

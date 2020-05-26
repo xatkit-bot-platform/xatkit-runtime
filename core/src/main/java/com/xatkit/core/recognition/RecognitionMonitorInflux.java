@@ -148,7 +148,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     private void registerServerEndpoints(XatkitServer xatkitServer) {
         //this.registerGetMonitoringData(xatkitServer);
         //this.registerGetMonitoringDataForSession(xatkitServer);
-        //this.registerGetUnmatchedUtterances(xatkitServer);
+        this.registerGetUnmatchedUtterances(xatkitServer);
         this.registerGetMatchedUtterances(xatkitServer);
         //this.registerGetSessionsStats(xatkitServer);
     }
@@ -156,7 +156,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     /**
     * Registers the {@code GET: /analytics/monitoring/matched} endpoint.
     * <p>
-    * This endpoint returns a JSON array containing all  the matched intents (i.e. inputs that have been
+    * This endpoint returns a JSON array containing all the matched intents (i.e. inputs that have been
     * successfully translated into intents).
     * <p>
     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
@@ -168,20 +168,92 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 //Query database for matched intents and retrieve them.
                 //Query data;
                 String query = "from(bucket: \"" + BUCKET + "\") " +
-                "|> range(start: -30d) " + //range could be changed for some constant I guess
-                "|> filter(fn:(r) => r._measurement == \"intent\" and r.is_Matched == \"true\")";
+                "|> range(start: 2018-05-22T23:30:00Z, stop: now()) " + //range could be changed for some constant I guess, or ask an optional param for this idk
+                "|> filter(fn:(r) => r._measurement == \"intent\" and r.is_Matched == \"true\") " +
+                "|> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\") ";
 
                 List<FluxTable> tables = db.getQueryApi().query(query);
                 for(FluxTable table : tables){
+                    //Each table equals to 1 session with the current Query
                     List<FluxRecord> records = table.getRecords();
+
                     for(FluxRecord record : records){
-                        //figuring out how to do this properly :))
+                        //Each record should hold the info of an utterance/intent for that session
+                        JsonObject obj = getIntentData(record);
+                        
+                        res.add(obj);
                     }
                 }
                 return res;
             })
         );
     }
+
+    /**
+    * Registers the {@code GET: /analytics/monitoring/unmatched} endpoint.
+    * <p>
+    * This endpoint returns a JSON array containing all the unmatched intents (i.e. inputs that have been
+    * unsuccessfully translated into intents).
+    * <p>
+    * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
+    */
+    private void registerGetUnmatchedUtterances(XatkitServer xatkitServer){
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/unmatched", 
+            RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
+                JsonArray res = new JsonArray();
+                //Query database for matched intents and retrieve them.
+                //Query data;
+                String query = "from(bucket: \"" + BUCKET + "\") " +
+                "|> range(start: 2018-05-22T23:30:00Z, stop: now()) " + //range could be changed for some constant I guess, or ask an optional param for this idk
+                "|> filter(fn:(r) => r._measurement == \"intent\" and r.is_Matched == \"false\") " +
+                "|> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\") ";
+
+                List<FluxTable> tables = db.getQueryApi().query(query);
+                for(FluxTable table : tables){
+                    //Each table equals to 1 session with the current Query
+                    List<FluxRecord> records = table.getRecords();
+
+                    for(FluxRecord record : records){
+                        //Each record should hold the info of an utterance/intent for that session
+                        JsonObject obj = getIntentData(record);
+
+                        res.add(obj);
+                    }
+                }
+                return res;
+            })
+        );
+    }
+
+    /**
+     * Reads Record's Intent/utterance data and parses it as a JsonObject to be returned by the API.
+     * @param record
+     * @return JsonObject with record's data 
+     */
+    private JsonObject getIntentData(FluxRecord record){
+        String aux = String.valueOf(record.getValueByKey("_time"));
+        long time = Instant.parse(aux).toEpochMilli();
+
+        JsonObject obj = new JsonObject();
+
+        // Adding "generic" data
+        obj.addProperty("botId",                String.valueOf(record.getValueByKey("bot_id")));
+        obj.addProperty("origin",               String.valueOf(record.getValueByKey("origin")));
+        obj.addProperty("platform",             String.valueOf(record.getValueByKey("platform")));
+        // Not sure if this is related to the intents or not for the session, but I am putting it just before the session data
+        obj.addProperty("matched_parameters",   String.valueOf(record.getValueByKey("matched_params")));
+
+        // Adding utterance/intent specific data 
+        obj.addProperty("sessionId",            String.valueOf(record.getValueByKey("session_id")));
+        obj.addProperty("timestamp",            time);
+        obj.addProperty("utterance",            String.valueOf(record.getValueByKey("utterance")));
+        obj.addProperty("is_matched",           String.valueOf(record.getValueByKey("is_Matched")));
+        obj.addProperty("intent",               String.valueOf(record.getValueByKey("matched_intent")));
+        obj.addProperty("confidence",           String.valueOf(record.getValueByKey("confidence")));
+
+        return obj;
+    }
+
 
     /**
      * Closes connection to database. Changes should be commited, but check influxDB doc in case some actions need to be performed!
@@ -211,6 +283,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
      * 
      * @param session          the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
      * @param recognizedIntent the {@link RecognizedIntent} to log
+     * @return Point with data ready to be inserted into an influx db.
      */
     private Point generateIntentPoint(XatkitSession session, RecognizedIntent recognizedIntent){
         boolean isMatched = !recognizedIntent.getDefinition().getName().equals(new DefaultFallbackIntent().getName());
