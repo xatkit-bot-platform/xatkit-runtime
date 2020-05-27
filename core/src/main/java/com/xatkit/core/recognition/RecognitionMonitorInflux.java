@@ -127,10 +127,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     */
     public RecognitionMonitorInflux(XatkitServer xatkitServer, Configuration configuration){
         Log.info("Starting new intent recognition monitoring with Influxdb");
-        // Requirements for storing/querying data from influx:
-        //  auth token that validates our bot into the database.
-        //  organization name
-        //  bucket name
+        // Required for storing/querying data from influx:
         TOKEN           =   configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
         BUCKET          =   configuration.getString(INFLUX_BUCKET_KEY);
         ORGANIZATION    =   configuration.getString(INFLUX_ORG_KEY); 
@@ -150,7 +147,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
      */
     private void registerServerEndpoints(XatkitServer xatkitServer) {
         //this.registerGetMonitoringData(xatkitServer);
-        //this.registerGetMonitoringDataForSession(xatkitServer);
+        this.registerGetMonitoringDataForSession(xatkitServer);
         this.registerGetUnmatchedUtterances(xatkitServer);
         this.registerGetMatchedUtterances(xatkitServer);
         this.registerGetSessionsStats(xatkitServer);
@@ -185,6 +182,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                         res.add(obj);
                     }
                 }
+
                 return res;
             })
         );
@@ -261,6 +259,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 sessionCount = tables.size(); //Data is grouped by session_id, which means tables.size() = nr sessions
                 //iterating through each session table to calculate it's time
                 for(FluxTable table : tables){
+                    //Assumption: Tables are ordered by time so pos 0 = older one and size()-1 contains the most recent one
                     List<FluxRecord> records    =   table.getRecords();
                     long timeStart              =   Instant.parse(String.valueOf(records.get(0).getValueByKey("_time"))).toEpochMilli();
                     long timeEnd                =   Instant.parse(String.valueOf(records.get(records.size() - 1).getValueByKey("_time"))).toEpochMilli();
@@ -286,10 +285,6 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 double avgMatchedUtterances     =   totalMatchedUtteranceCount / (double) sessionCount;
                 double avgUnmatchedUtterances   =   totalUnmatchedUtteranceCount / (double) sessionCount;
                 double avgSessionTime           =   totalSessionTime / (double) sessionCount;
-                //Log.info("Total matched: " + totalMatchedUtteranceCount);
-                //Log.info("total Unmatched: " + totalUnmatchedUtteranceCount);
-                //Log.info("TotalSessionTime: " + totalSessionTime);
-                //Log.info("session count : " + sessionCount);
 
                 result.addProperty("averageMatchedUtteranceCount", avgMatchedUtterances);
                 result.addProperty("averageUnmatchedUtteranceCount", avgUnmatchedUtterances);
@@ -298,6 +293,82 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 return result;
             })
         ));
+    }
+
+    /**
+     * 
+     * @param xatkitServer
+     */
+    private void registerGetMonitoringDataForSession(XatkitServer xatkitServer) {
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/session",
+            RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
+                String sessionId = HttpUtils.getParameterValue("sessionId", params);
+
+                if (isNull(sessionId)) {
+                    throw new RestHandlerException(404, "Missing parameter sessionId");
+                }
+
+                String[] filters = {"r.session_id == \"" + sessionId + "\""};
+                String   query   = queryBuilder("", filters, true, true);
+                
+                //Tables will contain an unique table with all utterances/intents for that session, should be ordered by timestamp
+                
+                List<FluxTable> tables = db.getQueryApi().query(query);
+
+                if(tables.size() == 0){
+                    throw new RestHandlerException(404, "Session " + sessionId + " not found");
+                }else{
+                    return buildSessionObject(sessionId, tables.get(0).getRecords());
+                }
+            })
+        ));
+    }
+
+    /**
+     * Creates a {@link JsonObject} representing the provided session record.
+     *
+     * @param sessionId   the identifier of the session to translate to a {@link JsonObject}
+     * @param sessionData the database records associated to the provided {@code sessionId}
+     * @return the created {@link JsonObject}
+     */
+    private JsonObject buildSessionObject(String sessionId, List<FluxRecord> sessionData) {
+        JsonObject sessionObject = new JsonObject();
+        sessionObject.addProperty("sessionId", sessionId);
+        JsonArray sessionRecords = new JsonArray();
+        sessionObject.add("entries", sessionRecords);
+        int unmatchedCount      =   0;
+        int matchedCount        =   0;
+        double accConfidence    =   0.0;
+        for (FluxRecord sessionEntry : sessionData) {
+            JsonObject entryObject = new JsonObject();
+            sessionRecords.add(entryObject);
+            entryObject.addProperty("timestamp",    String.valueOf(sessionEntry.getValueByKey("_time")));
+            entryObject.addProperty("utterance",    String.valueOf(sessionEntry.getValueByKey("utterance")));
+            entryObject.addProperty("is_matched",   String.valueOf(sessionEntry.getValueByKey("is_Matched")));
+            entryObject.addProperty("intent",       String.valueOf(sessionEntry.getValueByKey("matched_intent")));
+            entryObject.addProperty("confidence",   String.valueOf(sessionEntry.getValueByKey("confidence")));
+            entryObject.addProperty("parameters",   String.valueOf(sessionEntry.getValueByKey("matched_params")));
+            entryObject.addProperty("platform",     String.valueOf(sessionEntry.getValueByKey("platform")));
+
+            if (String.valueOf(sessionEntry.getValueByKey("matched_intent")).equals("Default_Fallback_Intent")) {
+                unmatchedCount++;
+            } else {
+                accConfidence += Double.parseDouble(
+                                    String.valueOf(
+                                        sessionEntry.getValueByKey("confidence")
+                                    )
+                                );
+                matchedCount++;
+            }
+        }
+        sessionObject.add("matchedUtteranceCount", new JsonPrimitive(matchedCount));
+        sessionObject.add("unmatchedUtteranceCount", new JsonPrimitive(unmatchedCount));
+        if (matchedCount > 0) {
+            sessionObject.add("avgSessionConfidence",
+                    new JsonPrimitive(accConfidence / (double) matchedCount));
+        }
+
+        return sessionObject;
     }
 
     /**
@@ -316,7 +387,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         obj.addProperty("origin",               String.valueOf(record.getValueByKey("origin")));
         obj.addProperty("platform",             String.valueOf(record.getValueByKey("platform")));
         // Not sure if this is related to the intents or not for the session, but I am putting it just before the session data
-        obj.addProperty("matched_parameters",   String.valueOf(record.getValueByKey("matched_params")));
+        obj.addProperty("parameters",   String.valueOf(record.getValueByKey("matched_params")));
 
         // Adding utterance/intent specific data 
         obj.addProperty("sessionId",            String.valueOf(record.getValueByKey("session_id")));
@@ -365,7 +436,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         
         //Log.info("is Matched = "        + isMatched);
         //Log.info("Platform trigger: "   + recognizedIntent.getTriggeredBy());
-        return          Point.measurement("intent")
+        return      Point.measurement("intent")
                             .addTag("bot_id",                   DEFAULT_BOT_ID)
                             .addTag("is_Matched",               String.valueOf(isMatched))
                             .addTag("session_id",               session.getSessionId())
