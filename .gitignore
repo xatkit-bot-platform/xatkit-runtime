@@ -1,3 +1,7 @@
+# Visual code classpath
+core/.classpath
+core/.factorypath
+
 # Intellij files
 .idea
 *.iml

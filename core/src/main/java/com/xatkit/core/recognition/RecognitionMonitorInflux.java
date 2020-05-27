@@ -13,6 +13,8 @@ import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.ObjectUtils.Null;
+
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -31,6 +33,7 @@ import com.influxdb.query.FluxTable;
 
 import java.io.File;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 
 import static java.util.Objects.isNull;
 
@@ -128,15 +131,15 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         //  auth token that validates our bot into the database.
         //  organization name
         //  bucket name
-        TOKEN = configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
-        BUCKET = configuration.getString(INFLUX_BUCKET_KEY);
-        Log.info("Bucket: " + BUCKET);
-        ORGANIZATION = configuration.getString(INFLUX_ORG_KEY); 
-        Log.info("Organization: " + ORGANIZATION);
-        String url = configuration.getString(INFLUX_URL_KEY, DEFAULT_URL);
-        Log.info("Influxdb url: " + url);
-        db = InfluxDBClientFactory.create(url, TOKEN, ORGANIZATION, BUCKET);
+        TOKEN           =   configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
+        BUCKET          =   configuration.getString(INFLUX_BUCKET_KEY);
+        ORGANIZATION    =   configuration.getString(INFLUX_ORG_KEY); 
+        String url      =   configuration.getString(INFLUX_URL_KEY, DEFAULT_URL);
+        Log.info("Bucket: "         +   BUCKET);
+        Log.info("Organization: "   +   ORGANIZATION);
+        Log.info("Influxdb url: "   +   url);
 
+        db = InfluxDBClientFactory.create(url, TOKEN, ORGANIZATION, BUCKET);
         registerServerEndpoints(xatkitServer);
     }
 
@@ -150,7 +153,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         //this.registerGetMonitoringDataForSession(xatkitServer);
         this.registerGetUnmatchedUtterances(xatkitServer);
         this.registerGetMatchedUtterances(xatkitServer);
-        //this.registerGetSessionsStats(xatkitServer);
+        this.registerGetSessionsStats(xatkitServer);
     }
 
     /**
@@ -167,10 +170,8 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 JsonArray res = new JsonArray();
                 //Query database for matched intents and retrieve them.
                 //Query data;
-                String query = "from(bucket: \"" + BUCKET + "\") " +
-                "|> range(start: 2018-05-22T23:30:00Z, stop: now()) " + //range could be changed for some constant I guess, or ask an optional param for this idk
-                "|> filter(fn:(r) => r._measurement == \"intent\" and r.is_Matched == \"true\") " +
-                "|> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\") ";
+                String[] filter = {"r.is_Matched == \"true\""};
+                String query = queryBuilder("2018-05-22T23:30:00Z", filter, true, false);
 
                 List<FluxTable> tables = db.getQueryApi().query(query);
                 for(FluxTable table : tables){
@@ -202,11 +203,9 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
             RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
                 JsonArray res = new JsonArray();
                 //Query database for matched intents and retrieve them.
-                //Query data;
-                String query = "from(bucket: \"" + BUCKET + "\") " +
-                "|> range(start: 2018-05-22T23:30:00Z, stop: now()) " + //range could be changed for some constant I guess, or ask an optional param for this idk
-                "|> filter(fn:(r) => r._measurement == \"intent\" and r.is_Matched == \"false\") " +
-                "|> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\") ";
+                //Query builder:
+                String[] aux = {"r.is_Matched == \"false\""};
+                String query = queryBuilder("2018-05-22T23:30:00Z", aux, true, false);
 
                 List<FluxTable> tables = db.getQueryApi().query(query);
                 for(FluxTable table : tables){
@@ -226,13 +225,89 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     }
 
     /**
+     * Registers the {@code GET: /analytics/monitoring/sessions/stats} endpoint.
+     * <p>
+     * This endpoint returns a JSON object containing computed statistics over stored sessions (e.g. average
+     * time/session, average number of matched inputs/sessions, etc).
+     * <p>
+     * The listing below shows an example of the returned JSON payload:
+     * <pre>
+     * {@code
+     * {
+     *     "averageMatchedUtteranceCount": 1.0,
+     *     "averageUnmatchedUtteranceCount": 2.0,
+     *     "averageSessionTime": 43.246
+     * }
+     * }
+     * </pre>
+     *
+     * @param xatkitServer
+     */
+    private void registerGetSessionsStats(XatkitServer xatkitServer){
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/sessions/stats",
+            RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
+                JsonObject result = new JsonObject();
+                int sessionCount = 0;
+                int totalMatchedUtteranceCount = 0;
+                int totalUnmatchedUtteranceCount = 0;
+                long totalSessionTime = 0;
+                
+                String[] filters = {};
+                String query = queryBuilder("2018-05-22T23:30:00Z", filters, true, false);
+                query = query.concat("|> group(columns: [\"session_id\"])");
+
+                List<FluxTable> tables = db.getQueryApi().query(query);
+
+                sessionCount = tables.size(); //Data is grouped by session_id, which means tables.size() = nr sessions
+                //iterating through each session table to calculate it's time
+                for(FluxTable table : tables){
+                    List<FluxRecord> records    =   table.getRecords();
+                    long timeStart              =   Instant.parse(String.valueOf(records.get(0).getValueByKey("_time"))).toEpochMilli();
+                    long timeEnd                =   Instant.parse(String.valueOf(records.get(records.size() - 1).getValueByKey("_time"))).toEpochMilli();
+                    totalSessionTime           +=   (timeEnd - timeStart);
+                }
+
+                filters = new String[] {"r.is_Matched == \"true\""};
+                query = queryBuilder("2018-05-22T23:30:00Z", filters, true, true);
+
+                tables = db.getQueryApi().query(query);
+
+                //Data is grouped and filtered which means tables.size() = 1 with nr matched utts as rows
+                totalMatchedUtteranceCount = tables.get(0).getRecords().size();
+
+                filters = new String[] {"r.is_Matched == \"false\""};
+                query = queryBuilder("2018-05-22T23:30:00Z", filters, true, true);
+                
+                tables = db.getQueryApi().query(query);
+
+                //Data is grouped and filtered which means tables.size() = 1 with nr unmatched utts as rows
+                totalUnmatchedUtteranceCount = tables.get(0).getRecords().size(); 
+
+                double avgMatchedUtterances     =   totalMatchedUtteranceCount / (double) sessionCount;
+                double avgUnmatchedUtterances   =   totalUnmatchedUtteranceCount / (double) sessionCount;
+                double avgSessionTime           =   totalSessionTime / (double) sessionCount;
+                //Log.info("Total matched: " + totalMatchedUtteranceCount);
+                //Log.info("total Unmatched: " + totalUnmatchedUtteranceCount);
+                //Log.info("TotalSessionTime: " + totalSessionTime);
+                //Log.info("session count : " + sessionCount);
+
+                result.addProperty("averageMatchedUtteranceCount", avgMatchedUtterances);
+                result.addProperty("averageUnmatchedUtteranceCount", avgUnmatchedUtterances);
+                result.addProperty("averageSessionTime", avgSessionTime / 1000); //divided by 1000 to get value in seconds
+
+                return result;
+            })
+        ));
+    }
+
+    /**
      * Reads Record's Intent/utterance data and parses it as a JsonObject to be returned by the API.
      * @param record
      * @return JsonObject with record's data 
      */
     private JsonObject getIntentData(FluxRecord record){
-        String aux = String.valueOf(record.getValueByKey("_time"));
-        long time = Instant.parse(aux).toEpochMilli();
+        String aux  =   String.valueOf(record.getValueByKey("_time"));
+        long time   =   Instant.parse(aux).toEpochMilli();
 
         JsonObject obj = new JsonObject();
 
@@ -287,8 +362,9 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
      */
     private Point generateIntentPoint(XatkitSession session, RecognizedIntent recognizedIntent){
         boolean isMatched = !recognizedIntent.getDefinition().getName().equals(new DefaultFallbackIntent().getName());
-        Log.info("is Matched = " + isMatched);
-        Log.info("Platform trigger: " + recognizedIntent.getTriggeredBy());
+        
+        //Log.info("is Matched = "        + isMatched);
+        //Log.info("Platform trigger: "   + recognizedIntent.getTriggeredBy());
         return          Point.measurement("intent")
                             .addTag("bot_id",                   DEFAULT_BOT_ID)
                             .addTag("is_Matched",               String.valueOf(isMatched))
@@ -301,5 +377,37 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                             .addField("matched_params",         "this is a placeholder for matched params")
                             .time(Instant.now().toEpochMilli(), WritePrecision.MS); //maybe not the best format? idk
                             //.time(new Timestamp(System.currentTimeMillis()));
+    }
+
+    /**
+     * Buils a query string based of the params passed.
+     * @param rfcStartTime - rfc3339 format (similar to ISO-8601): YYYY-MM-DDThh:mm:ssZ Can be null/empty.
+     * @param filters - Array of strings (remember to use backslashes!). Each position is a condition in string format. i.e: r.is_Matched == \"true\"
+     * @param pivot - If the query should include the "pivot" call.
+     * @param group - If the query should group results in a single table
+     * @return String - query string built to be used in influx client
+     */
+    private String queryBuilder(String rfcStartTime, String[] filters, boolean pivot, boolean group){
+        String query = "from(bucket: \"" + BUCKET + "\") ";
+
+        if(isNull(rfcStartTime) || rfcStartTime.isEmpty()){
+            query = query.concat("|> range(start: 2018-05-22T23:30:00Z, stop: now()) ");
+        }else{ //Assuming the rfcStartTime is correct
+            query = query.concat("|> range(start: " + rfcStartTime + ", stop: now()) ");
+        }
+
+        //adding filters 
+        query = query.concat("|> filter(fn:(r) => r._measurement == \"intent\"");
+        for(String s : filters){
+            query = query.concat(" and " + s);
+        }
+        query = query.concat(")");
+
+        if(pivot) query = query.concat("|> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\") ");
+
+        if(group) query = query.concat("|> group()");
+
+        //Log.info(query);
+        return query;
     }
 }   
