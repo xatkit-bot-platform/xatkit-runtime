@@ -146,7 +146,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
      * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
      */
     private void registerServerEndpoints(XatkitServer xatkitServer) {
-        //this.registerGetMonitoringData(xatkitServer);
+        this.registerGetMonitoringData(xatkitServer);
         this.registerGetMonitoringDataForSession(xatkitServer);
         this.registerGetUnmatchedUtterances(xatkitServer);
         this.registerGetMatchedUtterances(xatkitServer);
@@ -318,10 +318,70 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 if(tables.size() == 0){
                     throw new RestHandlerException(404, "Session " + sessionId + " not found");
                 }else{
+
                     return buildSessionObject(sessionId, tables.get(0).getRecords());
                 }
             })
         ));
+    }
+
+    /**
+     * Registers the {@code GET: /analytics/monitoring} endpoint.
+     * <p>
+     * This endpoint returns a JSON array containing all the persisted monitoring information (note that this method
+     * doesn't support pagination yet, so the returned JSON may be big for long-running applications).
+     * <p>
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
+     */
+    private void registerGetMonitoringData(XatkitServer xatkitServer) {
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
+                RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
+                    JsonArray sessionsArray = new JsonArray();
+                    double accRecognitionConfidence = 0.0;
+                    int matchedCount = 0;
+                    int unmatchedCount = 0;
+                    int nSessions = 0;
+
+                    //query pivoted and grouped by sessionID
+                    String[] filters = {};
+                    String   query   = queryBuilder("", filters, true, false);
+                    query  = query.concat("|> group(columns: [\"session_id\"])");
+
+                    List<FluxTable> tables = db.getQueryApi().query(query);
+                    //Each table equals to 1 session
+                    nSessions = tables.size();
+                    for (FluxTable table: tables) {
+                        String sessionId = String.valueOf(table.getRecords().get(0).getValueByKey("session_id"));
+                        JsonObject sessionObject = buildSessionObject(sessionId, table.getRecords());
+                        
+                        int sessionMatchedCount = sessionObject.get("matchedUtteranceCount").getAsInt();
+                        matchedCount    +=  sessionMatchedCount;
+                        unmatchedCount  +=  sessionObject.get("unmatchedUtteranceCount").getAsInt();
+                        if (sessionObject.has("avgSessionConfidence")) {
+                            double avgSessionConfidence =   sessionObject.get("avgSessionConfidence").getAsDouble();
+                            accRecognitionConfidence    +=  avgSessionConfidence * (double) sessionMatchedCount;
+                        }
+                        
+                        sessionsArray.add(sessionObject);
+                    }
+
+                    JsonObject globalInfo = new JsonObject();
+                    globalInfo.addProperty("nSessions", nSessions);
+
+                    double aux = accRecognitionConfidence / (double) matchedCount;
+                    if (!Double.isNaN(aux) && Double.isFinite(aux)) {
+                        globalInfo.addProperty("avgRecognitionConfidence", aux);
+                    }
+                    globalInfo.addProperty("totalUnmatchedUtterances", unmatchedCount);
+                    globalInfo.addProperty("totalMatchedUtterances", matchedCount);
+
+                    JsonArray resultArray = new JsonArray();
+                    resultArray.add(sessionsArray);
+                    resultArray.add(globalInfo);
+
+                    return resultArray;
+                })
+            );
     }
 
     /**
@@ -339,18 +399,12 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         int unmatchedCount      =   0;
         int matchedCount        =   0;
         double accConfidence    =   0.0;
-        for (FluxRecord sessionEntry : sessionData) {
-            JsonObject entryObject = new JsonObject();
-            sessionRecords.add(entryObject);
-            entryObject.addProperty("timestamp",    String.valueOf(sessionEntry.getValueByKey("_time")));
-            entryObject.addProperty("utterance",    String.valueOf(sessionEntry.getValueByKey("utterance")));
-            entryObject.addProperty("is_matched",   String.valueOf(sessionEntry.getValueByKey("is_Matched")));
-            entryObject.addProperty("intent",       String.valueOf(sessionEntry.getValueByKey("matched_intent")));
-            entryObject.addProperty("confidence",   String.valueOf(sessionEntry.getValueByKey("confidence")));
-            entryObject.addProperty("parameters",   String.valueOf(sessionEntry.getValueByKey("matched_params")));
-            entryObject.addProperty("platform",     String.valueOf(sessionEntry.getValueByKey("platform")));
 
-            if (String.valueOf(sessionEntry.getValueByKey("matched_intent")).equals("Default_Fallback_Intent")) {
+        for (FluxRecord sessionEntry : sessionData) {
+            JsonObject entryObject = getIntentData(sessionEntry);
+            sessionRecords.add(entryObject);
+
+            if (String.valueOf(sessionEntry.getValueByKey("is_Matched")).equals("false")) {
                 unmatchedCount++;
             } else {
                 accConfidence += Double.parseDouble(
@@ -361,8 +415,8 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 matchedCount++;
             }
         }
-        sessionObject.add("matchedUtteranceCount", new JsonPrimitive(matchedCount));
-        sessionObject.add("unmatchedUtteranceCount", new JsonPrimitive(unmatchedCount));
+        sessionObject.add("matchedUtteranceCount",      new JsonPrimitive(matchedCount));
+        sessionObject.add("unmatchedUtteranceCount",    new JsonPrimitive(unmatchedCount));
         if (matchedCount > 0) {
             sessionObject.add("avgSessionConfidence",
                     new JsonPrimitive(accConfidence / (double) matchedCount));
@@ -383,19 +437,19 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         JsonObject obj = new JsonObject();
 
         // Adding "generic" data
-        obj.addProperty("botId",                String.valueOf(record.getValueByKey("bot_id")));
-        obj.addProperty("origin",               String.valueOf(record.getValueByKey("origin")));
-        obj.addProperty("platform",             String.valueOf(record.getValueByKey("platform")));
+        obj.addProperty("bot_id",           String.valueOf(record.getValueByKey("bot_id")));
+        obj.addProperty("origin",           String.valueOf(record.getValueByKey("origin")));
+        obj.addProperty("platform",         String.valueOf(record.getValueByKey("platform")));
         // Not sure if this is related to the intents or not for the session, but I am putting it just before the session data
-        obj.addProperty("parameters",   String.valueOf(record.getValueByKey("matched_params")));
+        obj.addProperty("parameters",       String.valueOf(record.getValueByKey("matched_params")));
 
         // Adding utterance/intent specific data 
-        obj.addProperty("sessionId",            String.valueOf(record.getValueByKey("session_id")));
-        obj.addProperty("timestamp",            time);
-        obj.addProperty("utterance",            String.valueOf(record.getValueByKey("utterance")));
-        obj.addProperty("is_matched",           String.valueOf(record.getValueByKey("is_Matched")));
-        obj.addProperty("intent",               String.valueOf(record.getValueByKey("matched_intent")));
-        obj.addProperty("confidence",           String.valueOf(record.getValueByKey("confidence")));
+        obj.addProperty("session_id",       String.valueOf(record.getValueByKey("session_id")));
+        obj.addProperty("timestamp",        time);
+        obj.addProperty("utterance",        String.valueOf(record.getValueByKey("utterance")));
+        obj.addProperty("is_matched",       String.valueOf(record.getValueByKey("is_Matched")));
+        obj.addProperty("intent",           String.valueOf(record.getValueByKey("matched_intent")));
+        obj.addProperty("confidence",       String.valueOf(record.getValueByKey("confidence")));
 
         return obj;
     }
@@ -418,9 +472,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         //Write intent data into db.
         try (WriteApi writer = db.getWriteApi()){
             Point point = generateIntentPoint(session, recognizedIntent);
-            //Log.info("Point created! lets try to write :)");
             writer.writePoint(point);
-            //Log.info("allegedly performed a write :))");
         }
     }
 
@@ -434,8 +486,6 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     private Point generateIntentPoint(XatkitSession session, RecognizedIntent recognizedIntent){
         boolean isMatched = !recognizedIntent.getDefinition().getName().equals(new DefaultFallbackIntent().getName());
         
-        //Log.info("is Matched = "        + isMatched);
-        //Log.info("Platform trigger: "   + recognizedIntent.getTriggeredBy());
         return      Point.measurement("intent")
                             .addTag("bot_id",                   DEFAULT_BOT_ID)
                             .addTag("is_Matched",               String.valueOf(isMatched))
@@ -447,7 +497,6 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                             .addField("matched_intent",         recognizedIntent.getDefinition().getName())
                             .addField("matched_params",         "this is a placeholder for matched params")
                             .time(Instant.now().toEpochMilli(), WritePrecision.MS); //maybe not the best format? idk
-                            //.time(new Timestamp(System.currentTimeMillis()));
     }
 
     /**
@@ -478,7 +527,6 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
 
         if(group) query = query.concat("|> group()");
 
-        //Log.info(query);
         return query;
     }
 }   
