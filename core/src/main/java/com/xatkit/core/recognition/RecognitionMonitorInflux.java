@@ -216,7 +216,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
 
                         res.add(obj);
                     }
-                }
+                } 
                 return res;
             })
         );
@@ -337,6 +337,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
                     JsonArray sessionsArray = new JsonArray();
+                    JsonObject globalInfo   = new JsonObject();
                     double accRecognitionConfidence = 0.0;
                     int matchedCount = 0;
                     int unmatchedCount = 0;
@@ -365,15 +366,14 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                         sessionsArray.add(sessionObject);
                     }
 
-                    JsonObject globalInfo = new JsonObject();
                     globalInfo.addProperty("nSessions", nSessions);
 
                     double aux = accRecognitionConfidence / (double) matchedCount;
                     if (!Double.isNaN(aux) && Double.isFinite(aux)) {
                         globalInfo.addProperty("avgRecognitionConfidence", aux);
                     }
-                    globalInfo.addProperty("totalUnmatchedUtterances", unmatchedCount);
-                    globalInfo.addProperty("totalMatchedUtterances", matchedCount);
+                    globalInfo.addProperty("totalUnmatchedUtterances",  unmatchedCount);
+                    globalInfo.addProperty("totalMatchedUtterances",    matchedCount);
 
                     JsonArray resultArray = new JsonArray();
                     resultArray.add(sessionsArray);
@@ -449,7 +449,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         obj.addProperty("utterance",        String.valueOf(record.getValueByKey("utterance")));
         obj.addProperty("is_matched",       String.valueOf(record.getValueByKey("is_Matched")));
         obj.addProperty("intent",           String.valueOf(record.getValueByKey("matched_intent")));
-        obj.addProperty("confidence",       String.valueOf(record.getValueByKey("confidence")));
+        obj.addProperty("confidence",       Double.parseDouble(String.valueOf(record.getValueByKey("confidence")))); //confidence ha de ser un double al JSON!
 
         return obj;
     }
