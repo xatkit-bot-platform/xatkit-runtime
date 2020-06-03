@@ -109,6 +109,11 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     private static final String DEFAULT_BOT_ID = "xatkitBot";
 
     /**
+     * The actual ID of the bot
+     */
+    private String BOT_ID;
+
+    /**
      * The database persistent client to make the petitions :)
      */
      private InfluxDBClient db;
@@ -131,6 +136,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         TOKEN           =   configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
         BUCKET          =   configuration.getString(INFLUX_BUCKET_KEY);
         ORGANIZATION    =   configuration.getString(INFLUX_ORG_KEY); 
+        BOT_ID          =   DEFAULT_BOT_ID; //TODO: load the actual id of the bot!
         String url      =   configuration.getString(INFLUX_URL_KEY, DEFAULT_URL);
         Log.info("Bucket: "         +   BUCKET);
         Log.info("Organization: "   +   ORGANIZATION);
@@ -487,7 +493,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         boolean isMatched = !recognizedIntent.getDefinition().getName().equals(new DefaultFallbackIntent().getName());
         
         return      Point.measurement("intent")
-                            .addTag("bot_id",                   DEFAULT_BOT_ID)
+                            .addTag("bot_id",                   BOT_ID)
                             .addTag("is_Matched",               String.valueOf(isMatched))
                             .addTag("session_id",               session.getSessionId())
                             .addTag("origin",                   "this is a placeholder for origin :)")
@@ -517,7 +523,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         }
 
         //adding filters 
-        query = query.concat("|> filter(fn:(r) => r._measurement == \"intent\"");
+        query = query.concat("|> filter(fn:(r) => r._measurement == \"intent\" and r.bot_id == \"" + BOT_ID + "\"");
         for(String s : filters){
             query = query.concat(" and " + s);
         }
