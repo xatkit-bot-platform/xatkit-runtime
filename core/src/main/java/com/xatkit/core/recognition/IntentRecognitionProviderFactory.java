@@ -140,14 +140,14 @@ public class IntentRecognitionProviderFactory {
          */
         RecognitionMonitor monitor = null;
         if (configuration.isEnableRecognitionAnalytics()) {
-            if(configuration.getBaseConfiguration().getString(XATKIT_DATABASE_KEY, DEFAULT_DATABASE).equals(DEFAULT_DATABASE)){
-                Log.info("Starting with mapdb");
-                monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
-            }
-            else if(configuration.getBaseConfiguration().getString(XATKIT_DATABASE_KEY, DEFAULT_DATABASE).equals(INFLUX_DATABASE)){
+            if(configuration.getBaseConfiguration().getString(XATKIT_DATABASE_KEY, DEFAULT_DATABASE).equals(INFLUX_DATABASE)){
                 Log.info("Starting with influxDB");
                 monitor = new RecognitionMonitorInflux(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
             }
+            else { //Using mapDB, default value
+                Log.info("Starting with mapdb");
+                monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+            } 
         }
         return monitor;
     }
