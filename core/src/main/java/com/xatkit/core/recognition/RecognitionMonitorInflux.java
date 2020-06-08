@@ -3,6 +3,13 @@ package com.xatkit.core.recognition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.influxdb.client.InfluxDBClient;
+import com.influxdb.client.InfluxDBClientFactory;
+import com.influxdb.client.WriteApi;
+import com.influxdb.client.domain.WritePrecision;
+import com.influxdb.client.write.Point;
+import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.HttpUtils;
 import com.xatkit.core.server.RestHandlerException;
@@ -10,30 +17,11 @@ import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.ObjectUtils.Null;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
-
-import com.influxdb.annotations.Column;
-import com.influxdb.annotations.Measurement;
-import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.QueryApi;
-import com.influxdb.client.WriteApi;
-import com.influxdb.client.domain.WritePrecision;
-import com.influxdb.client.write.Point;
-import com.influxdb.query.FluxColumn;
-import com.influxdb.query.FluxRecord;
-import com.influxdb.query.FluxTable;
-
-import java.io.File;
-import java.io.Serializable;
-import java.lang.reflect.Array;
 
 import static java.util.Objects.isNull;
 
