@@ -8,9 +8,11 @@ import com.xatkit.util.ExecutionModelUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +38,19 @@ public class XatkitSession {
      */
     @Getter
     private String sessionId;
+
+    /**
+     * The origin of the session.
+     * <p>
+     * This attribute can be set by {@link com.xatkit.core.platform.io.RuntimeEventProvider}s to identify a session
+     * using a {@link String} representing its origin (e.g. an URL).
+     * <p>
+     * This attribute is {@code null} if the provider doesn't call {@link #setOrigin(String)}.
+     */
+    @Getter
+    @Setter
+    @Nullable
+    private String origin;
 
     /**
      * The runtime {@link State} associated to the {@link XatkitSession}.
@@ -98,6 +113,7 @@ public class XatkitSession {
         this.sessionId = sessionId;
         this.runtimeContexts = new RuntimeContexts(configuration);
         this.sessionVariables = new HashMap<>();
+        this.origin = null;
         Log.info("{0} {1} created", XatkitSession.class.getSimpleName(), this.sessionId);
     }
 
@@ -114,10 +130,10 @@ public class XatkitSession {
     public void setState(@NonNull State state) {
         Log.debug("Session {0} - State set to {1}", this.getSessionId(), state.getName());
         this.state = state;
-        for(Transition t : state.getTransitions()) {
+        for (Transition t : state.getTransitions()) {
             ExecutionModelUtils.getAccessedEvents(t).forEach(e -> {
-                if(e instanceof IntentDefinition) {
-                    IntentDefinition i = (IntentDefinition)e;
+                if (e instanceof IntentDefinition) {
+                    IntentDefinition i = (IntentDefinition) e;
                     this.runtimeContexts.setContext("Enable" + i.getName(), 2);
                 }
             });
