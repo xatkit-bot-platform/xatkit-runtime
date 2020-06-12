@@ -1,5 +1,6 @@
 package com.xatkit.core.recognition;
 
+import com.google.api.client.json.Json;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -70,6 +71,11 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
     private static String BUCKET;
 
     /**
+     * The default value for BUCKET
+     */
+    private static final String DEFAULT_BUCKET = "xatbot";
+
+    /**
     * The {@link Configuration} key to specify a custom organization workspace for influx.
     */
     static final String INFLUX_ORG_KEY = "xatkit.influx.organization";
@@ -78,6 +84,11 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
      * The ORGANIZATION value specified in the {@link Configuration}, necessary for the petitions to the database.
      */
     private static String ORGANIZATION;
+
+    /**
+     * The default value for ORGANIZATION
+     */
+    private static final String DEFAULT_ORGANIZATION = "Xatkit";
 
     /**
      * The databases url key.
@@ -122,8 +133,8 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         Log.info("Starting new intent recognition monitoring with Influxdb");
         // Required for storing/querying data from influx:
         TOKEN           =   configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
-        BUCKET          =   configuration.getString(INFLUX_BUCKET_KEY);
-        ORGANIZATION    =   configuration.getString(INFLUX_ORG_KEY); 
+        BUCKET          =   configuration.getString(INFLUX_BUCKET_KEY, DEFAULT_BUCKET);
+        ORGANIZATION    =   configuration.getString(INFLUX_ORG_KEY, DEFAULT_ORGANIZATION);
         BOT_ID          =   DEFAULT_BOT_ID; //TODO: load the actual id of the bot!
         String url      =   configuration.getString(INFLUX_URL_KEY, DEFAULT_URL);
         Log.info("Bucket: "         +   BUCKET);
@@ -145,6 +156,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         this.registerGetUnmatchedUtterances(xatkitServer);
         this.registerGetMatchedUtterances(xatkitServer);
         this.registerGetSessionsStats(xatkitServer);
+        this.registerGetOriginStats(xatkitServer);
     }
 
     /**
@@ -376,6 +388,66 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                     return resultArray;
                 })
             );
+    }
+
+    /**
+     * Registers the {@code GET: /analytics/origin} endpoint.
+     * <p>
+     * This endpoint returns a JSON object containing origins' information (note that this method
+     * doesn't support pagination yet, so the returned JSON may be big for long-running applications).
+     * <p>
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoint
+     */
+    private void registerGetOriginStats(XatkitServer xatkitServer){
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/origin", 
+            RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
+                JsonObject result = new JsonObject();
+                JsonArray originArray   = new JsonArray();
+                result.add("Origins", originArray);
+                int totalSessions = 0;
+                //query pivoted and grouped by sessionID
+                String[] filters = {};
+                String   query   = queryBuilder("", filters, true, false);
+                query  = query.concat("|> group(columns: [\"origin\"])");
+
+                //Each table equals 1 origin, so list lenght = number of different origins
+                List<FluxTable> tables = db.getQueryApi().query(query);
+                int numberOrigins = tables.size();
+                for(FluxTable table : tables){
+                    //We have to get the field from "origin", which is common in the entire table
+                    //And the number of different sessions for that origin.
+                    try{
+                        String origin = table.getRecords().get(0).getValueByKey("origin").toString();
+                        //Now search the unique sessions in a new Query
+                        String[] filterByOrigin = {"r.origin == \"" + origin + "\""};
+                        String query2 = queryBuilder("", filterByOrigin, true, false);
+                        query2 = query2.concat("|> group(columns: [\"session_id\"])");
+
+                        //The number of tables equal to the number of sessions in that origin
+                        int nrSessions = db.getQueryApi().query(query2).size();
+                        totalSessions += nrSessions;
+
+                        //Create JsonObject with the values of each origin to be inserted into the array:
+                        JsonObject aux = new JsonObject();
+                        aux.addProperty("origin", origin);
+                        aux.addProperty("nr of Sessions", nrSessions);
+                        originArray.add(aux);
+                    } catch (Exception e){
+                        //We got a case where we have no origins, or origin is blank/null
+                        //but I did not find a way to query "null" columns in influxdb :S
+                        //We won't count it for the "avg sessions per origin statistic" at least by now
+                        --numberOrigins;
+                    }
+                    
+                }
+                double avgSessPerOrigin;
+                if(numberOrigins > 0) avgSessPerOrigin = totalSessions/numberOrigins;
+                else avgSessPerOrigin = 0;
+
+                result.add("avg Sessions per Origin", new JsonPrimitive(avgSessPerOrigin));
+                return result;
+            })        
+        );
     }
 
     /**
