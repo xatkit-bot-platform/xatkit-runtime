@@ -430,7 +430,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                         //Create JsonObject with the values of each origin to be inserted into the array:
                         JsonObject aux = new JsonObject();
                         aux.addProperty("origin", origin);
-                        aux.addProperty("nr of Sessions", nrSessions);
+                        aux.addProperty("nrSessions", nrSessions);
                         originArray.add(aux);
                     } catch (Exception e){
                         //We got a case where we have no origins, or origin is blank/null
@@ -444,7 +444,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 if(numberOrigins > 0) avgSessPerOrigin = totalSessions/numberOrigins;
                 else avgSessPerOrigin = 0;
 
-                result.add("avg Sessions per Origin", new JsonPrimitive(avgSessPerOrigin));
+                result.add("avgSessionsPerOrigin", new JsonPrimitive(avgSessPerOrigin));
                 return result;
             })        
         );
@@ -559,6 +559,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                             // Store an empty String if the origin is null (can't store null tags in InfluxDB)
                             .addTag("origin",                   session.getOrigin() == null ? "" : session.getOrigin())
                             .addTag("platform",                 "recognizedIntent.getTriggeredBy()") //getTriggeredBy() is returning always null to me, causing the write into influx to fail :S (it's easy to catch but maybe we should know why this happens)
+                            .addTag("username",                 "Not sure where to find the username ;)")
                             .addField("confidence",             recognizedIntent.getRecognitionConfidence())
                             .addField("utterance",              recognizedIntent.getMatchedInput())
                             .addField("matched_intent",         recognizedIntent.getDefinition().getName())
