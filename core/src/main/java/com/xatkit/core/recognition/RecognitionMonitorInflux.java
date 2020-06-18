@@ -23,6 +23,8 @@ import org.apache.commons.configuration2.Configuration;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.util.Objects.isNull;
 
@@ -416,6 +418,8 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                 for(FluxTable table : tables){
                     //We have to get the field from "origin", which is common in the entire table
                     //And the number of different sessions for that origin.
+                    //Create JsonObject with the values of each origin to be inserted into the array:
+                    JsonObject aux = new JsonObject();
                     try{
                         String origin = table.getRecords().get(0).getValueByKey("origin").toString();
                         //Now search the unique sessions in a new Query
@@ -427,24 +431,38 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                         int nrSessions = db.getQueryApi().query(query2).size();
                         totalSessions += nrSessions;
 
-                        //Create JsonObject with the values of each origin to be inserted into the array:
-                        JsonObject aux = new JsonObject();
-                        aux.addProperty("origin", origin);
-                        aux.addProperty("nrSessions", nrSessions);
-                        originArray.add(aux);
+                        aux.addProperty("origin",       origin);
+                        aux.addProperty("nrSessions",   nrSessions);
                     } catch (Exception e){
                         //We got a case where we have no origins, or origin is blank/null
                         //but I did not find a way to query "null" columns in influxdb :S
-                        //We won't count it for the "avg sessions per origin statistic" at least by now
-                        --numberOrigins;
-                    }
-                    
-                }
-                double avgSessPerOrigin;
-                if(numberOrigins > 0) avgSessPerOrigin = totalSessions/numberOrigins;
-                else avgSessPerOrigin = 0;
+                        //So, I made a SET instance, which does not accept duplicates, but takes O(n) to create.
+                        //This way we can see how many unique session_id entries do not have an "origin" value in the database.
+                        Set<String> sessionSet = new HashSet<String>();
 
-                result.add("avgSessionsPerOrigin", new JsonPrimitive(avgSessPerOrigin));
+                        for(FluxRecord record : table.getRecords()){
+                            String id = String.valueOf(record.getValueByKey("session_id"));
+                            if(!sessionSet.contains(id)){
+                                sessionSet.add(id);
+                            }
+                        }
+
+                        totalSessions += sessionSet.size();
+
+                        aux.addProperty("origin",       "");
+                        aux.addProperty("nrSessions",   sessionSet.size());
+                    }
+
+                    originArray.add(aux);
+                }
+
+                double avgSessPerOrigin;
+                if(numberOrigins > 0)   avgSessPerOrigin = (double) totalSessions / (double) numberOrigins;
+                else                    avgSessPerOrigin = 0; //Prevent nulls/negative numbers
+                    
+                result.add("avgSessionsPerOrigin",  new JsonPrimitive(avgSessPerOrigin));
+                result.add("nrOrigins",             new JsonPrimitive(numberOrigins));
+
                 return result;
             })        
         );
