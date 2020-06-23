@@ -20,6 +20,7 @@ import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
+import com.influxdb.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -144,6 +145,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         Log.info("Influxdb url: "   +   url);
 
         db = InfluxDBClientFactory.create(url, TOKEN, ORGANIZATION, BUCKET);
+        db.setLogLevel(LogLevel.BODY);
         registerServerEndpoints(xatkitServer);
     }
 
@@ -483,8 +485,9 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         int unmatchedCount      =   0;
         int matchedCount        =   0;
         double accConfidence    =   0.0;
-
+        Log.info("--------------------------------------");
         for (FluxRecord sessionEntry : sessionData) {
+            Log.info(String.valueOf(sessionEntry.getValueByKey("_time")));
             JsonObject entryObject = getIntentData(sessionEntry);
             sessionRecords.add(entryObject);
 
@@ -613,6 +616,9 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
 
         if(group) query = query.concat("|> group()");
 
+        query = query.concat("|> sort(columns: [\"_time\"])"); // Order results by timestamp, older data first
+
+        Log.info(query);
         return query;
     }
 }   
