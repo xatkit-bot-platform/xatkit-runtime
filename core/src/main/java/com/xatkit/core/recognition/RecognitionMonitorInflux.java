@@ -20,7 +20,6 @@ import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
-import com.influxdb.*;
 
 import java.time.Instant;
 import java.util.List;
@@ -145,7 +144,6 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         Log.info("Influxdb url: "   +   url);
 
         db = InfluxDBClientFactory.create(url, TOKEN, ORGANIZATION, BUCKET);
-        db.setLogLevel(LogLevel.BODY);
         registerServerEndpoints(xatkitServer);
     }
 
@@ -355,7 +353,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
 
                     //query pivoted and grouped by sessionID
                     String[] filters = {};
-                    String   query   = queryBuilder("", filters, true, false);
+                    String   query   = queryBuilder("", filters, true, true);
                     query  = query.concat("|> group(columns: [\"session_id\"])");
 
                     List<FluxTable> tables = db.getQueryApi().query(query);
@@ -485,9 +483,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
         int unmatchedCount      =   0;
         int matchedCount        =   0;
         double accConfidence    =   0.0;
-        Log.info("--------------------------------------");
         for (FluxRecord sessionEntry : sessionData) {
-            Log.info(String.valueOf(sessionEntry.getValueByKey("_time")));
             JsonObject entryObject = getIntentData(sessionEntry);
             sessionRecords.add(entryObject);
 
@@ -579,7 +575,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
                             .addTag("session_id",               session.getSessionId())
                             // Store an empty String if the origin is null (can't store null tags in InfluxDB)
                             .addTag("origin",                   session.getOrigin() == null ? "" : session.getOrigin())
-                            .addTag("platform",                 "recognizedIntent.getTriggeredBy()") //getTriggeredBy() is returning always null to me, causing the write into influx to fail :S (it's easy to catch but maybe we should know why this happens)
+                            .addTag("platform",                 recognizedIntent.getTriggeredBy() == null ? "" : recognizedIntent.getTriggeredBy())
                             .addTag("username",                 "Not sure where to find the username ;)")
                             .addField("confidence",             recognizedIntent.getRecognitionConfidence())
                             .addField("utterance",              recognizedIntent.getMatchedInput())
@@ -618,7 +614,6 @@ public class RecognitionMonitorInflux extends RecognitionMonitor{
 
         query = query.concat("|> sort(columns: [\"_time\"])"); // Order results by timestamp, older data first
 
-        Log.info(query);
         return query;
     }
 }   
