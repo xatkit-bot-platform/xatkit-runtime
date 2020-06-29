@@ -453,7 +453,6 @@ public class RecognitionMonitor {
                     double avgMatchedUtterance = totalMatchedUtteranceCount / (double) sessionCount;
                     double avgUnmatchedUtterance = totalUnmatchedUtteranceCount / (double) sessionCount;
                     double avgSessionTime = totalSessionTime / (double) sessionCount;
-
                     result.addProperty("averageMatchedUtteranceCount", avgMatchedUtterance);
                     result.addProperty("averageUnmatchedUtteranceCount", avgUnmatchedUtterance);
                     // /1000 for seconds
