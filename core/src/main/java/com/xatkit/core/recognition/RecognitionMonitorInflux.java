@@ -65,7 +65,7 @@ import static java.util.Objects.isNull;
  * is received from.</li>
  * </ul>
  */
-public class RecognitionMonitorInflux extends RecognitionMonitor {
+public class RecognitionMonitorInflux implements RecognitionMonitor {
 
     /**
     * The {@link Configuration} key to specify the auth token for the bot to be able to store/query data from an influx bucket.
@@ -217,6 +217,7 @@ public class RecognitionMonitorInflux extends RecognitionMonitor {
         }
         return res;
     }
+    
     /**
     * Registers the {@code GET: /analytics/monitoring/matched} endpoint.
     * <p>

@@ -146,7 +146,7 @@ public class IntentRecognitionProviderFactory {
             }
             else { //Using mapDB, default value
                 Log.info("Starting with mapdb");
-                monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+                monitor = new RecognitionMonitorMapDB(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
             } 
         }
         return monitor;
