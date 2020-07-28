@@ -1,6 +1,6 @@
 package com.xatkit.dsl.intent.impl;
 
-import com.xatkit.dsl.intent.ContextLifespanStep;
+import com.xatkit.dsl.intent.IntentContextLifespanStep;
 import com.xatkit.dsl.intent.IntentMandatoryTrainingSentenceStep;
 import com.xatkit.dsl.intent.IntentOptionalTrainingSentenceStep;
 import com.xatkit.intent.Context;
@@ -16,11 +16,11 @@ public class IntentDefinitionDelegate extends IntentDefinitionProviderImpl imple
     }
 
     @Override
-    public @NonNull ContextLifespanStep context(@NonNull String name) {
+    public @NonNull IntentContextLifespanStep context(@NonNull String name) {
         Context context = IntentFactory.eINSTANCE.createContext();
         context.setName(name);
         this.intent.getOutContexts().add(context);
-        return new ContextDelegate(this.intent, context);
+        return new IntentContextDelegate(this.intent, context);
     }
 
     @Override
