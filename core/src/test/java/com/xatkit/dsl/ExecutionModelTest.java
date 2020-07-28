@@ -1,5 +1,7 @@
 package com.xatkit.dsl;
 
+import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.dsl.intent.IntentVar;
 import com.xatkit.dsl.library.LibraryProvider;
 import com.xatkit.dsl.state.StateVar;
@@ -13,6 +15,7 @@ import static com.xatkit.dsl.DSL.library;
 import static com.xatkit.dsl.DSL.model;
 import static com.xatkit.dsl.DSL.state;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class ExecutionModelTest {
 
@@ -25,6 +28,10 @@ public class ExecutionModelTest {
     private IntentVar i2;
 
     private LibraryProvider library;
+
+    private RuntimePlatform platform = mock(RuntimePlatform.class);
+
+    private RuntimeEventProvider provider = mock(RuntimeEventProvider.class);
 
     @Before
     public void setUp() {
@@ -91,6 +98,30 @@ public class ExecutionModelTest {
         assertThat(base.getStates()).hasSize(2);
         assertThat(base.getStates()).anyMatch(s -> s.getName().equals("S1"));
         assertThat(base.getStates()).anyMatch(s -> s.getName().equals("S2"));
+    }
+
+    @Test
+    public void createModelWithPlatform() {
+        val model = model()
+                .usePlatform(platform)
+                .initState(s1)
+                .defaultFallbackState(s2);
+
+        ExecutionModel base = model.getExecutionModel();
+        assertThat(base.getUsedPlatforms()).hasSize(1);
+        assertThat(base.getUsedPlatforms()).contains(platform);
+    }
+
+    @Test
+    public void createModelWithProvider() {
+        val model = model()
+                .listenTo(provider)
+                .initState(s1)
+                .defaultFallbackState(s2);
+
+        ExecutionModel base = model.getExecutionModel();
+        assertThat(base.getUsedProviders()).hasSize(1);
+        assertThat(base.getUsedProviders()).contains(provider);
     }
 
 }
