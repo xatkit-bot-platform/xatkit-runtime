@@ -4,7 +4,9 @@ import com.xatkit.dsl.entity.CompositeEntryStep;
 import com.xatkit.dsl.entity.MappingEntryStep;
 import com.xatkit.dsl.entity.impl.CompositeEntityDefinitionDelegate;
 import com.xatkit.dsl.entity.impl.MappingEntityDefinitionDelegate;
+import com.xatkit.dsl.intent.EventContextStep;
 import com.xatkit.dsl.intent.IntentMandatoryTrainingSentenceStep;
+import com.xatkit.dsl.intent.impl.EventDefinitionDelegate;
 import com.xatkit.dsl.intent.impl.IntentDefinitionDelegate;
 import com.xatkit.dsl.library.EntityStep;
 import com.xatkit.dsl.library.impl.LibraryDelegate;
@@ -21,6 +23,7 @@ import com.xatkit.intent.BaseEntityDefinitionReference;
 import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.EntityDefinitionReference;
 import com.xatkit.intent.EntityType;
+import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.Library;
@@ -56,6 +59,12 @@ public class DSL {
         IntentDefinition intent = IntentFactory.eINSTANCE.createIntentDefinition();
         intent.setName(name);
         return new IntentDefinitionDelegate(intent);
+    }
+
+    public static @NonNull EventContextStep event(@NonNull String name) {
+        EventDefinition event = IntentFactory.eINSTANCE.createEventDefinition();
+        event.setName(name);
+        return new EventDefinitionDelegate(event);
     }
 
     public static @NonNull MappingEntryStep mapping(@NonNull String name) {

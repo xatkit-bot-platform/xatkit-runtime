@@ -9,11 +9,11 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import lombok.NonNull;
 
-public class ContextDelegate extends IntentDefinitionProviderImpl implements IntentContextLifespanStep {
+public class IntentContextDelegate extends IntentDefinitionProviderImpl implements IntentContextLifespanStep {
 
     private Context context;
 
-    public ContextDelegate(@NonNull IntentDefinition intent, @NonNull Context context) {
+    public IntentContextDelegate(@NonNull IntentDefinition intent, @NonNull Context context) {
         super(intent);
         this.context = context;
     }
@@ -29,7 +29,7 @@ public class ContextDelegate extends IntentDefinitionProviderImpl implements Int
         ContextParameter parameter = IntentFactory.eINSTANCE.createContextParameter();
         parameter.setName(parameterName);
         this.context.getParameters().add(parameter);
-        return new ContextParameterDelegate(this.event, this.context, parameter);
+        return new IntentContextParameterDelegate(this.intent, this.context, parameter);
     }
 
     @Override
@@ -38,6 +38,9 @@ public class ContextDelegate extends IntentDefinitionProviderImpl implements Int
         Context context = IntentFactory.eINSTANCE.createContext();
         context.setName(name);
         this.event.getOutContexts().add(context);
-        return new ContextDelegate(this.intent, context);
+        /*
+         * Create a new delegate with the created context
+         */
+        return new IntentContextDelegate(this.intent, context);
     }
 }
