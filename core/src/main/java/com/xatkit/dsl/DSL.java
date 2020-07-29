@@ -83,6 +83,10 @@ public class DSL {
         return getEntityDefinitionReference(EntityType.ANY);
     }
 
+    public static @NonNull EntityDefinitionReference date() {
+        return getEntityDefinitionReference(EntityType.DATE);
+    }
+
     public static @NonNull EntityDefinitionReference dateTime() {
         return getEntityDefinitionReference(EntityType.DATE_TIME);
     }
