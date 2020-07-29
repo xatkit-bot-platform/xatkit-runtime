@@ -5,6 +5,7 @@ import com.xatkit.dsl.entity.MappingReferenceValueStep;
 import com.xatkit.dsl.entity.MappingSynonymStep;
 import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
+import lombok.NonNull;
 
 // Wrapper? Delegate?
 public class MappingEntityDefinitionEntryDelegate extends MappingEntityDefinitionDelegate implements
@@ -20,13 +21,13 @@ public class MappingEntityDefinitionEntryDelegate extends MappingEntityDefinitio
     }
 
     @Override
-    public MappingSynonymStep value(String referenceValue) {
+    public @NonNull MappingSynonymStep value(@NonNull String referenceValue) {
         this.entry.setReferenceValue(referenceValue);
         return this;
     }
 
     @Override
-    public MappingSynonymStep synonym(String synonym) {
+    public @NonNull MappingSynonymStep synonym(@NonNull String synonym) {
         this.entry.getSynonyms().add(synonym);
         return this;
     }

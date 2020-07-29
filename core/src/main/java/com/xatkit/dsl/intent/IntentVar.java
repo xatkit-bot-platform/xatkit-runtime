@@ -1,10 +1,12 @@
 package com.xatkit.dsl.intent;
 
+import lombok.NonNull;
+
 /**
  * Commodity interface (= IntentMandatoryTrainingSentence) to have clear usage of the DSL:
  * IntentVar myIntent = intent("MyState")
  */
 public interface IntentVar extends IntentDefinitionProvider {
 
-    IntentOptionalTrainingSentenceStep trainingSentence(String trainingSentence);
+    @NonNull IntentOptionalTrainingSentenceStep trainingSentence(@NonNull String trainingSentence);
 }

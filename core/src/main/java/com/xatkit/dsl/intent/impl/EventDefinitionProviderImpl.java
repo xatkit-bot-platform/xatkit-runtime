@@ -2,6 +2,7 @@ package com.xatkit.dsl.intent.impl;
 
 import com.xatkit.dsl.intent.EventDefinitionProvider;
 import com.xatkit.intent.EventDefinition;
+import lombok.NonNull;
 
 public class EventDefinitionProviderImpl implements EventDefinitionProvider {
 
@@ -12,7 +13,7 @@ public class EventDefinitionProviderImpl implements EventDefinitionProvider {
     }
 
     @Override
-    public EventDefinition getEventDefinition() {
+    public @NonNull EventDefinition getEventDefinition() {
         return this.event;
     }
 }

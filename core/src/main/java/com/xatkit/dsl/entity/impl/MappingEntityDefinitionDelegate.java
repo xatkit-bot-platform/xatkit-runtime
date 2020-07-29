@@ -5,6 +5,7 @@ import com.xatkit.dsl.entity.MappingReferenceValueStep;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
+import lombok.NonNull;
 
 public class MappingEntityDefinitionDelegate extends CustomEntityDefinitionProviderImpl<MappingEntityDefinition> implements
         MappingEntryStep {
@@ -14,7 +15,7 @@ public class MappingEntityDefinitionDelegate extends CustomEntityDefinitionProvi
     }
 
     @Override
-    public MappingReferenceValueStep entry() {
+    public @NonNull MappingReferenceValueStep entry() {
         MappingEntityDefinitionEntry entry = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
         this.entity.getEntries().add(entry);
         return new MappingEntityDefinitionEntryDelegate(this.entity, entry);

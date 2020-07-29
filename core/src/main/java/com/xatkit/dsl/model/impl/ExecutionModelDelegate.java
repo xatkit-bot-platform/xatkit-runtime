@@ -2,7 +2,7 @@ package com.xatkit.dsl.model.impl;
 
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.dsl.intent.IntentDefinitionProvider;
+import com.xatkit.dsl.intent.EventDefinitionProvider;
 import com.xatkit.dsl.library.LibraryProvider;
 import com.xatkit.dsl.model.DefaultFallbackStateStep;
 import com.xatkit.dsl.model.ExecutionModelProvider;
@@ -30,8 +30,8 @@ public class ExecutionModelDelegate extends ExecutionModelProviderImpl implement
 
 
     @Override
-    public @NonNull UseEventStep useEvent(@NonNull IntentDefinitionProvider intentProvider) {
-        this.model.getUsedEvents().add(intentProvider.getIntentDefinition());
+    public @NonNull UseEventStep useEvent(@NonNull EventDefinitionProvider intentProvider) {
+        this.model.getUsedEvents().add(intentProvider.getEventDefinition());
         return this;
     }
 
@@ -42,13 +42,13 @@ public class ExecutionModelDelegate extends ExecutionModelProviderImpl implement
     }
 
     @Override
-    public UsePlatformStep usePlatform(RuntimePlatform platform) {
+    public @NonNull UsePlatformStep usePlatform(@NonNull RuntimePlatform platform) {
         this.model.getUsedPlatforms().add(platform);
         return this;
     }
 
     @Override
-    public ListenToStep listenTo(RuntimeEventProvider<?> provider) {
+    public @NonNull ListenToStep listenTo(@NonNull RuntimeEventProvider<?> provider) {
         this.model.getUsedProviders().add(provider);
         return this;
     }

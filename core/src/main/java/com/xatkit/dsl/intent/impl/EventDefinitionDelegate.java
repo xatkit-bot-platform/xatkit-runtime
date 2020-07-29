@@ -14,7 +14,7 @@ public class EventDefinitionDelegate extends EventDefinitionProviderImpl impleme
     }
 
     @Override
-    public EventContextLifespanStep context(String name) {
+    public @NonNull EventContextLifespanStep context(@NonNull String name) {
         Context context = IntentFactory.eINSTANCE.createContext();
         context.setName(name);
         this.event.getOutContexts().add(context);

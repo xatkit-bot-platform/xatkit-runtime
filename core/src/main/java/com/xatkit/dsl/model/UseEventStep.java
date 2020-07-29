@@ -1,14 +1,12 @@
 package com.xatkit.dsl.model;
 
-import com.xatkit.dsl.intent.IntentDefinitionProvider;
+import com.xatkit.dsl.intent.EventDefinitionProvider;
 import com.xatkit.dsl.library.LibraryProvider;
+import lombok.NonNull;
 
 public interface UseEventStep extends UsePlatformStep {
 
-    // TODO change this for EventDefinitionProvider
-    UseEventStep useEvent(IntentDefinitionProvider intentProvider);
+    @NonNull UseEventStep useEvent(@NonNull EventDefinitionProvider intentProvider);
 
-    // TODO change this for something like LibraryProvider
-    UseEventStep useEvents(LibraryProvider libraryProvider);
-
+    @NonNull UseEventStep useEvents(@NonNull LibraryProvider libraryProvider);
 }

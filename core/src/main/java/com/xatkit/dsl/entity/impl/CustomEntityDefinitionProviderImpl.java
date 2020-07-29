@@ -6,10 +6,8 @@ import com.xatkit.intent.CustomEntityDefinition;
 import com.xatkit.intent.CustomEntityDefinitionReference;
 import com.xatkit.intent.EntityDefinitionReference;
 import com.xatkit.intent.IntentFactory;
+import lombok.NonNull;
 
-// if we don't put the implemnets here we can modulate: when the subclass implements the interface we are good,
-// otherwise the method is not visible.
-// Not sure what to use here
 public class CustomEntityDefinitionProviderImpl<T extends CustomEntityDefinition> implements
         CustomEntityDefinitionProvider, EntityDefinitionReferenceProvider {
 
@@ -19,13 +17,13 @@ public class CustomEntityDefinitionProviderImpl<T extends CustomEntityDefinition
         this.entity = entity;
     }
 
-//    @Override
-    public T getEntity() {
+    @Override
+    public @NonNull T getEntity() {
         return this.entity;
     }
 
-//    @Override
-    public EntityDefinitionReference getEntityReference() {
+    @Override
+    public @NonNull EntityDefinitionReference getEntityReference() {
         CustomEntityDefinitionReference reference = IntentFactory.eINSTANCE.createCustomEntityDefinitionReference();
         reference.setCustomEntity(this.entity);
         return reference;

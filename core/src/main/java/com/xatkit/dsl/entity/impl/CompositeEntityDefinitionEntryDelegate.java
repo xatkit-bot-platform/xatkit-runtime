@@ -9,6 +9,7 @@ import com.xatkit.intent.EntityDefinitionReference;
 import com.xatkit.intent.EntityTextFragment;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.LiteralTextFragment;
+import lombok.NonNull;
 
 public class CompositeEntityDefinitionEntryDelegate extends CompositeEntityDefinitionDelegate implements
         CompositeEntryFragmentStep,
@@ -23,7 +24,7 @@ public class CompositeEntityDefinitionEntryDelegate extends CompositeEntityDefin
     }
 
     @Override
-    public CompositeEntryFragmentStep text(String text) {
+    public @NonNull CompositeEntryFragmentStep text(@NonNull String text) {
         LiteralTextFragment fragment = IntentFactory.eINSTANCE.createLiteralTextFragment();
         fragment.setValue(text);
         this.entry.getFragments().add(fragment);
@@ -31,12 +32,12 @@ public class CompositeEntityDefinitionEntryDelegate extends CompositeEntityDefin
     }
 
     @Override
-    public CompositeEntryFragmentStep entity(EntityDefinitionReferenceProvider entityReferenceProvider) {
+    public @NonNull CompositeEntryFragmentStep entity(@NonNull EntityDefinitionReferenceProvider entityReferenceProvider) {
         return this.entity(entityReferenceProvider.getEntityReference());
     }
 
     @Override
-    public CompositeEntryFragmentStep entity(EntityDefinitionReference entityReference) {
+    public @NonNull CompositeEntryFragmentStep entity(@NonNull EntityDefinitionReference entityReference) {
         EntityTextFragment fragment = IntentFactory.eINSTANCE.createEntityTextFragment();
         fragment.setEntityReference(entityReference);
         this.entry.getFragments().add(fragment);

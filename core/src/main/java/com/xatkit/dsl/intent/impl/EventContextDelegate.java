@@ -19,13 +19,13 @@ public class EventContextDelegate extends EventDefinitionProviderImpl implements
 
 
     @Override
-    public EventContextParameterStep lifespan(int lifespan) {
+    public @NonNull EventContextParameterStep lifespan(int lifespan) {
         this.context.setLifeSpan(lifespan);
         return this;
     }
 
     @Override
-    public EventContextParameterStep parameter(String name) {
+    public @NonNull EventContextParameterStep parameter(@NonNull String name) {
         ContextParameter parameter = IntentFactory.eINSTANCE.createContextParameter();
         parameter.setName(name);
         this.context.getParameters().add(parameter);
@@ -33,7 +33,7 @@ public class EventContextDelegate extends EventDefinitionProviderImpl implements
     }
 
     @Override
-    public EventContextLifespanStep context(String name) {
+    public @NonNull EventContextLifespanStep context(@NonNull String name) {
         Context context = IntentFactory.eINSTANCE.createContext();
         context.setName(name);
         this.event.getOutContexts().add(context);

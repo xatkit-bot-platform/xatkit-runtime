@@ -1,8 +1,9 @@
 package com.xatkit.dsl.model;
 
 import com.xatkit.core.platform.RuntimePlatform;
+import lombok.NonNull;
 
 public interface UsePlatformStep extends ListenToStep {
 
-    UsePlatformStep usePlatform(RuntimePlatform platform);
+    @NonNull UsePlatformStep usePlatform(@NonNull RuntimePlatform platform);
 }

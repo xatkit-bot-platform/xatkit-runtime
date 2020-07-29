@@ -1,8 +1,9 @@
 package com.xatkit.dsl.model;
 
 import com.xatkit.dsl.state.StateProvider;
+import lombok.NonNull;
 
 public interface StateStep extends InitStateStep {
 
-    StateStep state(StateProvider stateProvider);
+    @NonNull StateStep state(@NonNull StateProvider stateProvider);
 }

@@ -1,6 +1,8 @@
 package com.xatkit.dsl.intent;
 
+import lombok.NonNull;
+
 public interface EventContextStep extends EventDefinitionProvider {
 
-    EventContextLifespanStep context(String name);
+    @NonNull EventContextLifespanStep context(@NonNull String name);
 }

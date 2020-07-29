@@ -2,10 +2,11 @@ package com.xatkit.dsl.model;
 
 import com.xatkit.dsl.state.StateProvider;
 import com.xatkit.execution.State;
+import lombok.NonNull;
 
 public interface InitStateStep {
 
-    DefaultFallbackStateStep initState(StateProvider stateProvider);
+    @NonNull DefaultFallbackStateStep initState(@NonNull StateProvider stateProvider);
 
-    DefaultFallbackStateStep initState(State state);
+    @NonNull DefaultFallbackStateStep initState(@NonNull State state);
 }

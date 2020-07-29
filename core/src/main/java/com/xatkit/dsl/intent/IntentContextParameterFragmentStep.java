@@ -1,6 +1,8 @@
 package com.xatkit.dsl.intent;
 
+import lombok.NonNull;
+
 public interface IntentContextParameterFragmentStep extends IntentDefinitionProvider {
 
-    IntentContextParameterEntityStep fromFragment(String fragment);
+    @NonNull IntentContextParameterEntityStep fromFragment(@NonNull String fragment);
 }

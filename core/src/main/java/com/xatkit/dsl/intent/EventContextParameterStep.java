@@ -1,6 +1,8 @@
 package com.xatkit.dsl.intent;
 
+import lombok.NonNull;
+
 public interface EventContextParameterStep extends EventContextStep {
 
-    EventContextParameterStep parameter(String name);
+    @NonNull EventContextParameterStep parameter(@NonNull String name);
 }
