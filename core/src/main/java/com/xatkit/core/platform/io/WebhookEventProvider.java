@@ -1,11 +1,11 @@
 package com.xatkit.core.platform.io;
 
-import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.RestHandler;
 import com.xatkit.core.server.XatkitServer;
-import org.apache.commons.configuration2.BaseConfiguration;
+import com.xatkit.execution.ExecutionModel;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
 /**
@@ -28,32 +28,27 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends 
     private H restHandler;
 
     /**
-     * Constructs a new {@link WebhookEventProvider} with the provided {@code runtimePlatform}.
+     * Creates an <b>unstarted</b> {@link WebhookEventProvider} managed by the provided {@code platform}.
      * <p>
-     * <b>Note</b>: this constructor should be used by {@link WebhookEventProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #WebhookEventProvider(RuntimePlatform, Configuration)}.
+     * As for {@link RuntimeEventProvider}, this constructor does not have access to the
+     * {@link com.xatkit.core.XatkitCore} nor the {@link Configuration}: it is typically called when defining a bot
+     * to have a usable reference to set in {@link ExecutionModel#getUsedProviders()}, but it is initialized during
+     * the bot deployment using the {@link WebhookEventProvider#start(Configuration)} method.
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link WebhookEventProvider}
-     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
+     * @param platform the {@link RuntimePlatform} managing this provider
      */
-    public WebhookEventProvider(T runtimePlatform) {
-        this(runtimePlatform, new BaseConfiguration());
+    public WebhookEventProvider(T platform) {
+        super(platform);
     }
 
     /**
-     * Constructs a new {@link WebhookEventProvider} from the provided {@code runtimePlatform} and
-     * {@code configuration}.
-     * <p>
-     * <b>Note</b>: this constructor will be called by xatkit internal engine when initializing the
-     * {@link XatkitCore} component. Subclasses implementing this constructor typically
-     * need additional parameters to be initialized, that can be provided in the {@code configuration}.
+     * Starts the provider and registers its {@link RestHandler}.
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link WebhookEventProvider}
-     * @param configuration   the {@link Configuration} used to initialize the {@link WebhookEventProvider}
-     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
+     * @param configuration the {@link Configuration} of the bot currently run
      */
-    public WebhookEventProvider(T runtimePlatform, Configuration configuration) {
-        super(runtimePlatform, configuration);
+    @Override
+    public void start(@NonNull Configuration configuration) {
+        super.start(configuration);
         this.restHandler = createRestHandler();
     }
 
