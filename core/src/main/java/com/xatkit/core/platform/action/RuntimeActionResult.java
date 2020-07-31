@@ -8,7 +8,7 @@ import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.nonNull;
 
 /**
- * Stores the result of a computation and provides utility methods to manipulate it.
+ * Stores the result of a {@link RuntimeAction} computation and provides utility methods to manipulate it.
  * <p>
  * This class stores the raw result of a given computation, and can be initialized with additional information
  * representing the execution time, and the {@link Exception} thrown by the computation.
