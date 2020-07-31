@@ -1,19 +1,25 @@
 package com.xatkit.core.platform.io;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.xatkit.core.XatkitException;
+import com.xatkit.intent.Context;
+import com.xatkit.intent.ContextInstance;
+import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.IntentFactory;
 import fr.inria.atlanmod.commons.log.Log;
-import org.apache.commons.configuration2.Configuration;
+import lombok.NonNull;
 import org.apache.http.Header;
 
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -21,70 +27,24 @@ import static java.util.Objects.nonNull;
 /**
  * A matcher that creates {@link EventInstance}s from Json webhook calls.
  * <p>
- * This class is configured through the {@link #addMatchableEvent(HeaderValue, FieldValue, String)} method, that
- * allows to specify an {@link EventInstance} type for a given header and field content. Matched requests are reified
+ * This class is configured through the {@link #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)} method,
+ * that allows to specify an {@link EventInstance} type for a given header and field content. Matched requests are
+ * reified
  * into {@link EventInstance}s containing all the fields of the provided payload.
  */
 public class JsonEventMatcher {
 
     /**
-     * The {@link Configuration} key to store whether to print the {@link EventInstanceBuilder} content before
-     * building the matched {@link EventInstance}.
-     * <p>
-     * This value is set to {@code false} if not specified.
-     *
-     * @see #DEFAULT_PRINT_BUILDER_CONTENT
-     */
-    public static final String PRINT_BUILDER_CONTENT_KEY = "xatkit.event.matcher.print_builder";
-
-    /**
-     * The default value of the {@link #PRINT_BUILDER_CONTENT_KEY} configuration key.
-     */
-    private static final boolean DEFAULT_PRINT_BUILDER_CONTENT = false;
-
-    /**
      * The internal {@link Map} used to store the header and field values to match.
      */
-    protected Map<HeaderValue, Map<FieldValue, String>> matchableEvents;
-
-    /**
-     * The {@link EventInstanceBuilder} used to reify the received payloads into {@link EventInstance}s.
-     */
-    protected EventInstanceBuilder eventInstanceBuilder;
-
-    /**
-     * A flag telling whether to print the {@link EventInstanceBuilder} content before building the matched
-     * {@link EventInstance}.
-     */
-    protected boolean printBuilder;
-
-    /**
-     * Constructs a new {@link JsonEventMatcher} with the provided {@link EventInstanceBuilder}.
-     *
-     * @param eventInstanceBuilder the {@link EventInstanceBuilder} used to reify the received payloads into
-     *                             {@link EventInstance}s.
-     * @param configuration        the {@link Configuration} used to customize the {@link JsonEventMatcher}
-     * @throws NullPointerException if the provided {@code eventInstanceBuilder} is {@code null}
-     */
-    public JsonEventMatcher(EventInstanceBuilder eventInstanceBuilder, Configuration configuration) {
-        checkNotNull(eventInstanceBuilder, "Cannot construct a %s with the provided %s %s", this.getClass()
-                .getSimpleName(), EventInstanceBuilder.class.getSimpleName(), eventInstanceBuilder);
-        Log.info("Starting {0}", this.getClass().getSimpleName());
-        this.matchableEvents = new HashMap<>();
-        this.eventInstanceBuilder = eventInstanceBuilder;
-        this.printBuilder = configuration.getBoolean(PRINT_BUILDER_CONTENT_KEY, DEFAULT_PRINT_BUILDER_CONTENT);
-        if (printBuilder) {
-            Log.info("{0} will print the builder content before building the matched {1}", this.getClass()
-                    .getSimpleName(), EventInstance.class.getSimpleName());
-        }
-    }
+    protected Map<HeaderValue, Map<FieldValue, EventDefinition>> matchableEvents = new HashMap<>();
 
     /**
      * Registers a new {@link EventInstance} to match from the provided {@code headerValue} and {@code fieldValue}.
      *
-     * @param headerValue   the {@link HeaderValue} to match the received request against
-     * @param fieldValue    the {@link FieldValue} to match the received payload against
-     * @param eventTypeName the type of the {@link EventInstance} to return
+     * @param headerValue     the {@link HeaderValue} to match the received request against
+     * @param fieldValue      the {@link FieldValue} to match the received payload against
+     * @param eventDefinition the type of the {@link EventInstance} to return
      * @throws NullPointerException if the provided {@code headerValue}, {@code fieldValue}, or {@code eventTypeName}
      *                              is {@code null}
      * @throws XatkitException      if the provided {@code headerValue} and {@code fieldValue} are already associated to
@@ -95,14 +55,10 @@ public class JsonEventMatcher {
      * @see FieldValue
      * @see FieldValue#EMPTY_FIELD_VALUE
      */
-    public void addMatchableEvent(HeaderValue headerValue, FieldValue fieldValue, String eventTypeName) {
-        checkNotNull(headerValue, "Cannot register the EventType %s with the provided %s %s", eventTypeName,
-                HeaderValue.class.getSimpleName(), headerValue);
-        checkNotNull(fieldValue, "Cannot register the EventType %s with the provided %s %s", eventTypeName,
-                FieldValue.class.getSimpleName(), fieldValue);
-        checkNotNull(eventTypeName, "Cannot register the provided EventType %s", eventTypeName);
+    public void addMatchableEvent(@NonNull HeaderValue headerValue, @NonNull FieldValue fieldValue,
+                                  @NonNull EventDefinition eventDefinition) {
         if (matchableEvents.containsKey(headerValue)) {
-            Map<FieldValue, String> fields = matchableEvents.get(headerValue);
+            Map<FieldValue, EventDefinition> fields = matchableEvents.get(headerValue);
             if (fields.containsKey(FieldValue.EMPTY_FIELD_VALUE) && !fieldValue.equals(FieldValue.EMPTY_FIELD_VALUE)) {
                 /*
                  * Check if there is an EMPTY_FIELD_VALUE registered for the provided HeaderValue. If it is the case
@@ -111,7 +67,7 @@ public class JsonEventMatcher {
                  */
                 throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
                         "empty FieldValue {1} is already registered for the HeaderValue {2}, and cannot be " +
-                        "overloaded with the specialized FieldValue {3}", eventTypeName, FieldValue
+                        "overloaded with the specialized FieldValue {3}", eventDefinition.getName(), FieldValue
                         .EMPTY_FIELD_VALUE, headerValue, fieldValue));
             } else if (!fields.keySet().isEmpty() && !fields.containsKey(FieldValue.EMPTY_FIELD_VALUE) && fieldValue
                     .equals(FieldValue.EMPTY_FIELD_VALUE)) {
@@ -123,57 +79,63 @@ public class JsonEventMatcher {
                  * times (the duplicate insertion is handled in the next conditions).
                  */
                 throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, a " +
-                        "specialized FieldValue {1} is already registered for the HeaderValue {2}, and cannot be used" +
-                        " along with the empty FieldValue {3}", eventTypeName, fieldValue, headerValue, FieldValue
-                        .EMPTY_FIELD_VALUE));
+                                "specialized FieldValue {1} is already registered for the HeaderValue {2}, and cannot" +
+                                " be used along with the empty FieldValue {3}", eventDefinition.getName(), fieldValue
+                        , headerValue, FieldValue.EMPTY_FIELD_VALUE));
             }
             if (fields.containsKey(fieldValue)) {
-                if (fields.get(fieldValue).equals(eventTypeName)) {
-                    Log.info("EventType {0} already associated to the pair ({1}, {2})", eventTypeName, headerValue
-                            .toString(), fieldValue.toString());
+                if (fields.get(fieldValue).equals(eventDefinition)) {
+                    Log.info("EventType {0} already associated to the pair ({1}, {2})", eventDefinition.getName(),
+                            headerValue
+                                    .toString(), fieldValue.toString());
                 } else {
                     throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
-                                    "pair ({1}, {2}) is already matched to {3}", eventTypeName, headerValue.toString(),
-                            fieldValue.toString(), fields.get(fieldValue)));
+                                    "pair ({1}, {2}) is already matched to {3}", eventDefinition.getName(),
+                            headerValue.toString(), fieldValue.toString(), fields.get(fieldValue)));
                 }
             } else {
-                Log.info("Registering EventType {0} to the pair ({1}, {2})", eventTypeName, headerValue.toString
-                        (), fieldValue.toString());
-                fields.put(fieldValue, eventTypeName);
+                Log.info("Registering EventType {0} to the pair ({1}, {2})", eventDefinition.getName(),
+                        headerValue.toString
+                                (), fieldValue.toString());
+                fields.put(fieldValue, eventDefinition);
             }
         } else {
-            Log.info("Registering EventType {0} to the pair ({1}, {2})", eventTypeName, headerValue.toString
+            Log.info("Registering EventType {0} to the pair ({1}, {2})", eventDefinition.getName(), headerValue.toString
                     (), fieldValue.toString());
-            Map<FieldValue, String> fields = new HashMap<>();
-            fields.put(fieldValue, eventTypeName);
+            Map<FieldValue, EventDefinition> fields = new HashMap<>();
+            fields.put(fieldValue, eventDefinition);
             matchableEvents.put(headerValue, fields);
         }
     }
 
     /**
-     * Matches the provided {@code headers} and {@code content} against the registered {@link EventInstance}s.
+     * Matches the provided {@code headers} and {@code content} and creates the corresponding {@link EventInstance}.
      * <p>
      * This method first iterates the provided {@code headers} and look for each registered one if the provided
      * {@code content} contains a registered field. If at least one {@code header} and one field of the {@code
      * content} are matched the corresponding {@link EventInstance} is returned.
      * <p>
-     * <p>Note:</p> the current implementation only check top-level field from the provided {@code content}. (see #139)
+     * The returned {@link EventInstance} contains the request {@code content} in its context parameter {@code
+     * data.json}. Note that this method will throw an {@link IllegalArgumentException} if the {@link EventInstance}
+     * 's definition doesn't define such context parameter.
+     * <p>
+     * <b>Note:</b> the current implementation only check top-level field from the provided {@code content}. (see
+     * <a href="https://github.com/xatkit-bot-platform/xatkit-runtime/issues/139">#139</a>)
      *
      * @param headers the list containing the {@link Header}s to match
      * @param content the {@link JsonElement} representing the content of the request
      * @return the matched {@link EventInstance} if it exists, {@code null} otherwise
      * @throws NullPointerException if the provided {@code headers} or {@code content} is {@code null}
      */
-    public EventInstance match(List<Header> headers, JsonElement content) {
-        checkNotNull(headers, "Cannot match the provided headers %s", headers);
-        checkNotNull(content, "Cannot match the provided content %s", content);
+    public @Nullable
+    EventInstance match(@NonNull List<Header> headers, @NonNull JsonElement content) {
         /*
          * Iterate first on the request headers that are typically shorter than its content.
          */
-        for(Header header : headers) {
+        for (Header header : headers) {
             HeaderValue headerValue = HeaderValue.of(header.getName(), header.getValue());
             if (matchableEvents.containsKey(headerValue)) {
-                Map<FieldValue, String> fields = matchableEvents.get(headerValue);
+                Map<FieldValue, EventDefinition> fields = matchableEvents.get(headerValue);
                 /*
                  * Iterate from the key set instead of the content: the key set usually contains less registered
                  * fields than the document.
@@ -198,135 +160,55 @@ public class JsonEventMatcher {
             }
         }
         Log.warn("Cannot find an EventDefinition matching the provided headers and content");
-        if(printBuilder) {
-            /*
-             * Try to convert the received JSON into out context to ease debugging and creation of new events.
-             */
-            convertJsonObjectToOutContext(content.getAsJsonObject(), eventInstanceBuilder);
-            Log.info("{0} content:\n{1}", EventInstanceBuilder.class.getSimpleName(),
-                    eventInstanceBuilder.prettyPrintEventDefinition());
-        }
         return null;
     }
 
     /**
-     * Creates an {@link EventInstance} from the provided {@code eventDefinitionName} and {@code content}.
+     * Creates an {@link EventInstance} for the provided {@code eventDefinition} and sets its context with {@code
+     * content}.
      * <p>
-     * The built {@link EventInstance} is associated to the {@link EventDefinition} matching the given {@code
-     * eventDefinitionName} if it exists, and its out contexts are set with the fields of the provided {@code
-     * content} {@link JsonElement}.
+     * The returned {@link EventInstance} contains the request {@code content} in its context parameter {@code data
+     * .json}. Note that this method will throw an {@link IllegalArgumentException} if the provided {@code
+     * eventDefinition} doesn't define such context parameter.
      * <p>
-     * Note that the built {@link EventInstance} contains all the fields containing literal values of the provided
-     * {@code content}, formatted by the {@link #convertJsonObjectToOutContext(JsonObject, EventInstanceBuilder)}
-     * method.
      *
-     * @param eventDefinitionName the name of the {@link EventDefinition} to create an
-     *                            {@link EventInstance} from
-     * @param content             the {@link JsonElement} to set as the created {@link EventInstance} out context
-     * @return an {@link EventInstance} matching the provided {@code eventDefinitionName} and containing the {@code
-     * content} out context values.
-     * @throws NullPointerException if the provided {@code eventDefinitionName} or {@code content} is {@code null}
-     * @see #convertJsonObjectToOutContext(JsonObject, EventInstanceBuilder)
+     * @param eventDefinition the {@link EventDefinition} to create an instance of
+     * @param content         the {@link JsonElement} to set as the created {@link EventInstance} context
+     * @return an {@link EventInstance} matching the provided {@code eventDefinitionName}, with a {@code data.json}
+     * parameter containing the provided {@code content}
+     * @throws NullPointerException     if the provided {@code eventDefinitionName} or {@code content} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code eventDefinition} does not define the {@code data.json}
+     *                                  context parameter
      */
-    protected EventInstance createEventInstance(String eventDefinitionName, JsonElement content) {
-        checkNotNull(eventDefinitionName, "Cannot create an %s from the provided %s name %s", EventInstance.class
-                .getSimpleName(), EventDefinition.class.getSimpleName(), eventDefinitionName);
-        checkNotNull(content, "Cannot create an %s from the provided %s content %s", EventInstance.class
-                .getSimpleName(), JsonElement.class.getSimpleName(), content);
-        eventInstanceBuilder.clear();
-        eventInstanceBuilder.setEventDefinitionName(eventDefinitionName);
-        convertJsonObjectToOutContext(content.getAsJsonObject(), eventInstanceBuilder);
-        if (printBuilder) {
-            Log.info("{0} content:\n{1}", EventInstanceBuilder.class.getSimpleName(),
-                    eventInstanceBuilder.prettyPrintEventDefinition());
-        }
-        return eventInstanceBuilder.build();
-    }
+    protected @NonNull EventInstance createEventInstance(@NonNull EventDefinition eventDefinition,
+                                                 @NonNull JsonElement content) {
+        Context dataContext = eventDefinition.getOutContext("data");
+        checkArgument(nonNull(dataContext), "Cannot create the %s for the provided %s %s: " +
+                        "the %s does not contain a \"data\" context", EventInstance.class.getSimpleName(),
+                EventDefinition.class.getSimpleName(), eventDefinition.getName(),
+                EventDefinition.class.getSimpleName());
+        ContextParameter jsonParameter = dataContext.getContextParameter("json");
+        checkArgument(nonNull(jsonParameter), "Cannot create the %s for the provided %s %s: the %s'data context does " +
+                        "not contain a \"json\" parameter", EventInstance.class.getSimpleName(),
+                EventDefinition.class.getSimpleName(), eventDefinition.getName(),
+                EventDefinition.class.getSimpleName());
 
-    /**
-     * Converts the provided {@code jsonObject}'s fields into out context values set in the provided {@code builder}.
-     * <p>
-     * This method formats the {@code jsonObject} fields following this pattern:
-     * <ul>
-     * <li>Top-level field names are reused to set out context keys (e.g. {@code "content"})</li>
-     * <li>Contained field names are prefixed by {@code '_'}, followed by their containing field name (e.g. {@code
-     * "content_field1")}</li>
-     * <li>Only fields containing literal values are set in the {@link EventInstance}'s out context</li>
-     * </ul>
-     * <p>
-     * This method is a convenience wrapper for
-     * {@link #convertJsonObjectToOutContext(String, JsonObject, EventInstanceBuilder)} with
-     * the empty string as its first parameter.
-     * <p>
-     * <b>Note:</b> this method does not handle {@link com.google.gson.JsonArray}s for now (see #141)
-     *
-     * @param jsonObject the {@link JsonObject} to extract the fields from
-     * @param builder    the {@link EventInstanceBuilder} used to set out context values
-     * @throws NullPointerException if the provided {@code jsonObject} or {@code builder} is {@code null}
-     * @see #convertJsonObjectToOutContext(String, JsonObject, EventInstanceBuilder)
-     */
-    protected void convertJsonObjectToOutContext(JsonObject jsonObject, EventInstanceBuilder builder) {
-        checkNotNull(jsonObject, "Cannot convert the fields of the provided %s %s", JsonObject.class.getSimpleName(),
-                jsonObject);
-        checkNotNull(builder, "Cannot set the out context values using the provided %s %s", EventInstanceBuilder
-                .class.getSimpleName(), builder);
-        convertJsonObjectToOutContext("", jsonObject, builder);
-    }
-
-    /**
-     * Converts the provided {@code jsonObject}'s field into out context values set in the provided {@code builder}.
-     * <p>
-     * This method formats the {@code jsonObject} fields following this pattern:
-     * <ul>
-     * <li>Top-level field names are reused to set out context keys (e.g. {@code "content"})</li>
-     * <li>Contained field names are prefixed by {@code '_'}, followed by their containing field name (e.g.
-     * {@code "content_field1")}</li>
-     * <li>Only fields containing literal values are set in the {@link EventInstance}'s out context</li>
-     * </ul>
-     * <p>
-     * <b>Note:</b> this method does not handle {@link com.google.gson.JsonArray}s for now (see #141)
-     *
-     * @param parentKey  the key of the parent of the provided {@code jsonObject}
-     * @param jsonObject the {@link JsonObject} to extract the fields from
-     * @param builder    the {@link EventInstanceBuilder} used to set out context values
-     * @throws NullPointerException if the provided {@code parentKey}, {@code jsonObject}, or {@code builder} is {@code
-     *                              null}
-     */
-    protected void convertJsonObjectToOutContext(String parentKey, JsonObject jsonObject, EventInstanceBuilder
-            builder) {
-        checkNotNull(parentKey, "Cannot convert the fields of the provided %s using the given parent key %s",
-                JsonObject.class.getSimpleName(), parentKey);
-        checkNotNull(jsonObject, "Cannot convert the fields of the provided %s %s", JsonObject.class.getSimpleName(),
-                jsonObject);
-        checkNotNull(builder, "Cannot set the out context values using the provided %s %s", EventInstanceBuilder
-                .class.getSimpleName(), builder);
-        for (String key : jsonObject.keySet()) {
-            JsonElement value = jsonObject.get(key);
-            String newKey;
-            if (parentKey.isEmpty()) {
-                newKey = key.toLowerCase();
-            } else {
-                newKey = parentKey + "->" + key.toLowerCase();
-            }
-            if (value.isJsonObject()) {
-                convertJsonObjectToOutContext(newKey, value.getAsJsonObject(), builder);
-            } else if (value.isJsonArray()) {
-                Log.warn("Json Arrays are not handled by the EventMatcher for now, setting the out context {0} with " +
-                        "a placeholder String", newKey);
-                builder.setOutContextValue(newKey, "[array]");
-            } else if (value.isJsonPrimitive()) {
-                builder.setOutContextValue(newKey, value.getAsString());
-            } else if (value.isJsonNull()) {
-                Log.info("Null Json value, setting the out context {0} with an empty String", newKey);
-                builder.setOutContextValue(newKey, "");
-            }
-        }
+        EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
+        eventInstance.setDefinition(eventDefinition);
+        ContextInstance dataContextInstance = IntentFactory.eINSTANCE.createContextInstance();
+        dataContextInstance.setDefinition(dataContext);
+        eventInstance.getOutContextInstances().add(dataContextInstance);
+        ContextParameterValue jsonParameterValue = IntentFactory.eINSTANCE.createContextParameterValue();
+        jsonParameterValue.setContextParameter(jsonParameter);
+        jsonParameterValue.setValue(content);
+        dataContextInstance.getValues().add(jsonParameterValue);
+        return eventInstance;
     }
 
     /**
      * A pair representing a {@link Header} value to match.
      *
-     * @see #addMatchableEvent(HeaderValue, FieldValue, String)
+     * @see #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)
      * @see #match(List, JsonElement)
      */
     public static class HeaderValue {
@@ -438,7 +320,7 @@ public class JsonEventMatcher {
     /**
      * A pair representing a field value to match.
      *
-     * @see #addMatchableEvent(HeaderValue, FieldValue, String)
+     * @see #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)
      * @see #match(List, JsonElement)
      */
     public static class FieldValue {
@@ -472,9 +354,9 @@ public class JsonEventMatcher {
          * A static {@link FieldValue} used to match requests without inspecting its Json fields.
          * <p>
          * This {@link FieldValue} should be used when the {@link HeaderValue} provided in
-         * {@link #addMatchableEvent(HeaderValue, FieldValue, String)} is sufficient to uniquely identify an event.
+         * {@link #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)} is sufficient to uniquely identify an event.
          *
-         * @see #addMatchableEvent(HeaderValue, FieldValue, String)
+         * @see #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)
          * @see #match(List, JsonElement)
          */
         public static FieldValue EMPTY_FIELD_VALUE = of("", "");
