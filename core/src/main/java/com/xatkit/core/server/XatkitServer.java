@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.WebhookEventProvider;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -393,7 +394,7 @@ public class XatkitServer {
      * The created file can be accessed through {@code <baseURL/content/sessionId/path>}, and contains the content of
      * the provided {@code origin} {@link File}.
      *
-     * @param session the {@link XatkitSession} used to create the file
+     * @param context the {@link StateContext} used to create the file
      * @param path    the path of the file to create
      * @param origin  the origin file to copy
      * @return the created {@link File}
@@ -401,16 +402,16 @@ public class XatkitServer {
      * @throws XatkitException      if an error occurred when reading the provided {@code origin} {@link File}, or if
      *                              the existing file at the given {@code path} cannot be deleted or if the provided
      *                              {@code path} refers to an illegal location
-     * @see #createOrReplacePublicFile(XatkitSession, String, String)
+     * @see #createOrReplacePublicFile(StateContext, String, String)
      */
-    public File createOrReplacePublicFile(XatkitSession session, String path, @NonNull File origin) {
+    public File createOrReplacePublicFile(StateContext context, String path, @NonNull File origin) {
         byte[] fileContent;
         try {
             fileContent = org.apache.commons.io.FileUtils.readFileToByteArray(origin);
         } catch (IOException e) {
             throw new XatkitException(e);
         }
-        return this.createOrReplacePublicFile(session, path, fileContent);
+        return this.createOrReplacePublicFile(context, path, fileContent);
     }
 
     /**
@@ -419,7 +420,7 @@ public class XatkitServer {
      * The created file can be accessed through {@code <baseURL/content/sessionId/path}, and contains the provided
      * {@code content}.
      *
-     * @param session the {@link XatkitSession} used to create the file
+     * @param context the {@link StateContext} used to create the file
      * @param path    the the path of the file to create
      * @param content the content of the file to create
      * @return the created {@link File}
@@ -428,12 +429,13 @@ public class XatkitServer {
      *                              file at the given {@code path} cannot be deleted, or if the provided {@code path}
      *                              refers to an illegal location
      */
-    public File createOrReplacePublicFile(@NonNull XatkitSession session, @NonNull String path, @NonNull String content) {
-        return this.createOrReplacePublicFile(session, path, content.getBytes());
+    public File createOrReplacePublicFile(@NonNull StateContext context, @NonNull String path,
+                                          @NonNull String content) {
+        return this.createOrReplacePublicFile(context, path, content.getBytes());
     }
 
-    public File createOrReplacePublicFile(XatkitSession session, String path, byte[] content) {
-        File sessionFile = getOrCreateSessionFile(session);
+    public File createOrReplacePublicFile(StateContext context, String path, byte[] content) {
+        File sessionFile = getOrCreateSessionFile(context);
 
         File file = new File(sessionFile, path);
 
@@ -570,13 +572,13 @@ public class XatkitServer {
     /**
      * Retrieves or create the public {@link File} associated to the provided {@code session}.
      *
-     * @param session the {@link XatkitSession} to retrieve or create a {@link File} from
+     * @param context the {@link StateContext} to retrieve or create a {@link File} from
      * @return the {@link File}
      * @see #getSessionFile(XatkitSession)
      */
     private @NonNull
-    File getOrCreateSessionFile(XatkitSession session) {
-        File sessionFile = this.getSessionFile(session);
+    File getOrCreateSessionFile(StateContext context) {
+        File sessionFile = this.getSessionFile(context);
         if (!sessionFile.exists()) {
             sessionFile.mkdirs();
         }
@@ -589,13 +591,13 @@ public class XatkitServer {
      * This method always returns a {@link File} instance, that needs to be checked with {@link File#exists()} to
      * know if the session file exists or not.
      *
-     * @param session the {@link XatkitSession} to retrieve the {@link File} from
+     * @param context the {@link StateContext} to retrieve the {@link File} from
      * @return the retrieved {@link File}
-     * @see #getOrCreateSessionFile(XatkitSession)
+     * @see #getOrCreateSessionFile(StateContext)
      */
     private @NonNull
-    File getSessionFile(XatkitSession session) {
-        File sessionFile = new File(this.contentDirectory, session.getSessionId());
+    File getSessionFile(StateContext context) {
+        File sessionFile = new File(this.contentDirectory, context.getContextId());
         return sessionFile;
     }
 
