@@ -530,7 +530,7 @@ public class XatkitServer {
      */
     public @Nullable
     File getPublicFile(@NonNull XatkitSession session, @NonNull String filePath) {
-        return getPublicFile(session.getSessionId() + "/" + filePath);
+        return getPublicFile(session.getContextId() + "/" + filePath);
     }
 
     /**

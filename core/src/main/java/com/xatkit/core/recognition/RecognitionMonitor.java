@@ -500,12 +500,12 @@ public class RecognitionMonitor {
      */
     public void logRecognizedIntent(XatkitSession session, RecognizedIntent recognizedIntent) {
         Long ts = System.currentTimeMillis();
-        Map<Long, IntentRecord> sessionMap = records.get(session.getSessionId());
+        Map<Long, IntentRecord> sessionMap = records.get(session.getContextId());
         if (isNull(sessionMap)) {
             sessionMap = new TreeMap<>();
         }
         sessionMap.put(ts, new IntentRecord(recognizedIntent));
-        records.put(session.getSessionId(), sessionMap);
+        records.put(session.getContextId(), sessionMap);
         db.commit();
     }
 
