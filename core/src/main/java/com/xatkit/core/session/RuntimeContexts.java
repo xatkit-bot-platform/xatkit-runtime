@@ -421,7 +421,7 @@ public class RuntimeContexts {
      * @return an unmodifiable {@link Map} representing the stored context values
      */
     public Map<String, Map<String, Object>> getContextMap() {
-        return Collections.unmodifiableMap(contexts);
+        return this.contexts;
     }
 
     /**
