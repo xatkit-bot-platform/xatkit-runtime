@@ -19,8 +19,6 @@ import lombok.NonNull;
 
 import java.util.function.Predicate;
 
-import static java.util.Objects.isNull;
-
 public class TransitionDelegate extends StateDelegate implements
         TransitionStep,
         WhenStep,
@@ -42,9 +40,10 @@ public class TransitionDelegate extends StateDelegate implements
 
     @Override
     public OptionalWhenStep moveTo(@NonNull State state) {
-        if(isNull(transition.getCondition())) {
-            transition.setCondition(x -> true);
-        }
+        /*
+         * Do not set a x -> true predicate here, otherwise there is no way to differenciate auto-transitions from
+         * custom transitions. We need to handle null values in the execution engine.
+         */
         transition.setState(state);
         return this;
     }
