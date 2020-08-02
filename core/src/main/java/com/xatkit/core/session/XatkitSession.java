@@ -69,14 +69,6 @@ public class XatkitSession extends StateContextImpl {
     private RuntimeContexts runtimeContexts;
 
     /**
-     * The internal {@link Configuration} used to parameterize the {@link XatkitSession}.
-     * <p>
-     * A mirror of this {@link Configuration} is available as a {@link Map} through
-     * {@link XatkitSession#getConfiguration()}.
-     */
-    private Configuration configuration;
-
-    /**
      * Constructs a new, empty {@link XatkitSession} with the provided {@code sessionId}.
      * See {@link #XatkitSession(String, Configuration)} to construct a {@link XatkitSession} with a given
      * {@link Configuration}.
@@ -106,7 +98,8 @@ public class XatkitSession extends StateContextImpl {
      */
     public XatkitSession(@NonNull String contextId, @NonNull Configuration configuration) {
         this.contextId = contextId;
-        this.configuration = configuration;
+        this.setConfiguration(ConfigurationConverter.getMap(configuration));
+        this.setSession(new HashMap<>());
         this.runtimeContexts = new RuntimeContexts(configuration);
         this.origin = null;
         Log.info("{0} {1} created", XatkitSession.class.getSimpleName(), this.contextId);
@@ -140,11 +133,6 @@ public class XatkitSession extends StateContextImpl {
          * cleaned.
          */
         return runtimeContexts.getContextMap();
-    }
-
-    @Override
-    public Map<Object, Object> getConfiguration() {
-        return ConfigurationConverter.getMap(this.configuration);
     }
 
     /**
