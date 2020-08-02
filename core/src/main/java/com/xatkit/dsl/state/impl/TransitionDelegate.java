@@ -41,7 +41,7 @@ public class TransitionDelegate extends StateDelegate implements
     @Override
     public OptionalWhenStep moveTo(@NonNull State state) {
         /*
-         * Do not set a x -> true predicate here, otherwise there is no way to differenciate auto-transitions from
+         * Do not set a x -> true predicate here, otherwise there is no way to differentiate auto-transitions from
          * custom transitions. We need to handle null values in the execution engine.
          */
         transition.setState(state);
