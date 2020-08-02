@@ -7,4 +7,6 @@ import java.util.function.Predicate;
 public interface WhenStep extends StateProvider {
 
     MoveToStep when(Predicate<StateContext> condition);
+
+    EventPredicateStep when();
 }
