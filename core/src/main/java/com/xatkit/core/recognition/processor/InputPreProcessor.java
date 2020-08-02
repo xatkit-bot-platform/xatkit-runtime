@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition.processor;
 
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 
 /**
  * Applies a pre-processing function on the provided {@code input}.
@@ -26,8 +26,8 @@ public interface InputPreProcessor {
      * advanced pre-processing functions taking into account session's content.
      *
      * @param input   the input to process
-     * @param session the {@link XatkitSession} associated to the {@code input}
+     * @param context the {@link StateContext} associated to the {@code input}
      * @return the processed {@code input}
      */
-    String process(String input, XatkitSession session);
+    String process(String input, StateContext context);
 }

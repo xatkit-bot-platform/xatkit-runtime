@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition.processor;
 
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
 
 /**
@@ -27,8 +27,8 @@ public interface IntentPostProcessor {
      * define advanced post-processing functions taking into account session's content.
      *
      * @param recognizedIntent the {@link RecognizedIntent} to process
-     * @param session          the {@link XatkitSession} associated to the {@code recognizedIntent}
+     * @param context          the {@link StateContext} associated to the {@code recognizedIntent}
      * @return the processed {@code recognizedIntent}
      */
-    RecognizedIntent process(RecognizedIntent recognizedIntent, XatkitSession session);
+    RecognizedIntent process(RecognizedIntent recognizedIntent, StateContext context);
 }

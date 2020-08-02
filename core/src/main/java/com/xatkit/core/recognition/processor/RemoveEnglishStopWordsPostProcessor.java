@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition.processor;
 
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.EntityType;
@@ -79,11 +79,11 @@ public class RemoveEnglishStopWordsPostProcessor implements IntentPostProcessor 
      * entity is supposed to match stop words.
      *
      * @param recognizedIntent the {@link RecognizedIntent} to process
-     * @param session          the {@link XatkitSession} associated to the {@code recognizedIntent}
+     * @param context          the {@link StateContext} associated to the {@code recognizedIntent}
      * @return the updated {@code recognizedIntent}
      */
     @Override
-    public RecognizedIntent process(RecognizedIntent recognizedIntent, XatkitSession session) {
+    public RecognizedIntent process(RecognizedIntent recognizedIntent, StateContext context) {
         recognizedIntent.getOutContextInstances().forEach(c -> {
             c.getValues().forEach(v -> {
                 EntityDefinition referredEntity = v.getContextParameter().getEntity().getReferredEntity();
