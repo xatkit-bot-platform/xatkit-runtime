@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * A session holding user-related information.
@@ -125,12 +126,10 @@ public class XatkitSession extends StateContextImpl {
         Log.debug("Session {0} - State set to {1}", this.getContextId(), state.getName());
         this.state = state;
         for (Transition t : state.getTransitions()) {
-            ExecutionModelUtils.getAccessedEvents(t).forEach(e -> {
-                if (e instanceof IntentDefinition) {
-                    IntentDefinition i = (IntentDefinition) e;
-                    this.runtimeContexts.setContext("Enable" + i.getName(), 2);
-                }
-            });
+            IntentDefinition intentDefinition = ExecutionModelUtils.getAccessedIntent(t);
+            if(nonNull(intentDefinition)) {
+                this.runtimeContexts.setContext("Enable" + intentDefinition.getName(), 2);
+            }
         }
     }
 
