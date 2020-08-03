@@ -3,6 +3,7 @@ package com.xatkit.dsl.model.impl;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.dsl.intent.EventDefinitionProvider;
+import com.xatkit.dsl.intent.IntentDefinitionProvider;
 import com.xatkit.dsl.library.LibraryProvider;
 import com.xatkit.dsl.model.DefaultFallbackStateStep;
 import com.xatkit.dsl.model.ExecutionModelProvider;
@@ -14,6 +15,9 @@ import com.xatkit.dsl.model.UsePlatformStep;
 import com.xatkit.dsl.state.StateProvider;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.State;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.Library;
 import lombok.NonNull;
 
 public class ExecutionModelDelegate extends ExecutionModelProviderImpl implements
@@ -30,14 +34,34 @@ public class ExecutionModelDelegate extends ExecutionModelProviderImpl implement
 
 
     @Override
-    public @NonNull UseEventStep useEvent(@NonNull EventDefinitionProvider intentProvider) {
-        this.model.getUsedEvents().add(intentProvider.getEventDefinition());
+    public @NonNull UseEventStep useEvent(@NonNull EventDefinitionProvider eventProvider) {
+        return this.useEvent(eventProvider.getEventDefinition());
+    }
+
+    @Override
+    public @NonNull UseEventStep useEvent(@NonNull EventDefinition event) {
+        this.model.getUsedEvents().add(event);
         return this;
     }
 
     @Override
-    public @NonNull UseEventStep useEvents(@NonNull LibraryProvider libraryProvider) {
-        libraryProvider.getLibrary().getEventDefinitions().forEach(e -> this.model.getUsedEvents().add(e));
+    public @NonNull UseEventStep useIntent(@NonNull IntentDefinitionProvider intentProvider) {
+        return this.useEvent(intentProvider);
+    }
+
+    @Override
+    public @NonNull UseEventStep useIntent(@NonNull IntentDefinition intent) {
+        return this.useEvent(intent);
+    }
+
+    @Override
+    public @NonNull UseEventStep useIntents(@NonNull LibraryProvider libraryProvider) {
+        return this.useIntents(libraryProvider.getLibrary());
+    }
+
+    @Override
+    public @NonNull UseEventStep useIntents(@NonNull Library library) {
+        library.getEventDefinitions().forEach(e -> this.model.getUsedEvents().add(e));
         return this;
     }
 
