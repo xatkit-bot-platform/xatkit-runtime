@@ -76,7 +76,7 @@ public class ExecutionModelTest {
     @Test
     public void createModelWithLibrary() {
         val model = model()
-                .useEvents(library)
+                .useIntents(library)
                 .initState(s1)
                 .defaultFallbackState(s2);
 

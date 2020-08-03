@@ -4,6 +4,10 @@ import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
+import com.xatkit.intent.EventInstance;
+import com.xatkit.intent.IntentFactory;
+import com.xatkit.util.IsEventDefinitionPredicate;
+import com.xatkit.util.IsIntentDefinitionPredicate;
 import lombok.val;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +15,9 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.xatkit.dsl.DSL.event;
 import static com.xatkit.dsl.DSL.fallbackState;
+import static com.xatkit.dsl.DSL.intent;
 import static com.xatkit.dsl.DSL.state;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,6 +73,59 @@ public class StateTest {
         sessionMap.put("key", "anotherValue");
         assertThat(transition.getCondition().test(stateContext)).isFalse();
         assertThat(transition.getState()).isEqualTo(s1);
+    }
+
+    @Test
+    public void stateWithIntentIsTransition() {
+        val intent = intent("Intent")
+                .trainingSentence("Hi")
+                .getIntentDefinition();
+
+        val state = state("State")
+                .next()
+                    .when().intentIs(intent).moveTo(s1);
+
+        State base = state.getState();
+        assertThat(base.getName()).isEqualTo("State");
+        assertThat(base.getTransitions()).hasSize(1);
+        Transition transition = base.getTransitions().get(0);
+        assertThat(transition.getCondition()).isInstanceOf(IsIntentDefinitionPredicate.class);
+        IsIntentDefinitionPredicate predicate = (IsIntentDefinitionPredicate) transition.getCondition();
+        assertThat(predicate.getIntentDefinition()).isEqualTo(intent);
+        /*
+         * Create a StateContext to test the lambda.
+         */
+        StateContext stateContext = ExecutionFactory.eINSTANCE.createStateContext();
+        EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
+        eventInstance.setDefinition(intent);
+        stateContext.setEventInstance(eventInstance);
+        assertThat(transition.getCondition().test(stateContext)).isTrue();
+    }
+
+    @Test
+    public void stateWithEventIsTransition() {
+        val event = event("Event")
+                .getEventDefinition();
+
+        val state = state("State")
+                .next()
+                    .when().eventIs(event).moveTo(s1);
+
+        State base = state.getState();
+        assertThat(base.getName()).isEqualTo("State");
+        assertThat(base.getTransitions()).hasSize(1);
+        Transition transition = base.getTransitions().get(0);
+        assertThat(transition.getCondition()).isInstanceOf(IsEventDefinitionPredicate.class);
+        IsEventDefinitionPredicate predicate = (IsEventDefinitionPredicate) transition.getCondition();
+        assertThat(predicate.getEventDefinition()).isEqualTo(event);
+        /*
+         * Create a StateContext to test the lambda.
+         */
+        StateContext stateContext = ExecutionFactory.eINSTANCE.createStateContext();
+        EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
+        eventInstance.setDefinition(event);
+        stateContext.setEventInstance(eventInstance);
+        assertThat(transition.getCondition().test(stateContext)).isTrue();
     }
 
     @Test
