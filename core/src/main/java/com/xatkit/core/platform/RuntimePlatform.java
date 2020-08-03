@@ -48,7 +48,7 @@ public abstract class RuntimePlatform {
      *
      * @see #shutdown()
      */
-    protected Map<String, EventProviderThread> eventProviderMap;
+    protected Map<String, EventProviderThread> eventProviderMap = new HashMap<>();
 
     /**
      * Constructs an <b>unstarted</b> instance of this platform.
