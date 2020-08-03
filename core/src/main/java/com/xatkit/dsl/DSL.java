@@ -5,6 +5,8 @@ import com.xatkit.dsl.entity.MappingEntryStep;
 import com.xatkit.dsl.entity.impl.CompositeEntityDefinitionDelegate;
 import com.xatkit.dsl.entity.impl.MappingEntityDefinitionDelegate;
 import com.xatkit.dsl.intent.EventContextStep;
+import com.xatkit.dsl.intent.EventDefinitionProvider;
+import com.xatkit.dsl.intent.IntentDefinitionProvider;
 import com.xatkit.dsl.intent.IntentMandatoryTrainingSentenceStep;
 import com.xatkit.dsl.intent.impl.EventDefinitionDelegate;
 import com.xatkit.dsl.intent.impl.IntentDefinitionDelegate;
@@ -18,6 +20,7 @@ import com.xatkit.dsl.state.impl.StateDelegate;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.State;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.BaseEntityDefinitionReference;
 import com.xatkit.intent.CompositeEntityDefinition;
@@ -28,7 +31,11 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.Library;
 import com.xatkit.intent.MappingEntityDefinition;
+import com.xatkit.util.IsEventDefinitionPredicate;
+import com.xatkit.util.IsIntentDefinitionPredicate;
 import lombok.NonNull;
+
+import java.util.function.Predicate;
 
 public class DSL {
 
@@ -77,6 +84,22 @@ public class DSL {
         CompositeEntityDefinition entity = IntentFactory.eINSTANCE.createCompositeEntityDefinition();
         entity.setName(name);
         return new CompositeEntityDefinitionDelegate(entity);
+    }
+
+    public static @NonNull Predicate<StateContext> intentIs(@NonNull IntentDefinitionProvider intentProvider) {
+        return intentIs(intentProvider.getIntentDefinition());
+    }
+
+    public static @NonNull Predicate<StateContext> intentIs(@NonNull IntentDefinition intent) {
+        return new IsIntentDefinitionPredicate(intent);
+    }
+
+    public static @NonNull Predicate<StateContext> eventIs(@NonNull EventDefinitionProvider eventProvider) {
+        return eventIs(eventProvider.getEventDefinition());
+    }
+
+    public static @NonNull Predicate<StateContext> eventIs(@NonNull EventDefinition event) {
+        return new IsEventDefinitionPredicate(event);
     }
 
     public static @NonNull EntityDefinitionReference any() {

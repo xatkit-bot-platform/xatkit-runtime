@@ -16,8 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.xatkit.dsl.DSL.event;
+import static com.xatkit.dsl.DSL.eventIs;
 import static com.xatkit.dsl.DSL.fallbackState;
 import static com.xatkit.dsl.DSL.intent;
+import static com.xatkit.dsl.DSL.intentIs;
 import static com.xatkit.dsl.DSL.state;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -83,7 +85,7 @@ public class StateTest {
 
         val state = state("State")
                 .next()
-                    .when().intentIs(intent).moveTo(s1);
+                    .when(intentIs(intent)).moveTo(s1);
 
         State base = state.getState();
         assertThat(base.getName()).isEqualTo("State");
@@ -109,7 +111,7 @@ public class StateTest {
 
         val state = state("State")
                 .next()
-                    .when().eventIs(event).moveTo(s1);
+                    .when(eventIs(event)).moveTo(s1);
 
         State base = state.getState();
         assertThat(base.getName()).isEqualTo("State");

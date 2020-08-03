@@ -71,24 +71,6 @@ public class TransitionDelegate extends StateDelegate implements
     }
 
     @Override
-    public EventPredicateStep when() {
-        if(nonNull(this.transition.getState())) {
-            /*
-             * The current transition already contains a "moveTo" state. This invocation of when() means that we are
-             * creating another transition:
-             * next()
-             *   .when(...).moveTo(...)
-             *   .when(...) // Here we are defining a new transition.
-             * We need to create a new Transition instance and return a new delegate to reflect this behavior.
-             */
-            Transition newTransition = ExecutionFactory.eINSTANCE.createTransition();
-            this.state.getTransitions().add(newTransition);
-            return new TransitionDelegate(this.state, newTransition);
-        }
-        return this;
-    }
-
-    @Override
     public MoveToStep intentIs(IntentDefinitionProvider intentDefinitionProvider) {
         return this.intentIs(intentDefinitionProvider.getIntentDefinition());
     }
