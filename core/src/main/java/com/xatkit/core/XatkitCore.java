@@ -9,6 +9,7 @@ import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.dsl.model.ExecutionModelProvider;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
@@ -101,9 +102,37 @@ public class XatkitCore implements Runnable {
      */
     private Map<String, Formatter> formatters;
 
+    /**
+     * Creates an <b>unstarted</b> {@link XatkitCore} instance.
+     * <p>
+     * The underlying bot can be started by calling {@link #run()}.
+     *
+     * @param executionModel the model containing the bot's execution logic
+     * @param configuration  the Xatkit {@link Configuration}
+     */
     public XatkitCore(@NonNull ExecutionModel executionModel, @NonNull Configuration configuration) {
         this.executionModel = executionModel;
         this.configuration = configuration;
+    }
+
+    /**
+     * Creates an <b>unstarted</b> {@link XatkitCore} instance.
+     * <p>
+     * This method is an utility constructor that allows to provide models built with the fluent DSL, and is
+     * equivalent to
+     * <pre>
+     * {@code
+     * new XatkitCore(executionModelProvider.getExecutionModel(), configuration);
+     * }
+     * </pre>
+     * <p>
+     * The underlying bot can be started by calling {@link #run()}.
+     *
+     * @param executionModelProvider the provider containing the bot's model
+     * @param configuration          the Xatkit {@link Configuration}
+     */
+    public XatkitCore(@NonNull ExecutionModelProvider executionModelProvider, @NonNull Configuration configuration) {
+        this(executionModelProvider.getExecutionModel(), configuration);
     }
 
     @Override
