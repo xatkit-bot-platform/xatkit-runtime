@@ -179,6 +179,7 @@ public class XatkitCore implements Runnable {
      */
     private void loadExecutionModel(ExecutionModel executionModel) {
         boolean intentRegistered = false;
+        this.startPlatforms(executionModel);
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");
 
@@ -200,15 +201,27 @@ public class XatkitCore implements Runnable {
     }
 
     /**
+     * Starts the {@link RuntimePlatform}s used in the provided {@code executionModel}.
+     *
+     * @param executionModel the {@link ExecutionModel} to start the {@link RuntimePlatform}s from
+     */
+    private void startPlatforms(ExecutionModel executionModel) {
+        for (Object object : executionModel.getUsedPlatforms()) {
+            /*
+             * TODO this cast shouldn't exist: we need to fix the metamodel.
+             */
+            RuntimePlatform platform = (RuntimePlatform) object;
+            platform.start(this, configuration);
+        }
+    }
+
+    /**
      * Starts the {@link RuntimeEventProvider}s used in the provided {@code executionModel}.
-     * <p>
-     * This method instantiates the {@link RuntimePlatform}s managing the {@link RuntimeEventProvider}s to construct
-     * if necessary (i.e. if they have not been instantiated before).
      *
      * @param executionModel the {@link ExecutionModel} to start the {@link RuntimeEventProvider}s from
      */
     private void startEventProviders(ExecutionModel executionModel) {
-        for(Object object : executionModel.getUsedProviders()) {
+        for (Object object : executionModel.getUsedProviders()) {
             /*
              * TODO this cast shouldn't exist: we need to fix the metamodel.
              */
@@ -281,14 +294,14 @@ public class XatkitCore implements Runnable {
          * API.
          */
         this.stopServices();
-        for(Object object : this.executionModel.getUsedProviders()) {
+        for (Object object : this.executionModel.getUsedProviders()) {
             /*
              * TODO this cast shouldn't exist: we need to fix the metamodel.
              */
             RuntimeEventProvider<?> eventProvider = (RuntimeEventProvider<?>) object;
             eventProvider.close();
         }
-        for(Object object : this.executionModel.getUsedPlatforms()) {
+        for (Object object : this.executionModel.getUsedPlatforms()) {
             /*
              * TODO this cast shouldn't exist: we need to fix the metamodel.
              */
