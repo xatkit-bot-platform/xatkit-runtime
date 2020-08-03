@@ -5,13 +5,13 @@
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
         <Routing name="rollingFile">
-            <Routes pattern="$${main:0}">
+            <Routes pattern="logs">
                 <!-- This route is chosen if there is a value for main argument 0 -->
                 <Route>
                     <RollingFile
                             name="rollingFile"
-                            fileName="${main:0}/logs/application.log"
-                            filePattern="${main:0}/logs/application.%i.log.gz"
+                            fileName="logs/application.log"
+                            filePattern="logs/application.%i.log.gz"
                             ignoreExceptions="false">
                         <PatternLayout>
                             <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n</Pattern>
