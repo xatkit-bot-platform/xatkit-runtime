@@ -63,6 +63,7 @@ public class TransitionDelegate extends StateDelegate implements
              * We need to create a new Transition instance and return a new delegate to reflect this behavior.
              */
             Transition newTransition = ExecutionFactory.eINSTANCE.createTransition();
+            newTransition.setCondition(condition);
             this.state.getTransitions().add(newTransition);
             return new TransitionDelegate(this.state, newTransition);
         }
