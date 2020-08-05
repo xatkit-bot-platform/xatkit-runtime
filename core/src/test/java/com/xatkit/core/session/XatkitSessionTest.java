@@ -89,5 +89,11 @@ public class XatkitSessionTest extends AbstractXatkitTest {
         softly.assertThat(session.getContextId()).as("Valid context ID").isEqualTo("session");
         softly.assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
         softly.assertThat(session.getRuntimeContexts().getContextMap()).as("Empty context").isEmpty();
+        softly.assertThat(session.getSession()).isEmpty();
+        softly.assertThat(session.getNlpContext()).isEmpty();
+        softly.assertThat(session.getOrigin()).isNull();
+        /*
+         * This method doesn't check the initialization of the configuration.
+         */
     }
 }
