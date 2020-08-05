@@ -2,20 +2,12 @@ package com.xatkit.core;
 
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.dsl.DSL;
-import com.xatkit.execution.ExecutionModel;
-import com.xatkit.intent.IntentFactory;
-import com.xatkit.intent.RecognizedIntent;
-import lombok.val;
+import com.xatkit.test.bot.TestBot;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.xatkit.dsl.DSL.fallbackState;
-import static com.xatkit.dsl.DSL.intent;
-import static com.xatkit.dsl.DSL.intentIs;
-import static com.xatkit.dsl.DSL.state;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,68 +15,11 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
 
     private ExecutionService executionService;
 
-    private RecognizedIntent navigableIntent;
-
-    private RecognizedIntent notNavigableIntent;
-
-    private boolean bodyExecuted;
-
-    private boolean defaultFallbackExecuted;
-
-    private boolean sessionChecked;
-
-    private ExecutionModel model;
+    private TestBot testBot;
 
     @Before
     public void setUp() {
-        this.bodyExecuted = false;
-        this.defaultFallbackExecuted = false;
-        this.sessionChecked = false;
-        val greetings = intent("Greetings")
-                .trainingSentence("Hi");
-
-        val init = state("Init");
-        val greetingsState = state("GreetingsState");
-        val sessionCheckedState = state("SessionChecked");
-
-        init
-                .next()
-                    .when(intentIs(greetings)).moveTo(greetingsState)
-                    .when(stateContext -> stateContext.getSession().containsKey("key")).moveTo(sessionCheckedState);
-
-        greetingsState
-                .body(context -> bodyExecuted = true)
-                .next()
-                    .moveTo(init);
-
-        sessionCheckedState
-                .body(context -> {
-                    /*
-                     * Remove the key otherwise we have an infinite loop between Init and SessionChecked.
-                     */
-                    context.getSession().remove("key");
-                    sessionChecked = true;
-                })
-                .next()
-                    .moveTo(init);
-
-        val fallback = fallbackState()
-                .body(context -> defaultFallbackExecuted = true);
-
-        model = DSL.model()
-                .useIntent(greetings)
-                .state(greetingsState)
-                .initState(init)
-                .defaultFallbackState(fallback)
-                .getExecutionModel();
-
-        navigableIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
-        navigableIntent.setDefinition(greetings.getIntentDefinition());
-
-        val unmatchedIntentDefinition = intent("Unmatched")
-                .trainingSentence("Unmatched");
-        notNavigableIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
-        notNavigableIntent.setDefinition(unmatchedIntentDefinition.getIntentDefinition());
+        testBot = new TestBot();
     }
 
     @After
@@ -102,7 +37,7 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
 
     @Test (expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        executionService = new ExecutionService(model, null);
+        executionService = new ExecutionService(testBot.getModel(), null);
     }
 
     @Test
@@ -121,7 +56,7 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     @Test(expected = NullPointerException.class)
     public void handleEventNullSession() {
         executionService = getValidExecutionService();
-        executionService.handleEventInstance(navigableIntent, null);
+        executionService.handleEventInstance(testBot.getNavigableIntent(), null);
     }
 
     @Test
@@ -129,16 +64,16 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
         executionService = getValidExecutionService();
         XatkitSession session = new XatkitSession("sessionID");
         executionService.initContext(session);
-        executionService.handleEventInstance(navigableIntent, session);
+        executionService.handleEventInstance(testBot.getNavigableIntent(), session);
         /*
          * Sleep because actions are computed asynchronously
          */
         Thread.sleep(1000);
-        assertThat(this.bodyExecuted).isTrue();
+        assertThat(testBot.isGreetingsStateBodyExecuted()).isTrue();
         /*
          * The session check transition hasn't been navigated.
          */
-        assertThat(this.sessionChecked).isFalse();
+        assertThat(testBot.isDefaultFallbackExecuted()).isFalse();
     }
 
     @Test
@@ -146,14 +81,14 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
         executionService = getValidExecutionService();
         XatkitSession session = new XatkitSession("sessionID");
         executionService.initContext(session);
-        executionService.handleEventInstance(notNavigableIntent, session);
+        executionService.handleEventInstance(testBot.getNotNavigableIntent(), session);
         Thread.sleep(1000);
-        assertThat(this.bodyExecuted).isFalse();
-        assertThat(this.defaultFallbackExecuted).isTrue();
+        assertThat(testBot.isGreetingsStateBodyExecuted()).isFalse();
+        assertThat(testBot.isDefaultFallbackExecuted()).isTrue();
         /*
          * The session check transition hasn't been navigated.
          */
-        assertThat(this.sessionChecked).isFalse();
+        assertThat(testBot.isSessionCheckedBodyExecuted()).isFalse();
         /*
          * We stay in Init if the event does not trigger a transition.
          */
@@ -176,7 +111,7 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
         /*
          * The session checked state has been visited.
          */
-        assertThat(this.sessionChecked).isTrue();
+        assertThat(testBot.isSessionCheckedBodyExecuted()).isTrue();
         /*
          * And the auto transition to Init too.
          */
@@ -184,6 +119,6 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     }
 
     private ExecutionService getValidExecutionService() {
-        return new ExecutionService(model, new BaseConfiguration());
+        return new ExecutionService(testBot.getModel(), new BaseConfiguration());
     }
 }
