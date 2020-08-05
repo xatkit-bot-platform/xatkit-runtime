@@ -4,6 +4,7 @@ import com.xatkit.core.XatkitCore;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -32,7 +33,7 @@ public class IntentRecognitionHelper {
      * 1} will be immediately removed by the {@link RuntimeContexts#decrementLifespanCounts()} call).
      *
      * @param input   the textual user input to extract the {@link RecognizedIntent} from
-     * @param session the {@link XatkitSession} wrapping the underlying
+     * @param context the {@link StateContext} wrapping the underlying
      *                {@link com.xatkit.core.recognition.IntentRecognitionProvider}'s session
      * @return the {@link RecognizedIntent} computed by the
      * {@link com.xatkit.core.recognition.IntentRecognitionProvider}
@@ -43,8 +44,12 @@ public class IntentRecognitionHelper {
      *                                            shutdown or if an exception is thrown by the
      *                                            underlying intent recognition engine
      */
-    public static RecognizedIntent getRecognizedIntent(@NonNull String input, @NonNull XatkitSession session,
+    public static RecognizedIntent getRecognizedIntent(@NonNull String input, @NonNull StateContext context,
                                                        @NonNull XatkitCore xatkitCore) throws IntentRecognitionProviderException {
+        /*
+         * TODO remove this cast, the underlying IntentRecognitionProvider should handle StateContexts.
+         */
+        XatkitSession session = (XatkitSession) context;
         session.getRuntimeContexts().decrementLifespanCounts();
         RecognizedIntent recognizedIntent = xatkitCore.getIntentRecognitionProvider().getIntent(input, session);
         Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\" ({3})",
