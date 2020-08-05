@@ -411,7 +411,7 @@ public class XatkitCore implements Runnable {
             /*
              * The executor service takes care of configuring the new session and setting the init state.
              */
-            executionService.initSession(session);
+            executionService.initContext(session);
         }
         return session;
     }

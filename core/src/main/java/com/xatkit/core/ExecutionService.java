@@ -79,7 +79,7 @@ public class ExecutionService {
      *
      * @param context the {@link StateContext} to initialize
      */
-    public void initSession(@NonNull StateContext context) {
+    public void initContext(@NonNull StateContext context) {
         context.setState(this.model.getInitState());
         this.executeBody(context.getState(), context);
     }
