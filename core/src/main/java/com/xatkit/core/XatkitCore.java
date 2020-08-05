@@ -400,8 +400,9 @@ public class XatkitCore implements Runnable {
      * @return {@code true} if the {@link XatkitCore} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
-        return (!xatkitServer.isStarted()) && executionService.isShutdown() && intentRecognitionProvider
-                .isShutdown();
+        return (isNull(xatkitServer) || !xatkitServer.isStarted())
+            && (isNull(executionService) || executionService.isShutdown())
+            && (isNull(intentRecognitionProvider) || intentRecognitionProvider.isShutdown());
     }
 
     /**
