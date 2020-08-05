@@ -59,14 +59,14 @@ public class XatkitSession extends StateContextImpl {
      * <p>
      * <b>Note</b>: this method does <i>not</i> set the {@link State} associated to the {@link XatkitSession}. This
      * can be done by calling {@link XatkitSession#setState(State)}. {@link XatkitSession}s created with
-     * {@link com.xatkit.core.ExecutionService#initSession(XatkitSession)} are automatically initialized with the {@code
+     * {@link com.xatkit.core.ExecutionService#initContext(StateContext)} are automatically initialized with the {@code
      * Init} {@link State} of the bot's execution model.
      *
      * @param contextId     the unique identifier of the {@link XatkitSession}
      * @param configuration the {@link Configuration} parameterizing the {@link XatkitSession}
      * @throws NullPointerException if the provided {@code sessionId} or {@code configuration} is {@code null}
      * @see #setState(State)
-     * @see com.xatkit.core.ExecutionService#initSession(XatkitSession)
+     * @see com.xatkit.core.ExecutionService#initContext(StateContext)
      */
     public XatkitSession(@NonNull String contextId, @NonNull Configuration configuration) {
         this.contextId = contextId;
