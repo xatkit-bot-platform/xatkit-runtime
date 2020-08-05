@@ -4,8 +4,8 @@ import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.RestHandler;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventInstance;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
@@ -85,17 +85,17 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * context variable has been set).
      *
      * @param eventInstance the {@link EventInstance} to send to the Xatkit core component
-     * @param session       the {@link XatkitSession} associated to the provided {@code eventInstance}
+     * @param context       the {@link StateContext} associated to the provided {@code eventInstance}
      */
-    public void sendEventInstance(EventInstance eventInstance, XatkitSession session) {
+    public void sendEventInstance(EventInstance eventInstance, StateContext context) {
         eventInstance.setTriggeredBy(this.runtimePlatform.getName());
-        this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, session);
+        this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, context);
     }
 
     public void broadcastEventInstance(EventInstance eventInstance) {
         eventInstance.setTriggeredBy(this.runtimePlatform.getName());
-        this.xatkitCore.getContexts().forEach(xatkitSession ->
-                this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, xatkitSession)
+        this.xatkitCore.getContexts().forEach(context ->
+                this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, context)
         );
     }
 
