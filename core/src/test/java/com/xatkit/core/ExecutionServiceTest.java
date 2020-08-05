@@ -1,77 +1,90 @@
 package com.xatkit.core;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.session.XatkitSession;
-import com.xatkit.intent.EventDefinition;
-import com.xatkit.intent.EventInstance;
+import com.xatkit.dsl.DSL;
+import com.xatkit.execution.ExecutionModel;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.language.execution.ExecutionRuntimeModule;
-import com.xatkit.platform.PlatformDefinition;
-import com.xatkit.stubs.StubRuntimePlatform;
-import com.xatkit.test.util.TestBotExecutionModel;
-import com.xatkit.test.util.TestModelLoader;
+import lombok.val;
 import org.apache.commons.configuration2.BaseConfiguration;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.xatkit.dsl.DSL.fallbackState;
+import static com.xatkit.dsl.DSL.intent;
+import static com.xatkit.dsl.DSL.intentIs;
+import static com.xatkit.dsl.DSL.state;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-//import com.xatkit.execution.ActionInstance;
 
 public class ExecutionServiceTest extends AbstractXatkitTest {
 
-    private static TestBotExecutionModel testBotExecutionModel;
-
-    private static Injector injector;
-
-    private static EventInstance VALID_EVENT_INSTANCE;
-
-    private static EventInstance INVALID_EVENT_INSTANCE;
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws ConfigurationException {
-        testBotExecutionModel = TestModelLoader.loadTestBot();
-        injector = Guice.createInjector(new ExecutionRuntimeModule());
-        VALID_EVENT_INSTANCE = IntentFactory.eINSTANCE.createRecognizedIntent();
-        VALID_EVENT_INSTANCE.setDefinition(testBotExecutionModel.getSimpleIntent());
-        INVALID_EVENT_INSTANCE = IntentFactory.eINSTANCE.createEventInstance();
-        EventDefinition eventDefinition = IntentFactory.eINSTANCE.createEventDefinition();
-        eventDefinition.setName("Invalid");
-        INVALID_EVENT_INSTANCE.setDefinition(eventDefinition);
-    }
-
-    private RuntimePlatformRegistry platformRegistry;
-
-    private StubRuntimePlatform stubRuntimePlatform;
-
     private ExecutionService executionService;
+
+    private RecognizedIntent navigableIntent;
+
+    private RecognizedIntent notNavigableIntent;
+
+    private boolean bodyExecuted;
+
+    private boolean defaultFallbackExecuted;
+
+    private boolean sessionChecked;
+
+    private ExecutionModel model;
 
     @Before
     public void setUp() {
-        platformRegistry = new RuntimePlatformRegistry();
-        stubRuntimePlatform = new StubRuntimePlatform(mock(XatkitCore.class), new BaseConfiguration());
-        platformRegistry.registerRuntimePlatform("StubRuntimePlatform", stubRuntimePlatform);
-        PlatformDefinition mockedPlatformDefinition = mock(PlatformDefinition.class);
-        when(mockedPlatformDefinition.getName()).thenReturn("StubRuntimePlatform");
-        platformRegistry.registerLoadedPlatformDefinition(mockedPlatformDefinition);
-        stubRuntimePlatform.init();
-//        RuntimePlatform runtimePlatform = VALID_XATKIT_CORE.getRuntimePlatformRegistry().getRuntimePlatform
-//                ("StubRuntimePlatform");
-//        if(nonNull(runtimePlatform)) {
-//            /*
-//             * Call init() to reset the platform actions and avoid comparison issues when checking their state.
-//             */
-//            ((StubRuntimePlatform) runtimePlatform).init();
-//        }
+        this.bodyExecuted = false;
+        this.defaultFallbackExecuted = false;
+        this.sessionChecked = false;
+        val greetings = intent("Greetings")
+                .trainingSentence("Hi");
+
+        val init = state("Init");
+        val greetingsState = state("GreetingsState");
+        val sessionCheckedState = state("SessionChecked");
+
+        init
+                .next()
+                    .when(intentIs(greetings)).moveTo(greetingsState)
+                    .when(stateContext -> stateContext.getSession().containsKey("key")).moveTo(sessionCheckedState);
+
+        greetingsState
+                .body(context -> bodyExecuted = true)
+                .next()
+                    .moveTo(init);
+
+        sessionCheckedState
+                .body(context -> {
+                    /*
+                     * Remove the key otherwise we have an infinite loop between Init and SessionChecked.
+                     */
+                    context.getSession().remove("key");
+                    sessionChecked = true;
+                })
+                .next()
+                    .moveTo(init);
+
+        val fallback = fallbackState()
+                .body(context -> defaultFallbackExecuted = true);
+
+        model = DSL.model()
+                .useIntent(greetings)
+                .state(greetingsState)
+                .initState(init)
+                .defaultFallbackState(fallback)
+                .getExecutionModel();
+
+        navigableIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+        navigableIntent.setDefinition(greetings.getIntentDefinition());
+
+        val unmatchedIntentDefinition = intent("Unmatched")
+                .trainingSentence("Unmatched");
+        notNavigableIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+        notNavigableIntent.setDefinition(unmatchedIntentDefinition.getIntentDefinition());
     }
 
     @After
@@ -84,26 +97,17 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullExecutionModel() {
-        executionService = new ExecutionService(null, platformRegistry, new BaseConfiguration());
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructNullRuntimePlatformRegistry() {
-        executionService = new ExecutionService(testBotExecutionModel.getBaseModel(), null, new BaseConfiguration());
+        executionService = new ExecutionService(null, new BaseConfiguration());
     }
 
     @Test (expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        executionService = new ExecutionService(testBotExecutionModel.getBaseModel(), platformRegistry, null);
+        executionService = new ExecutionService(model, null);
     }
 
     @Test
     public void constructValid() {
         executionService = getValidExecutionService();
-        assertThat(executionService.getExecutionModel()).as("Valid execution model").isEqualTo
-                (testBotExecutionModel.getBaseModel());
-        assertThat(executionService.getRuntimePlatformRegistry()).as("Valid Xatkit runtimePlatform registry").isEqualTo
-                (platformRegistry);
         assertThat(executionService.getExecutorService()).as("Not null ExecutorService").isNotNull();
         assertThat(executionService.isShutdown()).as("Execution service started").isFalse();
     }
@@ -117,30 +121,39 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     @Test(expected = NullPointerException.class)
     public void handleEventNullSession() {
         executionService = getValidExecutionService();
-        executionService.handleEventInstance(VALID_EVENT_INSTANCE, null);
+        executionService.handleEventInstance(navigableIntent, null);
     }
 
     @Test
-    public void handleEventValidEvent() throws InterruptedException {
+    public void handleEventNavigableEvent() throws InterruptedException {
         executionService = getValidExecutionService();
         XatkitSession session = new XatkitSession("sessionID");
-        executionService.initSession(session);
-        executionService.handleEventInstance(VALID_EVENT_INSTANCE, session);
+        executionService.initContext(session);
+        executionService.handleEventInstance(navigableIntent, session);
         /*
          * Sleep because actions are computed asynchronously
          */
         Thread.sleep(1000);
-        assertThat(stubRuntimePlatform.getAction().isActionProcessed()).isTrue();
+        assertThat(this.bodyExecuted).isTrue();
+        /*
+         * The session check transition hasn't been navigated.
+         */
+        assertThat(this.sessionChecked).isFalse();
     }
 
     @Test
-    public void handleEventNotHandledEvent() throws InterruptedException {
+    public void handleEventNotNavigableEvent() throws InterruptedException {
         executionService = getValidExecutionService();
         XatkitSession session = new XatkitSession("sessionID");
-        executionService.initSession(session);
-        executionService.handleEventInstance(INVALID_EVENT_INSTANCE, session);
+        executionService.initContext(session);
+        executionService.handleEventInstance(notNavigableIntent, session);
         Thread.sleep(1000);
-        assertThat(stubRuntimePlatform.getAction().isActionProcessed()).isFalse();
+        assertThat(this.bodyExecuted).isFalse();
+        assertThat(this.defaultFallbackExecuted).isTrue();
+        /*
+         * The session check transition hasn't been navigated.
+         */
+        assertThat(this.sessionChecked).isFalse();
         /*
          * We stay in Init if the event does not trigger a transition.
          */
@@ -157,18 +170,20 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     public void handleEventToContextCheckingState() throws InterruptedException {
         executionService = getValidExecutionService();
         XatkitSession session =  new XatkitSession("sessionId");
-        session.getRuntimeContexts().setContextValue("Test", 2, "testValue", "abc");
-        executionService.initSession(session);
-        RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
-        recognizedIntent.setDefinition(testBotExecutionModel.getContextCheckingIntent());
-        executionService.handleEventInstance(recognizedIntent, session);
+        session.getSession().put("key", "value");
+        executionService.initContext(session);
         Thread.sleep(1000);
+        /*
+         * The session checked state has been visited.
+         */
+        assertThat(this.sessionChecked).isTrue();
+        /*
+         * And the auto transition to Init too.
+         */
         assertThat(session.getState().getName()).isEqualTo("Init");
     }
 
     private ExecutionService getValidExecutionService() {
-        executionService = new ExecutionService(testBotExecutionModel.getBaseModel(), platformRegistry, new BaseConfiguration());
-        injector.injectMembers(executionService);
-        return executionService;
+        return new ExecutionService(model, new BaseConfiguration());
     }
 }
