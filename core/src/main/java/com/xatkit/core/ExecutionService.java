@@ -34,7 +34,7 @@ import static java.util.Objects.nonNull;
  * <p>
  * This class is responsible of transition navigation, body/fallback executions, and exception handling. The Xatkit
  * runtime forwards received events to this service using
- * {@link #handleEventInstance(EventInstance, XatkitSession)}.
+ * {@link #handleEventInstance(EventInstance, StateContext)}.
  * <p>
  * The reaction to a received event (body/fallback execution, transition evaluations) is executed in a dedicated
  * {@link Thread}.
@@ -74,18 +74,18 @@ public class ExecutionService {
     /**
      * Initializes the provided {@code session}'s {@link State} and executes it.
      * <p>
-     * The provided {@link XatkitSession}'s {@link State} is set with the {@code Init} {@link State} of the bot
+     * The provided {@link StateContext}'s {@link State} is set with the {@code Init} {@link State} of the bot
      * execution model, and the {@code body} section of this {@link State} is directly executed.
      *
-     * @param session the {@link XatkitSession} to initialize
+     * @param context the {@link StateContext} to initialize
      */
-    public void initSession(@NonNull XatkitSession session) {
-        session.setState(this.model.getInitState());
-        this.executeBody(session.getState(), session);
+    public void initSession(@NonNull StateContext context) {
+        context.setState(this.model.getInitState());
+        this.executeBody(context.getState(), context);
     }
 
     /**
-     * Executes the body of the provided {@code state}, using the provided {@code session}.
+     * Executes the body of the provided {@code state}, using the provided {@code context}.
      * <p>
      * {@link Throwable}s thrown by the executed {@code body} are logged and rethrown to the caller.
      * <p>
@@ -95,15 +95,15 @@ public class ExecutionService {
      * This method can be safely called on {@link State}s that do not define a body.
      *
      * @param state   the {@link State} to execute the body section of
-     * @param session the {@link XatkitSession} holding the contextual information
+     * @param context the {@link StateContext} holding the contextual information
      */
-    private void executeBody(@NonNull State state, @NonNull XatkitSession session) {
+    private void executeBody(@NonNull State state, @NonNull StateContext context) {
         Consumer<StateContext> body = state.getBody();
         if (isNull(body)) {
             Log.debug("{0}'s body section is null, skipping its execution", state.getName());
         } else {
             try {
-                body.accept(session);
+                body.accept(context);
             } catch (Throwable t) {
                 Log.error(t, "An error occurred when executing the body of state {0}", state.getName());
                 throw t;
@@ -114,16 +114,16 @@ public class ExecutionService {
          * transitions. We don't want to return a transition that matches the exact same intent as the one that
          * triggered this state.
          */
-        session.setEventInstance(null);
-        Transition navigableTransition = getNavigableTransitions(state, session);
+        context.setEventInstance(null);
+        Transition navigableTransition = getNavigableTransitions(state, context);
         if (nonNull(navigableTransition)) {
-            session.setState(navigableTransition.getState());
-            executeBody(navigableTransition.getState(), session);
+            context.setState(navigableTransition.getState());
+            executeBody(navigableTransition.getState(), context);
         }
     }
 
     /**
-     * Executes the fallback of the provided {@code state}, using the provided {@code session}.
+     * Executes the fallback of the provided {@code state}, using the provided {@code context}.
      * <p>
      * The fallback of a {@link State} is executed when an event is received and the engine cannot
      * find any navigable {@link Transition}. If the provided {@code state} does not define a <i>fallback</i> section
@@ -132,16 +132,16 @@ public class ExecutionService {
      * {@link Throwable}s thrown by the executed {@code fallback} are logged and rethrown to the caller.
      *
      * @param state   the {@link State} to execute the fallback section of
-     * @param session the {@link XatkitSession} holding the contextual information
+     * @param context the {@link StateContext} holding the contextual information
      * @see ExecutionModel#getDefaultFallbackState()
      */
-    private void executeFallback(@NonNull State state, @NonNull XatkitSession session) {
+    private void executeFallback(@NonNull State state, @NonNull StateContext context) {
         Consumer<StateContext> fallback = state.getFallback();
         if (isNull(fallback)) {
-            this.executeBody(model.getDefaultFallbackState(), session);
+            this.executeBody(model.getDefaultFallbackState(), context);
         } else {
             try {
-                fallback.accept(session);
+                fallback.accept(context);
             } catch (Throwable t) {
                 Log.error(t, "An error occurred when executing the fallback of state {0}", state.getName());
                 throw t;
@@ -152,27 +152,33 @@ public class ExecutionService {
          * to increment all the context lifespans to be sure they will be available for the next intent recognition
          * (otherwise they will be deleted and the matching will be inconsistent).
          */
-        session.getRuntimeContexts().incrementLifespanCounts();
+        if(context instanceof XatkitSession) {
+            ((XatkitSession) context).getRuntimeContexts().incrementLifespanCounts();
+        } else {
+            throw new IllegalStateException(MessageFormat.format("Cannot increment the lifespan values of the " +
+                    "provided {0}: expected a {1}, found a {2}", StateContext.class.getSimpleName(),
+                    XatkitSession.class.getSimpleName(), context.getClass().getSimpleName()));
+        }
     }
 
     /**
      * Evaluates the provided {@code state}'s {@link Transition}s and return the one that can be navigated.
      * <p>
      * This method checks, for all the {@link Transition}s, whether their condition is fulfilled or not. The
-     * provided {@code session} is used as parameter of the evaluated conditions (this means that all the values
-     * stored in the {@code session} can be manipulated by the condition).
+     * provided {@code context} is used as parameter of the evaluated conditions (this means that all the values
+     * stored in the {@code context} can be manipulated by the condition).
      * <p>
      * This method cannot return more than one {@link Transition}. Multiple navigable transitions are considered
      * design issues making the bot behavior unreliable. This method returns {@code null} if it cannot find any
      * navigable {@link Transition}.
      *
      * @param state   the current {@link State} to compute the navigable {@link Transition}s from
-     * @param session the {@link XatkitSession} holding the context information
+     * @param context the {@link StateContext} holding the context information
      * @return the navigable {@link Transition} if it exists, {@code null} otherwise
      * @throws IllegalStateException if more than 1 navigable transition is found
      */
     private @Nullable
-    Transition getNavigableTransitions(@NonNull State state, @NonNull XatkitSession session) {
+    Transition getNavigableTransitions(@NonNull State state, @NonNull StateContext context) {
         /*
          * Use a list to store the navigable transitions so we can print a more useful error message is more than one
          *  is found.
@@ -191,7 +197,7 @@ public class ExecutionService {
              * transition conditions.
              */
             try {
-                if (t.getCondition().test(session)) {
+                if (t.getCondition().test(context)) {
                     result.add(t);
                 }
             } catch (Throwable throwable) {
@@ -222,40 +228,50 @@ public class ExecutionService {
      * crashing because of an erroring action.
      *
      * @param eventInstance the {@link EventInstance} to handle
-     * @param session       the {@link XatkitSession} used to define and access context variables
+     * @param context       the {@link StateContext} associated to the event to handle
      */
-    public void handleEventInstance(@NonNull EventInstance eventInstance, @NonNull XatkitSession session) {
-        checkNotNull(session.getState(), "Cannot handle the %s %s, the provided %s's state hasn't been initialized",
-                EventInstance.class.getSimpleName(), eventInstance, XatkitSession.class.getSimpleName());
+    public void handleEventInstance(@NonNull EventInstance eventInstance, @NonNull StateContext context) {
+        checkNotNull(context.getState(), "Cannot handle the %s %s, the provided %s's state hasn't been initialized",
+                EventInstance.class.getSimpleName(), eventInstance, StateContext.class.getSimpleName());
         CompletableFuture.runAsync(() -> {
-            State sessionState = session.getState();
-            session.setEventInstance(eventInstance);
-            Transition navigableTransition = getNavigableTransitions(sessionState, session);
+            State sessionState = context.getState();
+            context.setEventInstance(eventInstance);
+            Transition navigableTransition = getNavigableTransitions(sessionState, context);
             if (isNull(navigableTransition)) {
                 /*
                  * Reset the event instance, we don't need it anymore and we don't want to corrupt future condition
                  * evaluations.
                  */
-                session.setEventInstance(null);
-                executeFallback(sessionState, session);
+                context.setEventInstance(null);
+                executeFallback(sessionState, context);
             } else {
                 for (ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
                     /*
                      * Register the context first: this allows to register context without parameters (e.g. follow-up
                      * contexts).
                      */
-                    session.getRuntimeContexts().setContext(contextInstance.getDefinition().getName(),
-                            contextInstance.getLifespanCount());
-                    for (ContextParameterValue value : contextInstance.getValues()) {
-                        session.getRuntimeContexts().setContextValue(value);
+                    if(context instanceof XatkitSession) {
+                        /*
+                         * TODO we should handle all kind of StateContexts here.
+                         */
+                        XatkitSession session = (XatkitSession) context;
+                        session.getRuntimeContexts().setContext(contextInstance.getDefinition().getName(),
+                                contextInstance.getLifespanCount());
+                        for(ContextParameterValue value : contextInstance.getValues()) {
+                            session.getRuntimeContexts().setContextValue(value);
+                        }
+                    } else {
+                        throw new IllegalStateException(MessageFormat.format("Cannot merge the event's context values" +
+                                " to the current session: expected a {0}, found a {1}",
+                                XatkitSession.class.getSimpleName(), context.getClass().getSimpleName()));
                     }
                 }
                 /*
-                 * Store the event that triggered the rule execution in the session, it can be useful to some actions (e
+                 * Store the event that triggered the rule execution in the context, it can be useful to some actions (e
                  * .g. analytics)
                  */
-                session.setState(navigableTransition.getState());
-                executeBody(navigableTransition.getState(), session);
+                context.setState(navigableTransition.getState());
+                executeBody(navigableTransition.getState(), context);
             }
         }, executorService).exceptionally((throwable) -> {
             Log.error("An error occurred when running the actions associated to the event {0}. Check the logs for " +
