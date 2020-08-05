@@ -10,12 +10,10 @@ import com.xatkit.util.ExecutionModelUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.ConfigurationConverter;
 
-import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,32 +33,6 @@ import static java.util.Objects.nonNull;
  * @see XatkitCore#getOrCreateXatkitSession(String)
  */
 public class XatkitSession extends StateContextImpl {
-
-    /**
-     * The origin of the session.
-     * <p>
-     * This attribute can be set by {@link com.xatkit.core.platform.io.RuntimeEventProvider}s to identify a session
-     * using a {@link String} representing its origin (e.g. an URL).
-     * <p>
-     * This attribute is {@code null} if the provider doesn't call {@link #setOrigin(String)}.
-     */
-    @Getter
-    @Setter
-    @Nullable
-    private String origin;
-
-    /**
-     * The runtime {@link State} associated to the {@link XatkitSession}.
-     * <p>
-     * The session's state represents the point in the conversation graph where the user is. {@link XatkitSession}s
-     * initialized with {@link com.xatkit.core.ExecutionService#initSession(XatkitSession)} have their state
-     * automatically set with the {@code Init} {@link State} of the bot's execution model.
-     *
-     * @see #setState(State)
-     * @see com.xatkit.core.ExecutionService#initSession(XatkitSession)
-     */
-    @Getter
-    private State state;
 
     /**
      * The {@link RuntimeContexts} used to store context-related variables.
@@ -98,6 +70,7 @@ public class XatkitSession extends StateContextImpl {
      */
     public XatkitSession(@NonNull String contextId, @NonNull Configuration configuration) {
         this.contextId = contextId;
+        this.state = null;
         this.setConfiguration(ConfigurationConverter.getMap(configuration));
         this.setSession(new HashMap<>());
         this.runtimeContexts = new RuntimeContexts(configuration);
@@ -115,6 +88,7 @@ public class XatkitSession extends StateContextImpl {
      *
      * @param state the {@link State} to set
      */
+    @Override
     public void setState(@NonNull State state) {
         Log.debug("Session {0} - State set to {1}", this.getContextId(), state.getName());
         this.state = state;
