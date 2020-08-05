@@ -30,7 +30,7 @@ import static java.util.Objects.nonNull;
  * of the current conversation.
  *
  * @see RuntimeContexts
- * @see XatkitCore#getOrCreateXatkitSession(String)
+ * @see XatkitCore#getOrCreateContext(String)
  */
 public class XatkitSession extends StateContextImpl {
 

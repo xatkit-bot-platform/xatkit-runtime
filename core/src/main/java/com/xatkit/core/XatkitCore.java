@@ -11,6 +11,7 @@ import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.dsl.model.ExecutionModelProvider;
 import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.EntityDefinition;
@@ -24,6 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,24 +34,36 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * The core component of the xatkit framework.
+ * Runs a Xatkit bot.
  * <p>
- * This class is constructed from an {@link ExecutionModel}, that defines the Intent to Action bindings that are
- * executed by the application. Constructing an instance of this class will load the {@link RuntimePlatform}s used by
- * the provided {@link ExecutionModel}, and enable the corresponding {@link RuntimeAction}s. It also creates an
- * instance of {@link EventDefinitionRegistry} that can be accessed to retrieve and manage {@link EventDefinition} .
+ * This class is constructed with an {@link ExecutionModel} representing the bot behavior, and takes care of
+ * initializing the runtime components that are required to deploy and manage the bot.
+ * <p>
+ * See the code below to start an existing bot:
+ * <pre>
+ * {@code
+ * ExecutionModel model = [...]
+ * Configuration configuration = new BaseConfiguration();
+ * // add properties in the configuration if needed
+ * XatkitCore xatkitCore = new XatkitCore(model, configuration);
+ * xatkitCore.run();
+ * // The bot is now deployed and running
+ * }
+ * </pre>
  *
- * @see EventDefinitionRegistry
- * @see ExecutionService
- * @see RuntimePlatform
+ * @see #run()
  */
 public class XatkitCore implements Runnable {
 
     /**
      * The {@link Configuration} key to store the configuration folder path.
      */
+    @Deprecated
     public static String CONFIGURATION_FOLDER_PATH_KEY = "xatkit.core.configuration.path";
 
+    /**
+     * The {@link ExecutionModel} representing the bot to deploy and execute.
+     */
     private ExecutionModel executionModel;
 
     /**
@@ -59,37 +73,39 @@ public class XatkitCore implements Runnable {
 
     /**
      * The {@link IntentRecognitionProvider} used to compute {@link RecognizedIntent}s from input text.
+     *
+     * @see IntentRecognitionProviderFactory
      */
     @Getter
     private IntentRecognitionProvider intentRecognitionProvider;
 
     /**
-     * The {@link EventDefinitionRegistry} used to cache {@link EventDefinition}s and
-     * {@link IntentDefinition}s from the input {@link ExecutionModel} and provides utility methods to retrieve
-     * specific
-     * {@link EventDefinition}s and {@link IntentDefinition}s and clear the cache.
+     * The {@link EventDefinitionRegistry} used to cache {@link EventDefinition}s and{@link IntentDefinition}s.
+     * <p>
+     * This registry is populated with the content of the {@link ExecutionModel}.
      *
-     * @see #getEventDefinitionRegistry() ()
+     * @see #getEventDefinitionRegistry()
      */
     @Getter
     private EventDefinitionRegistry eventDefinitionRegistry;
 
     /**
-     * The {@link ExecutionService} used to handle {@link EventInstance}s and execute the associated
-     * {@link RuntimeAction}s.
+     * The {@link ExecutionService} that manages the execution of the bot.
+     * <p>
+     * The {@link ExecutionService} manages the states of the bot and executes their body/fallback, and checks
+     * whether state's transition are navigable.
      *
-     * @see ExecutionService#handleEventInstance(EventInstance, XatkitSession)
-     * @see RuntimeAction
+     * @see ExecutionService#handleEventInstance(EventInstance, StateContext)
      */
     @Getter
     private ExecutionService executionService;
 
     /**
-     * The {@link Map} used to store and retrieve {@link XatkitSession}s associated to users.
+     * The {@link Map} used to store and retrieve {@link StateContext}s associated to users.
      *
-     * @see #getOrCreateXatkitSession(String)
+     * @see #getOrCreateContext(String)
      */
-    private Map<String, XatkitSession> sessions;
+    private Map<String, StateContext> sessions;
 
     /**
      * The {@link XatkitServer} instance used to capture incoming webhooks.
@@ -135,6 +151,12 @@ public class XatkitCore implements Runnable {
         this(executionModelProvider.getExecutionModel(), configuration);
     }
 
+    /**
+     * Starts the underlying bot.
+     * <p>
+     * This method takes care of deploying the bot (e.g. registering intents to the NLP service(s), starting the
+     * accessed platforms and providers, etc) and starts the {@link ExecutionService} managing its execution.
+     */
     @Override
     public void run() {
         try {
@@ -167,6 +189,7 @@ public class XatkitCore implements Runnable {
      * @param formatterName the name of the formatter
      * @param formatter     the {@link Formatter} to register
      */
+    @Deprecated
     public void registerFormatter(String formatterName, Formatter formatter) {
         if (formatters.containsKey(formatterName)) {
             Log.warn("A formatter is already registered with the name {0}, erasing it", formatterName);
@@ -181,6 +204,7 @@ public class XatkitCore implements Runnable {
      * @return the {@link Formatter}
      * @throws XatkitException if there is no {@link Formatter} associated to the provided {@code formatterName}.
      */
+    @Deprecated
     public Formatter getFormatter(String formatterName) {
         Formatter formatter = formatters.get(formatterName);
         if (nonNull(formatter)) {
@@ -191,18 +215,10 @@ public class XatkitCore implements Runnable {
     }
 
     /**
-     * Load the runtime instances from the provided {@link ExecutionModel}.
-     * <p>
-     * This method starts the {@link RuntimeEventProvider}s, builds the {@link RuntimePlatform}s, and enables their
-     * {@link RuntimeAction}s from the definitions specified in the provided {@code executionModel}.
-     * <p>
-     * This method also registers the {@link EventDefinition}s used in the provided {@code executionModel} in the
-     * {@link IntentRecognitionProvider}.
-     * <p>
-     * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@link ExecutionModel} have to be
-     * in the classpath in order to be dynamically loaded and instantiated.
+     * Registers the events used in the provided {@code executionModel} and start the associated platforms/providers.
      *
-     * @param executionModel the {@link ExecutionModel} to load the runtime instances from
+     * @param executionModel the {@link ExecutionModel} to load
+     * @see #startPlatforms(ExecutionModel)
      * @see #startEventProviders(ExecutionModel)
      * @see #registerEventDefinition(EventDefinition)
      */
@@ -389,52 +405,53 @@ public class XatkitCore implements Runnable {
     }
 
     /**
-     * Retrieves or creates the {@link XatkitSession} associated to the provided {@code sessionId}.
+     * Retrieves or creates the {@link StateContext} associated to the provided {@code contextId}.
      * <p>
-     * If the {@link XatkitSession} does not exist a new one is created using
+     * If the {@link StateContext} does not exist a new one is created using
      * {@link IntentRecognitionProvider#createSession(String)}.
      *
-     * @param sessionId the identifier to get or retrieve a session from
-     * @return the {@link XatkitSession} associated to the provided {@code sessionId}
-     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
+     * @param contextId the identifier of the context to get
+     * @return the {@link StateContext} associated to the provided {@code contextId}
+     * @see #getContext(String)
      */
-    public XatkitSession getOrCreateXatkitSession(@NonNull String sessionId) {
-        XatkitSession session = getXatkitSession(sessionId);
-        if (isNull(session)) {
+    public @NonNull StateContext getOrCreateContext(@NonNull String contextId) {
+        StateContext context = getContext(contextId);
+        if (isNull(context)) {
             try {
-                session = this.intentRecognitionProvider.createSession(sessionId);
+                context = this.intentRecognitionProvider.createSession(contextId);
             } catch (IntentRecognitionProviderException e) {
                 throw new XatkitException(MessageFormat.format("Cannot create session {0}, see attached exception",
-                        sessionId), e);
+                        contextId), e);
             }
-            sessions.put(sessionId, session);
+            sessions.put(contextId, context);
             /*
              * The executor service takes care of configuring the new session and setting the init state.
              */
-            executionService.initContext(session);
+            executionService.initContext(context);
         }
-        return session;
+        return context;
     }
 
     /**
-     * Returns the {@link XatkitSession} associated to the provided {@code sessionId}
+     * Returns the {@link StateContext} associated to the provided {@code contextId}
      *
-     * @param sessionId the identifier to retrieve the session from
-     * @return the {@link XatkitSession} associated to the provided {@code sessionId}
-     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
+     * @param contextId the identifier of the context
+     * @return the {@link StateContext} associated to the provided {@code contextId}, or {@code null} if it does not
+     * exist
      */
-    public XatkitSession getXatkitSession(@NonNull String sessionId) {
-        return sessions.get(sessionId);
+    public @Nullable
+    StateContext getContext(@NonNull String contextId) {
+        return sessions.get(contextId);
     }
 
-    public Iterable<XatkitSession> getXatkitSessions() {
+    public Iterable<StateContext> getContexts() {
         return sessions.values();
     }
 
     /**
      * Invalidates all the {@link XatkitSession}s and clear the session registry.
      */
-    public void clearXatkitSessions() {
+    public void clearContexts() {
         this.sessions.clear();
     }
 
