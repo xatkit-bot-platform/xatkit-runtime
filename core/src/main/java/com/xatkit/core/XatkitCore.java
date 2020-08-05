@@ -408,7 +408,7 @@ public class XatkitCore implements Runnable {
      * Retrieves or creates the {@link StateContext} associated to the provided {@code contextId}.
      * <p>
      * If the {@link StateContext} does not exist a new one is created using
-     * {@link IntentRecognitionProvider#createSession(String)}.
+     * {@link IntentRecognitionProvider#createContext(String)}.
      *
      * @param contextId the identifier of the context to get
      * @return the {@link StateContext} associated to the provided {@code contextId}
@@ -418,7 +418,7 @@ public class XatkitCore implements Runnable {
         StateContext context = getContext(contextId);
         if (isNull(context)) {
             try {
-                context = this.intentRecognitionProvider.createSession(contextId);
+                context = this.intentRecognitionProvider.createContext(contextId);
             } catch (IntentRecognitionProviderException e) {
                 throw new XatkitException(MessageFormat.format("Cannot create session {0}, see attached exception",
                         contextId), e);

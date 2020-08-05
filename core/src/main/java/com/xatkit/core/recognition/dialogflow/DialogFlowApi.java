@@ -547,7 +547,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
     @Override
-    public XatkitSession createSession(@NonNull String sessionId) throws IntentRecognitionProviderException {
+    public XatkitSession createContext(@NonNull String sessionId) throws IntentRecognitionProviderException {
         checkNotShutdown();
         SessionName sessionName = SessionName.of(this.configuration.getProjectId(), sessionId);
         return new DialogFlowSession(sessionName, this.configuration.getBaseConfiguration());

@@ -370,7 +370,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * {@inheritDoc}
      */
     @Override
-    public XatkitSession createSession(@NonNull String sessionId) {
+    public XatkitSession createContext(@NonNull String sessionId) {
         return new XatkitSession(sessionId, configuration);
     }
 

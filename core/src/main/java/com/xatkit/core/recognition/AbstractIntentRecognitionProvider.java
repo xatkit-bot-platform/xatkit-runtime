@@ -113,7 +113,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public abstract XatkitSession createSession(@NonNull String sessionId) throws IntentRecognitionProviderException;
+    public abstract XatkitSession createContext(@NonNull String sessionId) throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
