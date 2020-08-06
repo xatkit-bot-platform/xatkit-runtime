@@ -15,7 +15,6 @@ import com.google.cloud.dialogflow.v2.QueryResult;
 import com.google.cloud.dialogflow.v2.SessionName;
 import com.google.cloud.dialogflow.v2.TextInput;
 import com.google.cloud.dialogflow.v2.TrainAgentRequest;
-import com.google.longrunning.Operation;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
@@ -46,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -506,34 +506,34 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
     @Override
     public void trainMLEngine() throws IntentRecognitionProviderException {
         checkNotShutdown();
-        Log.info("Starting ML Engine Training (this may take a few minutes)");
+        Log.info("Starting DialogFlow agent training (this may take a few minutes)");
         TrainAgentRequest request = TrainAgentRequest.newBuilder()
                 .setParent(projectName.toString())
                 .build();
-        Operation operation = this.dialogFlowClients.getAgentsClient().trainAgentCallable().call(request);
+        // This is the proper way of training an agent, but we've got some issues with it in the past (see this
+        // issue https://github.com/xatkit-bot-platform/xatkit-runtime/issues/294).
+        boolean isDone = false;
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
+            isDone =
+                    this.dialogFlowClients.getAgentsClient().trainAgentAsync(request).getPollingFuture().get()
+                    .isDone();
+        } catch(InterruptedException | ExecutionException e) {
             throw new IntentRecognitionProviderException("An error occurred during the DialogFlow agent training", e);
         }
-        Log.warn("Cannot check if the DialogFlow agent has been trained, assuming it is. If the bot does not behave " +
-                "as expected try to restart it (see this issue for more information https://github" +
-                ".com/xatkit-bot-platform/xatkit-runtime/issues/294).");
-        // This is how we should properly do it, but we can't because if this issue https://github
-        // .com/xatkit-bot-platform/xatkit-runtime/issues/294
-//        boolean isDone = false;
-//        try {
-//            isDone =
-//                    this.dialogFlowClients.getAgentsClient().trainAgentAsync(request).getPollingFuture().get()
-//                    .isDone();
-//        } catch(InterruptedException | ExecutionException e) {
-//            throw new DialogFlowException("An error occurred during the DialogFlow agent training", e);
-//        }
-//        if(!isDone) {
-//            throw new DialogFlowException("Failed to train the DialogFlow agent, returned Operation#getDone
-//            returned " +
-//                    "false");
-//        }
+        if(!isDone) {
+            throw new IntentRecognitionProviderException("Failed to train the DialogFlow agent, returned " +
+                    "Operation#getDone returned false");
+        }
+        Log.info("DialogFlow agent trained, intent matching will be available in a few seconds");
+        try {
+            /*
+             * From our experience the agent may return DEFAULT_FALLBACK intents in the few seconds after it has been
+             * trained. We try to mitigate this by a simple wait.
+             */
+            Thread.sleep(10000);
+        } catch(InterruptedException e) {
+            throw new IntentRecognitionProviderException("An error occurred during the DialogFlow agent training", e);
+        }
     }
 
     /**
