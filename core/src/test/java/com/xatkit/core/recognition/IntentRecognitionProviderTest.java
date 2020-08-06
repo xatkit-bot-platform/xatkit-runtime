@@ -2,16 +2,13 @@ package com.xatkit.core.recognition;
 
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.test.util.TestBotExecutionModel;
-import com.xatkit.test.util.TestModelLoader;
-import com.xatkit.util.ExecutionModelUtils;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import com.xatkit.test.bot.IntentProviderTestBot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -27,11 +24,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionProvider> extends AbstractXatkitTest {
 
-    protected static TestBotExecutionModel testBotExecutionModel;
+    protected static IntentProviderTestBot intentProviderTestBot;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws ConfigurationException {
-        testBotExecutionModel = TestModelLoader.loadTestBot();
+    public static void setUpBeforeClass() {
+        intentProviderTestBot = new IntentProviderTestBot();
     }
 
     protected T intentRecognitionProvider;
@@ -45,10 +42,10 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Before
     public void setUp() throws Exception {
         eventRegistry = new EventDefinitionRegistry();
-        eventRegistry.registerEventDefinition(testBotExecutionModel.getSimpleIntent());
-        eventRegistry.registerEventDefinition(testBotExecutionModel.getSystemEntityIntent());
-        eventRegistry.registerEventDefinition(testBotExecutionModel.getMappingEntityIntent());
-        eventRegistry.registerEventDefinition(testBotExecutionModel.getCompositeEntityIntent());
+        eventRegistry.registerEventDefinition(intentProviderTestBot.getSimpleIntent());
+        eventRegistry.registerEventDefinition(intentProviderTestBot.getSystemEntityIntent());
+        eventRegistry.registerEventDefinition(intentProviderTestBot.getMappingEntityIntent());
+        eventRegistry.registerEventDefinition(intentProviderTestBot.getCompositeEntityIntent());
     }
 
     @After
@@ -75,7 +72,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void registerSimpleIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
+        registeredIntentDefinition = intentProviderTestBot.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         /*
          * Nothing to check, the method does not return anything and does not change any visible state.
@@ -85,7 +82,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void registerSystemEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredIntentDefinition = testBotExecutionModel.getSystemEntityIntent();
+        registeredIntentDefinition = intentProviderTestBot.getSystemEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         /*
          * Nothing to check, the method does not return anything and does not change any visible state.
@@ -95,7 +92,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void registerMappingEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredIntentDefinition = testBotExecutionModel.getMappingEntityIntent();
+        registeredIntentDefinition = intentProviderTestBot.getMappingEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         /*
          * Nothing to check, the method does not return anything and does not change any visible state.
@@ -105,7 +102,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void registerCompositeEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredIntentDefinition = testBotExecutionModel.getCompositeEntityIntent();
+        registeredIntentDefinition = intentProviderTestBot.getCompositeEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
     }
 
@@ -118,7 +115,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void deleteExistingIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
+        registeredIntentDefinition = intentProviderTestBot.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.deleteIntentDefinition(registeredIntentDefinition);
         /*
@@ -136,8 +133,8 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void registerMappingEntity() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
+        registeredEntityDefinitions.add(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getMappingEntity());
         /*
          * Nothing to check, the method does not return anything and does not change any visible state.
          */
@@ -146,10 +143,10 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void registerCompositeEntityReferencedEntitiesAlreadyRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
-        registeredEntityDefinitions.add(testBotExecutionModel.getCompositeEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getCompositeEntity());
+        registeredEntityDefinitions.add(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getMappingEntity());
+        registeredEntityDefinitions.add(intentProviderTestBot.getCompositeEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getCompositeEntity());
         /*
          * Nothing to check, the method does not return anything and does not change any visible state.
          */
@@ -158,12 +155,12 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void registerCompositeEntityReferencedEntitiesNotRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredEntityDefinitions.add(testBotExecutionModel.getCompositeEntity());
+        registeredEntityDefinitions.add(intentProviderTestBot.getCompositeEntity());
         /*
          * Add the mapping entity, it should be registered with the composite.
          */
-        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getCompositeEntity());
+        registeredEntityDefinitions.add(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getCompositeEntity());
         /*
          * Nothing to check, the method does not return anything and does not change any visible state.
          */
@@ -178,9 +175,9 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void deleteEntityNotReferenced() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.deleteEntityDefinition(testBotExecutionModel.getMappingEntity());
+        registeredEntityDefinitions.add(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.deleteEntityDefinition(intentProviderTestBot.getMappingEntity());
         /*
          * Clean the registered entities list if the entities has been successfully deleted.
          */
@@ -188,26 +185,26 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     }
 
     @Test(expected = NullPointerException.class)
-    public void createSessionNullSessionId() throws IntentRecognitionProviderException {
+    public void createContextNullContextId() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        intentRecognitionProvider.createSession(null);
+        intentRecognitionProvider.createContext(null);
     }
 
     @Test
-    public void createSessionValidSessionId() throws IntentRecognitionProviderException {
+    public void createContextValidContextId() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        XatkitSession session = intentRecognitionProvider.createSession("TEST");
-        assertThat(session).isNotNull();
+        StateContext context = intentRecognitionProvider.createContext("TEST");
+        assertThat(context).isNotNull();
     }
 
     @Test(expected = NullPointerException.class)
     public void getIntentNullInput() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        intentRecognitionProvider.getIntent(null, intentRecognitionProvider.createSession("TEST"));
+        intentRecognitionProvider.getIntent(null, intentRecognitionProvider.createContext("TEST"));
     }
 
     @Test(expected = NullPointerException.class)
-    public void getIntentNullSession() throws IntentRecognitionProviderException {
+    public void getIntentNullContext() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.getIntent("Intent", null);
     }
@@ -215,9 +212,9 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void getIntentNotRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        XatkitSession session = intentRecognitionProvider.createSession("TEST");
-        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
-        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Error", session);
+        StateContext context = intentRecognitionProvider.createContext("TEST");
+        context.setState(intentProviderTestBot.getModel().getInitState());
+        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Error", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent,
                 IntentRecognitionProvider.DEFAULT_FALLBACK_INTENT.getName());
     }
@@ -225,67 +222,66 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void getSimpleIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
+        registeredIntentDefinition = intentProviderTestBot.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        XatkitSession session = intentRecognitionProvider.createSession("TEST");
-        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
-        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Greetings",
-                session);
+        StateContext context = intentRecognitionProvider.createContext("TEST");
+        context.setState(intentProviderTestBot.getModel().getInitState());
+        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Greetings", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
     }
 
     @Test
     public void getSystemEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredIntentDefinition = testBotExecutionModel.getSystemEntityIntent();
+        registeredIntentDefinition = intentProviderTestBot.getSystemEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        XatkitSession session = intentRecognitionProvider.createSession("TEST");
-        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
-        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Hello Test", session);
+        StateContext context = intentRecognitionProvider.createContext("TEST");
+        context.setState(intentProviderTestBot.getModel().getInitState());
+        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Hello Test", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance context = recognizedIntent.getOutContextInstance("Hello");
-        assertThat(context).isNotNull();
-        assertThatContextContainsParameterWithValue(context, "helloTo", "Test");
+        ContextInstance intentContext = recognizedIntent.getOutContextInstance("Hello");
+        assertThat(intentContext).isNotNull();
+        assertThatContextContainsParameterWithValue(intentContext, "helloTo", "Test");
     }
 
     @Test
     public void getMappingEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
-        registeredIntentDefinition = testBotExecutionModel.getMappingEntityIntent();
+        registeredEntityDefinitions.add(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getMappingEntity());
+        registeredIntentDefinition = intentProviderTestBot.getMappingEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        XatkitSession session = intentRecognitionProvider.createSession("TEST");
-        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
+        StateContext context = intentRecognitionProvider.createContext("TEST");
+        context.setState(intentProviderTestBot.getModel().getInitState());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Give me some information about " +
-                "Gwendal", session);
+                "Gwendal", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance context = recognizedIntent.getOutContextInstance("Founder");
-        assertThat(context).isNotNull();
-        assertThatContextContainsParameterWithValue(context, "name", "Gwendal");
+        ContextInstance intentContext = recognizedIntent.getOutContextInstance("Founder");
+        assertThat(intentContext).isNotNull();
+        assertThatContextContainsParameterWithValue(intentContext, "name", "Gwendal");
     }
 
     @Test
     public void getCompositeEntityIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
-        registeredEntityDefinitions.add(testBotExecutionModel.getCompositeEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getCompositeEntity());
-        registeredIntentDefinition = testBotExecutionModel.getCompositeEntityIntent();
+        registeredEntityDefinitions.add(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getMappingEntity());
+        registeredEntityDefinitions.add(intentProviderTestBot.getCompositeEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getCompositeEntity());
+        registeredIntentDefinition = intentProviderTestBot.getCompositeEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        XatkitSession session = intentRecognitionProvider.createSession("TEST");
-        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
-        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Does Jordi knows Barcelona?", session);
+        StateContext context = intentRecognitionProvider.createContext("TEST");
+        context.setState(intentProviderTestBot.getModel().getInitState());
+        RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Does Jordi knows Barcelona?", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance context = recognizedIntent.getOutContextInstance("Query");
-        assertThat(context).isNotNull();
-        assertThatContextContainsParameterValue(context, "founderCity");
-        Object parameterValue = context.getValues().stream()
+        ContextInstance intentContext = recognizedIntent.getOutContextInstance("Query");
+        assertThat(intentContext).isNotNull();
+        assertThatContextContainsParameterValue(intentContext, "founderCity");
+        Object parameterValue = intentContext.getValues().stream()
                 .filter(p -> p.getContextParameter().getName().equals("founderCity"))
                 .map(ContextParameterValue::getValue).findAny().get();
         assertThat(parameterValue).isInstanceOf(Map.class);

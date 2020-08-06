@@ -92,7 +92,8 @@ public class IntentProviderTestBot {
         reference.setCustomEntity(this.mappingEntity);
         return (CompositeEntityDefinition) composite("FounderCity")
                 .entry()
-                    .entity(reference).text("knows").entity(city());
+                    .entity(reference).text("knows").entity(city())
+                .getEntity();
     }
 
     private IntentDefinition createCompositeEntityIntent() {
@@ -115,6 +116,7 @@ public class IntentProviderTestBot {
         initState
                 .next()
                     .when(intentIs(this.simpleIntent)).moveTo(endState)
+                    .when(intentIs(this.systemEntityIntent)).moveTo(endState)
                     .when(intentIs(this.mappingEntityIntent)).moveTo(endState)
                     .when(intentIs(this.compositeEntityIntent)).moveTo(endState);
         endState

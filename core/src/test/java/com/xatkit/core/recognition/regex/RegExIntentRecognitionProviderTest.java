@@ -3,16 +3,16 @@ package com.xatkit.core.recognition.regex;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderTest;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.util.ExecutionModelUtils;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 
 public class RegExIntentRecognitionProviderTest extends IntentRecognitionProviderTest<RegExIntentRecognitionProvider> {
 
@@ -34,12 +34,12 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
     @Test
     public void getIntentValidIntentDefinitionWithOutContextMappingUpperCase() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerIntentDefinition(testBotExecutionModel.getMappingEntityIntent());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.registerIntentDefinition(intentProviderTestBot.getMappingEntityIntent());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent(("Give me some information about " +
                 "Gwendal").toUpperCase(), new XatkitSession("sessionID"));
         assertThatRecognizedIntentHasDefinition(recognizedIntent,
-                testBotExecutionModel.getMappingEntityIntent().getName());
+                intentProviderTestBot.getMappingEntityIntent().getName());
         ContextInstance context = recognizedIntent.getOutContextInstance("Founder");
         assertThatContextContainsParameterValue(context, "name");
         assertThatContextContainsParameterWithValue(context, "name", "Gwendal");
@@ -48,12 +48,12 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
     @Test
     public void getIntentValidIntentDefinitionNoOutContextUpperCase() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        intentRecognitionProvider.registerIntentDefinition(testBotExecutionModel.getSimpleIntent());
-        XatkitSession session = new XatkitSession("sessionId");
-        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
+        intentRecognitionProvider.registerIntentDefinition(intentProviderTestBot.getSimpleIntent());
+        StateContext context = new XatkitSession("sessionId");
+        context.setState(intentProviderTestBot.getModel().getInitState());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Greetings".toUpperCase(),
-                session);
-        assertThatRecognizedIntentHasDefinition(recognizedIntent, testBotExecutionModel.getSimpleIntent().getName());
+                context);
+        assertThatRecognizedIntentHasDefinition(recognizedIntent, intentProviderTestBot.getSimpleIntent().getName());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
          * We need to set the context manually because the intent is not part of the loaded model.
          */
         session.getRuntimeContexts().setContext("Enable" + intentDefinition.getName(), 1);
-        session.setState(ExecutionModelUtils.getInitState(testBotExecutionModel.getBaseModel()));
+        session.setState(intentProviderTestBot.getModel().getInitState());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("$test", session);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, intentDefinition.getName());
     }
