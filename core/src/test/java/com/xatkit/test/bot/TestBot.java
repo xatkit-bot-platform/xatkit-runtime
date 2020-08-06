@@ -65,6 +65,7 @@ public class TestBot {
         model = DSL.model()
                 .useIntent(greetings)
                 .state(greetingsState)
+                .state(sessionCheckedState)
                 .initState(init)
                 .defaultFallbackState(fallback)
                 .getExecutionModel();
