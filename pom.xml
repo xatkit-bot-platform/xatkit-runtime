@@ -4,9 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-    	<groupId>com.xatkit</groupId>
-    	<artifactId>xatkit</artifactId>
-    	<version>5.0.0-SNAPSHOT</version>
+        <groupId>com.xatkit</groupId>
+        <artifactId>xatkit</artifactId>
+        <version>5.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>runtime</artifactId>
