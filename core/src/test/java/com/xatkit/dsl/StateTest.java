@@ -6,6 +6,7 @@ import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentFactory;
+import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.IsEventDefinitionPredicate;
 import com.xatkit.util.IsIntentDefinitionPredicate;
 import lombok.val;
@@ -44,9 +45,10 @@ public class StateTest {
         assertThat(base.getTransitions()).hasSize(1);
         Transition transition = base.getTransitions().get(0);
         /*
-         * Dirty way to test that the predicate returns true. It's not easy to compare lambdas.
+         * Null conditions are considered auto transitions, this is probably a design smell and should be fixed at
+         * the metamodel level.
          */
-        assertThat(transition.getCondition().test(null)).isTrue();
+        assertThat(transition.getCondition()).isNull();
         assertThat(transition.getState()).isEqualTo(s1);
     }
 
@@ -98,9 +100,9 @@ public class StateTest {
          * Create a StateContext to test the lambda.
          */
         StateContext stateContext = ExecutionFactory.eINSTANCE.createStateContext();
-        EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
-        eventInstance.setDefinition(intent);
-        stateContext.setEventInstance(eventInstance);
+        RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+        recognizedIntent.setDefinition(intent);
+        stateContext.setEventInstance(recognizedIntent);
         assertThat(transition.getCondition().test(stateContext)).isTrue();
     }
 
