@@ -13,7 +13,11 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static com.xatkit.dsl.DSL.*;
+import static com.xatkit.dsl.DSL.city;
+import static com.xatkit.dsl.DSL.composite;
+import static com.xatkit.dsl.DSL.country;
+import static com.xatkit.dsl.DSL.countyUs;
+import static com.xatkit.dsl.DSL.mapping;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 public class EntityTest {
