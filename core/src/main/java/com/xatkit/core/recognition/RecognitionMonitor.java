@@ -8,7 +8,7 @@ import com.xatkit.core.server.HttpUtils;
 import com.xatkit.core.server.RestHandlerException;
 import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
@@ -495,17 +495,17 @@ public class RecognitionMonitor {
     /**
      * Logs the recognition information from the provided {@code recognizedIntent} and {@code session}.
      *
-     * @param session          the {@link XatkitSession} from which the {@link RecognizedIntent} has been created
+     * @param context          the {@link StateContext} from which the {@link RecognizedIntent} has been created
      * @param recognizedIntent the {@link RecognizedIntent} to log
      */
-    public void logRecognizedIntent(XatkitSession session, RecognizedIntent recognizedIntent) {
+    public void logRecognizedIntent(StateContext context, RecognizedIntent recognizedIntent) {
         Long ts = System.currentTimeMillis();
-        Map<Long, IntentRecord> sessionMap = records.get(session.getContextId());
-        if (isNull(sessionMap)) {
-            sessionMap = new TreeMap<>();
+        Map<Long, IntentRecord> contextMap = records.get(context.getContextId());
+        if (isNull(contextMap)) {
+            contextMap = new TreeMap<>();
         }
-        sessionMap.put(ts, new IntentRecord(recognizedIntent));
-        records.put(session.getContextId(), sessionMap);
+        contextMap.put(ts, new IntentRecord(recognizedIntent));
+        records.put(context.getContextId(), contextMap);
         db.commit();
     }
 

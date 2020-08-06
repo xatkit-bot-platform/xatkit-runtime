@@ -2,7 +2,6 @@ package com.xatkit.core.recognition;
 
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
@@ -161,12 +160,12 @@ public interface IntentRecognitionProvider {
      * DEFAULT_FALLBACK_INTENT} if the provided {@code input} does not match any intent.
      *
      * @param input   the {@link String} representing the textual input to process and extract the intent from
-     * @param session the {@link XatkitSession} used to access context information
+     * @param context the {@link StateContext} used to access context information
      * @return the post-processed {@link RecognizedIntent} extracted from the provided {@code input} and {@code session}
      * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      * @see #DEFAULT_FALLBACK_INTENT
      */
-    @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull XatkitSession session) throws IntentRecognitionProviderException;
+    @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException;
 
     /**
      * Returns the {@link RecognitionMonitor} associated to this intent recognition provider.

@@ -5,8 +5,8 @@ import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.recognition.RecognitionMonitor;
-import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinitionEntry;
@@ -407,7 +407,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * Computes the {@link RecognizedIntent} associated to the provided {@code input}.
      * <p>
      * This method relies on the RegExp patterns created when calling
-     * {@link #registerIntentDefinition(IntentDefinition)} to match the provided input. The provided {@code session}
+     * {@link #registerIntentDefinition(IntentDefinition)} to match the provided input. The provided {@code context}
      * is used to retrieve the intents that can be matched according to the current contexts.
      * <p>
      * If the {@link RegExIntentRecognitionProvider} cannot find a valid {@link IntentDefinition} for the provided
@@ -423,12 +423,12 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * alternative {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support such features.
      *
      * @param input   the {@link String} representing the textual input to process and extract the intent from
-     * @param session the {@link XatkitSession} used to access context information
+     * @param context the {@link XatkitSession} used to access context information
      * @return the {@link RecognizedIntent} matched from the provided {@code input}
-     * @throws NullPointerException if the provided {@code input} or {@code session} is {@code null}
+     * @throws NullPointerException if the provided {@code input} or {@code context} is {@code null}
      */
     @Override
-    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull XatkitSession session) {
+    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) {
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
         /*
          * The recognitionConfidence is always 1 with the RegExIntentRecognitionProvider since it always returns
@@ -436,7 +436,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
          */
         recognizedIntent.setRecognitionConfidence(1);
         recognizedIntent.setMatchedInput(input);
-        List<IntentDefinition> matchableIntents = getMatchableIntents(intentPatterns.keySet(), session);
+        List<IntentDefinition> matchableIntents = getMatchableIntents(intentPatterns.keySet(), context);
         for (IntentDefinition intentDefinition : matchableIntents) {
             List<Pattern> patterns = intentPatterns.get(intentDefinition);
             for (Pattern pattern : patterns) {
@@ -455,7 +455,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
                      * Return the first one we find, no need to iterate the rest of the map
                      */
                     if (nonNull(this.recognitionMonitor)) {
-                        this.recognitionMonitor.logRecognizedIntent(session, recognizedIntent);
+                        this.recognitionMonitor.logRecognizedIntent(context, recognizedIntent);
                     }
                     return recognizedIntent;
                 }
@@ -466,33 +466,32 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
          */
         recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
         if (nonNull(recognitionMonitor)) {
-            this.recognitionMonitor.logRecognizedIntent(session, recognizedIntent);
+            this.recognitionMonitor.logRecognizedIntent(context, recognizedIntent);
         }
         return recognizedIntent;
     }
 
     /**
-     * Retrieves the {@link IntentDefinition}s that can be matched according to the provided {@code session}.
+     * Retrieves the {@link IntentDefinition}s that can be matched according to the provided {@code context}.
      * <p>
      * An intent can be matched iff:
      * <ul>
-     * <li>All its {@code inContexts} are defined in the session</li>
+     * <li>All its {@code inContexts} are defined in the context</li>
      * <li>the {@code follow-up} context of the followed intent (if there is such intent) is defined in the
-     * session</li>
+     * context</li>
      * </ul>
      *
      * @param intentDefinitions the {@link Set} of {@link IntentDefinition} to retrieve the matchable intents from
-     * @param session           the {@link XatkitSession} storing contextual values
+     * @param context           the {@link XatkitSession} storing contextual values
      * @return the {@link List} of {@link IntentDefinition} that can be matched according to the provided {@code
-     * session}
-     * @throws NullPointerException if the provided {@code intentDefinitions} or {@code session} is {@code null}
+     * context}
+     * @throws NullPointerException if the provided {@code intentDefinitions} or {@code context} is {@code null}
      */
     private List<IntentDefinition> getMatchableIntents(@NonNull Set<IntentDefinition> intentDefinitions,
-                                                       @NonNull XatkitSession session) {
-        RuntimeContexts runtimeContexts = session.getRuntimeContexts();
+                                                       @NonNull StateContext context) {
         List<IntentDefinition> result = new ArrayList<>();
         for (IntentDefinition intentDefinition : intentDefinitions) {
-            if (nonNull(runtimeContexts.getContextMap().get("Enable" + intentDefinition.getName()))) {
+            if (context.getNlpContext().containsKey("Enable" + intentDefinition.getName())) {
                 result.add(intentDefinition);
             }
         }
