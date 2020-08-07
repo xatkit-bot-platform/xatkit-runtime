@@ -3,9 +3,7 @@ package com.xatkit.core.recognition.dialogflow.mapper;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.EntityType;
 import com.xatkit.intent.IntentFactory;
-import com.xatkit.test.util.TestBotExecutionModel;
-import com.xatkit.test.util.TestModelLoader;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import com.xatkit.test.bot.IntentProviderTestBot;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -13,11 +11,11 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 
 public class DialogFlowEntityReferenceMapperTest {
 
-    private static TestBotExecutionModel testBotExecutionModel;
+    private static IntentProviderTestBot intentProviderTestBot;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws ConfigurationException {
-        testBotExecutionModel = TestModelLoader.loadTestBot();
+    public static void setUpBeforeClass() {
+        intentProviderTestBot = new IntentProviderTestBot();
     }
 
     private DialogFlowEntityReferenceMapper mapper;
@@ -34,15 +32,15 @@ public class DialogFlowEntityReferenceMapperTest {
     @Test
     public void getMappingForMappingEntity() {
         mapper = new DialogFlowEntityReferenceMapper();
-        String reference = mapper.getMappingFor(testBotExecutionModel.getMappingEntity());
-        assertThat(reference).isEqualTo("@" + testBotExecutionModel.getMappingEntity().getName());
+        String reference = mapper.getMappingFor(intentProviderTestBot.getMappingEntity());
+        assertThat(reference).isEqualTo("@" + intentProviderTestBot.getMappingEntity().getName());
     }
 
     @Test
     public void getMappingForCompositeEntity() {
         mapper = new DialogFlowEntityReferenceMapper();
-        String reference = mapper.getMappingFor(testBotExecutionModel.getCompositeEntity());
-        assertThat(reference).isEqualTo("@" + testBotExecutionModel.getCompositeEntity().getName());
+        String reference = mapper.getMappingFor(intentProviderTestBot.getCompositeEntity());
+        assertThat(reference).isEqualTo("@" + intentProviderTestBot.getCompositeEntity().getName());
     }
 
 }

@@ -6,6 +6,7 @@ import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 
@@ -69,17 +70,17 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
     private int messageDelay;
 
     /**
-     * Constructs a new {@link RuntimeArtifactAction} with the provided {@code runtimePlatform} and {@code session}.
+     * Constructs a new {@link RuntimeArtifactAction} with the provided {@code platform} and {@code context}.
      * <p>
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session         the {@link XatkitSession} associated to this action
+     * @param platform the {@link RuntimePlatform} containing this action
+     * @param context         the {@link StateContext} associated to this action
      * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @see XatkitSession
      * @see RuntimeContexts
      */
-    public RuntimeArtifactAction(@NonNull T runtimePlatform, @NonNull XatkitSession session) {
-        super(runtimePlatform, session);
+    public RuntimeArtifactAction(@NonNull T platform, @NonNull StateContext context) {
+        super(platform, context);
         this.messageDelay = this.runtimePlatform.getConfiguration().getInt(MESSAGE_DELAY_KEY, DEFAULT_MESSAGE_DELAY);
         Log.debug("{0} message delay: {1}", this.getClass().getSimpleName(), messageDelay);
     }
@@ -97,18 +98,17 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      */
     @Override
     public void init() {
-        XatkitSession clientSession = getClientSession();
-        if (!clientSession.equals(session)) {
+        StateContext clientSession = getClientSession();
+        if (!clientSession.equals(this.context)) {
             Log.info("Merging {0} session to the client one", this.getClass().getSimpleName());
             try {
-                clientSession.getRuntimeContexts().merge(session.getRuntimeContexts());
-                clientSession.merge(session);
+                clientSession.merge(this.context);
                 /*
                  * The new merge strategy doesn't replace the clientSession.sessionVariables reference with the
                  * provided session.sessionVariables. We need to update the current session to make sure the action
                  * will be computed with the clientSession.
                  */
-                session = clientSession;
+                this.context = clientSession;
             } catch (XatkitException e) {
                 throw new XatkitException("Cannot construct the action {0}, the action session cannot be merged in " +
                         "the client one", e);
@@ -233,12 +233,13 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
     }
 
     /**
-     * Returns the {@link XatkitSession} associated to the client of the artifact to send.
+     * Returns the {@link StateContext} associated to the client of the artifact to send.
      * <p>
      * This method is used by the {@link RuntimeArtifactAction} constructor to pass client-independent context
      * variables (e.g. from {@link RuntimeEventProvider}s) to the client session.
      *
-     * @return the {@link XatkitSession} associated to the client of the artifact to send
+     * @return the {@link StateContext} associated to the client of the artifact to send
      */
-    protected abstract XatkitSession getClientSession();
+    protected abstract StateContext getClientSession();
+
 }

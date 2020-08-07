@@ -7,9 +7,7 @@ import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
-import com.xatkit.test.util.TestBotExecutionModel;
-import com.xatkit.test.util.TestModelLoader;
-import org.apache.commons.configuration2.ex.ConfigurationException;
+import com.xatkit.test.bot.IntentProviderTestBot;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -20,11 +18,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DialogFlowEntityMapperTest {
 
-    private static TestBotExecutionModel testBotExecutionModel;
+    private static IntentProviderTestBot intentProviderTestBot;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws ConfigurationException {
-        testBotExecutionModel = TestModelLoader.loadTestBot();
+    public static void setUpBeforeClass() {
+        intentProviderTestBot = new IntentProviderTestBot();
     }
 
     private DialogFlowEntityMapper mapper;
@@ -51,15 +49,15 @@ public class DialogFlowEntityMapperTest {
     @Test
     public void mapEntityDefinitionMappingEntity() {
         mapper = new DialogFlowEntityMapper(new DialogFlowEntityReferenceMapper());
-        EntityType entityType = mapper.mapEntityDefinition(testBotExecutionModel.getMappingEntity());
-        assertCorrectMappingForMappingEntity(testBotExecutionModel.getMappingEntity(), entityType);
+        EntityType entityType = mapper.mapEntityDefinition(intentProviderTestBot.getMappingEntity());
+        assertCorrectMappingForMappingEntity(intentProviderTestBot.getMappingEntity(), entityType);
     }
 
     @Test
     public void mapEntityDefinitionCompositeEntity() {
         mapper = new DialogFlowEntityMapper(new DialogFlowEntityReferenceMapper());
-        EntityType entityType = mapper.mapEntityDefinition(testBotExecutionModel.getCompositeEntity());
-        assertCorrectMappingForCompositeEntity(testBotExecutionModel.getCompositeEntity(), entityType);
+        EntityType entityType = mapper.mapEntityDefinition(intentProviderTestBot.getCompositeEntity());
+        assertCorrectMappingForCompositeEntity(intentProviderTestBot.getCompositeEntity(), entityType);
 
     }
 
@@ -75,7 +73,7 @@ public class DialogFlowEntityMapperTest {
         List<EntityType.Entity> entities = entityType.getEntitiesList();
         List<MappingEntityDefinitionEntry> entries = mappingEntityDefinition.getEntries();
         for (MappingEntityDefinitionEntry entry : entries) {
-            List<com.google.cloud.dialogflow.v2.EntityType.Entity> foundEntities = entities.stream().filter(e -> e
+            List<EntityType.Entity> foundEntities = entities.stream().filter(e -> e
                     .getValue().equals(entry.getReferenceValue())).collect(Collectors.toList());
             assertThat(foundEntities).as("A single entity matches the entry").hasSize(1);
             com.google.cloud.dialogflow.v2.EntityType.Entity foundEntity = foundEntities.get(0);

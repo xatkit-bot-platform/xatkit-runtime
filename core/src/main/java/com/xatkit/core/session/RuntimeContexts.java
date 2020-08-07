@@ -45,11 +45,13 @@ public class RuntimeContexts {
     /**
      * The {@link Configuration} key to store maximum time to spend waiting for a context variable (in seconds).
      */
+    @Deprecated
     public static String VARIABLE_TIMEOUT_KEY = "xatkit.context.variable.timeout";
 
     /**
      * The default amount of time to spend waiting for a context variable (in seconds).
      */
+    @Deprecated
     public static int DEFAULT_VARIABLE_TIMEOUT_VALUE = 2;
 
     /**
@@ -421,7 +423,7 @@ public class RuntimeContexts {
      * @return an unmodifiable {@link Map} representing the stored context values
      */
     public Map<String, Map<String, Object>> getContextMap() {
-        return Collections.unmodifiableMap(contexts);
+        return this.contexts;
     }
 
     /**

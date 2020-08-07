@@ -1,18 +1,15 @@
 package com.xatkit.core;
 
 import com.xatkit.AbstractXatkitTest;
-import com.xatkit.core.recognition.IntentRecognitionProviderFactoryConfiguration;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.dsl.model.ExecutionModelProvider;
 import com.xatkit.execution.ExecutionModel;
-import com.xatkit.test.util.TestBotExecutionModel;
-import com.xatkit.test.util.TestModelLoader;
-import com.xatkit.util.ModelLoader;
+import com.xatkit.execution.StateContext;
+import com.xatkit.intent.EventDefinition;
+import com.xatkit.test.bot.TestBot;
 import org.apache.commons.configuration2.BaseConfiguration;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.junit.After;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import static java.util.Objects.nonNull;
@@ -20,30 +17,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class XatkitCoreTest extends AbstractXatkitTest {
 
-    private static TestBotExecutionModel testBotExecutionModel;
-
-    protected static String VALID_EXECUTION_MODEL_PATH = "/tmp/xatkitTestExecutionResource.execution";
-
-    public static Configuration buildConfiguration() {
-        return buildConfiguration(testBotExecutionModel.getBaseModel());
-    }
-
-    public static Configuration buildConfiguration(Object executionModel) {
-        Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(ModelLoader.EXECUTION_MODEL_KEY, executionModel);
-        /*
-         * Disable analytics to avoid database-related issues.
-         */
-        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.ENABLE_RECOGNITION_ANALYTICS, false);
-        return configuration;
-    }
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws ConfigurationException {
-        testBotExecutionModel = TestModelLoader.loadTestBot();
-    }
-
     private XatkitCore xatkitCore;
+
+    private TestBot testBot;
+
+    @Before
+    public void setUp() {
+        this.testBot = new TestBot();
+    }
 
     @After
     public void tearDown() {
@@ -53,97 +34,98 @@ public class XatkitCoreTest extends AbstractXatkitTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructNullConfiguration() {
-        xatkitCore = new XatkitCore(null);
+    public void constructNullExecutionModel() {
+        xatkitCore = new XatkitCore((ExecutionModel)null, new BaseConfiguration());
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructMissingExecutionPathInConfiguration() {
-        Configuration configuration = new BaseConfiguration();
-        xatkitCore = new XatkitCore(configuration);
+    public void constructNullExecutionModelProvider() {
+        xatkitCore = new XatkitCore((ExecutionModelProvider) null, new BaseConfiguration());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructNullConfiguration() {
+        xatkitCore = new XatkitCore(testBot.getModel(), null);
     }
 
     @Test
-    public void constructValidConfiguration() {
-        Configuration configuration = buildConfiguration();
-        xatkitCore = new XatkitCore(configuration);
-        assertThatXatkitCoreIsCorrectlyInitilized(xatkitCore);
-        assertThatEventRegistryContainsLoadedEvents(xatkitCore.getEventDefinitionRegistry(), testBotExecutionModel);
+    public void constructValidParameters() {
+        xatkitCore = new XatkitCore(testBot.getModel(), new BaseConfiguration());
+        assertThat(xatkitCore).isNotNull();
+    }
+
+    @Test
+    public void runValidParameters() {
+        xatkitCore = getValidXatkitCore();
+        xatkitCore.run();
+        assertThatXatkitCoreIsInitializedWithModel(xatkitCore, testBot.getModel());
         /*
-         * TODO test the platform registry
+         * This method checks that the intent provider is the RegEx one, any other provider should be tested in its
+         * own class.
          */
-    }
-
-    @Test
-    public void constructWithRegExIntentRecognitionProvider() {
-        xatkitCore = new XatkitCore(buildConfiguration());
-        assertThat(xatkitCore.getIntentRecognitionProvider()).as("XatkitCore uses RegExIntentRecognitionProvider")
-                .isInstanceOf(RegExIntentRecognitionProvider.class);
     }
 
     @Test(expected = XatkitException.class)
     public void shutdownAlreadyShutdown() {
         xatkitCore = getValidXatkitCore();
+        xatkitCore.run();
         xatkitCore.shutdown();
         xatkitCore.shutdown();
     }
 
     @Test(expected = NullPointerException.class)
-    public void getOrCreateXatkitSessionNullSessionId() {
+    public void getOrCreateContextNullSessionId() {
         xatkitCore = getValidXatkitCore();
-        xatkitCore.getOrCreateXatkitSession(null);
+        xatkitCore.run();
+        xatkitCore.getOrCreateContext(null);
     }
 
     @Test
-    public void getOrCreateXatkitSessionValidSessionId() {
+    public void getOrCreateContextValidSessionId() {
         xatkitCore = getValidXatkitCore();
-        XatkitSession session = xatkitCore.getOrCreateXatkitSession("sessionID");
-        assertThat(session).as("Not null XatkitSession").isNotNull();
+        xatkitCore.run();
+        StateContext context = xatkitCore.getOrCreateContext("contextId");
+        assertThat(context).as("Not null StateContext").isNotNull();
         /*
          * Use contains because the underlying DialogFlow API add additional identification information in the
          * returned XatkitSession.
          */
-        assertThat(session.getSessionId()).as("Valid session ID").contains("sessionID");
-        assertThat(session.getRuntimeContexts()).as("Not null session context").isNotNull();
+        assertThat(context.getContextId()).as("Valid context ID").contains("contextId");
+        assertThat(context.getNlpContext()).as("Not null session context").isNotNull();
         /*
-         * Size = 5 because we have 5 outgoing transitions using intents in Init.
+         * We have one outgoing transition with an intent. This means that a context has been created to enable the
+         * corresponding intent matching.
          */
-        assertThat(session.getRuntimeContexts().getContextMap()).hasSize(5);
+        assertThat(context.getNlpContext()).hasSize(1);
+    }
+
+    @Test
+    public void isShutdownNotRun() {
+        xatkitCore = getValidXatkitCore();
+        assertThat(xatkitCore.isShutdown()).isTrue();
     }
 
     @Test
     public void shutdown() {
         xatkitCore = getValidXatkitCore();
+        xatkitCore.run();
         xatkitCore.shutdown();
         assertThat(xatkitCore.getExecutionService().isShutdown()).as("ExecutorService is shutdown");
         assertThat(xatkitCore.getIntentRecognitionProvider().isShutdown()).as("DialogFlow API is shutdown");
-        assertThat(xatkitCore.getRuntimePlatformRegistry().getRuntimePlatforms()).as("Empty runtimePlatform registry").isEmpty();
     }
 
     private XatkitCore getValidXatkitCore() {
-        Configuration configuration = buildConfiguration();
-        xatkitCore = new XatkitCore(configuration);
+        xatkitCore = new XatkitCore(testBot.getModel(), new BaseConfiguration());
         return xatkitCore;
     }
 
     /**
-     * Computes a set of basic assertions on the provided {@code xatkitCore} using the
-     * {@link #testBotExecutionModel}.
-     *
-     * @param xatkitCore the {@link XatkitCore} instance to check
-     */
-    private void assertThatXatkitCoreIsCorrectlyInitilized(XatkitCore xatkitCore) {
-        assertThatXatkitCoreIsInitializedWithModel(xatkitCore, testBotExecutionModel.getBaseModel());
-    }
-
-    /**
-     * Computes a set of basic assertions on the provided {@code xatkitCore} using the provided {@code
-     * executionModel}.
+     * Computes a set of basic assertions on the provided {@code xatkitCore} using the provided {@code model}.
      *
      * @param xatkitCore     the {@link XatkitCore} instance to check
-     * @param executionModel the {@link ExecutionModel} to check
+     * @param model the {@link ExecutionModel} to check
      */
-    private void assertThatXatkitCoreIsInitializedWithModel(XatkitCore xatkitCore, ExecutionModel executionModel) {
+    private void assertThatXatkitCoreIsInitializedWithModel(XatkitCore xatkitCore, ExecutionModel model) {
         /*
          * isNotNull() assertions are not soft, otherwise the runner does not print the assertion error and fails on
          * a NullPointerException in the following assertions.
@@ -154,21 +136,14 @@ public class XatkitCoreTest extends AbstractXatkitTest {
          */
         assertThat(xatkitCore.getIntentRecognitionProvider()).as("IntentRecognitionProvider is a " +
                 "RegExIntentRecognitionProvider instance").isInstanceOf(RegExIntentRecognitionProvider.class);
-        assertThat(xatkitCore.getRuntimePlatformRegistry()).isNotNull();
         assertThat(xatkitCore.getEventDefinitionRegistry()).isNotNull();
-        assertThat(xatkitCore.getExecutionService().getExecutionModel()).as("Not null ExecutionModel")
+        for(EventDefinition event : model.getUsedEvents()) {
+            assertThat(xatkitCore.getEventDefinitionRegistry().getEventDefinition(event.getName())).isEqualTo(event);
+        }
+        assertThat(xatkitCore.getExecutionService().getModel()).as("Not null ExecutionModel")
                 .isNotNull();
-        assertThat(xatkitCore.getExecutionService().getExecutionModel()).as("Valid ExecutionModel").isEqualTo(executionModel);
+        assertThat(xatkitCore.getExecutionService().getModel()).as("Valid ExecutionModel").isEqualTo(model);
         assertThat(xatkitCore.isShutdown()).as("Not shutdown").isFalse();
         assertThat(xatkitCore.getXatkitServer()).as("Not null XatkitServer").isNotNull();
     }
-
-    private void assertThatEventRegistryContainsLoadedEvents(EventDefinitionRegistry registry,
-                                                             TestBotExecutionModel testBotExecutionModel) {
-        assertThat(registry.getEventDefinition(testBotExecutionModel.getSimpleIntent().getName())).isEqualTo(testBotExecutionModel.getSimpleIntent());
-        assertThat(registry.getEventDefinition(testBotExecutionModel.getSystemEntityIntent().getName())).isEqualTo(testBotExecutionModel.getSystemEntityIntent());
-        assertThat(registry.getEventDefinition(testBotExecutionModel.getMappingEntityIntent().getName())).isEqualTo(testBotExecutionModel.getMappingEntityIntent());
-        assertThat(registry.getEventDefinition(testBotExecutionModel.getCompositeEntityIntent().getName())).isEqualTo(testBotExecutionModel.getCompositeEntityIntent());
-    }
-
 }

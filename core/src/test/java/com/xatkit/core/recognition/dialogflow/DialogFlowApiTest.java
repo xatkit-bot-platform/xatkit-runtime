@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 
 public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowApi> {
 
@@ -106,7 +106,7 @@ public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowA
     @Test
     public void registerIntentDefinitionAlreadyRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredIntentDefinition = testBotExecutionModel.getSimpleIntent();
+        registeredIntentDefinition = intentProviderTestBot.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         assertThatThrownBy(() -> intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition)).isInstanceOf(IntentRecognitionProviderException.class);
     }
@@ -114,11 +114,11 @@ public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowA
     @Test
     public void deleteEntityReferencedInIntent() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        registeredEntityDefinitions.add(testBotExecutionModel.getMappingEntity());
-        intentRecognitionProvider.registerEntityDefinition(testBotExecutionModel.getMappingEntity());
-        registeredIntentDefinition = testBotExecutionModel.getMappingEntityIntent();
+        registeredEntityDefinitions.add(intentProviderTestBot.getMappingEntity());
+        intentRecognitionProvider.registerEntityDefinition(intentProviderTestBot.getMappingEntity());
+        registeredIntentDefinition = intentProviderTestBot.getMappingEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
-        assertThatThrownBy(() -> intentRecognitionProvider.deleteEntityDefinition(testBotExecutionModel.getMappingEntity())).isInstanceOf(IntentRecognitionProviderException.class);
+        assertThatThrownBy(() -> intentRecognitionProvider.deleteEntityDefinition(intentProviderTestBot.getMappingEntity())).isInstanceOf(IntentRecognitionProviderException.class);
     }
 
     @Override

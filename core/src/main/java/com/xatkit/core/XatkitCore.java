@@ -9,8 +9,9 @@ import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.dsl.model.ExecutionModelProvider;
 import com.xatkit.execution.ExecutionModel;
-import com.xatkit.execution.State;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.EntityDefinition;
@@ -18,110 +19,93 @@ import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.platform.ActionDefinition;
-import com.xatkit.platform.EventProviderDefinition;
-import com.xatkit.platform.PlatformDefinition;
 import com.xatkit.util.ExecutionModelUtils;
-import com.xatkit.util.Loader;
-import com.xatkit.util.ModelLoader;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
-import org.eclipse.xtext.xbase.XMemberFeatureCall;
 
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
- * The core component of the xatkit framework.
+ * Runs a Xatkit bot.
  * <p>
- * This class is constructed from an {@link ExecutionModel}, that defines the Intent to Action bindings that are
- * executed by the application. Constructing an instance of this class will load the {@link RuntimePlatform}s used by
- * the provided {@link ExecutionModel}, and enable the corresponding {@link RuntimeAction}s. It also creates an
- * instance of {@link EventDefinitionRegistry} that can be accessed to retrieve and manage {@link EventDefinition} .
+ * This class is constructed with an {@link ExecutionModel} representing the bot behavior, and takes care of
+ * initializing the runtime components that are required to deploy and manage the bot.
+ * <p>
+ * See the code below to start an existing bot:
+ * <pre>
+ * {@code
+ * ExecutionModel model = [...]
+ * Configuration configuration = new BaseConfiguration();
+ * // add properties in the configuration if needed
+ * XatkitCore xatkitCore = new XatkitCore(model, configuration);
+ * xatkitCore.run();
+ * // The bot is now deployed and running
+ * }
+ * </pre>
  *
- * @see EventDefinitionRegistry
- * @see RuntimePlatformRegistry
- * @see ExecutionService
- * @see RuntimePlatform
+ * @see #run()
  */
-public class XatkitCore {
+public class XatkitCore implements Runnable {
 
     /**
      * The {@link Configuration} key to store the configuration folder path.
      */
+    @Deprecated
     public static String CONFIGURATION_FOLDER_PATH_KEY = "xatkit.core.configuration.path";
 
     /**
-     * The {@link Configuration} key prefix to store the abstract platform bindings.
-     * <p>
-     * This prefix is used to specify the path of the concrete {@link RuntimePlatform} to bind to their abstract
-     * definition in the provided execution model. Note that each used abstract platform needs to be bound
-     * separately, following this pattern {@code ABSTRACT_PLATFORM_BINDINGS_PREFIX + <abstract platform name> =
-     * <concrete platform path>}.
+     * The {@link ExecutionModel} representing the bot to deploy and execute.
      */
-    public static String ABSTRACT_PLATFORM_BINDINGS_PREFIX = "xatkit.platforms.abstract.";
+    private ExecutionModel executionModel;
 
     /**
      * The {@link Configuration} used to initialize this class.
-     * <p>
-     * This {@link Configuration} is used to load and initialize platforms, see
-     * {@link #loadRuntimePlatformFromPlatformModel(PlatformDefinition, Configuration)} for more information on
-     * platform loading.
-     *
-     * @see #loadRuntimePlatformFromPlatformModel(PlatformDefinition, Configuration)
      */
     private Configuration configuration;
 
     /**
      * The {@link IntentRecognitionProvider} used to compute {@link RecognizedIntent}s from input text.
+     *
+     * @see IntentRecognitionProviderFactory
      */
     @Getter
     private IntentRecognitionProvider intentRecognitionProvider;
 
     /**
-     * The {@link RuntimePlatformRegistry} used to cache loaded {@link RuntimePlatform}, and provides utility method
-     * to retrieve, unregister, and clear them.
+     * The {@link EventDefinitionRegistry} used to cache {@link EventDefinition}s and{@link IntentDefinition}s.
+     * <p>
+     * This registry is populated with the content of the {@link ExecutionModel}.
      *
-     * @see #getRuntimePlatformRegistry()
-     */
-    @Getter
-    private RuntimePlatformRegistry runtimePlatformRegistry;
-
-    /**
-     * The {@link EventDefinitionRegistry} used to cache {@link EventDefinition}s and
-     * {@link IntentDefinition}s from the input {@link ExecutionModel} and provides utility methods to retrieve
-     * specific
-     * {@link EventDefinition}s and {@link IntentDefinition}s and clear the cache.
-     *
-     * @see #getEventDefinitionRegistry() ()
+     * @see #getEventDefinitionRegistry()
      */
     @Getter
     private EventDefinitionRegistry eventDefinitionRegistry;
 
     /**
-     * The {@link ExecutionService} used to handle {@link EventInstance}s and execute the associated
-     * {@link RuntimeAction}s.
+     * The {@link ExecutionService} that manages the execution of the bot.
+     * <p>
+     * The {@link ExecutionService} manages the states of the bot and executes their body/fallback, and checks
+     * whether state's transition are navigable.
      *
-     * @see ExecutionService#handleEventInstance(EventInstance, XatkitSession)
-     * @see RuntimeAction
+     * @see ExecutionService#handleEventInstance(EventInstance, StateContext)
      */
     @Getter
     private ExecutionService executionService;
 
     /**
-     * The {@link Map} used to store and retrieve {@link XatkitSession}s associated to users.
+     * The {@link Map} used to store and retrieve {@link StateContext}s associated to users.
      *
-     * @see #getOrCreateXatkitSession(String)
+     * @see #getOrCreateContext(String)
      */
-    private Map<String, XatkitSession> sessions;
+    private Map<String, StateContext> sessions;
 
     /**
      * The {@link XatkitServer} instance used to capture incoming webhooks.
@@ -135,31 +119,48 @@ public class XatkitCore {
     private Map<String, Formatter> formatters;
 
     /**
-     * Constructs a new {@link XatkitCore} instance from the provided {@code configuration}.
+     * Creates an <b>unstarted</b> {@link XatkitCore} instance.
      * <p>
-     * The provided {@code configuration} must provide values for the following key (note that additional values may
-     * be required according to the used {@link RuntimeEventProvider}s and {@link RuntimePlatform}s):
-     * <ul>
-     * <li><b>xatkit.execution.model</b>: the {@link ExecutionModel} defining the Intent to
-     * Action bindings (or the string representing its location)</li>
-     * </ul>
+     * The underlying bot can be started by calling {@link #run()}.
      *
-     * @param configuration the {@link Configuration} to construct the instance from
-     * @throws NullPointerException if the provided {@code configuration} or one of the mandatory values is {@code null}
-     * @throws XatkitException      if the framework is not able to retrieve the {@link ExecutionModel}
-     * @see ExecutionModel
-     * @see ModelLoader
+     * @param executionModel the model containing the bot's execution logic
+     * @param configuration  the Xatkit {@link Configuration}
      */
-    public XatkitCore(@NonNull Configuration configuration) {
-        try {
-            this.configuration = configuration;
-            this.runtimePlatformRegistry = new RuntimePlatformRegistry();
-            this.eventDefinitionRegistry = new EventDefinitionRegistry();
-            ModelLoader modelLoader = new ModelLoader(this.runtimePlatformRegistry);
-            ExecutionModel executionModel = modelLoader.loadExecutionModel(configuration);
-            checkNotNull(executionModel, "Cannot construct a %s instance from a null %s", this.getClass()
-                    .getSimpleName(), ExecutionModel.class.getSimpleName());
+    public XatkitCore(@NonNull ExecutionModel executionModel, @NonNull Configuration configuration) {
+        this.executionModel = executionModel;
+        this.configuration = configuration;
+    }
 
+    /**
+     * Creates an <b>unstarted</b> {@link XatkitCore} instance.
+     * <p>
+     * This method is an utility constructor that allows to provide models built with the fluent DSL, and is
+     * equivalent to
+     * <pre>
+     * {@code
+     * new XatkitCore(executionModelProvider.getExecutionModel(), configuration);
+     * }
+     * </pre>
+     * <p>
+     * The underlying bot can be started by calling {@link #run()}.
+     *
+     * @param executionModelProvider the provider containing the bot's model
+     * @param configuration          the Xatkit {@link Configuration}
+     */
+    public XatkitCore(@NonNull ExecutionModelProvider executionModelProvider, @NonNull Configuration configuration) {
+        this(executionModelProvider.getExecutionModel(), configuration);
+    }
+
+    /**
+     * Starts the underlying bot.
+     * <p>
+     * This method takes care of deploying the bot (e.g. registering intents to the NLP service(s), starting the
+     * accessed platforms and providers, etc) and starts the {@link ExecutionService} managing its execution.
+     */
+    @Override
+    public void run() {
+        try {
+            this.eventDefinitionRegistry = new EventDefinitionRegistry();
             this.formatters = new HashMap<>();
             this.registerFormatter("Default", new Formatter());
             /*
@@ -170,8 +171,7 @@ public class XatkitCore {
             this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                     configuration);
             this.sessions = new HashMap<>();
-            this.executionService = new ExecutionService(executionModel, runtimePlatformRegistry, configuration);
-            modelLoader.getExecutionInjector().injectMembers(executionService);
+            this.executionService = new ExecutionService(executionModel, configuration);
             this.loadExecutionModel(executionModel);
             xatkitServer.start();
             Log.info("Xatkit bot started");
@@ -189,6 +189,7 @@ public class XatkitCore {
      * @param formatterName the name of the formatter
      * @param formatter     the {@link Formatter} to register
      */
+    @Deprecated
     public void registerFormatter(String formatterName, Formatter formatter) {
         if (formatters.containsKey(formatterName)) {
             Log.warn("A formatter is already registered with the name {0}, erasing it", formatterName);
@@ -203,6 +204,7 @@ public class XatkitCore {
      * @return the {@link Formatter}
      * @throws XatkitException if there is no {@link Formatter} associated to the provided {@code formatterName}.
      */
+    @Deprecated
     public Formatter getFormatter(String formatterName) {
         Formatter formatter = formatters.get(formatterName);
         if (nonNull(formatter)) {
@@ -213,33 +215,22 @@ public class XatkitCore {
     }
 
     /**
-     * Load the runtime instances from the provided {@link ExecutionModel}.
-     * <p>
-     * This method starts the {@link RuntimeEventProvider}s, builds the {@link RuntimePlatform}s, and enables their
-     * {@link RuntimeAction}s from the definitions specified in the provided {@code executionModel}.
-     * <p>
-     * This method also registers the {@link EventDefinition}s used in the provided {@code executionModel} in the
-     * {@link IntentRecognitionProvider}.
-     * <p>
-     * <b>Note:</b> the {@link RuntimePlatform}s associated to the provided {@link ExecutionModel} have to be
-     * in the classpath in order to be dynamically loaded and instantiated.
+     * Registers the events used in the provided {@code executionModel} and start the associated platforms/providers.
      *
-     * @param executionModel the {@link ExecutionModel} to load the runtime instances from
+     * @param executionModel the {@link ExecutionModel} to load
+     * @see #startPlatforms(ExecutionModel)
      * @see #startEventProviders(ExecutionModel)
      * @see #registerEventDefinition(EventDefinition)
-     * @see #enableStateActions(State)
      */
     private void loadExecutionModel(ExecutionModel executionModel) {
         boolean intentRegistered = false;
+        this.startPlatforms(executionModel);
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");
 
         Iterable<EventDefinition> accessedEvents = ExecutionModelUtils.getAllAccessedEvents(executionModel);
         for (EventDefinition e : accessedEvents) {
             intentRegistered |= this.registerEventDefinition(e);
-        }
-        for (State s : executionModel.getStates()) {
-            this.enableStateActions(s);
         }
         if (intentRegistered) {
             /*
@@ -255,30 +246,32 @@ public class XatkitCore {
     }
 
     /**
+     * Starts the {@link RuntimePlatform}s used in the provided {@code executionModel}.
+     *
+     * @param executionModel the {@link ExecutionModel} to start the {@link RuntimePlatform}s from
+     */
+    private void startPlatforms(ExecutionModel executionModel) {
+        for (Object object : executionModel.getUsedPlatforms()) {
+            /*
+             * TODO this cast shouldn't exist: we need to fix the metamodel.
+             */
+            RuntimePlatform platform = (RuntimePlatform) object;
+            platform.start(this, configuration);
+        }
+    }
+
+    /**
      * Starts the {@link RuntimeEventProvider}s used in the provided {@code executionModel}.
-     * <p>
-     * This method instantiates the {@link RuntimePlatform}s managing the {@link RuntimeEventProvider}s to construct
-     * if necessary (i.e. if they have not been instantiated before).
      *
      * @param executionModel the {@link ExecutionModel} to start the {@link RuntimeEventProvider}s from
      */
     private void startEventProviders(ExecutionModel executionModel) {
-        for (EventProviderDefinition eventProviderDefinition : executionModel.getEventProviderDefinitions()) {
+        for (Object object : executionModel.getUsedProviders()) {
             /*
-             * The EventProviderDefinition is still a proxy, meaning that the proxy resolution failed.
+             * TODO this cast shouldn't exist: we need to fix the metamodel.
              */
-            if (eventProviderDefinition.eIsProxy()) {
-                throw new XatkitException(MessageFormat.format("An error occurred when resolving the proxy {0} " +
-                        "from the {1}", eventProviderDefinition, ExecutionModel.class.getSimpleName()));
-            }
-            PlatformDefinition eventProviderPlatform = (PlatformDefinition) eventProviderDefinition.eContainer();
-            RuntimePlatform eventProviderRuntimePlatform = this.runtimePlatformRegistry.getRuntimePlatform
-                    (eventProviderPlatform.getName());
-            if (isNull(eventProviderRuntimePlatform)) {
-                eventProviderRuntimePlatform = loadRuntimePlatformFromPlatformModel(eventProviderPlatform,
-                        configuration);
-            }
-            eventProviderRuntimePlatform.startEventProvider(eventProviderDefinition);
+            RuntimeEventProvider<?> eventProvider = (RuntimeEventProvider<?>) object;
+            eventProvider.start(this.configuration);
         }
     }
 
@@ -322,102 +315,6 @@ public class XatkitCore {
     }
 
     /**
-     * Enables the {@link RuntimeAction}s associated to the provided {@code rule}.
-     * <p>
-     * This method retrieves all the {@link XMemberFeatureCall} representing action invocations in the provided
-     * {@code rule} and enable them through their containing {@link RuntimePlatform}.
-     * <p>
-     * This method instantiates the {@link RuntimePlatform}s containing the {@link RuntimeAction}s if necessary (i.e.
-     * if they have not been initialized before).
-     *
-     * @param state
-     */
-    private void enableStateActions(State state) {
-        /*
-         * Load the action platforms
-         */
-        state.eAllContents().forEachRemaining(e -> {
-                    if (e instanceof XMemberFeatureCall) {
-                        XMemberFeatureCall featureCall = (XMemberFeatureCall) e;
-                        if (ExecutionModelUtils.isPlatformActionCall(featureCall,
-                                this.runtimePlatformRegistry)) {
-                            String platformName = ExecutionModelUtils.getPlatformName(featureCall);
-
-                            PlatformDefinition platformDefinition =
-                                    this.runtimePlatformRegistry.getPlatformDefinition(platformName);
-                            RuntimePlatform runtimePlatform =
-                                    this.runtimePlatformRegistry.getRuntimePlatform(platformDefinition.getName());
-                            if (isNull(runtimePlatform)) {
-                                runtimePlatform = loadRuntimePlatformFromPlatformModel(platformDefinition,
-                                        configuration);
-                            }
-                            /*
-                             * Quick fix: enable all the actions here, but only for the platform (we cannot retrieve
-                             * the correct action definition from the XMemberFeatureCall)
-                             */
-                            for (ActionDefinition actionDefinition :
-                                    platformDefinition.getActions()) {
-                                runtimePlatform.enableAction(actionDefinition);
-                            }
-                            /*
-                             * Enable inherited actions, they are not defined in the platform file.
-                             */
-                            PlatformDefinition parent = platformDefinition.getExtends();
-                            if (nonNull(parent)) {
-                                for (ActionDefinition actionDefinition : parent.getActions()) {
-                                    runtimePlatform.enableAction(actionDefinition);
-                                }
-                            }
-
-                        }
-                    }
-                }
-        );
-    }
-
-    /**
-     * Loads the {@link RuntimePlatform} defined by the provided {@link PlatformDefinition} and registers it.
-     * <p>
-     * This method searches in the classpath a {@link Class} matching the input
-     * {@link PlatformDefinition#getRuntimePath()} value and calls its default constructor.
-     * <p>
-     * The constructed {@link RuntimePlatform} is registered in the {@link RuntimePlatformRegistry} using its {@code
-     * name}. Note that if the provided {@code platformDefinition} is {@code abstract} the constructed
-     * {@link RuntimePlatform} is registered with the abstract {@link PlatformDefinition}'s name in order to
-     * correctly retrieve its actions when executing abstract actions specified in the execution model.
-     *
-     * @param platformDefinition the xatkit {@link PlatformDefinition} to load
-     * @param configuration      the xatkit {@link Configuration} used to retrieve abstract platform bindings
-     * @return an instance of the loaded {@link RuntimePlatform}
-     * @throws XatkitException if their is no {@link Class} matching the provided {@code platformDefinition} or if the
-     *                         {@link RuntimePlatform} can not be constructed
-     * @see PlatformDefinition
-     * @see RuntimePlatform
-     */
-    private RuntimePlatform loadRuntimePlatformFromPlatformModel(PlatformDefinition platformDefinition, Configuration
-            configuration) throws XatkitException {
-        Log.info("Loading RuntimePlatform for {0}", platformDefinition.getName());
-        String platformPath = platformDefinition.getRuntimePath();
-        if (platformDefinition.isAbstract()) {
-            /*
-             * The provided platformDefinition is abstract, we need to retrieve its concrete binding from the
-             * provided configuration.
-             */
-            String abstractPlatformDefinitionName = platformDefinition.getName();
-            String abstractPlatformBindingKey = ABSTRACT_PLATFORM_BINDINGS_PREFIX + abstractPlatformDefinitionName;
-            Log.info("{0} is abstract, retrieving its binding from the configuration", abstractPlatformDefinitionName);
-            platformPath = configuration.getString(abstractPlatformBindingKey);
-            checkNotNull(platformPath, "Cannot bind the provided path \"%s\" to the abstract platform %s, please " +
-                            "provide a non-null path in the configuration with the key %s", platformPath,
-                    abstractPlatformDefinitionName, abstractPlatformBindingKey);
-        }
-        Class<? extends RuntimePlatform> runtimePlatformClass = Loader.loadClass(platformPath, RuntimePlatform.class);
-        RuntimePlatform runtimePlatform = Loader.constructRuntimePlatform(runtimePlatformClass, this, configuration);
-        this.runtimePlatformRegistry.registerRuntimePlatform(platformDefinition.getName(), runtimePlatform);
-        return runtimePlatform;
-    }
-
-    /**
      * Shuts down the {@link XatkitCore} and the underlying engines.
      * <p>
      * This method shuts down the underlying {@link IntentRecognitionProvider}, unloads and shuts down all the
@@ -442,11 +339,20 @@ public class XatkitCore {
          * API.
          */
         this.stopServices();
-        Collection<RuntimePlatform> runtimePlatforms = this.getRuntimePlatformRegistry().getRuntimePlatforms();
-        for (RuntimePlatform runtimePlatform : runtimePlatforms) {
-            runtimePlatform.shutdown();
+        for (Object object : this.executionModel.getUsedProviders()) {
+            /*
+             * TODO this cast shouldn't exist: we need to fix the metamodel.
+             */
+            RuntimeEventProvider<?> eventProvider = (RuntimeEventProvider<?>) object;
+            eventProvider.close();
         }
-        this.getRuntimePlatformRegistry().clearRuntimePlatforms();
+        for (Object object : this.executionModel.getUsedPlatforms()) {
+            /*
+             * TODO this cast shouldn't exist: we need to fix the metamodel.
+             */
+            RuntimePlatform platform = (RuntimePlatform) object;
+            platform.shutdown();
+        }
         this.getEventDefinitionRegistry().clearEventDefinitions();
     }
 
@@ -494,57 +400,59 @@ public class XatkitCore {
      * @return {@code true} if the {@link XatkitCore} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
-        return (!xatkitServer.isStarted()) && executionService.isShutdown() && intentRecognitionProvider
-                .isShutdown();
+        return (isNull(xatkitServer) || !xatkitServer.isStarted())
+            && (isNull(executionService) || executionService.isShutdown())
+            && (isNull(intentRecognitionProvider) || intentRecognitionProvider.isShutdown());
     }
 
     /**
-     * Retrieves or creates the {@link XatkitSession} associated to the provided {@code sessionId}.
+     * Retrieves or creates the {@link StateContext} associated to the provided {@code contextId}.
      * <p>
-     * If the {@link XatkitSession} does not exist a new one is created using
-     * {@link IntentRecognitionProvider#createSession(String)}.
+     * If the {@link StateContext} does not exist a new one is created using
+     * {@link IntentRecognitionProvider#createContext(String)}.
      *
-     * @param sessionId the identifier to get or retrieve a session from
-     * @return the {@link XatkitSession} associated to the provided {@code sessionId}
-     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
+     * @param contextId the identifier of the context to get
+     * @return the {@link StateContext} associated to the provided {@code contextId}
+     * @see #getContext(String)
      */
-    public XatkitSession getOrCreateXatkitSession(@NonNull String sessionId) {
-        XatkitSession session = getXatkitSession(sessionId);
-        if (isNull(session)) {
+    public @NonNull StateContext getOrCreateContext(@NonNull String contextId) {
+        StateContext context = getContext(contextId);
+        if (isNull(context)) {
             try {
-                session = this.intentRecognitionProvider.createSession(sessionId);
+                context = this.intentRecognitionProvider.createContext(contextId);
             } catch (IntentRecognitionProviderException e) {
                 throw new XatkitException(MessageFormat.format("Cannot create session {0}, see attached exception",
-                        sessionId), e);
+                        contextId), e);
             }
-            sessions.put(sessionId, session);
+            sessions.put(contextId, context);
             /*
              * The executor service takes care of configuring the new session and setting the init state.
              */
-            executionService.initSession(session);
+            executionService.initContext(context);
         }
-        return session;
+        return context;
     }
 
     /**
-     * Returns the {@link XatkitSession} associated to the provided {@code sessionId}
+     * Returns the {@link StateContext} associated to the provided {@code contextId}
      *
-     * @param sessionId the identifier to retrieve the session from
-     * @return the {@link XatkitSession} associated to the provided {@code sessionId}
-     * @throws NullPointerException if the provided {@code sessionId} is {@code null}
+     * @param contextId the identifier of the context
+     * @return the {@link StateContext} associated to the provided {@code contextId}, or {@code null} if it does not
+     * exist
      */
-    public XatkitSession getXatkitSession(@NonNull String sessionId) {
-        return sessions.get(sessionId);
+    public @Nullable
+    StateContext getContext(@NonNull String contextId) {
+        return sessions.get(contextId);
     }
 
-    public Iterable<XatkitSession> getXatkitSessions() {
+    public Iterable<StateContext> getContexts() {
         return sessions.values();
     }
 
     /**
      * Invalidates all the {@link XatkitSession}s and clear the session registry.
      */
-    public void clearXatkitSessions() {
+    public void clearContexts() {
         this.sessions.clear();
     }
 

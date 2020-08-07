@@ -1,31 +1,23 @@
 package com.xatkit.core.platform.action;
 
-import com.xatkit.core.ExecutionService;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.XatkitSession;
-import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.platform.ActionDefinition;
+import com.xatkit.execution.StateContext;
+import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 
 /**
- * The concrete implementation of an {@link ActionDefinition} definition.
+ * Wraps an executable action performed by a bot.
  * <p>
- * A {@link RuntimeAction} represents an atomic action that are automatically executed by the
- * {@link ExecutionService}
- * component. Instances of this class are created by the associated {@link RuntimePlatform} from an input
- * {@link RecognizedIntent}.
- * <p>
- * Note that {@link RuntimeAction}s implementations must be stored in the <i>action</i> package of their associated
- * concrete {@link RuntimePlatform} implementation to enable their automated loading. For example, the action
- * <i>MyAction</i> defined in the platform <i>myPlatformPackage.MyPlatform</i> should be stored in the package
- * <i>myPlatformPackage.action</i>
+ * {@link RuntimeAction} are managed by a {@link RuntimePlatform} that contains shareable information such as
+ * platform credentials, installation identifier, or database connection. Subclasses can access their containing
+ * platform using {@code this.getRuntimePlatform()}.
  *
- * @param <T> the concrete {@link RuntimePlatform} subclass type containing the action
- * @see ActionDefinition
- * @see ExecutionService
+ * @param <T> the {@link RuntimePlatform} containing the action
  * @see RuntimePlatform
  */
 public abstract class RuntimeAction<T extends RuntimePlatform> implements Callable<RuntimeActionResult> {
@@ -36,25 +28,23 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
     protected T runtimePlatform;
 
     /**
-     * The {@link XatkitSession} associated to this action.
+     * The {@link StateContext} associated to this action.
      */
     @Getter
-    protected XatkitSession session;
+    protected StateContext context;
 
     /**
-     * Constructs a new {@link RuntimeAction} with the provided {@code runtimePlatform} and {@code session}.
-     *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this action
-     * @param session         the {@link XatkitSession} associated to this action
-     * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
+     * Constructs a {@link RuntimeAction} managed by the provided {@code platform} with the given {@code context}.
+     * @param platform the {@link RuntimePlatform} managing this action
+     * @param context the current {@link StateContext}
      */
-    public RuntimeAction(@NonNull T runtimePlatform, @NonNull XatkitSession session) {
-        this.runtimePlatform = runtimePlatform;
-        this.session = session;
+    public RuntimeAction(@NonNull T platform, @NonNull StateContext context) {
+        this.runtimePlatform = platform;
+        this.context = context;
     }
 
     /**
-     * A hook method that is called after {@link RuntimeAction}.
+     * A hook method that is called after {@link RuntimeAction} construction.
      * <p>
      * This method can be extended by subclasses to add post-construction computation, such as setting additional
      * fields, checking invariants once the {@link RuntimeAction} has been initialized, etc.
@@ -64,26 +54,22 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
     }
 
     /**
-     * Disable the default constructor, RuntimeActions must be constructed with their containing runtimePlatform.
+     * Disable the default constructor, RuntimeActions must be constructed with their containing platform.
      */
     private RuntimeAction() {
         /*
-         * Disable the default constructor, RuntimeActions must be constructed with their containing runtimePlatform.
+         * Disable the default constructor, RuntimeActions must be constructed with their containing platform.
          */
     }
 
     /**
      * Runs the {@link RuntimeAction} and returns its result wrapped in a {@link RuntimeActionResult}.
      * <p>
-     * This method should not be called manually, and is handled by the {@link ExecutionService} component that
-     * manages and executes {@link RuntimeAction}s.
-     * <p>
      * This method does not throw any {@link Exception} if the underlying {@link RuntimeAction}'s computation does not
      * complete. Exceptions thrown during the {@link RuntimeAction}'s computation can be accessed through the
      * {@link RuntimeActionResult#getThrowable()} method.
      *
      * @return the {@link RuntimeActionResult} containing the raw result of the computation and monitoring information
-     * @see ExecutionService
      * @see RuntimeActionResult
      */
     @Override
@@ -95,13 +81,27 @@ public abstract class RuntimeAction<T extends RuntimePlatform> implements Callab
             computationResult = compute();
         } catch (Throwable e) {
             callThrowable = e;
+            Log.error("An error occurred when executing the action {0}", this.getClass().getSimpleName());
+            printStackTrace(callThrowable);
         }
         long after = System.currentTimeMillis();
+        Log.info("Action {0} executed in {1} ms", this.getClass().getSimpleName(), (after - before));
         /*
          * Construct the RuntimeAction result from the gathered information. Note that the constructor accepts a null
          * value for the thrownException parameter, that will set accordingly the isError() helper.
          */
         return new RuntimeActionResult(computationResult, callThrowable, (after - before));
+    }
+
+    /**
+     * Prints the stack trace of the provided {@code throwable} in the default output.
+     * @param throwable the {@link Throwable} to print the stack trace of
+     */
+    private void printStackTrace(Throwable throwable) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintWriter printWriter = new PrintWriter(baos, true);
+        throwable.printStackTrace(printWriter);
+        Log.error("{0}", baos.toString());
     }
 
     /**

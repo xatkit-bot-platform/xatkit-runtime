@@ -51,7 +51,8 @@ public class RuntimeMessageActionTest extends AbstractActionTest<RuntimeMessageA
         session.getRuntimeContexts().setContextValue("Test", 5, "key", "value");
         RuntimeMessageAction runtimeMessageAction = new StubRuntimeMessageAction(getPlatform(), session, MESSAGE);
         runtimeMessageAction.init();
-        XatkitSession clientSession = runtimeMessageAction.getClientSession();
+        assertThat(runtimeMessageAction.getClientSession()).isInstanceOf(XatkitSession.class);
+        XatkitSession clientSession = (XatkitSession) runtimeMessageAction.getClientSession();
         assertThat(clientSession).as("Not null client session").isNotNull();
         RuntimeContexts context = clientSession.getRuntimeContexts();
         assertThat(context.getContextValue("Test", "key")).as("Session context has been merged in the client one")
@@ -72,7 +73,8 @@ public class RuntimeMessageActionTest extends AbstractActionTest<RuntimeMessageA
     public void callRuntimeMessageActionWithDelay() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(RuntimeArtifactAction.MESSAGE_DELAY_KEY, 2000);
-        RuntimePlatform stubPlatform = new StubRuntimePlatform(mockedXatkitCore, configuration);
+        RuntimePlatform stubPlatform = new StubRuntimePlatform();
+        stubPlatform.start(mockedXatkitCore, configuration);
         StubRuntimeMessageAction action = new StubRuntimeMessageAction(stubPlatform, session, MESSAGE);
         long before = System.currentTimeMillis();
         RuntimeActionResult result = action.call();

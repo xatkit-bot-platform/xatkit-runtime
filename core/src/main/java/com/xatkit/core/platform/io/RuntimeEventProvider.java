@@ -2,24 +2,21 @@ package com.xatkit.core.platform.io;
 
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.core.server.HttpMethod;
+import com.xatkit.core.server.RestHandler;
+import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventInstance;
-import org.apache.commons.configuration2.BaseConfiguration;
+import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
- * An abstract class representing user input providers.
+ * Generates {@link EventInstance}s that can be used by a Xatkit bot.
  * <p>
- * Concrete implementations of this class are dynamically instantiated by the {@link XatkitCore} component, and use
- * it to notify the engine about new messages to handle. Note that {@link RuntimeEventProvider} instances are
- * started in a dedicated {@link Thread}.
- * <p>
- * Instances of this class can be configured using the {@link Configuration}-based constructor, that enable to pass
- * additional parameters to the constructor.
+ * This class maps received inputs (e.g. REST request, user message, socket event) to {@link EventInstance}s that are
+ * used by the Xatkit engine.
  *
- * @param <T> the concrete {@link RuntimePlatform} subclass type containing the provider
+ * @param <T> the {@link RuntimePlatform} containing the provider
  */
 public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements Runnable {
 
@@ -36,39 +33,37 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
     protected T runtimePlatform;
 
     /**
-     * Constructs a new {@link RuntimeEventProvider} with the provided {@code runtimePlatform}.
+     * Creates an <b>unstarted</b> {@link RuntimeEventProvider} managed by the provided {@code platform}.
      * <p>
-     * <b>Note</b>: this constructor should be used by {@link RuntimeEventProvider}s that do not require additional
-     * parameters to be initialized. In that case see {@link #RuntimeEventProvider(RuntimePlatform, Configuration)}.
+     * As for {@link RuntimePlatform}, this constructor does not have access to the {@link XatkitCore} nor the
+     * {@link Configuration}: it is typically called when defining a bot to have a usable reference to set in
+     * {@link ExecutionModel#getUsedProviders()}, but it is initialized during the bot deployment using the
+     * {@link RuntimeEventProvider#start(Configuration)} method.
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}
-     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
+     * @param platform the {@link RuntimePlatform} managing this provider
      */
-    public RuntimeEventProvider(T runtimePlatform) {
-        this(runtimePlatform, new BaseConfiguration());
+    public RuntimeEventProvider(@NonNull T platform) {
+        this.runtimePlatform = platform;
     }
 
     /**
-     * Constructs a new {@link RuntimeEventProvider} with the provided {@code runtimePlatform} and {@code
-     * configuration}.
+     * Starts the provider.
      * <p>
-     * <b>Note</b>: this constructor will be called by xatkit internal engine when initializing the
-     * {@link XatkitCore} component. Subclasses implementing this constructor typically
-     * need additional parameters to be initialized, that can be provided in the {@code configuration}.
+     * This method takes as input the bot {@code configuration} that can contain specific properties to customize the
+     * provider (e.g. to filter some input). Subclasses typically override this method to initialize their internal
+     * data structure and register REST handlers to receive push events (see
+     * {@link com.xatkit.core.server.XatkitServer#registerRestEndpoint(HttpMethod, String, RestHandler)}.
+     * <p>
+     * This method is automatically called bu Xatkit when a bot using this provider is starting.
+     * <p>
+     * Note that the {@link XatkitCore} instance is bound to the provider when calling this method.
      *
-     * @param runtimePlatform the {@link RuntimePlatform} containing this {@link RuntimeEventProvider}
-     * @param configuration   the {@link Configuration} used to initialize the {@link RuntimeEventProvider}
-     * @throws NullPointerException if the provided {@code runtimePlatform} is {@code null}
+     * @param configuration the {@link Configuration} of the bot currently run
+     * @see RuntimePlatform#startEventProvider(RuntimeEventProvider)
      */
-    public RuntimeEventProvider(T runtimePlatform, Configuration configuration) {
-        /*
-         * Do nothing with the configuration, it can be used by subclasses that require additional initialization
-         * information.
-         */
-        checkNotNull(runtimePlatform, "Cannot construct an instance of %s with a null %s", this.getClass()
-                .getSimpleName(), RuntimePlatform.class.getSimpleName());
-        this.runtimePlatform = runtimePlatform;
+    public void start(@NonNull Configuration configuration) {
         this.xatkitCore = runtimePlatform.getXatkitCore();
+        this.runtimePlatform.startEventProvider(this);
     }
 
     /**
@@ -90,17 +85,17 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * context variable has been set).
      *
      * @param eventInstance the {@link EventInstance} to send to the Xatkit core component
-     * @param session       the {@link XatkitSession} associated to the provided {@code eventInstance}
+     * @param context       the {@link StateContext} associated to the provided {@code eventInstance}
      */
-    public void sendEventInstance(EventInstance eventInstance, XatkitSession session) {
+    public void sendEventInstance(EventInstance eventInstance, StateContext context) {
         eventInstance.setTriggeredBy(this.runtimePlatform.getName());
-        this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, session);
+        this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, context);
     }
 
     public void broadcastEventInstance(EventInstance eventInstance) {
         eventInstance.setTriggeredBy(this.runtimePlatform.getName());
-        this.xatkitCore.getXatkitSessions().forEach(xatkitSession ->
-                this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, xatkitSession)
+        this.xatkitCore.getContexts().forEach(context ->
+                this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, context)
         );
     }
 

@@ -68,14 +68,14 @@ public abstract class StanfordNLPPostProcessor implements IntentPostProcessor {
      * @return the {@link Annotation} corresponding to the provided {@code input}
      */
     protected final Annotation getAnnotation(String input, XatkitSession session) {
-        String nlpInput = (String) session.get(NLP_INPUT_SESSION_KEY);
-        Annotation annotation = (Annotation) session.get(NLP_ANNOTATION_SESSION_KEY);
+        String nlpInput = (String) session.getSession().get(NLP_INPUT_SESSION_KEY);
+        Annotation annotation = (Annotation) session.getSession().get(NLP_ANNOTATION_SESSION_KEY);
         if (isNull(annotation) || isNull(nlpInput) || !nlpInput.equals(input)) {
             Log.debug("There is no annotation for \"{0}\" in the session, computing the annotation with {1}", input,
                     StanfordNLPService.class.getSimpleName());
             annotation = StanfordNLPService.getInstance().annotate(input);
-            session.store(NLP_INPUT_SESSION_KEY, input);
-            session.store(NLP_ANNOTATION_SESSION_KEY, annotation);
+            session.getSession().put(NLP_INPUT_SESSION_KEY, input);
+            session.getSession().put(NLP_ANNOTATION_SESSION_KEY, annotation);
         } else {
             Log.debug("Reusing annotation for \"{0}\" from the session", input);
         }

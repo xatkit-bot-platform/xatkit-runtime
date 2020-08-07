@@ -60,7 +60,7 @@ public class DialogFlowSessionTest extends AbstractXatkitTest {
     }
 
     private void assertDialogFlowSessionHasName(DialogFlowSession session, SessionName expectedSessionName) {
-        softly.assertThat(session.getSessionId()).as("Valid session ID").isEqualTo(expectedSessionName.toString());
+        softly.assertThat(session.getContextId()).as("Valid context ID").isEqualTo(expectedSessionName.toString());
         softly.assertThat(session.getSessionName()).as("Valid SessionName").isEqualTo(expectedSessionName);
         softly.assertThat(session.getRuntimeContexts()).as("Not null context").isNotNull();
     }
