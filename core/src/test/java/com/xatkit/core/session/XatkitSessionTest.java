@@ -3,12 +3,16 @@ package com.xatkit.core.session;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.State;
+import lombok.val;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.xatkit.dsl.DSL.intent;
+import static com.xatkit.dsl.DSL.intentIs;
+import static com.xatkit.dsl.DSL.state;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class XatkitSessionTest extends AbstractXatkitTest {
@@ -52,7 +56,8 @@ public class XatkitSessionTest extends AbstractXatkitTest {
         configuration.addProperty(RuntimeContexts.VARIABLE_TIMEOUT_KEY, 10);
         session = new XatkitSession("session", configuration);
         assertValidXatkitSession(session);
-        softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable timeout")
+        softly.assertThat(session.getRuntimeContexts().getVariableTimeout()).as("Valid RuntimeContexts variable " +
+                "timeout")
                 .isEqualTo(10);
     }
 
@@ -77,6 +82,21 @@ public class XatkitSessionTest extends AbstractXatkitTest {
         testState2.setName("Test_State2");
         session.setState(testState2);
         assertThat(session.getState()).as("State correctly erased").isEqualTo(testState2);
+    }
+
+    @Test
+    public void setStateWithComposedTransitionCondition() {
+        session = new XatkitSession("sessionId");
+        val intent = intent("Intent")
+                .trainingSentence("Hi");
+        val state = state("State")
+                .next()
+                .when(intentIs(intent).and(context -> context.getNlpContext().containsKey("test"))).moveTo(TEST_STATE)
+                .getState();
+        session.setState(state);
+        assertThat(session.getState()).isEqualTo(state);
+        assertThat(session.getRuntimeContexts().getContextMap()).hasSize(1);
+        assertThat(session.getRuntimeContexts().getContextMap()).containsKey("EnableIntent");
     }
 
     @Test(expected = NullPointerException.class)

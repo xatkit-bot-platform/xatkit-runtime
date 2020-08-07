@@ -14,8 +14,8 @@ import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
-import com.xatkit.util.IsEventDefinitionPredicate;
-import com.xatkit.util.IsIntentDefinitionPredicate;
+import com.xatkit.util.predicate.IsEventDefinitionPredicate;
+import com.xatkit.util.predicate.IsIntentDefinitionPredicate;
 import lombok.NonNull;
 
 import java.util.function.Predicate;

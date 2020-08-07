@@ -1,9 +1,10 @@
-package com.xatkit.util;
+package com.xatkit.util.predicate;
 
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.MessageFormat;
 import java.util.function.Predicate;
@@ -34,5 +35,23 @@ public class IsEventDefinitionPredicate implements Predicate<StateContext> {
             }
         }
         return false;
+    }
+
+    @NotNull
+    @Override
+    public Predicate<StateContext> and(@NotNull Predicate<? super StateContext> other) {
+        return new AndPredicate<>(this, other);
+    }
+
+    @NotNull
+    @Override
+    public Predicate<StateContext> or(@NotNull Predicate<? super StateContext> other) {
+        return new OrPredicate<>(this, other);
+    }
+
+    @NotNull
+    @Override
+    public Predicate<StateContext> negate() {
+        return new NegatePredicate<>(this);
     }
 }
