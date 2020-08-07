@@ -31,8 +31,8 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.Library;
 import com.xatkit.intent.MappingEntityDefinition;
-import com.xatkit.util.IsEventDefinitionPredicate;
-import com.xatkit.util.IsIntentDefinitionPredicate;
+import com.xatkit.util.predicate.IsEventDefinitionPredicate;
+import com.xatkit.util.predicate.IsIntentDefinitionPredicate;
 import lombok.NonNull;
 
 import java.util.function.Predicate;

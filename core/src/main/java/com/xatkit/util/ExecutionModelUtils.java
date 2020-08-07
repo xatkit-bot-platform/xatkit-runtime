@@ -6,6 +6,9 @@ import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
+import com.xatkit.util.predicate.ComposedPredicate;
+import com.xatkit.util.predicate.IsEventDefinitionPredicate;
+import com.xatkit.util.predicate.IsIntentDefinitionPredicate;
 import lombok.NonNull;
 
 import javax.annotation.Nullable;
@@ -35,8 +38,9 @@ public class ExecutionModelUtils {
      */
     public static @Nullable
     IntentDefinition getAccessedIntent(@NonNull Transition transition) {
-        if (transition.getCondition() instanceof IsIntentDefinitionPredicate) {
-            return ((IsIntentDefinitionPredicate) transition.getCondition()).getIntentDefinition();
+        EventDefinition accessedEvent = getAccessedEvent(transition);
+        if(accessedEvent instanceof IntentDefinition) {
+            return (IntentDefinition) accessedEvent;
         }
         return null;
     }
@@ -49,13 +53,34 @@ public class ExecutionModelUtils {
      */
     public static @Nullable
     EventDefinition getAccessedEvent(@NonNull Transition transition) {
-        Predicate<StateContext> predicate = transition.getCondition();
-        if (predicate instanceof IsIntentDefinitionPredicate) {
-            return ((IsIntentDefinitionPredicate) predicate).getIntentDefinition();
-        } else if (predicate instanceof IsEventDefinitionPredicate) {
-            return ((IsEventDefinitionPredicate) predicate).getEventDefinition();
+        Collection<EventDefinition> result = getAccessedEvents(transition.getCondition());
+        if(result.isEmpty()) {
+            return null;
+        } else {
+            /*
+             * TODO this method should probably return a collection too.
+             */
+            return result.iterator().next();
         }
-        return null;
+    }
+
+    public static Collection<EventDefinition> getAccessedEvents(Predicate<StateContext> predicate) {
+        return getAccessedEvents(predicate, new HashSet<>());
+    }
+
+    private static Collection<EventDefinition> getAccessedEvents(Predicate<? super StateContext> predicate,
+                                                              Set<EventDefinition> result) {
+        if(predicate instanceof IsEventDefinitionPredicate) {
+            result.add(((IsEventDefinitionPredicate) predicate).getEventDefinition());
+        } else if(predicate instanceof IsIntentDefinitionPredicate) {
+            result.add(((IsIntentDefinitionPredicate) predicate).getIntentDefinition());
+        } else if(predicate instanceof ComposedPredicate) {
+            ComposedPredicate<? super StateContext> composedPredicate =
+                    (ComposedPredicate<? super StateContext>) predicate;
+            getAccessedEvents(composedPredicate.getP1(), result);
+            getAccessedEvents(composedPredicate.getP2(), result);
+        }
+        return result;
     }
 
     /**
