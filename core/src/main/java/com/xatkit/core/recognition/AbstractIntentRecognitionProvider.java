@@ -7,6 +7,7 @@ import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -14,7 +15,12 @@ import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+
+import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
+import static java.util.Objects.isNull;
 
 /**
  * An {@link IntentRecognitionProvider} that takes care of applying pre/post processing.
@@ -171,6 +177,37 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
     protected abstract RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException;
+
+    /**
+     * Returns the {@link RecognizedIntent} that matches best the current {@code context}.
+     * <p>
+     * This method looks for the {@link RecognizedIntent} with the highest confidence <b>and</b> that can be accepted
+     * by the current context (i.e. there is a {@code Enable[IntentName]} context defined in {@code context
+     * .getNlpSession()}.
+     * <p>
+     * A {@link RecognizedIntent} with the {@link #DEFAULT_FALLBACK_INTENT} definition is returned if doesn't find
+     * any acceptable candidate.
+     *
+     * @param recognizedIntents the {@link Collection} of {@link RecognizedIntent} to get the best candidate from
+     * @param context           the current {@link StateContext}
+     * @return the best {@link RecognizedIntent} if it exists, or a {@link #DEFAULT_FALLBACK_INTENT}
+     * @throws IllegalArgumentException if the provided {@code recognizedIntents} is empty
+     */
+    protected RecognizedIntent getBestCandidate(@NonNull Collection<RecognizedIntent> recognizedIntents,
+                                                @NonNull StateContext context) {
+        checkArgument(!recognizedIntents.isEmpty(), "Cannot get the best candidate from the provided collection: the " +
+                "collection is empty");
+        RecognizedIntent bestCandidate =
+                recognizedIntents.stream().sorted(Comparator.comparingDouble(RecognizedIntent::getRecognitionConfidence).reversed())
+                        .filter(intent -> context.getNlpContext().containsKey("Enable" + intent.getDefinition().getName()))
+                        .findFirst().orElse(null);
+        if (isNull(bestCandidate)) {
+            bestCandidate = IntentFactory.eINSTANCE.createRecognizedIntent();
+            bestCandidate.setDefinition(DEFAULT_FALLBACK_INTENT);
+            bestCandidate.setRecognitionConfidence(0);
+        }
+        return bestCandidate;
+    }
 
     /**
      * Returns the {@link RecognitionMonitor} associated to this intent recognition provider.
