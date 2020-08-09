@@ -13,4 +13,4 @@ Xatkit is a generic bot platform that embeds a dedicated **chatbot-specific lang
 
 Spend more time on your conversation design, and let the framework manage the tedious work of deploying the chatbot / digital assistant application, connecting to the targeted platforms, and extract information from user inputs!
 
-Take a look at the [main Xatkit repository](https://github.com/xatkit-bot-platform/) and the [Wiki](https://github.com/xatkit-bot-platform/xatkit/wiki) for further instructions on how to install and start creating your own Xatkit bots. 
+Take a look at the [main Xatkit repository](https://github.com/xatkit-bot-platform/xatkit) and the [Wiki](https://github.com/xatkit-bot-platform/xatkit/wiki) for further instructions on how to install and start creating your own Xatkit bots. 
