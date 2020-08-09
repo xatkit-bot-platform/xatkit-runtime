@@ -6,8 +6,6 @@ Xatkit - The easiest way to build complex digital assistants
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/4cdbb07fc78f4b0f9c3a5b5c254a4c2b)](https://www.codacy.com/app/gdaniel/xatkit-runtime?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=xatkit-bot-platform/xatkit-runtime&amp;utm_campaign=Badge_Grade)
 [![BCH compliance](https://bettercodehub.com/edge/badge/xatkit-bot-platform/xatkit-runtime?branch=master)](https://bettercodehub.com/)
 [![Latest Javadoc Badge](https://img.shields.io/badge/javadoc-latest-brightgreen.svg)](https://xatkit-bot-platform.github.io/xatkit-runtime-docs/releases/snapshot/doc/)
-[![Gitter Badge](https://img.shields.io/badge/chat-on%20gitter-404040.svg)](https://gitter.im/jarvis-development/Lobby)
-[![Wiki Badge](https://img.shields.io/badge/doc-wiki-blue)](https://github.com/xatkit-bot-platform/xatkit-releases/wiki)
 
 Xatkit is a generic bot platform that embeds a dedicated **chatbot-specific language** to specify user intentions and received events, and bind them to computable actions. The modeled chatbot definition is handled by this **Xatkit Runtime Engine**, which automatically manages its deployment and execution.
 
