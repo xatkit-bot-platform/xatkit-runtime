@@ -25,6 +25,7 @@
         <commons-io.version>2.4</commons-io.version>
         <eclipse-collections.version>9.2.0</eclipse-collections.version>
         <lombok.version>1.18.12</lombok.version>
+        <retrofit.version>2.9.0</retrofit.version>
     </properties>
 
     <dependencies>
@@ -103,6 +104,24 @@
             <artifactId>commons-io</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>retrofit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-gson</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>logging-interceptor</artifactId>
+            <version>3.14.0</version>
+        </dependency>
+
+
+
         <!-- Analytics -->
 
         <dependency>
@@ -168,6 +187,18 @@
 
         <dependencies>
 
+            <dependency>
+                <groupId>com.xatkit</groupId>
+                <artifactId>chat-platform-runtime</artifactId>
+                <version>3.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.xatkit</groupId>
+                <artifactId>react-platform-runtime</artifactId>
+                <version>4.0.1-SNAPSHOT</version>
+            </dependency>
+
             <!-- Stanford NLP -->
             <!-- This dependency has the provided scope because it is only required by some pre/post processors, see the
             documentation to setup Stanford NLP in Xatkit. -->
@@ -230,6 +261,19 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.squareup.retrofit2</groupId>
+                <artifactId>retrofit</artifactId>
+                <version>${retrofit.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.retrofit2</groupId>
+                <artifactId>converter-gson</artifactId>
+                <version>${retrofit.version}</version>
+            </dependency>
+
 
             <!-- Analytics -->
 
