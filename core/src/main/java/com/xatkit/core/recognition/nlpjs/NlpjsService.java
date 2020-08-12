@@ -1,9 +1,11 @@
 package com.xatkit.core.recognition.nlpjs;
 
 import com.xatkit.core.recognition.nlpjs.model.*;
+import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -31,7 +33,6 @@ public class NlpjsService {
                 .client(httpClient)
                 .addConverterFactory(GsonConverterFactory.create()).build();
             this.nlpjsApi = retrofit.create(NlpjsApi.class);
-
     }
 
 
@@ -54,4 +55,13 @@ public class NlpjsService {
         return nlpjsApi.getIntent(agentId,userMessage).execute().body();
     }
 
+    public boolean isShutdown() {
+        try {
+            Response<Agent> response = nlpjsApi.getAgentInfo("default").execute();
+            return response.isSuccessful();
+        } catch (IOException e) {
+            Log.error("The NLP.js API is not responding. See the attached error: {0}", e.getMessage());
+            return true;
+        }
+    }
 }
