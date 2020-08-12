@@ -58,7 +58,7 @@ public class NlpjsService {
     public boolean isShutdown() {
         try {
             Response<Agent> response = nlpjsApi.getAgentInfo("default").execute();
-            return response.isSuccessful();
+            return !response.isSuccessful();
         } catch (IOException e) {
             Log.error("The NLP.js API is not responding. See the attached error: {0}", e.getMessage());
             return true;
