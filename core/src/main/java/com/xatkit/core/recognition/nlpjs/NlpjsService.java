@@ -1,32 +1,37 @@
 package com.xatkit.core.recognition.nlpjs;
 
 import com.xatkit.core.recognition.nlpjs.model.*;
+import lombok.NonNull;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 public class NlpjsService {
 
-    private static NlpjsService INSTANCE = null;
+    private final static String NLPJS_BASE_PATH = "/api";
+
+    private String nlpjsServer;
+
     private NlpjsApi nlpjsApi;
 
-    private NlpjsService(NlpjsApi nlpjsApi){
-        this.nlpjsApi = nlpjsApi;
-    }
+    public NlpjsService(@NonNull String nlpjsServer){
+        this.nlpjsServer = nlpjsServer;
+        String nlpjsApiFullPath = this.nlpjsServer + NLPJS_BASE_PATH;
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+                .readTimeout(3, TimeUnit.SECONDS)
+                .build();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(nlpjsApiFullPath)
+                .client(httpClient)
+                .addConverterFactory(GsonConverterFactory.create()).build();
+            this.nlpjsApi = retrofit.create(NlpjsApi.class);
 
-    public static NlpjsService getInstance(){
-        if(INSTANCE == null){
-            OkHttpClient httpClient = new OkHttpClient.Builder().addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-                    .build();
-            Retrofit retrofit = new Retrofit.Builder().baseUrl("http://localhost:8080/api/").client(httpClient)
-                    .addConverterFactory(GsonConverterFactory.create()).build();
-            NlpjsApi nlpjsApi = retrofit.create(NlpjsApi.class);
-            INSTANCE = new NlpjsService(nlpjsApi);
-        }
-        return INSTANCE;
     }
 
 
