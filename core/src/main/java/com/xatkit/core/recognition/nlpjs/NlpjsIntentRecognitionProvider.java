@@ -5,6 +5,7 @@ import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsIntentMapper;
+import com.xatkit.core.recognition.nlpjs.model.AgentConfig;
 import com.xatkit.core.recognition.nlpjs.model.Entity;
 import com.xatkit.core.recognition.nlpjs.model.Intent;
 import com.xatkit.core.recognition.nlpjs.model.TrainingData;
@@ -19,6 +20,8 @@ import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,7 +93,14 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     public void trainMLEngine() throws IntentRecognitionProviderException {
-
+        TrainingData trainingData = new TrainingData();
+        trainingData.setConfig(new AgentConfig(this.configuration.getLanguageCode()));
+        trainingData.setIntents(new ArrayList<>(this.intentsToRegister.values()));
+        try {
+            this.nlpjsService.trainAgent(agentId,trainingData);
+        } catch (IOException e) {
+            throw new IntentRecognitionProviderException(e);
+        }
     }
 
     @Override
