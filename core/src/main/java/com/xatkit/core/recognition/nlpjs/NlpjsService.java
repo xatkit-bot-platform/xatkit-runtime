@@ -10,7 +10,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 public class NlpjsService {
@@ -23,7 +22,7 @@ public class NlpjsService {
 
     public NlpjsService(@NonNull String nlpjsServer){
         this.nlpjsServer = nlpjsServer;
-        String nlpjsApiFullPath = this.nlpjsServer + NLPJS_BASE_PATH;
+        String nlpjsApiFullPath = this.nlpjsServer + NLPJS_BASE_PATH + "/";
         OkHttpClient httpClient = new OkHttpClient.Builder()
                 .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
                 .readTimeout(3, TimeUnit.SECONDS)
@@ -51,8 +50,8 @@ public class NlpjsService {
         return true;
     }
 
-    public RecognizedIntent getIntent(String agentId, UserMessage userMessage) throws IOException {
-        return nlpjsApi.getIntent(agentId,userMessage).execute().body();
+    public RecognitionResult getIntent(@NonNull String agentId, @NonNull UserMessage userMessage) throws IOException {
+        return nlpjsApi.getIntent(agentId, userMessage).execute().body();
     }
 
     public boolean isShutdown() {
