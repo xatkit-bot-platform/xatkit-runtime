@@ -5,15 +5,15 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class RecognizedIntent {
+public class RecognitionResult {
     private String local;
     private String utterance;
     private String languageGuessed;
     private String localIso2;
     private String language;
-    private List<Classification> classification;
+    private List<Classification> classifications;
     private String intent;
-    private Double score;
-    private String domaine;
+    private Float score;
+    private String domain;
     private List<ExtractedEntity> entities;
 }
