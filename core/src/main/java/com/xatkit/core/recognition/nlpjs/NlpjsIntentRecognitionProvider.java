@@ -5,14 +5,13 @@ import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsIntentMapper;
-import com.xatkit.core.recognition.nlpjs.model.AgentConfig;
-import com.xatkit.core.recognition.nlpjs.model.Entity;
-import com.xatkit.core.recognition.nlpjs.model.Intent;
-import com.xatkit.core.recognition.nlpjs.model.TrainingData;
+import com.xatkit.core.recognition.nlpjs.mapper.NlpjsRecognitionResultMapper;
+import com.xatkit.core.recognition.nlpjs.model.*;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -23,6 +22,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -33,6 +33,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     private NlpjsConfiguration configuration;
 
     private NlpjsIntentMapper nlpjsIntentMapper;
+
+    private NlpjsRecognitionResultMapper nlpjsRecognitionResultMapper;
 
     private NlpjsService nlpjsService;
 
@@ -58,6 +60,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.agentId = this.configuration.getAgentId();
         this.nlpjsServer = this.configuration.getNlpjsServer();
         this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration);
+        this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry);
         this.nlpjsService = new NlpjsService(this.nlpjsServer);
 
         this.recognitionMonitor = recognitionMonitor;
@@ -105,7 +108,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     public XatkitSession createContext(@NonNull String sessionId) throws IntentRecognitionProviderException {
-        return null;
+        return new XatkitSession(sessionId);
     }
 
     @Override
@@ -120,7 +123,22 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
-        return null;
+        try {
+            UserMessage userMessage = new UserMessage(input);
+            RecognitionResult recognitionResult = this.nlpjsService.getIntent(agentId, userMessage);
+            if (recognitionResult.getIntent().equals("None")) {
+                RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+                recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
+                recognizedIntent.setRecognitionConfidence(recognitionResult.getScore());
+                recognizedIntent.setMatchedInput(recognitionResult.getUtterance());
+                return recognizedIntent;
+            }
+            List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapResult(recognitionResult);
+            return this.getBestCandidate(recognizedIntents,context);
+
+        } catch (IOException e) {
+            throw new IntentRecognitionProviderException(e);
+        }
     }
 
     @Nullable
