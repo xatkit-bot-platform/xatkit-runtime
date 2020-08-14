@@ -17,7 +17,7 @@ public interface NlpjsApi {
     Call<Void> createAgent(@Body @NonNull AgentInit agentInit);
 
     @POST("agent/{agentId}/train")
-    Call<Void> trainAgent(@Path("agentId") @NonNull String agentId, @Body TrainingData trainingData);
+    Call<Void> trainAgent(@Path("agentId") @NonNull String agentId, @NonNull @Body TrainingData trainingData);
 
     @POST("agent/{agentId}/process")
     Call<RecognitionResult> getIntent(@Path("agentId") @NonNull String agentId, @Body @NonNull UserMessage userMessage);
