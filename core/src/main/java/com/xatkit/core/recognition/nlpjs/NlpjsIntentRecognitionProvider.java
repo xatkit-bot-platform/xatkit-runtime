@@ -4,15 +4,13 @@ import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.RecognitionMonitor;
+import com.xatkit.core.recognition.nlpjs.mapper.NlpjsEntityMapper;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsIntentMapper;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsRecognitionResultMapper;
 import com.xatkit.core.recognition.nlpjs.model.*;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
-import com.xatkit.intent.EntityDefinition;
-import com.xatkit.intent.IntentDefinition;
-import com.xatkit.intent.IntentFactory;
-import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.intent.*;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
@@ -20,6 +18,7 @@ import org.apache.commons.configuration2.Configuration;
 import javax.annotation.Nullable;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +32,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     private NlpjsConfiguration configuration;
 
     private NlpjsIntentMapper nlpjsIntentMapper;
+
+    private NlpjsEntityMapper nlpjsEntityMapper;
 
     private NlpjsRecognitionResultMapper nlpjsRecognitionResultMapper;
 
@@ -62,6 +63,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration);
         this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry);
         this.nlpjsService = new NlpjsService(this.nlpjsServer);
+        this.nlpjsEntityMapper = new NlpjsEntityMapper();
 
         this.recognitionMonitor = recognitionMonitor;
         this.intentsToRegister = new HashMap<>();
@@ -72,6 +74,28 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
+        checkNotShutdown();
+        if (entityDefinition instanceof BaseEntityDefinition) {
+            // Here we supposed that all the base entity types are supported by nlp js.
+            // We should check each one of them individually and see if they're supported
+            BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
+            Log.trace("Skipping registration of {0} ({1}), {0} are natively supported by DialogFlow",
+                    BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType().getLiteral());
+        } else if (entityDefinition instanceof CustomEntityDefinition) {
+            Log.debug("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
+            if (entityDefinition instanceof CompositeEntityDefinition) {
+                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
+                        "{0}, Composite entities are not supported by NLP.js", entityDefinition));
+            } else {
+                Entity entity = this.nlpjsEntityMapper.mapEntiyDefinition(entityDefinition);
+                this.entitiesToRegister.put(entityDefinition.getName(),entity);
+            }
+
+        } else {
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the provided {0}, " +
+                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+                    EntityDefinition.class.getSimpleName()));
+        }
     }
 
     @Override
@@ -96,14 +120,18 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     public void trainMLEngine() throws IntentRecognitionProviderException {
+        checkNotShutdown();
+        Log.info("Starting NLP.js agent training (this may take a few minutes)");
         TrainingData trainingData = new TrainingData();
         trainingData.setConfig(new AgentConfig(this.configuration.getLanguageCode()));
         trainingData.setIntents(new ArrayList<>(this.intentsToRegister.values()));
+        trainingData.setEntities(new ArrayList<>(this.entitiesToRegister.values()));
         try {
             this.nlpjsService.trainAgent(agentId,trainingData);
         } catch (IOException e) {
             throw new IntentRecognitionProviderException(e);
         }
+        Log.info("NLP.js agent trained.");
     }
 
     @Override
