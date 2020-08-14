@@ -85,7 +85,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             Log.debug("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
             if (entityDefinition instanceof CompositeEntityDefinition) {
                 throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
-                        "{0}, Composite entities are not supported by NLP.js", entityDefinition));
+                        "{0}. Composite entities are not supported by NLP.js", entityDefinition));
             } else {
                 Entity entity = this.nlpjsEntityMapper.mapEntiyDefinition(entityDefinition);
                 this.entitiesToRegister.put(entityDefinition.getName(),entity);
@@ -127,11 +127,26 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         trainingData.setIntents(new ArrayList<>(this.intentsToRegister.values()));
         trainingData.setEntities(new ArrayList<>(this.entitiesToRegister.values()));
         try {
+            boolean isDone = false;
+            int attemptsLeft = 10;
             this.nlpjsService.trainAgent(agentId,trainingData);
-        } catch (IOException e) {
-            throw new IntentRecognitionProviderException(e);
-        }
-        Log.info("NLP.js agent trained.");
+            while(!isDone && attemptsLeft > 0){
+                Thread.sleep(10000);
+                Agent agent = this.nlpjsService.getAgentInfo(this.agentId);
+                if(agent.getStatus().equals(AgentStatus.READY))
+                    isDone = true;
+                else
+                    attemptsLeft--;
+            }
+            if(isDone)
+                Log.info("NLP.js agent trained.");
+            else
+                throw new IntentRecognitionProviderException("Failed to train the NLP.js agent");
+
+
+        } catch (IOException | InterruptedException e) {
+        throw new IntentRecognitionProviderException("An error occurred during the NLP agent training: ", e);
+    }
     }
 
     @Override
