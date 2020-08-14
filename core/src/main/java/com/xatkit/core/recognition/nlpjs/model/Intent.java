@@ -48,7 +48,7 @@ public class Intent {
             return this;
         }
 
-        public Intent.Builder addExample(IntentParameter intentParameter){
+        public Intent.Builder addParameter(IntentParameter intentParameter){
             _parameters.add(intentParameter);
             return this;
         }
