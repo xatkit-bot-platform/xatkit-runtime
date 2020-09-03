@@ -7,6 +7,7 @@ import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsEntityMapper;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsIntentMapper;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsRecognitionResultMapper;
+import com.xatkit.core.recognition.nlpjs.mapper.NlpjsSlotMapper;
 import com.xatkit.core.recognition.nlpjs.model.*;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
@@ -35,6 +36,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     private NlpjsEntityMapper nlpjsEntityMapper;
 
+    private NlpjsSlotMapper nlpjsSlotMapper;
+
     private NlpjsRecognitionResultMapper nlpjsRecognitionResultMapper;
 
     private NlpjsService nlpjsService;
@@ -46,6 +49,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     private Map<String, Intent> intentsToRegister;
 
     private Map<String, Entity> entitiesToRegister;
+
 
     /**
      * The {@link RecognitionMonitor} used to track intent matching information.
@@ -60,7 +64,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.configuration = new NlpjsConfiguration(configuration);
         this.agentId = this.configuration.getAgentId();
         this.nlpjsServer = this.configuration.getNlpjsServer();
-        this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration);
+        this.nlpjsSlotMapper = new NlpjsSlotMapper();
+        this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration, nlpjsSlotMapper);
         this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry);
         this.nlpjsService = new NlpjsService(this.nlpjsServer);
         this.nlpjsEntityMapper = new NlpjsEntityMapper();
