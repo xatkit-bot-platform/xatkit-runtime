@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -128,7 +129,7 @@ public class XatkitCore implements Runnable {
      */
     public XatkitCore(@NonNull ExecutionModel executionModel, @NonNull Configuration configuration) {
         this.executionModel = executionModel;
-        this.configuration = configuration;
+        this.configuration = this.adaptConfiguration(configuration);
     }
 
     /**
@@ -212,6 +213,36 @@ public class XatkitCore implements Runnable {
         } else {
             throw new XatkitException(MessageFormat.format("Cannot find formatter {0}", formatterName));
         }
+    }
+
+    /**
+     * Adapts the provided {@code baseConfiguration} with additional runtime properties.
+     * <p>
+     * This method merges the provided {@code baseConfiguration} with {@link System#getProperties()}, allowing to
+     * override a bot configuration from a command-line argument. This can be used, for example, to override the
+     * server port if the bot is deployed in a server where the hardcoded port is already used.
+     * <p>
+     * Command line arguments can be provided with a similar syntax to Xatkit properties, as an example, the code
+     * below overrides the port used by the bot:
+     * <pre>
+     * {@code
+     * java -Dxatkit.server.port=5010 -jar MyBot.jar
+     * }
+     * </pre>
+     * @param baseConfiguration the base {@link Configuration} to adapt
+     * @return the adapted {@link Configuration}
+     */
+    private Configuration adaptConfiguration(Configuration baseConfiguration) {
+        Properties systemProperties = System.getProperties();
+        systemProperties.forEach((k,v) -> {
+            if(k instanceof String) {
+                /*
+                 * Use setProperty here to make sure we remove existing values.
+                 */
+                baseConfiguration.setProperty((String) k, v);
+            }
+        });
+        return baseConfiguration;
     }
 
     /**
