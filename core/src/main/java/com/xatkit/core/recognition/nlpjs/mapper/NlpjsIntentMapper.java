@@ -7,6 +7,8 @@ import com.xatkit.intent.Context;
 import com.xatkit.intent.IntentDefinition;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
@@ -17,6 +19,7 @@ public class NlpjsIntentMapper {
 
     public NlpjsIntentMapper(@NonNull NlpjsConfiguration configuration){
         this.configuration = configuration;
+
     }
 
     public Intent mapIntentDefinition(@NonNull IntentDefinition intentDefinition) {
@@ -24,13 +27,20 @@ public class NlpjsIntentMapper {
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());
         Intent.Builder builder = Intent.newBuilder()
                 .intentName(intentDefinition.getName());
-        for(String trainingSentence:  intentDefinition.getTrainingSentences()){
-            builder.addExample(createTrainingExample(trainingSentence,intentDefinition.getOutContexts()));
-        }
+        List<IntentExample> intentExamples = createIntentExamples(intentDefinition);
+        builder.examples(intentExamples);
         return builder.build();
     }
 
-    private IntentExample createTrainingExample(@NonNull String trainingSentence, @NonNull List<Context> outContexts){
+    private List<IntentExample> createIntentExamples(@NonNull IntentDefinition intentDefinition) {
+        List<IntentExample> intentExamples = new ArrayList<>();
+        for(String trainingSentence:  intentDefinition.getTrainingSentences()){
+            intentExamples.add(createIntentExample(trainingSentence,intentDefinition.getOutContexts()));
+        }
+        return intentExamples;
+    }
+
+    private IntentExample createIntentExample(@NonNull String trainingSentence, @NonNull List<Context> outContexts){
         if(!outContexts.isEmpty()) {
             Log.warn("outContext are not supported in NLP.js engine");
         }
