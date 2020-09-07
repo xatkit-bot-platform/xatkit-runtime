@@ -1,8 +1,11 @@
 package com.xatkit.core.recognition.nlpjs.mapper;
 
 import com.xatkit.core.recognition.nlpjs.NlpjsConfiguration;
+import com.xatkit.core.recognition.nlpjs.NlpjsHelper;
+import com.xatkit.core.recognition.nlpjs.model.EntityType;
 import com.xatkit.core.recognition.nlpjs.model.Intent;
 import com.xatkit.core.recognition.nlpjs.model.IntentExample;
+import com.xatkit.core.recognition.nlpjs.model.IntentParameter;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.IntentDefinition;
@@ -32,20 +35,22 @@ public class NlpjsIntentMapper {
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());
         Intent.Builder builder = Intent.newBuilder()
                 .intentName(intentDefinition.getName());
-        List<IntentExample> intentExamples = createIntentExamples(intentDefinition);
+        List<IntentParameter> intentParameters = new ArrayList<>();
+        List<IntentExample> intentExamples = createIntentExamples(intentDefinition, intentParameters);
         builder.examples(intentExamples);
+        builder.parameters(intentParameters);
         return builder.build();
     }
 
-    private List<IntentExample> createIntentExamples(@NonNull IntentDefinition intentDefinition) {
+    private List<IntentExample> createIntentExamples(@NonNull IntentDefinition intentDefinition, @NonNull List<IntentParameter> intentParameters) {
         List<IntentExample> intentExamples = new ArrayList<>();
-        for(String trainingSentence:  intentDefinition.getTrainingSentences()){
-            intentExamples.add(createIntentExample(trainingSentence,intentDefinition.getOutContexts()));
+        for (String trainingSentence : intentDefinition.getTrainingSentences()) {
+            intentExamples.add(createIntentExample(trainingSentence, intentDefinition.getOutContexts(),intentParameters));
         }
         return intentExamples;
     }
 
-    private IntentExample createIntentExample(@NonNull String trainingSentence, @NonNull List<Context> outContexts) {
+    private IntentExample createIntentExample(@NonNull String trainingSentence, @NonNull List<Context> outContexts, @NonNull List<IntentParameter> intentParameters) {
         if (outContexts.isEmpty()) {
             return new IntentExample(trainingSentence);
         } else {
@@ -76,11 +81,21 @@ public class NlpjsIntentMapper {
                             String nlpEntity =
                                     nlpjsSlotMapper.getMappingFor(parameter.getEntity()
                                             .getReferredEntity());
-                            intentExampleBuilder.append("%").append(nlpEntity).append("%");
+                            StringBuilder nlpjsIntentParameterBuilder = new StringBuilder().append(nlpEntity);
+                            if (NlpjsHelper.getEntityCount(parameter.getEntity().getReferredEntity(),outContexts) > 1)
+                                nlpjsIntentParameterBuilder.append("_").append(NlpjsHelper.getEntityTypeIndex(parameter.getTextFragment(),
+                                        parameter.getEntity().getReferredEntity(),outContexts));
+                            String nlpsjIntentParameter = nlpjsIntentParameterBuilder.toString();
+                            intentExampleBuilder.append("%").append(nlpsjIntentParameter).append("%");
+                            IntentParameter intentParameter = new IntentParameter();
+                            intentParameter.setSlot(nlpsjIntentParameter);
+                            intentParameters.add(intentParameter);
+
                         }
                     }
                 }
                 if (!isParameter) {
+                    System.out.println(sentencePart);
                     intentExampleBuilder.append(sentencePart);
                 }
 
@@ -89,4 +104,6 @@ public class NlpjsIntentMapper {
 
         }
     }
+
+
 }
