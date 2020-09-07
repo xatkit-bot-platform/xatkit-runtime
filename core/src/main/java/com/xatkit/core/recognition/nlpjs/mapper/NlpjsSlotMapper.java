@@ -24,4 +24,20 @@ public class NlpjsSlotMapper extends EntityMapper {
         this.addEntityMapping(PERCENTAGE,"percentage");
     }
 
+    @Override
+    public void addCustomEntityMapping(CustomEntityDefinition entityDefinition, String concreteEntity) {
+        /*
+         * Supporting this would imply to populate the DialogFlowEntityMapper when loading an existing agent. There
+         * is no need for such feature for now.
+         */
+        throw new UnsupportedOperationException(MessageFormat.format("{0} does not allow to register custom entity " +
+                        "mappings, use getMappingFor(EntityDefinition) to get NLP.js-compatible mapping of {1}",
+                this.getClass().getSimpleName(), CustomEntityDefinition.class.getSimpleName()));
+    }
+
+    @Override
+    protected String getMappingForCustomEntity(CustomEntityDefinition customEntityDefinition) {
+        return customEntityDefinition.getName();
+    }
+
 }
