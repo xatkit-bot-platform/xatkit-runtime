@@ -3,11 +3,12 @@ package com.xatkit.core.recognition.nlpjs.mapper;
 
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.recognition.nlpjs.NlpjsConfiguration;
+import com.xatkit.core.recognition.nlpjs.NlpjsHelper;
 import com.xatkit.core.recognition.nlpjs.model.Classification;
+import com.xatkit.core.recognition.nlpjs.model.EntityValue;
+import com.xatkit.core.recognition.nlpjs.model.ExtractedEntity;
 import com.xatkit.core.recognition.nlpjs.model.RecognitionResult;
-import com.xatkit.intent.IntentDefinition;
-import com.xatkit.intent.IntentFactory;
-import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.intent.*;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 
@@ -16,6 +17,7 @@ import java.util.List;
 
 import static com.xatkit.core.recognition.IntentRecognitionProvider.DEFAULT_FALLBACK_INTENT;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 public class NlpjsRecognitionResultMapper {
 
@@ -23,13 +25,17 @@ public class NlpjsRecognitionResultMapper {
 
     private EventDefinitionRegistry eventRegistry;
 
+    private NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper;
+
     public NlpjsRecognitionResultMapper(@NonNull NlpjsConfiguration configuration,
-                                  @NonNull EventDefinitionRegistry eventRegistry) {
+                                  @NonNull EventDefinitionRegistry eventRegistry,
+                                        @NonNull NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
         this.configuration = configuration;
         this.eventRegistry = eventRegistry;
+        this.nlpjsEntityReferenceMapper = nlpjsEntityReferenceMapper;
     }
 
-    public List<RecognizedIntent> mapResult(@NonNull RecognitionResult recognitionResult){
+    public List<RecognizedIntent> mapRecognitionResult(@NonNull RecognitionResult recognitionResult){
         List<Classification> classifications = recognitionResult.getClassifications();
         List<RecognizedIntent> recognizedIntents = new ArrayList<>();
         for(Classification classification: classifications){
@@ -42,6 +48,35 @@ public class NlpjsRecognitionResultMapper {
         }
 
         return  recognizedIntents;
+    }
+
+    public List<ContextInstance> mapParamterValues(RecognizedIntent recognizedIntent, List<ExtractedEntity> extractedEntities) {
+        List<ContextInstance> contextInstances = new ArrayList<>();
+        for (ExtractedEntity extractedEntity: extractedEntities) {
+            String entityType = extractedEntity.getEntity();
+            Context contextDefinition = NlpjsHelper.getContextFromNlpEntity(entityType, recognizedIntent.getDefinition().getOutContexts(),
+                    nlpjsEntityReferenceMapper);
+            if (nonNull(contextDefinition)) {
+                ContextInstance contextInstance = IntentFactory.eINSTANCE.createContextInstance();
+                contextInstance.setDefinition(contextDefinition);
+                contextInstance.setLifespanCount(2);
+                ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType, recognizedIntent.getDefinition().getOutContexts(),
+                        nlpjsEntityReferenceMapper);
+                if (nonNull(contextParameter) ) {
+                    ContextParameterValue contextParameterValue =
+                            IntentFactory.eINSTANCE.createContextParameterValue();
+                    contextParameterValue.setContextParameter(contextParameter);
+                    if (nonNull(extractedEntity.getOption())) {
+                        contextParameterValue.setValue(extractedEntity.getOption());
+                    } else if (nonNull(extractedEntity.getResolution()) && nonNull(extractedEntity.getResolution().getStrValue())) {
+                        contextParameterValue.setValue(extractedEntity.getResolution().getStrValue());
+                    }
+                }
+                contextInstances.add(contextInstance);
+
+            }
+        }
+        return contextInstances;
     }
 
     private IntentDefinition convertNlpjsIntentNameToIntentDefinition(@NonNull String intentName) {
