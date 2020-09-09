@@ -2,14 +2,12 @@ package com.xatkit.core.recognition.nlpjs.mapper;
 
 import com.xatkit.core.recognition.nlpjs.NlpjsConfiguration;
 import com.xatkit.core.recognition.nlpjs.NlpjsHelper;
-import com.xatkit.core.recognition.nlpjs.model.EntityType;
 import com.xatkit.core.recognition.nlpjs.model.Intent;
 import com.xatkit.core.recognition.nlpjs.model.IntentExample;
 import com.xatkit.core.recognition.nlpjs.model.IntentParameter;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.IntentDefinition;
-import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 
 import java.util.ArrayList;
@@ -21,12 +19,12 @@ public class NlpjsIntentMapper {
 
     private NlpjsConfiguration configuration;
 
-    private NlpjsSlotMapper nlpjsSlotMapper;
+    private NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper;
 
     public NlpjsIntentMapper(@NonNull NlpjsConfiguration configuration,
-                             @NonNull NlpjsSlotMapper nlpjsSlotMapper) {
+                             @NonNull NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
         this.configuration = configuration;
-        this.nlpjsSlotMapper = nlpjsSlotMapper;
+        this.nlpjsEntityReferenceMapper = nlpjsEntityReferenceMapper;
 
     }
 
@@ -79,7 +77,7 @@ public class NlpjsIntentMapper {
                                     trainingSentence, parameter.getTextFragment());
                             isParameter = true;
                             String nlpEntity =
-                                    nlpjsSlotMapper.getMappingFor(parameter.getEntity()
+                                    nlpjsEntityReferenceMapper.getMappingFor(parameter.getEntity()
                                             .getReferredEntity());
                             StringBuilder nlpjsIntentParameterBuilder = new StringBuilder().append(nlpEntity);
                             if (NlpjsHelper.getEntityCount(parameter.getEntity().getReferredEntity(),outContexts) > 1)

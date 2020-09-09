@@ -5,9 +5,9 @@ import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsEntityMapper;
+import com.xatkit.core.recognition.nlpjs.mapper.NlpjsEntityReferenceMapper;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsIntentMapper;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsRecognitionResultMapper;
-import com.xatkit.core.recognition.nlpjs.mapper.NlpjsSlotMapper;
 import com.xatkit.core.recognition.nlpjs.model.*;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
@@ -36,7 +36,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     private NlpjsEntityMapper nlpjsEntityMapper;
 
-    private NlpjsSlotMapper nlpjsSlotMapper;
+    private NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper;
 
     private NlpjsRecognitionResultMapper nlpjsRecognitionResultMapper;
 
@@ -64,9 +64,9 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.configuration = new NlpjsConfiguration(configuration);
         this.agentId = this.configuration.getAgentId();
         this.nlpjsServer = this.configuration.getNlpjsServer();
-        this.nlpjsSlotMapper = new NlpjsSlotMapper();
-        this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration, nlpjsSlotMapper);
-        this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry);
+        this.nlpjsEntityReferenceMapper = new NlpjsEntityReferenceMapper();
+        this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration, nlpjsEntityReferenceMapper);
+        this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry, nlpjsEntityReferenceMapper);
         this.nlpjsService = new NlpjsService(this.nlpjsServer);
         this.nlpjsEntityMapper = new NlpjsEntityMapper();
 
@@ -136,7 +136,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             int attemptsLeft = 10;
             this.nlpjsService.trainAgent(agentId,trainingData);
             while(!isDone && attemptsLeft > 0){
-                Thread.sleep(10000);
+                Thread.sleep(2000);
                 Agent agent = this.nlpjsService.getAgentInfo(this.agentId);
                 if(agent.getStatus().equals(AgentStatus.READY))
                     isDone = true;
@@ -181,8 +181,10 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                 recognizedIntent.setMatchedInput(recognitionResult.getUtterance());
                 return recognizedIntent;
             }
-            List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapResult(recognitionResult);
-            return this.getBestCandidate(recognizedIntents,context);
+            List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
+            RecognizedIntent recognizedIntent = getBestCandidate(recognizedIntents,context);
+           recognizedIntent.getOutContextInstances().addAll(nlpjsRecognitionResultMapper.mapParamterValues(recognizedIntent, recognitionResult.getEntities()));
+            return recognizedIntent;
 
         } catch (IOException e) {
             throw new IntentRecognitionProviderException(e);
