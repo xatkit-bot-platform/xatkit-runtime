@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition.nlpjs;
 
-import com.xatkit.core.recognition.nlpjs.model.EntityType;
+import com.xatkit.core.recognition.nlpjs.mapper.NlpjsEntityReferenceMapper;
 import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.EntityDefinition;
@@ -37,5 +37,30 @@ public class NlpjsHelper {
         }
         return suffix;
     }
+
+    public static Context getContextFromNlpEntity(String nlpjsEntityType, List<Context> outContexts, NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
+        //TODO take care of suffixed entity types
+        for (Context context : outContexts) {
+            for (ContextParameter parameter : context.getParameters()) {
+                if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
+                    return context;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static ContextParameter getContextParameterFromNlpEntity(String nlpjsEntityType, List<Context> outContexts, NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
+        //TODO take care of suffixed entity types
+        for (Context context : outContexts) {
+            for (ContextParameter parameter : context.getParameters()) {
+                if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
+                    return parameter;
+                }
+            }
+        }
+        return null;
+    }
+
 
 }
