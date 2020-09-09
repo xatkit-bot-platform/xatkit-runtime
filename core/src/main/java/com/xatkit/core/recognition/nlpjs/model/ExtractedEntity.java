@@ -13,4 +13,8 @@ public class ExtractedEntity {
     private String option;
     private String sourceText;
     private String utteranceText;
+
+    private Resolution resolution;
+
+
 }
