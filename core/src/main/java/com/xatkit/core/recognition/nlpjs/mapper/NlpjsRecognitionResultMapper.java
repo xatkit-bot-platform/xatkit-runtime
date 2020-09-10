@@ -59,7 +59,7 @@ public class NlpjsRecognitionResultMapper {
             if (nonNull(contextDefinition)) {
                 ContextInstance contextInstance = IntentFactory.eINSTANCE.createContextInstance();
                 contextInstance.setDefinition(contextDefinition);
-                contextInstance.setLifespanCount(2);
+                contextInstance.setLifespanCount(1);
                 ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType, recognizedIntent.getDefinition().getOutContexts(),
                         nlpjsEntityReferenceMapper);
                 if (nonNull(contextParameter) ) {
