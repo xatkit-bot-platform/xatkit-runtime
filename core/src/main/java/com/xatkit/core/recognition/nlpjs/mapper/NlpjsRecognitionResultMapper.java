@@ -65,12 +65,13 @@ public class NlpjsRecognitionResultMapper {
                 if (nonNull(contextParameter) ) {
                     ContextParameterValue contextParameterValue =
                             IntentFactory.eINSTANCE.createContextParameterValue();
-                    contextParameterValue.setContextParameter(contextParameter);
                     if (nonNull(extractedEntity.getOption())) {
                         contextParameterValue.setValue(extractedEntity.getOption());
                     } else if (nonNull(extractedEntity.getResolution()) && nonNull(extractedEntity.getResolution().getStrValue())) {
                         contextParameterValue.setValue(extractedEntity.getResolution().getStrValue());
                     }
+                    contextParameterValue.setContextParameter(contextParameter);
+                    contextInstance.getValues().add(contextParameterValue);
                 }
                 contextInstances.add(contextInstance);
 
