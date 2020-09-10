@@ -1,9 +1,7 @@
 package com.xatkit.core.recognition.nlpjs;
 
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsEntityReferenceMapper;
-import com.xatkit.intent.Context;
-import com.xatkit.intent.ContextParameter;
-import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.*;
 
 import java.util.List;
 
@@ -42,9 +40,16 @@ public class NlpjsHelper {
         //TODO take care of suffixed entity types
         for (Context context : outContexts) {
             for (ContextParameter parameter : context.getParameters()) {
-                if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
-                    return context;
-                }
+                if(parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
+                    if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())))
+                        return context;
+                } else if (parameter.getEntity().getReferredEntity() instanceof CustomEntityDefinition) {
+                        CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) parameter.getEntity().getReferredEntity();
+                        if(customEntityDefinition.getName().equals(nlpjsEntityType))
+                            return context;
+
+                    }
+
             }
         }
         return null;
@@ -54,9 +59,16 @@ public class NlpjsHelper {
         //TODO take care of suffixed entity types
         for (Context context : outContexts) {
             for (ContextParameter parameter : context.getParameters()) {
-                if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
-                    return parameter;
+                if(parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
+                    if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())))
+                        return parameter;
+                } else if (parameter.getEntity().getReferredEntity() instanceof CustomEntityDefinition) {
+                    CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) parameter.getEntity().getReferredEntity();
+                    if(customEntityDefinition.getName().equals(nlpjsEntityType))
+                        return parameter;
+
                 }
+
             }
         }
         return null;
