@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
 public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
@@ -59,7 +60,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
 
     public NlpjsIntentRecognitionProvider(@NonNull EventDefinitionRegistry eventRegistry, @NonNull Configuration configuration,
-    @Nullable RecognitionMonitor recognitionMonitor) {
+                                          @Nullable RecognitionMonitor recognitionMonitor) {
         Log.info("Starting NLP.js Client");
         this.configuration = new NlpjsConfiguration(configuration);
         this.agentId = this.configuration.getAgentId();
@@ -69,23 +70,20 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry, nlpjsEntityReferenceMapper);
         this.nlpjsService = new NlpjsService(this.nlpjsServer);
         this.nlpjsEntityMapper = new NlpjsEntityMapper();
-
         this.recognitionMonitor = recognitionMonitor;
         this.intentsToRegister = new HashMap<>();
         this.entitiesToRegister = new HashMap<>();
-
     }
-
 
     @Override
     public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
         checkNotShutdown();
         if (entityDefinition instanceof BaseEntityDefinition) {
-            // Here we supposed that all the base entity types are supported by nlp js.
-            // We should check each one of them individually and see if they're supported
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
-            Log.trace("Skipping registration of {0} ({1}), {0} are natively supported by DialogFlow",
-                    BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType().getLiteral());
+            if (nlpjsEntityReferenceMapper.isSupported(baseEntityDefinition.getEntityType())) {
+                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
+                        "{0}. This type is not supported by NLP.js", entityDefinition));
+            }
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             Log.debug("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
             if (entityDefinition instanceof CompositeEntityDefinition) {
@@ -93,7 +91,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                         "{0}. Composite entities are not supported by NLP.js", entityDefinition));
             } else {
                 Entity entity = this.nlpjsEntityMapper.mapEntiyDefinition(entityDefinition);
-                this.entitiesToRegister.put(entityDefinition.getName(),entity);
+                this.entitiesToRegister.put(entityDefinition.getName(), entity);
             }
 
         } else {
@@ -107,10 +105,14 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkNotNull(intentDefinition.getName(), "Cannot register the %s with the provided name %s",
-                IntentDefinition.class.getSimpleName());
+                IntentDefinition.class.getSimpleName(), intentDefinition.getName());
+        if (this.intentsToRegister.containsKey(intentDefinition.getName())) {
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the intent {0}, the " +
+                    "intent already exists", intentDefinition.getName()));
+        }
         Log.debug("Registering NLP.js intent {0}", intentDefinition.getName());
         Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition);
-        this.intentsToRegister.put(intentDefinition.getName(),intent);
+        this.intentsToRegister.put(intentDefinition.getName(), intent);
     }
 
     @Override
@@ -127,31 +129,30 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     public void trainMLEngine() throws IntentRecognitionProviderException {
         checkNotShutdown();
         Log.info("Starting NLP.js agent training (this may take a few minutes)");
-        TrainingData trainingData = new TrainingData();
-        trainingData.setConfig(new AgentConfig(this.configuration.getLanguageCode()));
-        trainingData.setIntents(new ArrayList<>(this.intentsToRegister.values()));
-        trainingData.setEntities(new ArrayList<>(this.entitiesToRegister.values()));
+        TrainingData trainingData = TrainingData.newBuilder()
+                .config(new AgentConfig(this.configuration.getLanguageCode()))
+                .intents(new ArrayList<>(this.intentsToRegister.values()))
+                .entities(new ArrayList<>(this.entitiesToRegister.values()))
+                .build();
         try {
             boolean isDone = false;
             int attemptsLeft = 10;
-            this.nlpjsService.trainAgent(agentId,trainingData);
-            while(!isDone && attemptsLeft > 0){
+            this.nlpjsService.trainAgent(agentId, trainingData);
+            while (!isDone && attemptsLeft > 0) {
                 Thread.sleep(2000);
                 Agent agent = this.nlpjsService.getAgentInfo(this.agentId);
-                if(agent.getStatus().equals(AgentStatus.READY))
+                if (agent.getStatus().equals(AgentStatus.READY))
                     isDone = true;
                 else
                     attemptsLeft--;
             }
-            if(isDone)
+            if (isDone)
                 Log.info("NLP.js agent trained.");
             else
                 throw new IntentRecognitionProviderException("Failed to train the NLP.js agent");
-
-
         } catch (IOException | InterruptedException e) {
-        throw new IntentRecognitionProviderException("An error occurred during the NLP agent training: ", e);
-    }
+            throw new IntentRecognitionProviderException("An error occurred during the NLP agent training: ", e);
+        }
     }
 
     @Override
@@ -171,10 +172,13 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
+        checkNotShutdown();
+        checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         try {
             UserMessage userMessage = new UserMessage(input);
             RecognitionResult recognitionResult = this.nlpjsService.getIntent(agentId, userMessage);
-            if (recognitionResult.getIntent().equals("None")) {
+            List<Classification> classifications = recognitionResult.getClassifications();
+            if (!classifications.isEmpty() && classifications.get(0).getIntent().equals("None")) {
                 RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
                 recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
                 recognizedIntent.setRecognitionConfidence(recognitionResult.getScore());
@@ -182,8 +186,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                 return recognizedIntent;
             }
             List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
-            RecognizedIntent recognizedIntent = getBestCandidate(recognizedIntents,context);
-           recognizedIntent.getOutContextInstances().addAll(nlpjsRecognitionResultMapper.mapParamterValues(recognizedIntent, recognitionResult.getEntities()));
+            RecognizedIntent recognizedIntent = getBestCandidate(recognizedIntents, context);
+            recognizedIntent.getOutContextInstances().addAll(nlpjsRecognitionResultMapper.mapParamterValues(recognizedIntent, recognitionResult.getEntities()));
             return recognizedIntent;
 
         } catch (IOException e) {
