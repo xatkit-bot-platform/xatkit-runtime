@@ -5,7 +5,11 @@ import lombok.Data;
 @Data
 public class Resolution {
 
-    private String strValue;
+    private Object value;
 
     private String subtype;
+
+    private String type;
+
+
 }
