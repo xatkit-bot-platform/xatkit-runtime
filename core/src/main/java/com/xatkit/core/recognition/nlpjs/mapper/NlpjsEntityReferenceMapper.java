@@ -3,6 +3,7 @@ package com.xatkit.core.recognition.nlpjs.mapper;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.intent.CustomEntityDefinition;
 
+import com.xatkit.intent.EntityType;
 import lombok.NonNull;
 
 import java.text.MessageFormat;
@@ -20,12 +21,11 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
     public NlpjsEntityReferenceMapper() {
         super();
         this.registerEntities();
-        this.setFallbackEntityMapping("any");
+        this.setFallbackEntityMapping("none");
         this.reversedEntities = this.reverseEntityTypes();
     }
 
     private void registerEntities() {
-        this.addEntityMapping(ANY, "any");
         this.addEntityMapping(EMAIL,"email");
         this.addEntityMapping(PHONE_NUMBER,"phonenumber");
         this.addEntityMapping(URL,"url");
@@ -35,10 +35,6 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
 
     @Override
     public void addCustomEntityMapping(CustomEntityDefinition entityDefinition, String concreteEntity) {
-        /*
-         * Supporting this would imply to populate the DialogFlowEntityMapper when loading an existing agent. There
-         * is no need for such feature for now.
-         */
         throw new UnsupportedOperationException(MessageFormat.format("{0} does not allow to register custom entity " +
                         "mappings, use getMappingFor(EntityDefinition) to get NLP.js-compatible mapping of {1}",
                 this.getClass().getSimpleName(), CustomEntityDefinition.class.getSimpleName()));
@@ -69,5 +65,8 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
         return reversedEntities.get(nlpjsEntityType);
     }
 
+    public boolean isSupported(@NonNull EntityType entityType){
+        return entities.containsKey(entityType.getLiteral());
+    }
 
 }
