@@ -1,7 +1,9 @@
 package com.xatkit.core.recognition.nlpjs;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
+import com.xatkit.core.recognition.nlpjs.adapter.ResolutionDeserializer;
 import com.xatkit.core.recognition.nlpjs.model.*;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -27,7 +29,8 @@ public class NlpjsService {
 
     public NlpjsService(@NonNull String nlpjsServer) {
         this.nlpjsServer = nlpjsServer;
-        gson = new Gson();
+        gson = new GsonBuilder().registerTypeAdapter(Resolution.class, new ResolutionDeserializer())
+                .create();
         String nlpjsApiFullPath = this.nlpjsServer + NLPJS_BASE_PATH + "/";
         OkHttpClient httpClient = new OkHttpClient.Builder()
                 .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
@@ -36,7 +39,7 @@ public class NlpjsService {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(nlpjsApiFullPath)
                 .client(httpClient)
-                .addConverterFactory(GsonConverterFactory.create()).build();
+                .addConverterFactory(GsonConverterFactory.create(gson)).build();
         this.nlpjsApi = retrofit.create(NlpjsApi.class);
     }
 
@@ -46,7 +49,7 @@ public class NlpjsService {
         if (!agentResponse.isSuccessful()) {
             ErrorBody errorBody = gson.fromJson(agentResponse.errorBody().string(), ErrorBody.class);
             String errorMessage = MessageFormat.format("Unsuccessful REST operation {0} " +
-                            "on {1}. The API responded with the status {2} and the error code {3} ",
+                            "on {1}. The API responded with the status {2} and the error message \"{3}\" ",
                     nlpjsApi.getAgentInfo(agentId).request().method(),
                     nlpjsApi.getAgentInfo(agentId).request().url(), agentResponse.code(), errorBody.getMessage());
             Log.error(errorMessage);
@@ -61,7 +64,7 @@ public class NlpjsService {
         if (!response.isSuccessful()) {
             ErrorBody errorBody = gson.fromJson(response.errorBody().string(), ErrorBody.class);
             String errorMessage = MessageFormat.format("Unsuccessful REST operation {0} " +
-                            "on {1}. The API responded with the status {2} and the error message: {3} ",
+                            "on {1}. The API responded with the status {2} and the error message \"{3}\" ",
                     nlpjsApi.createAgent(agentInit).request().method(),
                     nlpjsApi.createAgent(agentInit).request().url(), response.code(), errorBody.getMessage());
             Log.error(errorMessage);
