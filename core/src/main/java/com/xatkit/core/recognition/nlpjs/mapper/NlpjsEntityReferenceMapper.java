@@ -31,6 +31,10 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
         this.addEntityMapping(URL,"url");
         this.addEntityMapping(NUMBER,"number");
         this.addEntityMapping(PERCENTAGE,"percentage");
+        this.addEntityMapping(DATE,"date");
+        this.addEntityMapping(DATE_PERIOD,"date");
+        this.addEntityMapping(DATE_TIME,"date");
+
     }
 
     @Override
@@ -49,7 +53,7 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
         Map<String, List<String>> reversedEntities = new HashMap<>();
         for (Map.Entry<String, String> entityEntry: entities.entrySet()) {
             if (reversedEntities.containsKey(entityEntry.getValue())) {
-                List<String> entityTypes = reversedEntities.get(entityEntry.getKey());
+                List<String> entityTypes = reversedEntities.get(entityEntry.getValue());
                 entityTypes.add(entityEntry.getKey());
             }
             else {
