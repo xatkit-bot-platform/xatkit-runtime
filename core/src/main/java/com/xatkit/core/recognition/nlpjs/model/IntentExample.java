@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class IntentExample {
+
     private String userSays;
 
     public IntentExample(){}

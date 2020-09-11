@@ -4,12 +4,13 @@ import lombok.Data;
 
 @Data
 public class AgentConfig {
+
     private String language;
 
-    public AgentConfig(){
-
+    public AgentConfig() {
     }
-    public AgentConfig(String language){
+
+    public AgentConfig(String language) {
         this.language = language;
     }
 }

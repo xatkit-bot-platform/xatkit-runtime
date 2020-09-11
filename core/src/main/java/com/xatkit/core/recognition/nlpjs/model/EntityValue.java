@@ -7,7 +7,9 @@ import java.util.List;
 
 @Data
 public class EntityValue {
+
     private String value;
+
     private List<String> synonyms;
 
     public static Builder newBuilder() {

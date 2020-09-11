@@ -7,22 +7,25 @@ import java.util.List;
 
 @Data
 public class Entity {
+
     private String entityName;
+
     private EntityType type;
+
     private List<EntityValue> references;
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-
     public static class Builder {
+
         private String _entityName;
         private EntityType _type;
         private List<EntityValue> _references;
 
         public Builder() {
-            this. _references = new ArrayList<>();
+            this._references = new ArrayList<>();
         }
 
         public Builder entityName(String entityName) {
@@ -45,7 +48,7 @@ public class Entity {
             return this;
         }
 
-        public Entity build(){
+        public Entity build() {
             Entity entity = new Entity();
             entity.setEntityName(_entityName);
             entity.setType(_type);

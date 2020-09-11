@@ -4,9 +4,8 @@ import lombok.Data;
 
 @Data
 public class UserMessage {
-    private String message;
 
-    public UserMessage() { }
+    private String message;
 
     public UserMessage(String message) {
         this.message = message;

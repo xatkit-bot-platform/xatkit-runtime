@@ -6,5 +6,6 @@ import lombok.Data;
 public class Resolution {
 
     private String strValue;
+
     private String subtype;
 }

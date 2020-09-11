@@ -9,6 +9,7 @@ import java.io.IOException;
 
 @JsonAdapter(EntityType.Adapter.class)
 public enum EntityType {
+
     ENUM("enum"),
     REGEX("REGEX");
 
@@ -17,6 +18,7 @@ public enum EntityType {
     EntityType(String value) {
         this.value = value;
     }
+
     public String getValue() {
         return value;
     }
@@ -25,6 +27,7 @@ public enum EntityType {
     public String toString() {
         return String.valueOf(value);
     }
+
     public static EntityType fromValue(String text) {
         for (EntityType b : EntityType.values()) {
             if (String.valueOf(b.value).equals(text)) {
@@ -33,6 +36,7 @@ public enum EntityType {
         }
         return null;
     }
+
     public static class Adapter extends TypeAdapter<EntityType> {
         @Override
         public void write(final JsonWriter jsonWriter, final EntityType enumeration) throws IOException {

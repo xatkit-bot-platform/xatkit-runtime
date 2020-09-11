@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class IntentParameter {
+
     private String slot;
 
     public IntentParameter(){}

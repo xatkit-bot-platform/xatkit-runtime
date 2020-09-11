@@ -9,6 +9,7 @@ import lombok.Data;
 public class AgentInit {
 
     private String agentId;
+
     private String language;
 
 }

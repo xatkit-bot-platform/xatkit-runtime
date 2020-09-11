@@ -9,6 +9,7 @@ import java.io.IOException;
 
 @JsonAdapter(AgentStatus.Adapter.class)
 public enum AgentStatus {
+
     NEW("new"),
     TRAINING("training"),
     READY("ready");
@@ -18,6 +19,7 @@ public enum AgentStatus {
     AgentStatus(String value) {
         this.value = value;
     }
+
     public String getValue() {
         return value;
     }
@@ -26,6 +28,7 @@ public enum AgentStatus {
     public String toString() {
         return String.valueOf(value);
     }
+
     public static AgentStatus fromValue(String text) {
         for (AgentStatus b : AgentStatus.values()) {
             if (String.valueOf(b.value).equals(text)) {
@@ -34,7 +37,9 @@ public enum AgentStatus {
         }
         return null;
     }
+
     public static class Adapter extends TypeAdapter<AgentStatus> {
+        
         @Override
         public void write(final JsonWriter jsonWriter, final AgentStatus enumeration) throws IOException {
             jsonWriter.value(enumeration.getValue());

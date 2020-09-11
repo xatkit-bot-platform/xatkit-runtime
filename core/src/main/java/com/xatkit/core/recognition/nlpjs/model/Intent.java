@@ -9,9 +9,10 @@ import java.util.List;
 public class Intent {
 
     private String intentName;
-    private List<IntentExample> examples;
-    private List<IntentParameter> parameters;
 
+    private List<IntentExample> examples;
+
+    private List<IntentParameter> parameters;
 
     public static Builder newBuilder(){
         return new Intent.Builder();
