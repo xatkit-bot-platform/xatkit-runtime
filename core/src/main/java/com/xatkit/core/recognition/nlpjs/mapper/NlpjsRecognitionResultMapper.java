@@ -1,17 +1,17 @@
 package com.xatkit.core.recognition.nlpjs.mapper;
 
 
+import com.google.protobuf.Value;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.recognition.nlpjs.NlpjsConfiguration;
 import com.xatkit.core.recognition.nlpjs.NlpjsHelper;
-import com.xatkit.core.recognition.nlpjs.model.Classification;
-import com.xatkit.core.recognition.nlpjs.model.EntityValue;
-import com.xatkit.core.recognition.nlpjs.model.ExtractedEntity;
-import com.xatkit.core.recognition.nlpjs.model.RecognitionResult;
+import com.xatkit.core.recognition.nlpjs.model.*;
 import com.xatkit.intent.*;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,8 +67,10 @@ public class NlpjsRecognitionResultMapper {
                             IntentFactory.eINSTANCE.createContextParameterValue();
                     if (nonNull(extractedEntity.getOption())) {
                         contextParameterValue.setValue(extractedEntity.getOption());
-                    } else if (nonNull(extractedEntity.getResolution()) && nonNull(extractedEntity.getResolution().getStrValue())) {
-                        contextParameterValue.setValue(extractedEntity.getResolution().getStrValue());
+                    } else if (nonNull(extractedEntity.getResolution()) && nonNull(extractedEntity.getResolution().getValue())) {
+                        contextParameterValue.setValue(convertParameterValueToString(extractedEntity.getResolution()));
+                    } else {
+                        Log.warn("Cannot retrieve the value for the context parameter {0}", contextParameter.getName());
                     }
                     contextParameterValue.setContextParameter(contextParameter);
                     contextInstance.getValues().add(contextParameterValue);
@@ -91,6 +93,21 @@ public class NlpjsRecognitionResultMapper {
             result = DEFAULT_FALLBACK_INTENT;
         }
         return result;
+    }
+
+    private String convertParameterValueToString(@NonNull Resolution resolution) {
+        Object value = resolution.getValue();
+        if (value instanceof String)
+            return (String) value;
+        if (value instanceof Number) {
+            DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+            decimalFormatSymbols.setDecimalSeparator('.');
+            DecimalFormat decimalFormat = new DecimalFormat("0.###", decimalFormatSymbols);
+            decimalFormat.setGroupingUsed(false);
+            return decimalFormat.format(value);
+        }
+        Log.error("Cannot convert the provided value {0}", resolution);
+        return "";
     }
 
 
