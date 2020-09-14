@@ -4,7 +4,7 @@ import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.library.CoreLibrary;
+import com.xatkit.library.core.CoreLibrary;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,12 +29,11 @@ public class AbstractIntentRecognitionProviderTest extends AbstractXatkitTest  {
     public void setUp() {
         provider = mock(AbstractIntentRecognitionProvider.class);
         doCallRealMethod().when(provider).getBestCandidate(anyCollection(), any());
-        CoreLibrary coreLibrary = new CoreLibrary();
         help = IntentFactory.eINSTANCE.createRecognizedIntent();
-        help.setDefinition(coreLibrary.Help);
+        help.setDefinition(CoreLibrary.Help);
         help.setRecognitionConfidence(1);
         greetings = IntentFactory.eINSTANCE.createRecognizedIntent();
-        greetings.setDefinition(coreLibrary.Greetings);
+        greetings.setDefinition(CoreLibrary.Greetings);
         greetings.setRecognitionConfidence(.5f);
     }
 

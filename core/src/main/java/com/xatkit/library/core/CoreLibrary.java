@@ -1,4 +1,4 @@
-package com.xatkit.library;
+package com.xatkit.library.core;
 
 import com.xatkit.intent.EntityDefinitionReference;
 import com.xatkit.intent.IntentDefinition;
@@ -11,7 +11,7 @@ import static com.xatkit.dsl.DSL.*;
 
 public class CoreLibrary extends LibraryImpl {
 
-    public IntentDefinition Yes = intent("Yes")
+    public static IntentDefinition Yes = intent("Yes")
             .trainingSentence("Yes")
             .trainingSentence("yes")
             .trainingSentence("fine")
@@ -23,14 +23,14 @@ public class CoreLibrary extends LibraryImpl {
             .trainingSentence("yep")
             .getIntentDefinition();
 
-    public IntentDefinition No = intent("No")
+    public static IntentDefinition No = intent("No")
             .trainingSentence("No")
             .trainingSentence("no")
             .trainingSentence("nope")
             .trainingSentence("negative")
             .getIntentDefinition();
 
-    public IntentDefinition Maybe = intent("Maybe")
+    public static IntentDefinition Maybe = intent("Maybe")
             .trainingSentence("maybe")
             .trainingSentence("perchance")
             .trainingSentence("perhaps")
@@ -38,7 +38,7 @@ public class CoreLibrary extends LibraryImpl {
             .trainingSentence("might be")
             .getIntentDefinition();
 
-    public IntentDefinition Help = intent("Help")
+    public static IntentDefinition Help = intent("Help")
             .trainingSentence("Help")
             .trainingSentence("help")
             .trainingSentence("Assist")
@@ -47,7 +47,7 @@ public class CoreLibrary extends LibraryImpl {
             .trainingSentence("I need some assistance")
             .getIntentDefinition();
 
-    public IntentDefinition Greetings = intent("Greetings")
+    public static IntentDefinition Greetings = intent("Greetings")
             .trainingSentence("Hello")
             .trainingSentence("Hi")
             .trainingSentence("Howdy")
@@ -58,7 +58,7 @@ public class CoreLibrary extends LibraryImpl {
             .trainingSentence("Good afternoon")
             .getIntentDefinition();
 
-    public IntentDefinition HowAreYou = intent("HowAreYou")
+    public static IntentDefinition HowAreYou = intent("HowAreYou")
             .trainingSentence("How are you?")
             .trainingSentence("How do you feel?")
             .trainingSentence("How do you do?")
@@ -68,12 +68,12 @@ public class CoreLibrary extends LibraryImpl {
             .trainingSentence("What's going on?")
             .getIntentDefinition();
 
-    public IntentDefinition WhoAreYou = intent("WhoAreYou")
+    public static IntentDefinition WhoAreYou = intent("WhoAreYou")
             .trainingSentence("Who are you?")
             .trainingSentence("What are you?")
             .getIntentDefinition();
 
-    public IntentDefinition GoodBye = intent("GoodBye")
+    public static IntentDefinition GoodBye = intent("GoodBye")
             .trainingSentence("Goodbye")
             .trainingSentence("Good-bye")
             .trainingSentence("Farewell")
@@ -86,7 +86,7 @@ public class CoreLibrary extends LibraryImpl {
             .trainingSentence("See you")
             .getIntentDefinition();
 
-    public IntentDefinition Thanks = intent("Thanks")
+    public static IntentDefinition Thanks = intent("Thanks")
             .trainingSentence("Thank you")
             .trainingSentence("Thanks")
             .trainingSentence("Thanking")
@@ -100,109 +100,109 @@ public class CoreLibrary extends LibraryImpl {
     /*
      * Raw data type intents.
      */
-    public IntentDefinition AddressValue = createDataTypeIntent("AddressValue", address());
+    public static IntentDefinition AddressValue = createDataTypeIntent("AddressValue", address());
 
-    public IntentDefinition AgeValue = createDataTypeIntent("AgeValue", age());
+    public static IntentDefinition AgeValue = createDataTypeIntent("AgeValue", age());
 
-    public IntentDefinition AirportValue = createDataTypeIntent("AirportValue", airport());
+    public static IntentDefinition AirportValue = createDataTypeIntent("AirportValue", airport());
 
-    public IntentDefinition AnyValue = createDataTypeIntent("AnyValue", any());
+    public static IntentDefinition AnyValue = createDataTypeIntent("AnyValue", any());
 
-    public IntentDefinition CapitalValue = createDataTypeIntent("CapitalValue", capital());
+    public static IntentDefinition CapitalValue = createDataTypeIntent("CapitalValue", capital());
 
-    public IntentDefinition CardinalValue = createDataTypeIntent("CardinalValue", cardinal());
+    public static IntentDefinition CardinalValue = createDataTypeIntent("CardinalValue", cardinal());
 
-    public IntentDefinition CityValue = createDataTypeIntent("CityValue", city());
+    public static IntentDefinition CityValue = createDataTypeIntent("CityValue", city());
 
-    public IntentDefinition CityGBValue = createDataTypeIntent("CityGBValue", cityGb());
+    public static IntentDefinition CityGBValue = createDataTypeIntent("CityGBValue", cityGb());
 
-    public IntentDefinition CityUSValue = createDataTypeIntent("CityUSValue", cityUs());
+    public static IntentDefinition CityUSValue = createDataTypeIntent("CityUSValue", cityUs());
 
-    public IntentDefinition ColorValue = createDataTypeIntent("ColorValue", color());
+    public static IntentDefinition ColorValue = createDataTypeIntent("ColorValue", color());
 
-    public IntentDefinition CountryValue = createDataTypeIntent("CountryValue", country());
+    public static IntentDefinition CountryValue = createDataTypeIntent("CountryValue", country());
 
-    public IntentDefinition CountryCodeValue = createDataTypeIntent("CountryCodeValue", countryCode());
+    public static IntentDefinition CountryCodeValue = createDataTypeIntent("CountryCodeValue", countryCode());
 
-    public IntentDefinition CountyGBValue = createDataTypeIntent("CountryGBValue", countyGb());
+    public static IntentDefinition CountyGBValue = createDataTypeIntent("CountryGBValue", countyGb());
 
-    public IntentDefinition CountyUSValue = createDataTypeIntent("CountyUSValue", countyUs());
+    public static IntentDefinition CountyUSValue = createDataTypeIntent("CountyUSValue", countyUs());
 
-    public IntentDefinition DateValue = createDataTypeIntent("DateValue", date());
+    public static IntentDefinition DateValue = createDataTypeIntent("DateValue", date());
 
-    public IntentDefinition DatePeriodValue = createDataTypeIntent("DatePeriodValue", datePeriod());
+    public static IntentDefinition DatePeriodValue = createDataTypeIntent("DatePeriodValue", datePeriod());
 
-    public IntentDefinition DateTimeValue = createDataTypeIntent("DateTimeValue", dateTime());
+    public static IntentDefinition DateTimeValue = createDataTypeIntent("DateTimeValue", dateTime());
 
-    public IntentDefinition DurationValue = createDataTypeIntent("DurationValue", duration());
+    public static IntentDefinition DurationValue = createDataTypeIntent("DurationValue", duration());
 
-    public IntentDefinition EmailValue = createDataTypeIntent("EmailValue", email());
+    public static IntentDefinition EmailValue = createDataTypeIntent("EmailValue", email());
 
-    public IntentDefinition FlightNumberValue = createDataTypeIntent("FlightNumberValue", flightNumber());
+    public static IntentDefinition FlightNumberValue = createDataTypeIntent("FlightNumberValue", flightNumber());
 
-    public IntentDefinition GivenNameValue = createDataTypeIntent("GiveNameValue", givenName());
+    public static IntentDefinition GivenNameValue = createDataTypeIntent("GiveNameValue", givenName());
 
-    public IntentDefinition IntegerValue = createDataTypeIntent("IntegerValue", integer());
+    public static IntentDefinition IntegerValue = createDataTypeIntent("IntegerValue", integer());
 
-    public IntentDefinition LanguageValue = createDataTypeIntent("LanguageValue", language());
+    public static IntentDefinition LanguageValue = createDataTypeIntent("LanguageValue", language());
 
-    public IntentDefinition LastNameValue = createDataTypeIntent("LastNameValue", lastName());
+    public static IntentDefinition LastNameValue = createDataTypeIntent("LastNameValue", lastName());
 
-    public IntentDefinition LocationValue = createDataTypeIntent("LocationValue", location());
+    public static IntentDefinition LocationValue = createDataTypeIntent("LocationValue", location());
 
-    public IntentDefinition MusicArtistValue = createDataTypeIntent("MusicArtistValue", musicArtist());
+    public static IntentDefinition MusicArtistValue = createDataTypeIntent("MusicArtistValue", musicArtist());
 
-    public IntentDefinition MusicGenreValue = createDataTypeIntent("MusicGenreValue", musicGenre());
+    public static IntentDefinition MusicGenreValue = createDataTypeIntent("MusicGenreValue", musicGenre());
 
-    public IntentDefinition NumberValue = createDataTypeIntent("NumberValue", number());
+    public static IntentDefinition NumberValue = createDataTypeIntent("NumberValue", number());
 
-    public IntentDefinition NumberSequenceValue = createDataTypeIntent("NumberSequenceValue", numberSequence());
+    public static IntentDefinition NumberSequenceValue = createDataTypeIntent("NumberSequenceValue", numberSequence());
 
-    public IntentDefinition OrdinalValue = createDataTypeIntent("OrdinalValue", ordinal());
+    public static IntentDefinition OrdinalValue = createDataTypeIntent("OrdinalValue", ordinal());
 
-    public IntentDefinition PercentageValue = createDataTypeIntent("PercentageValue", percentage());
+    public static IntentDefinition PercentageValue = createDataTypeIntent("PercentageValue", percentage());
 
-    public IntentDefinition PhoneNumberValue = createDataTypeIntent("PhoneNumberValue", phoneNumber());
+    public static IntentDefinition PhoneNumberValue = createDataTypeIntent("PhoneNumberValue", phoneNumber());
 
-    public IntentDefinition PlaceAttractionValue = createDataTypeIntent("PlaceAttractionValue", placeAttraction());
+    public static IntentDefinition PlaceAttractionValue = createDataTypeIntent("PlaceAttractionValue", placeAttraction());
 
-    public IntentDefinition PlaceAttractionGBValue = createDataTypeIntent("PlaceAttractionGBValue",
+    public static IntentDefinition PlaceAttractionGBValue = createDataTypeIntent("PlaceAttractionGBValue",
             placeAttractionGb());
 
-    public IntentDefinition PlaceAttractionUSValue = createDataTypeIntent("PlaceAttractionUSValue",
+    public static IntentDefinition PlaceAttractionUSValue = createDataTypeIntent("PlaceAttractionUSValue",
             placeAttractionUs());
 
-    public IntentDefinition StateValue = createDataTypeIntent("StateValue", state());
+    public static IntentDefinition StateValue = createDataTypeIntent("StateValue", state());
 
-    public IntentDefinition StateGBValue = createDataTypeIntent("StateGBValue", stateGb());
+    public static IntentDefinition StateGBValue = createDataTypeIntent("StateGBValue", stateGb());
 
-    public IntentDefinition StateUSValue = createDataTypeIntent("StateUSValue", stateUs());
+    public static IntentDefinition StateUSValue = createDataTypeIntent("StateUSValue", stateUs());
 
-    public IntentDefinition StreetAddressValue = createDataTypeIntent("StreetAddressValue", streetAddress());
+    public static IntentDefinition StreetAddressValue = createDataTypeIntent("StreetAddressValue", streetAddress());
 
-    public IntentDefinition TemperatureValue = createDataTypeIntent("TemperatureValue", temperature());
+    public static IntentDefinition TemperatureValue = createDataTypeIntent("TemperatureValue", temperature());
 
-    public IntentDefinition TimeValue = createDataTypeIntent("TimeValue", time());
+    public static IntentDefinition TimeValue = createDataTypeIntent("TimeValue", time());
 
-    public IntentDefinition TimePeriodValue = createDataTypeIntent("TimePeriodValue", timePeriod());
+    public static IntentDefinition TimePeriodValue = createDataTypeIntent("TimePeriodValue", timePeriod());
 
-    public IntentDefinition UnitAreaValue = createDataTypeIntent("UnitAreaValue", unitArea());
+    public static IntentDefinition UnitAreaValue = createDataTypeIntent("UnitAreaValue", unitArea());
 
-    public IntentDefinition UnitCurrencyValue = createDataTypeIntent("UnitCurrencyValue", unitCurrency());
+    public static IntentDefinition UnitCurrencyValue = createDataTypeIntent("UnitCurrencyValue", unitCurrency());
 
-    public IntentDefinition UnitInformationValue = createDataTypeIntent("UnitInformationValue", unitInformation());
+    public static IntentDefinition UnitInformationValue = createDataTypeIntent("UnitInformationValue", unitInformation());
 
-    public IntentDefinition UnitLengthValue = createDataTypeIntent("UnitLengthValue", unitLength());
+    public static IntentDefinition UnitLengthValue = createDataTypeIntent("UnitLengthValue", unitLength());
 
-    public IntentDefinition UnitSpeedValue = createDataTypeIntent("UnitSpeedValue", unitSpeed());
+    public static IntentDefinition UnitSpeedValue = createDataTypeIntent("UnitSpeedValue", unitSpeed());
 
-    public IntentDefinition UnitVolumeValue = createDataTypeIntent("UnitVolumeValue", unitVolume());
+    public static IntentDefinition UnitVolumeValue = createDataTypeIntent("UnitVolumeValue", unitVolume());
 
-    public IntentDefinition UnitWeightValue = createDataTypeIntent("UnitWeightValue", unitWeight());
+    public static IntentDefinition UnitWeightValue = createDataTypeIntent("UnitWeightValue", unitWeight());
 
-    public IntentDefinition URLValue = createDataTypeIntent("URLValue", url());
+    public static IntentDefinition URLValue = createDataTypeIntent("URLValue", url());
 
-    public IntentDefinition ZipCodeValue = createDataTypeIntent("ZipCodeValue", zipCode());
+    public static IntentDefinition ZipCodeValue = createDataTypeIntent("ZipCodeValue", zipCode());
 
     /**
      * Creates the <i>value</i> {@link IntentDefinition} for the provided {@code type}.
@@ -214,7 +214,7 @@ public class CoreLibrary extends LibraryImpl {
      * @param type the entity of the parameter to set in the created {@link IntentDefinition}
      * @return the created {@link IntentDefinition}
      */
-    private @NonNull IntentDefinition createDataTypeIntent(@NonNull String name, @NonNull EntityDefinitionReference type) {
+    private static @NonNull IntentDefinition createDataTypeIntent(@NonNull String name, @NonNull EntityDefinitionReference type) {
         return intent(name)
                 .trainingSentence("VALUE")
                 .context("Value")
