@@ -28,7 +28,7 @@ public class RuntimePlatformTest extends AbstractPlatformTest<RuntimePlatform> {
         this.mockedEventProvider = mock(RuntimeEventProvider.class);
         this.mockedWebhookProvider = mock(WebhookEventProvider.class);
         this.mockedXatkitServer = mock(XatkitServer.class);
-        when(mockedXatkitCore.getXatkitServer()).thenReturn(mockedXatkitServer);
+        when(mockedXatkitBot.getXatkitServer()).thenReturn(mockedXatkitServer);
         doAnswer(invocationOnMock -> {
             /*
              * We need to wait here to be sure the provider's Thread is running (otherwise the computation finishes
@@ -68,31 +68,31 @@ public class RuntimePlatformTest extends AbstractPlatformTest<RuntimePlatform> {
 
     @Test
     public void getConfigurationStarted() {
-        platform.start(mockedXatkitCore, configuration);
+        platform.start(mockedXatkitBot, configuration);
         assertThat(platform.getConfiguration()).as("Not null Configuration").isNotNull();
     }
 
     @Test
-    public void getXatkitCoreNotStarted() {
-        assertThat(platform.getXatkitCore()).isNull();
+    public void getXatkitBotNotStarted() {
+        assertThat(platform.getXatkitBot()).isNull();
     }
 
     @Test
-    public void getXatkitCoreStarted() {
-        platform.start(mockedXatkitCore, configuration);
-        assertThat(platform.getXatkitCore()).as("Not null XatkitCore").isNotNull();
-        assertThat(platform.getXatkitCore()).as("Valid XatkitCore").isEqualTo(mockedXatkitCore);
+    public void getXatkitBotStarted() {
+        platform.start(mockedXatkitBot, configuration);
+        assertThat(platform.getXatkitBot()).as("Not null XatkitBot").isNotNull();
+        assertThat(platform.getXatkitBot()).as("Valid XatkitBot").isEqualTo(mockedXatkitBot);
     }
 
     @Test(expected = NullPointerException.class)
     public void startEventProviderNullEventProviderDefinition() {
-        platform.start(mockedXatkitCore, configuration);
+        platform.start(mockedXatkitBot, configuration);
         platform.startEventProvider(null);
     }
 
     @Test
     public void startEventProvider() {
-        platform.start(mockedXatkitCore, configuration);
+        platform.start(mockedXatkitBot, configuration);
         platform.startEventProvider(mockedEventProvider);
         assertThat(platform.eventProviderMap).containsKey(mockedEventProvider.getClass().getSimpleName());
         RuntimePlatform.EventProviderThread eventProviderThread =
@@ -103,7 +103,7 @@ public class RuntimePlatformTest extends AbstractPlatformTest<RuntimePlatform> {
 
     @Test
     public void startValidEventProviderWebhook() {
-        platform.start(mockedXatkitCore, configuration);
+        platform.start(mockedXatkitBot, configuration);
         platform.startEventProvider(mockedWebhookProvider);
         assertThat(platform.eventProviderMap).containsKey(mockedWebhookProvider.getClass().getSimpleName());
         RuntimePlatform.EventProviderThread eventProviderThread =
@@ -115,7 +115,7 @@ public class RuntimePlatformTest extends AbstractPlatformTest<RuntimePlatform> {
 
     @Test
     public void shutdownRegisteredEventProviderAndActionDefinition() {
-        platform.start(mockedXatkitCore, configuration);
+        platform.start(mockedXatkitBot, configuration);
         platform.startEventProvider(mockedEventProvider);
         // Enables the actionDefinition in the RuntimePlatform
         platform.shutdown();

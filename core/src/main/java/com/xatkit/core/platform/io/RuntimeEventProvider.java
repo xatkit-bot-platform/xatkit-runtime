@@ -1,6 +1,6 @@
 package com.xatkit.core.platform.io;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.RestHandler;
@@ -21,11 +21,11 @@ import org.apache.commons.configuration2.Configuration;
 public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements Runnable {
 
     /**
-     * The {@link XatkitCore} instance used to handle events.
+     * The {@link XatkitBot} instance used to handle events.
      * <p>
-     * This attribute is a shortcut for {@code runtimePlatform.getXatkitCore()}.
+     * This attribute is a shortcut for {@code runtimePlatform.getXatkitBot()}.
      */
-    protected XatkitCore xatkitCore;
+    protected XatkitBot xatkitBot;
 
     /**
      * The {@link RuntimePlatform} subclass containing this action.
@@ -35,7 +35,7 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
     /**
      * Creates an <b>unstarted</b> {@link RuntimeEventProvider} managed by the provided {@code platform}.
      * <p>
-     * As for {@link RuntimePlatform}, this constructor does not have access to the {@link XatkitCore} nor the
+     * As for {@link RuntimePlatform}, this constructor does not have access to the {@link XatkitBot} nor the
      * {@link Configuration}: it is typically called when defining a bot to have a usable reference to set in
      * {@link ExecutionModel#getUsedProviders()}, but it is initialized during the bot deployment using the
      * {@link RuntimeEventProvider#start(Configuration)} method.
@@ -56,13 +56,13 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * <p>
      * This method is automatically called bu Xatkit when a bot using this provider is starting.
      * <p>
-     * Note that the {@link XatkitCore} instance is bound to the provider when calling this method.
+     * Note that the {@link XatkitBot} instance is bound to the provider when calling this method.
      *
      * @param configuration the {@link Configuration} of the bot currently run
      * @see RuntimePlatform#startEventProvider(RuntimeEventProvider)
      */
     public void start(@NonNull Configuration configuration) {
-        this.xatkitCore = runtimePlatform.getXatkitCore();
+        this.xatkitBot = runtimePlatform.getXatkitBot();
         this.runtimePlatform.startEventProvider(this);
     }
 
@@ -89,13 +89,13 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      */
     public void sendEventInstance(EventInstance eventInstance, StateContext context) {
         eventInstance.setTriggeredBy(this.runtimePlatform.getName());
-        this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, context);
+        this.xatkitBot.getExecutionService().handleEventInstance(eventInstance, context);
     }
 
     public void broadcastEventInstance(EventInstance eventInstance) {
         eventInstance.setTriggeredBy(this.runtimePlatform.getName());
-        this.xatkitCore.getContexts().forEach(context ->
-                this.xatkitCore.getExecutionService().handleEventInstance(eventInstance, context)
+        this.xatkitBot.getContexts().forEach(context ->
+                this.xatkitBot.getExecutionService().handleEventInstance(eventInstance, context)
         );
     }
 

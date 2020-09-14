@@ -1,5 +1,6 @@
 package com.xatkit.core.platform.io;
 
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.RestHandler;
@@ -31,7 +32,7 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends 
      * Creates an <b>unstarted</b> {@link WebhookEventProvider} managed by the provided {@code platform}.
      * <p>
      * As for {@link RuntimeEventProvider}, this constructor does not have access to the
-     * {@link com.xatkit.core.XatkitCore} nor the {@link Configuration}: it is typically called when defining a bot
+     * {@link XatkitBot} nor the {@link Configuration}: it is typically called when defining a bot
      * to have a usable reference to set in {@link ExecutionModel#getUsedProviders()}, but it is initialized during
      * the bot deployment using the {@link WebhookEventProvider#start(Configuration)} method.
      *

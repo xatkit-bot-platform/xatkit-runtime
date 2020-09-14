@@ -1,6 +1,6 @@
 package com.xatkit.util;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import org.apache.commons.configuration2.Configuration;
 
 import java.io.File;
@@ -18,7 +18,7 @@ public class FileUtils {
      * Retrieves the {@link File} corresponding to the provided {@code path}.
      * <p>
      * This method supports absolute and relative paths. Relative path are resolved against the configuration
-     * directory (see {@link XatkitCore#CONFIGURATION_FOLDER_PATH_KEY}). If this directory is not specified then the
+     * directory (see {@link XatkitBot#CONFIGURATION_FOLDER_PATH_KEY}). If this directory is not specified then the
      * execution directory is used to resolve relative paths.
      *
      * @param path          the path of the {@link File} to retrieve
@@ -34,7 +34,7 @@ public class FileUtils {
             return file;
         } else {
             String relativePath = path;
-            String configurationDirectoryPath = configuration.getString(XatkitCore.CONFIGURATION_FOLDER_PATH_KEY, "");
+            String configurationDirectoryPath = configuration.getString(XatkitBot.CONFIGURATION_FOLDER_PATH_KEY, "");
             if (!configurationDirectoryPath.isEmpty()) {
                 relativePath = configurationDirectoryPath + File.separator + path;
             }

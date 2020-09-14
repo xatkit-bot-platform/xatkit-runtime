@@ -45,15 +45,15 @@ import static java.util.Objects.nonNull;
  * ExecutionModel model = [...]
  * Configuration configuration = new BaseConfiguration();
  * // add properties in the configuration if needed
- * XatkitCore xatkitCore = new XatkitCore(model, configuration);
- * xatkitCore.run();
+ * XatkitBot xatkitBot = new XatkitBot(model, configuration);
+ * xatkitBot.run();
  * // The bot is now deployed and running
  * }
  * </pre>
  *
  * @see #run()
  */
-public class XatkitCore implements Runnable {
+public class XatkitBot implements Runnable {
 
     /**
      * The {@link Configuration} key to store the configuration folder path.
@@ -114,26 +114,26 @@ public class XatkitCore implements Runnable {
     private XatkitServer xatkitServer;
 
     /**
-     * Creates an <b>unstarted</b> {@link XatkitCore} instance.
+     * Creates an <b>unstarted</b> {@link XatkitBot} instance.
      * <p>
      * The underlying bot can be started by calling {@link #run()}.
      *
      * @param executionModel the model containing the bot's execution logic
      * @param configuration  the Xatkit {@link Configuration}
      */
-    public XatkitCore(@NonNull ExecutionModel executionModel, @NonNull Configuration configuration) {
+    public XatkitBot(@NonNull ExecutionModel executionModel, @NonNull Configuration configuration) {
         this.executionModel = executionModel;
         this.configuration = this.adaptConfiguration(configuration);
     }
 
     /**
-     * Creates an <b>unstarted</b> {@link XatkitCore} instance.
+     * Creates an <b>unstarted</b> {@link XatkitBot} instance.
      * <p>
      * This method is an utility constructor that allows to provide models built with the fluent DSL, and is
      * equivalent to
      * <pre>
      * {@code
-     * new XatkitCore(executionModelProvider.getExecutionModel(), configuration);
+     * new XatkitBot(executionModelProvider.getExecutionModel(), configuration);
      * }
      * </pre>
      * <p>
@@ -142,7 +142,7 @@ public class XatkitCore implements Runnable {
      * @param executionModelProvider the provider containing the bot's model
      * @param configuration          the Xatkit {@link Configuration}
      */
-    public XatkitCore(@NonNull ExecutionModelProvider executionModelProvider, @NonNull Configuration configuration) {
+    public XatkitBot(@NonNull ExecutionModelProvider executionModelProvider, @NonNull Configuration configuration) {
         this(executionModelProvider.getExecutionModel(), configuration);
     }
 
@@ -307,7 +307,7 @@ public class XatkitCore implements Runnable {
     }
 
     /**
-     * Shuts down the {@link XatkitCore} and the underlying engines.
+     * Shuts down the {@link XatkitBot} and the underlying engines.
      * <p>
      * This method shuts down the underlying {@link IntentRecognitionProvider}, unloads and shuts down all the
      * {@link RuntimePlatform}s associated to this instance, unregisters the {@link EventDefinition} from the associated
@@ -323,9 +323,9 @@ public class XatkitCore implements Runnable {
      * @see XatkitServer#stop()
      */
     public void shutdown() {
-        Log.info("Shutting down XatkitCore");
+        Log.info("Shutting down XatkitBot");
         if (isShutdown()) {
-            throw new XatkitException("Cannot perform shutdown, XatkitCore is already shutdown");
+            throw new XatkitException("Cannot perform shutdown, XatkitBot is already shutdown");
         }
         /* Shutdown the ExecutionService first in case there are running tasks using the IntentRecognitionProvider
          * API.
@@ -384,12 +384,12 @@ public class XatkitCore implements Runnable {
     }
 
     /**
-     * Returns whether the {@link XatkitCore} client is shutdown.
+     * Returns whether the {@link XatkitBot} client is shutdown.
      * <p>
      * This class is considered as shutdown if its underlying {@link ExecutionService},
      * {@link IntentRecognitionProvider}, and {@link XatkitServer} are shutdown.
      *
-     * @return {@code true} if the {@link XatkitCore} client is shutdown, {@code false} otherwise
+     * @return {@code true} if the {@link XatkitBot} client is shutdown, {@code false} otherwise
      */
     public boolean isShutdown() {
         return (isNull(xatkitServer) || !xatkitServer.isStarted())
@@ -449,7 +449,7 @@ public class XatkitCore implements Runnable {
     }
 
     /**
-     * Logs a warning message and stops the running services if the {@link XatkitCore} hasn't been closed properly.
+     * Logs a warning message and stops the running services if the {@link XatkitBot} hasn't been closed properly.
      *
      * @throws Throwable if an error occurred when stopping the running services.
      */

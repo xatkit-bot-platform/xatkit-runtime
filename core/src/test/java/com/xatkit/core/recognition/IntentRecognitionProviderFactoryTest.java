@@ -2,7 +2,7 @@ package com.xatkit.core.recognition;
 
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProviderTest;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
@@ -24,13 +24,13 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
 
     private IntentRecognitionProvider provider;
 
-    private XatkitCore xatkitCore;
+    private XatkitBot xatkitBot;
 
     @Before
     public void setUp() {
-        xatkitCore = mock(XatkitCore.class);
-        when(xatkitCore.getEventDefinitionRegistry()).thenReturn(new EventDefinitionRegistry());
-        when(xatkitCore.getXatkitServer()).thenReturn(mock(XatkitServer.class));
+        xatkitBot = mock(XatkitBot.class);
+        when(xatkitBot.getEventDefinitionRegistry()).thenReturn(new EventDefinitionRegistry());
+        when(xatkitBot.getXatkitServer()).thenReturn(mock(XatkitServer.class));
     }
 
     @After
@@ -47,13 +47,13 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void getIntentRecognitionProviderNullXatkitCore() {
+    public void getIntentRecognitionProviderNullXatkitBot() {
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(null, new BaseConfiguration());
     }
 
     @Test(expected = NullPointerException.class)
     public void getIntentRecognitionProviderNullConfiguration() {
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitCore, null);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, null);
     }
 
     @Test
@@ -62,7 +62,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
          * Use DialogFlowIntentRecognitionProviderTest.buildConfiguration to get a valid configuration (with a valid
          * path to a credentials file)
          */
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitCore,
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot,
                 DialogFlowIntentRecognitionProviderTest.buildConfiguration());
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DialogFlowIntentRecognitionProvider").isInstanceOf(DialogFlowIntentRecognitionProvider.class);
@@ -75,7 +75,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
     public void getIntentRecognitionProviderDialogFlowPropertiesDisabledAnalytics() {
         Configuration configuration = DialogFlowIntentRecognitionProviderTest.buildConfiguration();
         configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.ENABLE_RECOGNITION_ANALYTICS, false);
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitCore, configuration);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DialogFlowIntentRecognitionProvider").isInstanceOf(DialogFlowIntentRecognitionProvider.class);
         assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is null").isNull();
@@ -90,7 +90,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
          * contain any IntentRecognitionProvider property.
          */
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider
-                (xatkitCore, new BaseConfiguration());
+                (xatkitBot, new BaseConfiguration());
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a RegExIntentRecognitionProvider").isInstanceOf
                 (RegExIntentRecognitionProvider.class);
@@ -103,7 +103,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
     public void getIntentRecognitionProviderEmptyConfigurationDisableAnalytics() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.ENABLE_RECOGNITION_ANALYTICS, false);
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitCore, configuration);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
         assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is null").isNull();
         assertThat(provider.getPreProcessors()).as("PreProcessor list is empty").isEmpty();
         assertThat(provider.getPostProcessors()).as("PostProcessor list is empty").isEmpty();
@@ -120,7 +120,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_POSTPROCESSORS_KEY,
                 "RemoveEnglishStopWords");
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitCore, configuration);
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
         assertThat(provider.getPostProcessors()).as("PostProcessor list contains 1 element").hasSize(1);
         IntentPostProcessor postProcessor = provider.getPostProcessors().get(0);
         assertThat(postProcessor.getClass().getSimpleName()).as("Valid PostProcessor").isEqualTo(

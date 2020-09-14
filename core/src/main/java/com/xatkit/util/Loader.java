@@ -1,6 +1,6 @@
 package com.xatkit.util;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
@@ -205,18 +205,18 @@ public class Loader {
     }
 
     /**
-     * Constructs a new instance of the provided {@code runtimePlatformClass} with the given {@code xatkitCore} and
+     * Constructs a new instance of the provided {@code runtimePlatformClass} with the given {@code xatkitBot} and
      * {@code configuration}.
      * <p>
      * This method first tries to construct an instance of the provided {@code runtimePlatformClass} with the provided
-     * {@code xatkitCore} and {@code configuration}. If the {@link RuntimePlatform} does not define such constructor,
-     * the method logs a warning and tries to construct an instance with only the {@code xatkitCore} parameter.
+     * {@code xatkitBot} and {@code configuration}. If the {@link RuntimePlatform} does not define such constructor,
+     * the method logs a warning and tries to construct an instance with only the {@code xatkitBot} parameter.
      * <p>
      * The {@code runtimePlatformClass} parameter can be loaded by using this class' {@link #loadClass(String, Class)}
      * utility method.
      *
      * @param runtimePlatformClass the {@link RuntimePlatform} {@link Class} to construct a new instance of
-     * @param xatkitCore           the {@link XatkitCore} instance used to construct the {@link RuntimePlatform}
+     * @param xatkitBot           the {@link XatkitBot} instance used to construct the {@link RuntimePlatform}
      * @param configuration        the {@link Configuration} instance used to construct the {@link RuntimePlatform}
      * @return the constructed {@link RuntimePlatform}
      * @throws XatkitException if the {@link RuntimePlatform} does not define a constructor matching the provided
@@ -225,37 +225,36 @@ public class Loader {
      * @see #loadClass(String, Class)
      */
     public static RuntimePlatform constructRuntimePlatform(Class<? extends RuntimePlatform> runtimePlatformClass,
-                                                           XatkitCore
-            xatkitCore, Configuration configuration) {
+                                                           XatkitBot xatkitBot, Configuration configuration) {
         RuntimePlatform platform;
         try {
-            platform = Loader.construct(runtimePlatformClass, XatkitCore.class, Configuration.class, xatkitCore,
+            platform = Loader.construct(runtimePlatformClass, XatkitBot.class, Configuration.class, xatkitBot,
                     configuration);
         } catch (NoSuchMethodException e) {
             Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the platform with the its {0}({1})" +
-                    "constructor", runtimePlatformClass.getSimpleName(), XatkitCore.class.getSimpleName(), Configuration
+                    "constructor", runtimePlatformClass.getSimpleName(), XatkitBot.class.getSimpleName(), Configuration
                     .class.getSimpleName());
             try {
-                platform = Loader.construct(runtimePlatformClass, XatkitCore.class, xatkitCore);
+                platform = Loader.construct(runtimePlatformClass, XatkitBot.class, xatkitBot);
                 Log.warn("{0} {1} loaded with its default constructor, the platform will not be initialized with " +
                         "Xatkit configuration", RuntimePlatform.class.getSimpleName(), runtimePlatformClass
                         .getSimpleName());
             } catch (NoSuchMethodException e1) {
                 throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", runtimePlatformClass.getSimpleName(), XatkitCore.class.getSimpleName()), e1);
+                        "not exist", runtimePlatformClass.getSimpleName(), XatkitBot.class.getSimpleName()), e1);
             }
         }
         return platform;
     }
 
     /**
-     * Constructs a new instance of the provided {@code eventProviderClass} with the given {@code xatkitCore} and
+     * Constructs a new instance of the provided {@code eventProviderClass} with the given {@code xatkitBot} and
      * {@code configuration}.
      * <p>
      * This method first tries to construct an instance of the provided {@code eventProviderClass} with the provided
-     * {@code xatkitCore} and {@code configuration}. If the {@link RuntimeEventProvider} does not define such
+     * {@code xatkitBot} and {@code configuration}. If the {@link RuntimeEventProvider} does not define such
      * constructor,
-     * the method logs a warning and tries to construct an instance with only the {@code xatkitCore} parameter.
+     * the method logs a warning and tries to construct an instance with only the {@code xatkitBot} parameter.
      * <p>
      * The {@code eventProviderClass} parameter can be loaded by using this class" {@link #loadClass(String, Class)}
      * utility method.

@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
@@ -54,22 +54,22 @@ public class IntentRecognitionProviderFactory {
      * {@link IntentRecognitionProviderFactoryConfiguration#RECOGNITION_POSTPROCESSORS_KEY}, respectively, and are
      * specified as comma-separated list of processor's names.
      *
-     * @param xatkitCore        the {@link XatkitCore} instance to build the
+     * @param xatkitBot        the {@link XatkitBot} instance to build the
      * {@link AbstractIntentRecognitionProvider} from
      * @param baseConfiguration the {@link Configuration} used to define the
      * {@link AbstractIntentRecognitionProvider} to build
      * @return the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}
      * @throws XatkitException      if an error occurred when loading the pre/post processors.
-     * @throws NullPointerException if the provided {@code xatkitCore} is {@code null}
+     * @throws NullPointerException if the provided {@code xatkitBot} is {@code null}
      * @see IntentRecognitionProviderFactoryConfiguration#RECOGNITION_PREPROCESSORS_KEY
      * @see IntentRecognitionProviderFactoryConfiguration#RECOGNITION_POSTPROCESSORS_KEY
      */
-    public static IntentRecognitionProvider getIntentRecognitionProvider(@NonNull XatkitCore xatkitCore,
+    public static IntentRecognitionProvider getIntentRecognitionProvider(@NonNull XatkitBot xatkitBot,
                                                                          @NonNull Configuration baseConfiguration) {
         IntentRecognitionProviderFactoryConfiguration configuration =
                 new IntentRecognitionProviderFactoryConfiguration(baseConfiguration);
 
-        RecognitionMonitor recognitionMonitor = getRecognitionMonitor(xatkitCore, configuration);
+        RecognitionMonitor recognitionMonitor = getRecognitionMonitor(xatkitBot, configuration);
 
         List<? extends InputPreProcessor> preProcessors = loadPreProcessors(configuration.getPreProcessorNames());
         List<? extends IntentPostProcessor> postProcessors = loadPostProcessors(configuration.getPostProcessorNames());
@@ -80,7 +80,7 @@ public class IntentRecognitionProviderFactory {
             /*
              * The provided configuration contains DialogFlow-related information.
              */
-            provider = new DialogFlowIntentRecognitionProvider(xatkitCore.getEventDefinitionRegistry(), baseConfiguration,
+            provider = new DialogFlowIntentRecognitionProvider(xatkitBot.getEventDefinitionRegistry(), baseConfiguration,
                     recognitionMonitor);
         } else {
             /*
@@ -111,21 +111,21 @@ public class IntentRecognitionProviderFactory {
     /**
      * Retrieves and creates the {@link RecognitionMonitor} from the provided {@link Configuration}.
      *
-     * @param xatkitCore    the {@link XatkitCore} used to initialize the {@link RecognitionMonitor}
+     * @param xatkitBot    the {@link XatkitBot} used to initialize the {@link RecognitionMonitor}
      * @param configuration the {@link Configuration} used to initialize the {@link RecognitionMonitor}
      * @return the created {@link RecognitionMonitor}, or {@code null} intent recognition monitoring is disabled in
      * the provided {@link Configuration}
      * @see IntentRecognitionProviderFactoryConfiguration#ENABLE_RECOGNITION_ANALYTICS
      */
     @Nullable
-    private static RecognitionMonitor getRecognitionMonitor(XatkitCore xatkitCore,
+    private static RecognitionMonitor getRecognitionMonitor(XatkitBot xatkitBot,
                                                             IntentRecognitionProviderFactoryConfiguration configuration) {
         /*
-         * TODO this should be extracted in XatkitCore
+         * TODO this should be extracted in XatkitBot
          */
         RecognitionMonitor monitor = null;
         if (configuration.isEnableRecognitionAnalytics()) {
-            monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+            monitor = new RecognitionMonitor(xatkitBot.getXatkitServer(), configuration.getBaseConfiguration());
         }
         return monitor;
     }

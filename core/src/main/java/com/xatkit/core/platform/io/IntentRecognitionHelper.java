@@ -1,6 +1,6 @@
 package com.xatkit.core.platform.io;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.session.RuntimeContexts;
 import com.xatkit.core.session.XatkitSession;
@@ -21,7 +21,7 @@ public class IntentRecognitionHelper {
     /**
      * Returns the {@link RecognizedIntent} from the provided user {@code input} and {@code session}.
      * <p>
-     * This uses the provided {@code xatkitCore} to wrap the access to the underlying
+     * This uses the provided {@code xatkitBot} to wrap the access to the underlying
      * {@link com.xatkit.core.recognition.IntentRecognitionProvider}, and avoid uncontrolled accesses to the
      * {@link com.xatkit.core.recognition.IntentRecognitionProvider} from {@link RuntimeEventProvider}s (such as
      * intent creation, removal, and context manipulation).
@@ -45,13 +45,13 @@ public class IntentRecognitionHelper {
      *                                            underlying intent recognition engine
      */
     public static RecognizedIntent getRecognizedIntent(@NonNull String input, @NonNull StateContext context,
-                                                       @NonNull XatkitCore xatkitCore) throws IntentRecognitionProviderException {
+                                                       @NonNull XatkitBot xatkitBot) throws IntentRecognitionProviderException {
         /*
          * TODO remove this cast, the underlying IntentRecognitionProvider should handle StateContexts.
          */
         XatkitSession session = (XatkitSession) context;
         session.getRuntimeContexts().decrementLifespanCounts();
-        RecognizedIntent recognizedIntent = xatkitCore.getIntentRecognitionProvider().getIntent(input, session);
+        RecognizedIntent recognizedIntent = xatkitBot.getIntentRecognitionProvider().getIntent(input, session);
         Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\" ({3})",
                 recognizedIntent.getDefinition().getName(), recognizedIntent.getRecognitionConfidence(),
                 recognizedIntent.getMatchedInput(), session.toString());

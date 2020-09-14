@@ -1,6 +1,6 @@
 package com.xatkit.core.platform;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.platform.io.WebhookEventProvider;
@@ -24,9 +24,9 @@ import java.util.Map;
 public abstract class RuntimePlatform {
 
     /**
-     * The {@link XatkitCore} instance managing this platform.
+     * The {@link XatkitBot} instance managing this platform.
      */
-    protected XatkitCore xatkitCore;
+    protected XatkitBot xatkitBot;
 
     /**
      * The {@link Configuration} used to initialize this class.
@@ -53,11 +53,11 @@ public abstract class RuntimePlatform {
     /**
      * Constructs an <b>unstarted</b> instance of this platform.
      * <p>
-     * This constructor doesn't have access to the {@link XatkitCore} nor the {@link Configuration}: it is typically
+     * This constructor doesn't have access to the {@link XatkitBot} nor the {@link Configuration}: it is typically
      * called when defining a bot to have a usable reference to call actions on, but it is initialized during the bot
-     * deployment using the {@link RuntimePlatform#start(XatkitCore, Configuration)} method.
+     * deployment using the {@link RuntimePlatform#start(XatkitBot, Configuration)} method.
      *
-     * @see #start(XatkitCore, Configuration)
+     * @see #start(XatkitBot, Configuration)
      */
     public RuntimePlatform() {
     }
@@ -65,17 +65,17 @@ public abstract class RuntimePlatform {
     /**
      * Starts the platform.
      * <p>
-     * This method binds the {@code xatkitCore} and {@code configuration} instances associated to the current bot to
+     * This method binds the {@code xatkitBot} and {@code configuration} instances associated to the current bot to
      * the platform. Subclasses typically override this method to initialize their internal data structure (e.g.
      * retrieve an authentication token from the configuration and start a client library with it).
      * <p>
      * This method is automatically called by Xatkit when a bot is starting.
      *
-     * @param xatkitCore    the {@link XatkitCore} instance managing this platform
+     * @param xatkitBot    the {@link XatkitBot} instance managing this platform
      * @param configuration the {@link Configuration} of the bot currently run
      */
-    public void start(@NonNull XatkitCore xatkitCore, @NonNull Configuration configuration) {
-        this.xatkitCore = xatkitCore;
+    public void start(@NonNull XatkitBot xatkitBot, @NonNull Configuration configuration) {
+        this.xatkitBot = xatkitBot;
         this.configuration = configuration;
         this.eventProviderMap = new HashMap<>();
     }
@@ -94,12 +94,12 @@ public abstract class RuntimePlatform {
     }
 
     /**
-     * Returns the {@link XatkitCore} instance associated to this platform.
+     * Returns the {@link XatkitBot} instance associated to this platform.
      *
-     * @return the {@link XatkitCore} instance associated to this platform
+     * @return the {@link XatkitBot} instance associated to this platform
      */
-    public final XatkitCore getXatkitCore() {
-        return this.xatkitCore;
+    public final XatkitBot getXatkitBot() {
+        return this.xatkitBot;
     }
 
     /**
@@ -130,7 +130,7 @@ public abstract class RuntimePlatform {
              */
             Log.info("Registering {0} in the {1}", eventProvider.getClass().getSimpleName(),
                     XatkitServer.class.getSimpleName());
-            xatkitCore.getXatkitServer().registerWebhookEventProvider((WebhookEventProvider) eventProvider);
+            xatkitBot.getXatkitServer().registerWebhookEventProvider((WebhookEventProvider) eventProvider);
         }
         EventProviderThread eventProviderThread = new EventProviderThread(eventProvider);
         eventProviderMap.put(eventProvider.getClass().getSimpleName(), eventProviderThread);

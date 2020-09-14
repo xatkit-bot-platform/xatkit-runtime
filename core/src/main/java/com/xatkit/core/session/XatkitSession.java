@@ -1,6 +1,6 @@
 package com.xatkit.core.session;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
@@ -30,7 +30,7 @@ import static java.util.Objects.nonNull;
  * of the current conversation.
  *
  * @see RuntimeContexts
- * @see XatkitCore#getOrCreateContext(String)
+ * @see XatkitBot#getOrCreateContext(String)
  */
 public class XatkitSession extends StateContextImpl {
 

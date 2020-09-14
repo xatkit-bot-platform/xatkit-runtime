@@ -74,7 +74,7 @@ public class RuntimeMessageActionTest extends AbstractActionTest<RuntimeMessageA
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(RuntimeArtifactAction.MESSAGE_DELAY_KEY, 2000);
         RuntimePlatform stubPlatform = new StubRuntimePlatform();
-        stubPlatform.start(mockedXatkitCore, configuration);
+        stubPlatform.start(mockedXatkitBot, configuration);
         StubRuntimeMessageAction action = new StubRuntimeMessageAction(stubPlatform, session, MESSAGE);
         long before = System.currentTimeMillis();
         RuntimeActionResult result = action.call();

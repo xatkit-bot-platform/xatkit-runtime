@@ -1,6 +1,6 @@
 package com.xatkit;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
@@ -16,8 +16,8 @@ import static org.mockito.Mockito.when;
  * A generic test case that defines utility methods to test {@link RuntimeEventProvider} subclasses.
  * <p>
  * Test cases targeting {@link RuntimeEventProvider}s can extend this class to reuse the initialized
- * {@link RuntimePlatform} and a mocked {@link XatkitCore} instance. This class takes care of the life-cycle of the
- * initialized {@link RuntimePlatform} and {@link XatkitCore}.
+ * {@link RuntimePlatform} and a mocked {@link XatkitBot} instance. This class takes care of the life-cycle of the
+ * initialized {@link RuntimePlatform} and {@link XatkitBot}.
  *
  * @param <E> the {@link RuntimeEventProvider} {@link Class} under test
  * @param <P> the {@link RuntimePlatform} containing the provider under test
@@ -35,14 +35,14 @@ public abstract class AbstractEventProviderTest<E extends RuntimeEventProvider<P
     protected E provider;
 
     /**
-     * A mock of the {@link XatkitCore}.
+     * A mock of the {@link XatkitBot}.
      */
-    protected XatkitCore mockedXatkitCore;
+    protected XatkitBot mockedXatkitBot;
 
     /**
      * A mock of the {@link IntentRecognitionProvider}.
      * <p>
-     * This mock is returned when calling {@code mockedXatkitCore.getIntentRecognitionProvider()}.
+     * This mock is returned when calling {@code mockedXatkitBot.getIntentRecognitionProvider()}.
      */
     protected IntentRecognitionProvider mockedIntentRecognitionProvider;
 
@@ -51,9 +51,9 @@ public abstract class AbstractEventProviderTest<E extends RuntimeEventProvider<P
      */
     @Before
     public void setUp() {
-        mockedXatkitCore = mock(XatkitCore.class);
+        mockedXatkitBot = mock(XatkitBot.class);
         mockedIntentRecognitionProvider = mock(IntentRecognitionProvider.class);
-        when(mockedXatkitCore.getIntentRecognitionProvider()).thenReturn(mockedIntentRecognitionProvider);
+        when(mockedXatkitBot.getIntentRecognitionProvider()).thenReturn(mockedIntentRecognitionProvider);
         platform = getPlatform();
     }
 

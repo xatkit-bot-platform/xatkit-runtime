@@ -79,7 +79,7 @@ public class CronEventProvider extends RuntimeEventProvider<CorePlatform> {
      */
     @Override
     public void start(@NonNull Configuration configuration) {
-        this.xatkitCore = runtimePlatform.getXatkitCore();
+        this.xatkitBot = runtimePlatform.getXatkitBot();
         checkNotNull(configuration, "Cannot construct a %s with the provided %s %s", this.getClass().getSimpleName(),
                 Configuration.class.getSimpleName(), configuration);
         String cronStartTimeProperty = configuration.getString(CoreUtils.CRON_START_ON_KEY);

@@ -1,6 +1,6 @@
 package com.xatkit;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.session.XatkitSession;
@@ -14,8 +14,8 @@ import static org.mockito.Mockito.mock;
  * A generic test case that defines utility methods to test {@link RuntimeAction} subclasses.
  * <p>
  * Test cases targeting {@link RuntimeAction}s can extend this class to reuse the initialized {@link RuntimePlatform}
- * , an empty {@link XatkitSession}, as well as a mocked {@link XatkitCore} instance. This class takes care of the
- * life-cycle of the initialized {@link RuntimePlatform} and {@link XatkitCore}.
+ * , an empty {@link XatkitSession}, as well as a mocked {@link XatkitBot} instance. This class takes care of the
+ * life-cycle of the initialized {@link RuntimePlatform} and {@link XatkitBot}.
  *
  * @param <A> the {@link RuntimeAction} {@link Class} under test
  * @param <P> the {@link RuntimePlatform} containing the action under test
@@ -33,9 +33,9 @@ public abstract class AbstractActionTest<A extends RuntimeAction<P>, P extends R
     protected A action;
 
     /**
-     * A mock of the {@link XatkitCore}.
+     * A mock of the {@link XatkitBot}.
      */
-    protected XatkitCore mockedXatkitCore;
+    protected XatkitBot mockedXatkitBot;
 
     /**
      * An empty {@link XatkitSession} that can be used to create instances of the action under test.
@@ -49,7 +49,7 @@ public abstract class AbstractActionTest<A extends RuntimeAction<P>, P extends R
      */
     @Before
     public void setUp() {
-        mockedXatkitCore = mock(XatkitCore.class);
+        mockedXatkitBot = mock(XatkitBot.class);
         platform = getPlatform();
         session = new XatkitSession("session");
     }

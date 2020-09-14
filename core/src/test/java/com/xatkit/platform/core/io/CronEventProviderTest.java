@@ -41,9 +41,9 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
         configuration = new BaseConfiguration();
         super.setUp();
         mockedExecutionService = mock(ExecutionService.class);
-        when(mockedXatkitCore.getExecutionService()).thenReturn(mockedExecutionService);
+        when(mockedXatkitBot.getExecutionService()).thenReturn(mockedExecutionService);
         mockedEventRegistry = mock(EventDefinitionRegistry.class);
-        when(mockedXatkitCore.getEventDefinitionRegistry()).thenReturn(mockedEventRegistry);
+        when(mockedXatkitBot.getEventDefinitionRegistry()).thenReturn(mockedEventRegistry);
         when(mockedEventRegistry.getEventDefinition(CronEventProvider.CronTick.getName())).thenReturn(CronEventProvider.CronTick);
     }
 
@@ -71,7 +71,7 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
          * the event has been immediately triggered.
          */
         Thread.sleep(500);
-        assertThatXatkitCoreContainsCronTicks(1);
+        assertThatXatkitBotContainsCronTicks(1);
     }
 
     @Test(expected = XatkitException.class)
@@ -91,9 +91,9 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
          * Wait less than the minimum interval to ensure the event hasn't been thrown.
          */
         Thread.sleep(500);
-        assertThatXatkitCoreContainsCronTicks(0);
+        assertThatXatkitBotContainsCronTicks(0);
         Thread.sleep(1000);
-        assertThatXatkitCoreContainsCronTicks(1);
+        assertThatXatkitBotContainsCronTicks(1);
     }
 
     @Test
@@ -107,11 +107,11 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
          * thrown.
          */
         Thread.sleep(500);
-        assertThatXatkitCoreContainsCronTicks(1);
+        assertThatXatkitBotContainsCronTicks(1);
         Thread.sleep(1000);
-        assertThatXatkitCoreContainsCronTicks(2);
+        assertThatXatkitBotContainsCronTicks(2);
         Thread.sleep(1000);
-        assertThatXatkitCoreContainsCronTicks(3);
+        assertThatXatkitBotContainsCronTicks(3);
     }
 
     @Test
@@ -127,7 +127,7 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
     @Override
     protected CorePlatform getPlatform() {
         CorePlatform corePlatform = new CorePlatform();
-        corePlatform.start(mockedXatkitCore, configuration);
+        corePlatform.start(mockedXatkitBot, configuration);
         return corePlatform;
     }
 
@@ -143,7 +143,7 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
         assertThat(provider.scheduler).as("Schedule not null").isNotNull();
     }
 
-    private void assertThatXatkitCoreContainsCronTicks(int cronTickCount) {
+    private void assertThatXatkitBotContainsCronTicks(int cronTickCount) {
         ArgumentCaptor<EventInstance> captor = ArgumentCaptor.forClass(EventInstance.class);
         verify(mockedExecutionService, times(cronTickCount)).handleEventInstance(captor.capture(),
                 any(XatkitSession.class));

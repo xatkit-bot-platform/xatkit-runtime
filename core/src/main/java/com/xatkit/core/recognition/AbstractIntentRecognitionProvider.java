@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.session.XatkitSession;
@@ -37,7 +37,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
     /**
      * The {@link List} of {@link InputPreProcessor}s set for this provider.
      *
-     * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitCore, Configuration)
+     * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitBot, Configuration)
      * @see #getIntent(String, StateContext)
      */
     private List<? extends InputPreProcessor> preProcessors = new ArrayList<>();
@@ -45,7 +45,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
     /**
      * The {@link List} of {@link IntentPostProcessor}s set for this provider.
      *
-     * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitCore, Configuration)
+     * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitBot, Configuration)
      * @see #getIntent(String, StateContext)
      */
     private List<? extends IntentPostProcessor> postProcessors = new ArrayList<>();

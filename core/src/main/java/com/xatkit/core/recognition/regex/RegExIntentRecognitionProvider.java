@@ -1,6 +1,6 @@
 package com.xatkit.core.recognition.regex;
 
-import com.xatkit.core.XatkitCore;
+import com.xatkit.core.XatkitBot;
 import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
@@ -58,7 +58,7 @@ import static java.util.Objects.nonNull;
  * <p>
  * The {@link RegExIntentRecognitionProvider} will be used by Xatkit if the application's {@link Configuration}
  * file does not contain specific {@link com.xatkit.core.recognition.IntentRecognitionProvider} properties (see
- * {@link IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitCore, Configuration)}).
+ * {@link IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitBot, Configuration)}).
  *
  * @see IntentRecognitionProviderFactory
  */
