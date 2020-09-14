@@ -26,6 +26,7 @@
         <eclipse-collections.version>9.2.0</eclipse-collections.version>
         <lombok.version>1.18.12</lombok.version>
         <retrofit.version>2.9.0</retrofit.version>
+        <okhttp3.logging-interceptor.version>3.14.0</okhttp3.logging-interceptor.version>
     </properties>
 
     <dependencies>
@@ -117,10 +118,7 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>logging-interceptor</artifactId>
-            <version>3.14.0</version>
         </dependency>
-
-
 
         <!-- Analytics -->
 
@@ -186,18 +184,6 @@
     <dependencyManagement>
 
         <dependencies>
-
-            <dependency>
-                <groupId>com.xatkit</groupId>
-                <artifactId>chat-platform-runtime</artifactId>
-                <version>3.0.1-SNAPSHOT</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.xatkit</groupId>
-                <artifactId>react-platform-runtime</artifactId>
-                <version>4.0.1-SNAPSHOT</version>
-            </dependency>
 
             <!-- Stanford NLP -->
             <!-- This dependency has the provided scope because it is only required by some pre/post processors, see the
@@ -272,6 +258,12 @@
                 <groupId>com.squareup.retrofit2</groupId>
                 <artifactId>converter-gson</artifactId>
                 <version>${retrofit.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>logging-interceptor</artifactId>
+                <version>${okhttp3.logging-interceptor.version}</version>
             </dependency>
 
 

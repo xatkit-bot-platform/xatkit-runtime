@@ -117,12 +117,12 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     public void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
-
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
     public void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
-
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
@@ -146,10 +146,11 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                 else
                     attemptsLeft--;
             }
-            if (isDone)
+            if (isDone) {
                 Log.info("NLP.js agent trained.");
-            else
+            } else {
                 throw new IntentRecognitionProviderException("Failed to train the NLP.js agent");
+            }
         } catch (IOException | InterruptedException e) {
             throw new IntentRecognitionProviderException("An error occurred during the NLP agent training: ", e);
         }
@@ -198,7 +199,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     @Nullable
     @Override
     public RecognitionMonitor getRecognitionMonitor() {
-        return null;
+        return this.recognitionMonitor;
     }
 
     private void checkNotShutdown() throws IntentRecognitionProviderException {

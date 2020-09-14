@@ -78,7 +78,6 @@ public class IntentRecognitionProviderFactory {
 
         IntentRecognitionProvider provider;
 
-        // TODO Add a new key in the configuration to choose the recognition provider and change if/else to switch
         if (baseConfiguration.containsKey(DialogFlowConfiguration.PROJECT_ID_KEY)) {
             /*
              * The provided configuration contains DialogFlow-related information.
