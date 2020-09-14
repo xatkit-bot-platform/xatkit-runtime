@@ -8,10 +8,6 @@ public class StateProviderImpl implements StateProvider {
 
     protected State state;
 
-    public StateProviderImpl(@NonNull State state) {
-        this.state = state;
-    }
-
     @Override
     public @NonNull State getState() {
         return state;

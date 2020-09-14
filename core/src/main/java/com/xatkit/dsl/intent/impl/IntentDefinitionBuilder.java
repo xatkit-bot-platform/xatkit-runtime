@@ -4,15 +4,19 @@ import com.xatkit.dsl.intent.IntentContextLifespanStep;
 import com.xatkit.dsl.intent.IntentMandatoryTrainingSentenceStep;
 import com.xatkit.dsl.intent.IntentOptionalTrainingSentenceStep;
 import com.xatkit.intent.Context;
-import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import lombok.NonNull;
 
-public class IntentDefinitionDelegate extends IntentDefinitionProviderImpl implements IntentMandatoryTrainingSentenceStep,
+public class IntentDefinitionBuilder extends IntentDefinitionProviderImpl implements IntentMandatoryTrainingSentenceStep,
         IntentOptionalTrainingSentenceStep {
 
-    public IntentDefinitionDelegate(@NonNull IntentDefinition intent) {
-        super(intent);
+    public IntentDefinitionBuilder() {
+        this.intent = IntentFactory.eINSTANCE.createIntentDefinition();
+    }
+
+    public @NonNull IntentDefinitionBuilder name(@NonNull String name) {
+        this.intent.setName(name);
+        return this;
     }
 
     @Override
@@ -20,7 +24,7 @@ public class IntentDefinitionDelegate extends IntentDefinitionProviderImpl imple
         Context context = IntentFactory.eINSTANCE.createContext();
         context.setName(name);
         this.intent.getOutContexts().add(context);
-        return new IntentContextDelegate(this.intent, context);
+        return new IntentContextBuilder(this.intent, context);
     }
 
     @Override

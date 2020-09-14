@@ -8,10 +8,6 @@ public class EventDefinitionProviderImpl implements EventDefinitionProvider {
 
     protected EventDefinition event;
 
-    public EventDefinitionProviderImpl(EventDefinition event) {
-        this.event = event;
-    }
-
     @Override
     public @NonNull EventDefinition getEventDefinition() {
         return this.event;

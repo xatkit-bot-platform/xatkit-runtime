@@ -3,21 +3,27 @@ package com.xatkit.dsl.entity.impl;
 import com.xatkit.dsl.entity.CustomEntityDefinitionProvider;
 import com.xatkit.dsl.entity.MappingReferenceValueStep;
 import com.xatkit.dsl.entity.MappingSynonymStep;
+import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.intent.MappingEntityDefinitionEntry;
 import lombok.NonNull;
 
 // Wrapper? Delegate?
-public class MappingEntityDefinitionEntryDelegate extends MappingEntityDefinitionDelegate implements
+public class MappingEntityDefinitionEntryBuilder extends MappingEntityDefinitionBuilder implements
         MappingReferenceValueStep,
         MappingSynonymStep,
         CustomEntityDefinitionProvider {
 
     private MappingEntityDefinitionEntry entry;
 
-    public MappingEntityDefinitionEntryDelegate(MappingEntityDefinition entity, MappingEntityDefinitionEntry entry) {
-        super(entity);
-        this.entry = entry;
+    public MappingEntityDefinitionEntryBuilder(MappingEntityDefinition parent) {
+        this.entity = parent;
+        this.entry = IntentFactory.eINSTANCE.createMappingEntityDefinitionEntry();
+        /*
+         * Add the entry right now because we don't know what will be the last call to define it (we can have
+         * multiple synonyms in an entry).
+         */
+        this.entity.getEntries().add(this.entry);
     }
 
     @Override

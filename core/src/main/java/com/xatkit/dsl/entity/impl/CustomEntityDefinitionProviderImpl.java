@@ -13,13 +13,14 @@ public class CustomEntityDefinitionProviderImpl<T extends CustomEntityDefinition
 
     protected T entity;
 
-    public CustomEntityDefinitionProviderImpl(T entity) {
-        this.entity = entity;
-    }
-
     @Override
     public @NonNull T getEntity() {
         return this.entity;
+    }
+
+    public @NonNull CustomEntityDefinitionProviderImpl<T> name(@NonNull String name) {
+        this.entity.setName(name);
+        return this;
     }
 
     @Override

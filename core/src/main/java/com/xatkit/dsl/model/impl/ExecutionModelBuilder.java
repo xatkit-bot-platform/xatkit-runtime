@@ -13,14 +13,14 @@ import com.xatkit.dsl.model.StateStep;
 import com.xatkit.dsl.model.UseEventStep;
 import com.xatkit.dsl.model.UsePlatformStep;
 import com.xatkit.dsl.state.StateProvider;
-import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.State;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.Library;
 import lombok.NonNull;
 
-public class ExecutionModelDelegate extends ExecutionModelProviderImpl implements
+public class ExecutionModelBuilder extends ExecutionModelProviderImpl implements
         UseEventStep,
         UsePlatformStep,
         ListenToStep,
@@ -28,8 +28,8 @@ public class ExecutionModelDelegate extends ExecutionModelProviderImpl implement
         InitStateStep,
         DefaultFallbackStateStep {
 
-    public ExecutionModelDelegate(@NonNull ExecutionModel executionModel) {
-        super(executionModel);
+    public ExecutionModelBuilder() {
+        this.model = ExecutionFactory.eINSTANCE.createExecutionModel();
     }
 
 

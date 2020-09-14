@@ -11,16 +11,20 @@ import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.LiteralTextFragment;
 import lombok.NonNull;
 
-public class CompositeEntityDefinitionEntryDelegate extends CompositeEntityDefinitionDelegate implements
+public class CompositeEntityDefinitionEntryBuilder extends CompositeEntityDefinitionBuilder implements
         CompositeEntryFragmentStep,
         CustomEntityDefinitionProvider {
 
     private CompositeEntityDefinitionEntry entry;
 
-    public CompositeEntityDefinitionEntryDelegate(CompositeEntityDefinition entity,
-                                                  CompositeEntityDefinitionEntry entry) {
-        super(entity);
-        this.entry = entry;
+    public CompositeEntityDefinitionEntryBuilder(CompositeEntityDefinition parent) {
+        this.entity = parent;
+        this.entry = IntentFactory.eINSTANCE.createCompositeEntityDefinitionEntry();
+        /*
+         * Add the entry right now because we don't know what will be the last call to define it (we can have
+         * multiple fragments in a composite entity entry).
+         */
+        this.entity.getEntries().add(this.entry);
     }
 
     @Override

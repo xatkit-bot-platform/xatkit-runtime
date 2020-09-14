@@ -8,10 +8,6 @@ public class LibraryProviderImpl implements LibraryProvider {
 
     protected Library library;
 
-    public LibraryProviderImpl(@NonNull Library library) {
-        this.library = library;
-    }
-
     @Override
     public @NonNull Library getLibrary() {
         return this.library;

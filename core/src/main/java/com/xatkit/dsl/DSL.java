@@ -2,35 +2,29 @@ package com.xatkit.dsl;
 
 import com.xatkit.dsl.entity.CompositeEntryStep;
 import com.xatkit.dsl.entity.MappingEntryStep;
-import com.xatkit.dsl.entity.impl.CompositeEntityDefinitionDelegate;
-import com.xatkit.dsl.entity.impl.MappingEntityDefinitionDelegate;
+import com.xatkit.dsl.entity.impl.CompositeEntityDefinitionBuilder;
+import com.xatkit.dsl.entity.impl.MappingEntityDefinitionBuilder;
 import com.xatkit.dsl.intent.EventContextStep;
 import com.xatkit.dsl.intent.EventDefinitionProvider;
 import com.xatkit.dsl.intent.IntentDefinitionProvider;
 import com.xatkit.dsl.intent.IntentMandatoryTrainingSentenceStep;
-import com.xatkit.dsl.intent.impl.EventDefinitionDelegate;
-import com.xatkit.dsl.intent.impl.IntentDefinitionDelegate;
+import com.xatkit.dsl.intent.impl.EventDefinitionBuilder;
+import com.xatkit.dsl.intent.impl.IntentDefinitionBuilder;
 import com.xatkit.dsl.library.EntityStep;
-import com.xatkit.dsl.library.impl.LibraryDelegate;
+import com.xatkit.dsl.library.impl.LibraryBuilder;
 import com.xatkit.dsl.model.UseEventStep;
-import com.xatkit.dsl.model.impl.ExecutionModelDelegate;
+import com.xatkit.dsl.model.impl.ExecutionModelBuilder;
 import com.xatkit.dsl.state.BodyStep;
 import com.xatkit.dsl.state.FallbackBodyStep;
-import com.xatkit.dsl.state.impl.StateDelegate;
-import com.xatkit.execution.ExecutionFactory;
-import com.xatkit.execution.ExecutionModel;
-import com.xatkit.execution.State;
+import com.xatkit.dsl.state.impl.StateBuilder;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.BaseEntityDefinitionReference;
-import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.EntityDefinitionReference;
 import com.xatkit.intent.EntityType;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
-import com.xatkit.intent.Library;
-import com.xatkit.intent.MappingEntityDefinition;
 import com.xatkit.util.predicate.IsEventDefinitionPredicate;
 import com.xatkit.util.predicate.IsIntentDefinitionPredicate;
 import lombok.NonNull;
@@ -40,50 +34,49 @@ import java.util.function.Predicate;
 public class DSL {
 
     public static @NonNull UseEventStep model() {
-        ExecutionModel model = ExecutionFactory.eINSTANCE.createExecutionModel();
-        return new ExecutionModelDelegate(model);
+        return new ExecutionModelBuilder();
     }
 
     public static @NonNull EntityStep library(String name) {
-        Library library = IntentFactory.eINSTANCE.createLibrary();
-        library.setName(name);
-        return new LibraryDelegate(library);
+        LibraryBuilder libraryBuilder = new LibraryBuilder();
+        libraryBuilder.name(name);
+        return libraryBuilder;
     }
 
     public static @NonNull BodyStep state(@NonNull String name) {
-        State state = ExecutionFactory.eINSTANCE.createState();
-        state.setName(name);
-        return new StateDelegate(state);
+        StateBuilder stateBuilder = new StateBuilder();
+        stateBuilder.name(name);
+        return stateBuilder;
     }
 
     public static @NonNull FallbackBodyStep fallbackState() {
-        State state = ExecutionFactory.eINSTANCE.createState();
-        state.setName("Default_Fallback");
-        return new StateDelegate(state);
+        StateBuilder stateBuilder = new StateBuilder();
+        stateBuilder.name("Default_Fallback");
+        return stateBuilder;
     }
 
     public static @NonNull IntentMandatoryTrainingSentenceStep intent(@NonNull String name) {
-        IntentDefinition intent = IntentFactory.eINSTANCE.createIntentDefinition();
-        intent.setName(name);
-        return new IntentDefinitionDelegate(intent);
+        IntentDefinitionBuilder intentDefinitionBuilder = new IntentDefinitionBuilder();
+        intentDefinitionBuilder.name(name);
+        return intentDefinitionBuilder;
     }
 
     public static @NonNull EventContextStep event(@NonNull String name) {
-        EventDefinition event = IntentFactory.eINSTANCE.createEventDefinition();
-        event.setName(name);
-        return new EventDefinitionDelegate(event);
+        EventDefinitionBuilder eventDefinitionBuilder = new EventDefinitionBuilder();
+        eventDefinitionBuilder.name(name);
+        return eventDefinitionBuilder;
     }
 
     public static @NonNull MappingEntryStep mapping(@NonNull String name) {
-        MappingEntityDefinition entity = IntentFactory.eINSTANCE.createMappingEntityDefinition();
-        entity.setName(name);
-        return new MappingEntityDefinitionDelegate(entity);
+        MappingEntityDefinitionBuilder mappingEntityDefinitionBuilder = new MappingEntityDefinitionBuilder();
+        mappingEntityDefinitionBuilder.name(name);
+        return mappingEntityDefinitionBuilder;
     }
 
     public static @NonNull CompositeEntryStep composite(@NonNull String name) {
-        CompositeEntityDefinition entity = IntentFactory.eINSTANCE.createCompositeEntityDefinition();
-        entity.setName(name);
-        return new CompositeEntityDefinitionDelegate(entity);
+        CompositeEntityDefinitionBuilder compositeEntityDefinitionBuilder = new CompositeEntityDefinitionBuilder();
+        compositeEntityDefinitionBuilder.name(name);
+        return compositeEntityDefinitionBuilder;
     }
 
     public static @NonNull Predicate<StateContext> intentIs(@NonNull IntentDefinitionProvider intentProvider) {

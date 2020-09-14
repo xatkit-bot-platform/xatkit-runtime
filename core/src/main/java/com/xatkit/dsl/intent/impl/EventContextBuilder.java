@@ -8,13 +8,23 @@ import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentFactory;
 import lombok.NonNull;
 
-public class EventContextDelegate extends EventDefinitionProviderImpl implements EventContextLifespanStep {
+public class EventContextBuilder extends EventDefinitionProviderImpl implements EventContextLifespanStep {
 
     protected Context context;
 
-    public EventContextDelegate(@NonNull EventDefinition event, @NonNull Context context) {
-        super(event);
-        this.context = context;
+    public EventContextBuilder(@NonNull EventDefinition parent) {
+        this.event = parent;
+        this.context = IntentFactory.eINSTANCE.createContext();
+        /*
+         * Add the context right now because we don't know what will be the last call to define it (we can have
+         * multiple parameters in a context).
+         */
+        this.event.getOutContexts().add(this.context);
+    }
+
+    public @NonNull EventContextBuilder name(@NonNull String name) {
+        this.context.setName(name);
+        return this;
     }
 
 
@@ -34,12 +44,11 @@ public class EventContextDelegate extends EventDefinitionProviderImpl implements
 
     @Override
     public @NonNull EventContextLifespanStep context(@NonNull String name) {
-        Context context = IntentFactory.eINSTANCE.createContext();
-        context.setName(name);
-        this.event.getOutContexts().add(context);
         /*
-         * Create a new delegate with the created context
+         * Create a new builder with the created context.
          */
-        return new EventContextDelegate(this.event, context);
+        EventContextBuilder eventContextBuilder = new EventContextBuilder(this.event);
+        eventContextBuilder.name(name);
+        return eventContextBuilder;
     }
 }

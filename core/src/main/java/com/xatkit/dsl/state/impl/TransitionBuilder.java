@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 
 import static java.util.Objects.isNull;
 
-public class TransitionBuilder extends StateDelegate implements
+public class TransitionBuilder extends StateBuilder implements
         TransitionStep,
         WhenStep,
         OptionalWhenStep,
@@ -25,7 +25,7 @@ public class TransitionBuilder extends StateDelegate implements
     private Transition transition;
 
     public TransitionBuilder(@NonNull State parent) {
-        super(parent);
+        this.state = parent;
     }
 
     @Override
