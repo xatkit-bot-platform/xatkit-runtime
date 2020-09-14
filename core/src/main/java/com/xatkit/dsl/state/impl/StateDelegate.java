@@ -6,10 +6,8 @@ import com.xatkit.dsl.state.FallbackStep;
 import com.xatkit.dsl.state.NextStep;
 import com.xatkit.dsl.state.StateProvider;
 import com.xatkit.dsl.state.TransitionStep;
-import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
-import com.xatkit.execution.Transition;
 import lombok.NonNull;
 
 import java.util.function.Consumer;
@@ -39,9 +37,7 @@ public class StateDelegate extends StateProviderImpl implements
 
     @Override
     public @NonNull TransitionStep next() {
-        Transition transition = ExecutionFactory.eINSTANCE.createTransition();
-        this.state.getTransitions().add(transition);
-        return new TransitionDelegate(this.state, transition);
+        return new TransitionBuilder(this.state);
     }
 
     @Override

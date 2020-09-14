@@ -1,6 +1,8 @@
 package com.xatkit.dsl;
 
+import com.xatkit.execution.AutoTransition;
 import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.GuardedTransition;
 import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
@@ -44,11 +46,7 @@ public class StateTest {
         assertThat(base.getName()).isEqualTo("State");
         assertThat(base.getTransitions()).hasSize(1);
         Transition transition = base.getTransitions().get(0);
-        /*
-         * Null conditions are considered auto transitions, this is probably a design smell and should be fixed at
-         * the metamodel level.
-         */
-        assertThat(transition.getCondition()).isNull();
+        assertThat(transition).isInstanceOf(AutoTransition.class);
         assertThat(transition.getState()).isEqualTo(s1);
     }
 
@@ -63,6 +61,8 @@ public class StateTest {
         assertThat(base.getName()).isEqualTo("State");
         assertThat(base.getTransitions()).hasSize(1);
         Transition transition = base.getTransitions().get(0);
+        assertThat(transition).isInstanceOf(GuardedTransition.class);
+        GuardedTransition guardedTransition = (GuardedTransition) transition;
         /*
          * Create a StateContext to test the lambda.
          */
@@ -70,12 +70,12 @@ public class StateTest {
         Map<Object, Object> sessionMap = new HashMap<>();
         sessionMap.put("key", "value");
         stateContext.setSession(sessionMap);
-        assertThat(transition.getCondition().test(stateContext)).isTrue();
+        assertThat(guardedTransition.getCondition().test(stateContext)).isTrue();
         /*
          * Change the session value to make sure the lambda returns the correct result.
          */
         sessionMap.put("key", "anotherValue");
-        assertThat(transition.getCondition().test(stateContext)).isFalse();
+        assertThat(guardedTransition.getCondition().test(stateContext)).isFalse();
         assertThat(transition.getState()).isEqualTo(s1);
     }
 
@@ -93,8 +93,10 @@ public class StateTest {
         assertThat(base.getName()).isEqualTo("State");
         assertThat(base.getTransitions()).hasSize(1);
         Transition transition = base.getTransitions().get(0);
-        assertThat(transition.getCondition()).isInstanceOf(IsIntentDefinitionPredicate.class);
-        IsIntentDefinitionPredicate predicate = (IsIntentDefinitionPredicate) transition.getCondition();
+        assertThat(transition).isInstanceOf(GuardedTransition.class);
+        GuardedTransition guardedTransition = (GuardedTransition) transition;
+        assertThat(guardedTransition.getCondition()).isInstanceOf(IsIntentDefinitionPredicate.class);
+        IsIntentDefinitionPredicate predicate = (IsIntentDefinitionPredicate) guardedTransition.getCondition();
         assertThat(predicate.getIntentDefinition()).isEqualTo(intent);
         /*
          * Create a StateContext to test the lambda.
@@ -103,7 +105,7 @@ public class StateTest {
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
         recognizedIntent.setDefinition(intent);
         stateContext.setEventInstance(recognizedIntent);
-        assertThat(transition.getCondition().test(stateContext)).isTrue();
+        assertThat(guardedTransition.getCondition().test(stateContext)).isTrue();
     }
 
     @Test
@@ -119,8 +121,10 @@ public class StateTest {
         assertThat(base.getName()).isEqualTo("State");
         assertThat(base.getTransitions()).hasSize(1);
         Transition transition = base.getTransitions().get(0);
-        assertThat(transition.getCondition()).isInstanceOf(IsEventDefinitionPredicate.class);
-        IsEventDefinitionPredicate predicate = (IsEventDefinitionPredicate) transition.getCondition();
+        assertThat(transition).isInstanceOf(GuardedTransition.class);
+        GuardedTransition guardedTransition = (GuardedTransition) transition;
+        assertThat(guardedTransition.getCondition()).isInstanceOf(IsEventDefinitionPredicate.class);
+        IsEventDefinitionPredicate predicate = (IsEventDefinitionPredicate) guardedTransition.getCondition();
         assertThat(predicate.getEventDefinition()).isEqualTo(event);
         /*
          * Create a StateContext to test the lambda.
@@ -129,7 +133,7 @@ public class StateTest {
         EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
         eventInstance.setDefinition(event);
         stateContext.setEventInstance(eventInstance);
-        assertThat(transition.getCondition().test(stateContext)).isTrue();
+        assertThat(guardedTransition.getCondition().test(stateContext)).isTrue();
     }
 
     @Test

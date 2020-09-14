@@ -2,7 +2,9 @@ package com.xatkit.core;
 
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.AutoTransition;
 import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.GuardedTransition;
 import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
@@ -176,6 +178,7 @@ public class ExecutionService {
      * @param context the {@link StateContext} holding the context information
      * @return the navigable {@link Transition} if it exists, {@code null} otherwise
      * @throws IllegalStateException if more than 1 navigable transition is found
+     * @throws IllegalArgumentException if the provided {@code state} contains an unsupported {@link Transition} type
      */
     private @Nullable
     Transition getNavigableTransitions(@NonNull State state, @NonNull StateContext context) {
@@ -185,25 +188,27 @@ public class ExecutionService {
          */
         List<Transition> result = new ArrayList<>();
         for (Transition t : state.getTransitions()) {
-            if (isNull(t.getCondition())) {
-                /*
-                 * Null conditions represent auto-transitions.
-                 */
+            if(t instanceof AutoTransition) {
                 result.add(t);
                 continue;
-            }
-            /*
-             * Create the context with the received EventInstance. This is the instance we want to use in the
-             * transition conditions.
-             */
-            try {
-                if (t.getCondition().test(context)) {
-                    result.add(t);
+            } else if(t instanceof GuardedTransition) {
+                GuardedTransition guardedTransition = (GuardedTransition) t;
+                /*
+                 * Create the context with the received EventInstance. This is the instance we want to use in the
+                 * transition conditions.
+                 */
+                try {
+                    if(guardedTransition.getCondition().test(context)) {
+                        result.add(t);
+                    }
+                } catch (Throwable throwable) {
+                    Log.error(throwable, "An exception occurred when evaluating transition {0} of state {1}",
+                            state.getTransitions().indexOf(t), state.getName());
+                    continue;
                 }
-            } catch (Throwable throwable) {
-                Log.error(throwable, "An exception occurred when evaluating transition {0} of state {1}",
-                        state.getTransitions().indexOf(t), state.getName());
-                continue;
+            } else {
+                throw new IllegalArgumentException(MessageFormat.format("State {0} contains an unsupported transition" +
+                        " typed {1}", state.getName(), t.getClass().getSimpleName()));
             }
         }
         if (result.size() > 1) {

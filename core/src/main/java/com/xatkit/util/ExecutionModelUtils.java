@@ -1,6 +1,8 @@
 package com.xatkit.util;
 
+import com.xatkit.execution.AutoTransition;
 import com.xatkit.execution.ExecutionModel;
+import com.xatkit.execution.GuardedTransition;
 import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
@@ -21,7 +23,6 @@ import java.util.Spliterators;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 public class ExecutionModelUtils {
@@ -53,14 +54,19 @@ public class ExecutionModelUtils {
      */
     public static @Nullable
     EventDefinition getAccessedEvent(@NonNull Transition transition) {
-        Collection<EventDefinition> result = getAccessedEvents(transition.getCondition());
-        if(result.isEmpty()) {
-            return null;
+        if(transition instanceof GuardedTransition) {
+            GuardedTransition guardedTransition = (GuardedTransition) transition;
+            Collection<EventDefinition> result = getAccessedEvents(guardedTransition.getCondition());
+            if (result.isEmpty()) {
+                return null;
+            } else {
+                /*
+                 * TODO this method should probably return a collection too.
+                 */
+                return result.iterator().next();
+            }
         } else {
-            /*
-             * TODO this method should probably return a collection too.
-             */
-            return result.iterator().next();
+            return null;
         }
     }
 
@@ -118,7 +124,7 @@ public class ExecutionModelUtils {
         /*
          * Null conditions corresponds to auto-transitions.
          */
-        if (state.getTransitions().stream().anyMatch(t -> isNull(t.getCondition()))) {
+        if (state.getTransitions().stream().anyMatch(t -> t instanceof AutoTransition)) {
             if (state.getTransitions().size() > 1) {
                 throw new IllegalStateException(MessageFormat.format("The provided state {0} contains more than 1 " +
                         "transition and at least one is a wildcard", state.getName()));
