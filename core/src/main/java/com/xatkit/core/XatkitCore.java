@@ -1,6 +1,5 @@
 package com.xatkit.core;
 
-import com.xatkit.core.platform.Formatter;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
@@ -115,11 +114,6 @@ public class XatkitCore implements Runnable {
     private XatkitServer xatkitServer;
 
     /**
-     * The {@link Formatter}s used to format execution-level {@link Object}s into {@link String}.
-     */
-    private Map<String, Formatter> formatters;
-
-    /**
      * Creates an <b>unstarted</b> {@link XatkitCore} instance.
      * <p>
      * The underlying bot can be started by calling {@link #run()}.
@@ -162,8 +156,6 @@ public class XatkitCore implements Runnable {
     public void run() {
         try {
             this.eventDefinitionRegistry = new EventDefinitionRegistry();
-            this.formatters = new HashMap<>();
-            this.registerFormatter("Default", new Formatter());
             /*
              * Start the server before creating the IntentRecognitionProvider, we need a valid XatkitServer instance
              * to register the analytics REST endpoints (this is also required to start the EventProviderDefinition).
@@ -181,37 +173,6 @@ public class XatkitCore implements Runnable {
                     .getSimpleName());
             stopServices();
             throw t;
-        }
-    }
-
-    /**
-     * Registers the provided {@code formatter} with the given {@code formatterName}.
-     *
-     * @param formatterName the name of the formatter
-     * @param formatter     the {@link Formatter} to register
-     */
-    @Deprecated
-    public void registerFormatter(String formatterName, Formatter formatter) {
-        if (formatters.containsKey(formatterName)) {
-            Log.warn("A formatter is already registered with the name {0}, erasing it", formatterName);
-        }
-        formatters.put(formatterName, formatter);
-    }
-
-    /**
-     * Returns the {@link Formatter} associated to the provided {@code formatterName}.
-     *
-     * @param formatterName the name of the {@link Formatter} to retrieve
-     * @return the {@link Formatter}
-     * @throws XatkitException if there is no {@link Formatter} associated to the provided {@code formatterName}.
-     */
-    @Deprecated
-    public Formatter getFormatter(String formatterName) {
-        Formatter formatter = formatters.get(formatterName);
-        if (nonNull(formatter)) {
-            return formatter;
-        } else {
-            throw new XatkitException(MessageFormat.format("Cannot find formatter {0}", formatterName));
         }
     }
 
