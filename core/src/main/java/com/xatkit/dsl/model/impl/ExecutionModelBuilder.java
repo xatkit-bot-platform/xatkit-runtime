@@ -78,7 +78,7 @@ public class ExecutionModelBuilder extends ExecutionModelProviderImpl implements
     }
 
     @Override
-    public @NonNull StateStep state(@NonNull StateProvider stateProvider) {
+    public @NonNull StateStep useState(@NonNull StateProvider stateProvider) {
         this.model.getStates().add(stateProvider.getState());
         return this;
     }

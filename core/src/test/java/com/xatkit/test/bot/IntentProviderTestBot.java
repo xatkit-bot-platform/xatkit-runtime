@@ -129,7 +129,7 @@ public class IntentProviderTestBot {
                 .useIntent(this.simpleIntent)
                 .useIntent(this.mappingEntityIntent)
                 .useIntent(this.compositeEntityIntent)
-                .state(endState)
+                .useState(endState)
                 .initState(initState)
                 .defaultFallbackState(fallback)
                 .getExecutionModel();

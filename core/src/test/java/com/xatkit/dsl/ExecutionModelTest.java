@@ -89,8 +89,8 @@ public class ExecutionModelTest {
     @Test
     public void createModelWithStates() {
         val model = model()
-                .state(s1)
-                .state(s2)
+                .useState(s1)
+                .useState(s2)
                 .initState(s1)
                 .defaultFallbackState(s2);
 
