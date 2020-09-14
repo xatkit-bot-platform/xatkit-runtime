@@ -4,6 +4,8 @@ import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
+import com.xatkit.core.recognition.nlpjs.NlpjsConfiguration;
+import com.xatkit.core.recognition.nlpjs.NlpjsIntentRecognitionProvider;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
@@ -81,6 +83,12 @@ public class IntentRecognitionProviderFactory {
              * The provided configuration contains DialogFlow-related information.
              */
             provider = new DialogFlowApi(xatkitCore.getEventDefinitionRegistry(), baseConfiguration,
+                    recognitionMonitor);
+        } else if (baseConfiguration.containsKey(NlpjsConfiguration.AGENT_ID_KEY)) {
+            /*
+             * The provided configuration contains NLP.js-related information.
+             */
+            provider = new NlpjsIntentRecognitionProvider(xatkitCore.getEventDefinitionRegistry(), baseConfiguration,
                     recognitionMonitor);
         } else {
             /*
