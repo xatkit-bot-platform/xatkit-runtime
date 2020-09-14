@@ -2,7 +2,7 @@ package com.xatkit.core.recognition;
 
 import com.xatkit.core.XatkitCore;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.recognition.dialogflow.DialogFlowApi;
+import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
@@ -80,7 +80,7 @@ public class IntentRecognitionProviderFactory {
             /*
              * The provided configuration contains DialogFlow-related information.
              */
-            provider = new DialogFlowApi(xatkitCore.getEventDefinitionRegistry(), baseConfiguration,
+            provider = new DialogFlowIntentRecognitionProvider(xatkitCore.getEventDefinitionRegistry(), baseConfiguration,
                     recognitionMonitor);
         } else {
             /*

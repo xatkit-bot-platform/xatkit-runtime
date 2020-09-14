@@ -59,7 +59,7 @@ import static java.util.Objects.nonNull;
  * customized in the Xatkit {@link Configuration}, see {@link DialogFlowConfiguration} for more information on the
  * configuration options.
  */
-public class DialogFlowApi extends AbstractIntentRecognitionProvider {
+public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
 
     /**
      * The {@link DialogFlowConfiguration} extracted from the provided {@link Configuration}.
@@ -140,7 +140,8 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
     private RecognizedIntentMapper recognizedIntentMapper;
 
     /**
-     * Constructs a {@link DialogFlowApi} with the provided {@code eventRegistry}, {@code configuration}, and {@code
+     * Constructs a {@link DialogFlowIntentRecognitionProvider} with the provided {@code eventRegistry}, {@code
+     * configuration}, and {@code
      * recognitionMonitor}.
      * <p>
      * The behavior of this class can be customized in the provided {@code configuration}. See
@@ -154,8 +155,9 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * @throws XatkitException      if an internal error occurred while creating the DialogFlow connector
      * @see DialogFlowConfiguration
      */
-    public DialogFlowApi(@NonNull EventDefinitionRegistry eventRegistry, @NonNull Configuration configuration,
-                         @Nullable RecognitionMonitor recognitionMonitor) {
+    public DialogFlowIntentRecognitionProvider(@NonNull EventDefinitionRegistry eventRegistry,
+                                               @NonNull Configuration configuration,
+                                               @Nullable RecognitionMonitor recognitionMonitor) {
         Log.info("Starting DialogFlow Client");
         this.configuration = new DialogFlowConfiguration(configuration);
         this.projectAgentName = ProjectAgentName.of(this.configuration.getProjectId());
@@ -516,11 +518,11 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
         try {
             isDone =
                     this.dialogFlowClients.getAgentsClient().trainAgentAsync(request).getPollingFuture().get()
-                    .isDone();
-        } catch(InterruptedException | ExecutionException e) {
+                            .isDone();
+        } catch (InterruptedException | ExecutionException e) {
             throw new IntentRecognitionProviderException("An error occurred during the DialogFlow agent training", e);
         }
-        if(!isDone) {
+        if (!isDone) {
             throw new IntentRecognitionProviderException("Failed to train the DialogFlow agent, returned " +
                     "Operation#getDone returned false");
         }
@@ -531,7 +533,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
              * trained. We try to mitigate this by a simple wait.
              */
             Thread.sleep(10000);
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new IntentRecognitionProviderException("An error occurred during the DialogFlow agent training", e);
         }
     }
@@ -543,7 +545,7 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
      * conversation parts from a given user.
      * <p>
      * The returned {@link XatkitSession} is configured by the global {@link Configuration} provided in
-     * {@link #DialogFlowApi(EventDefinitionRegistry, Configuration, RecognitionMonitor)}.
+     * {@link #DialogFlowIntentRecognitionProvider(EventDefinitionRegistry, Configuration, RecognitionMonitor)}.
      *
      * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
@@ -619,13 +621,16 @@ public class DialogFlowApi extends AbstractIntentRecognitionProvider {
     }
 
     /**
-     * Throws a {@link IntentRecognitionProviderException} if the provided {@link DialogFlowApi} is shutdown.
+     * Throws a {@link IntentRecognitionProviderException} if the provided
+     * {@link DialogFlowIntentRecognitionProvider} is shutdown.
      * <p>
      * This method is typically called in methods that need to interact with the DialogFlow API, and cannot complete
      * if the connector is shutdown.
      *
-     * @throws IntentRecognitionProviderException if the provided {@code dialogFlowApi} is shutdown
-     * @throws NullPointerException               if the provided {@code dialogFlowApi} is {@code null}
+     * @throws IntentRecognitionProviderException if the provided {@code DialogFlowIntentRecognitionProvider} is
+     *                                            shutdown
+     * @throws NullPointerException               if the provided {@code DialogFlowIntentRecognitionProvider} is
+     *                                            {@code null}
      */
     private void checkNotShutdown() throws IntentRecognitionProviderException {
         if (this.isShutdown()) {

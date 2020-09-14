@@ -36,7 +36,7 @@ public class DialogFlowConfiguration {
     /**
      * The {@link Configuration} key to store the path of the {@code JSON} credential file for DialogFlow.
      * <p>
-     * If this key is not set the {@link DialogFlowApi} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
+     * If this key is not set the {@link DialogFlowIntentRecognitionProvider} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
      * environment variable to retrieve the credentials file.
      */
     public static String GOOGLE_CREDENTIALS_PATH_KEY = "xatkit.dialogflow.credentials.path";
@@ -48,7 +48,7 @@ public class DialogFlowConfiguration {
 
     /**
      * The {@link Configuration} key to store whether to clean the registered intents and registered entity types
-     * when initializing the {@link DialogFlowApi}.
+     * when initializing the {@link DialogFlowIntentRecognitionProvider}.
      * <p>
      * This property is disabled by default. Enabling it allows to easily re-deploy chatbots under development, but
      * complete agent cleaning should not be done on production-ready bots (re-training such bots may take a long time).
@@ -59,13 +59,13 @@ public class DialogFlowConfiguration {
      * The {@link Configuration} key to store whether to initialize the registered intents {@link Map} with the
      * {@link Intent}s already stored in the DialogFlow project.
      * <p>
-     * Intent loading is enabled by default, and should not be an issue when using the {@link DialogFlowApi} in
-     * development context. However, creating multiple instances of the {@link DialogFlowApi} (e.g. when running the
+     * Intent loading is enabled by default, and should not be an issue when using the {@link DialogFlowIntentRecognitionProvider} in
+     * development context. However, creating multiple instances of the {@link DialogFlowIntentRecognitionProvider} (e.g. when running the
      * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
      * avoid Intent loading, limiting the number of queries to the DialogFlow API.
      * <p>
      * Note that disabling {@link Intent} loading may create consistency issues between the DialogFlow agent and the
-     * local {@link DialogFlowApi}, and is not recommended in development environment.
+     * local {@link DialogFlowIntentRecognitionProvider}, and is not recommended in development environment.
      */
     public static String ENABLE_INTENT_LOADING_KEY = "xatkit.dialogflow.intent.loading";
 
@@ -73,13 +73,13 @@ public class DialogFlowConfiguration {
      * The {@link Configuration} key to store whether to initialize the registered entity types {@link Map} with the
      * {@link EntityType}s already stored in the DialogFlow project.
      * <p>
-     * Entity loading is enabled by default, and should not be an issue when using the {@link DialogFlowApi} in
-     * development context. However, creating multiple instances of the {@link DialogFlowApi} (e.g. when running the
+     * Entity loading is enabled by default, and should not be an issue when using the {@link DialogFlowIntentRecognitionProvider} in
+     * development context. However, creating multiple instances of the {@link DialogFlowIntentRecognitionProvider} (e.g. when running the
      * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
      * avoid Entity loading, limiting the number of queries to the DialogFlow API.
      * <p>
      * Note that disabling {@link EntityType} loading may create consistency issues between the DialogFlow agent and
-     * the local {@link DialogFlowApi}, and is not recommended in development environment.
+     * the local {@link DialogFlowIntentRecognitionProvider}, and is not recommended in development environment.
      */
     public static String ENABLE_ENTITY_LOADING_KEY = "xatkit.dialogflow.entity.loading";
 
@@ -147,7 +147,7 @@ public class DialogFlowConfiguration {
     private String googleCredentialsPath;
 
     /**
-     * A flag allowing the {@link DialogFlowApi} to perform a complete clean of the agent before its initialization.
+     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to perform a complete clean of the agent before its initialization.
      * <p>
      * This option is set to {@code false} by default. Setting it to {@code true} allows to easily re-deploy bots
      * under development, but should not be used in production-ready bots (re-training the agent may take a while to
@@ -158,23 +158,23 @@ public class DialogFlowConfiguration {
     private boolean cleanAgentOnStartup;
 
     /**
-     * A flag allowing the {@link DialogFlowApi} to load previously registered {@link Intent} from the DialogFlow agent.
+     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered {@link Intent} from the DialogFlow agent.
      * <p>
      * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
      * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
-     * {@link DialogFlowApi}.
+     * {@link DialogFlowIntentRecognitionProvider}.
      *
      * @see #ENABLE_INTENT_LOADING_KEY
      */
     private boolean enableIntentLoader;
 
     /**
-     * A flag allowing the {@link DialogFlowApi} to load previously registered {@link EntityType}s from the
+     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered {@link EntityType}s from the
      * DialogFlow agent.
      * <p>
      * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
      * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
-     * {@link DialogFlowApi}.
+     * {@link DialogFlowIntentRecognitionProvider}.
      *
      * @see #ENABLE_ENTITY_LOADING_KEY
      */

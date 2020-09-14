@@ -17,7 +17,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 
-public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowApi> {
+public class DialogFlowIntentRecognitionProviderTest extends IntentRecognitionProviderTest<DialogFlowIntentRecognitionProvider> {
 
 
     public static Configuration buildConfiguration() {
@@ -95,12 +95,12 @@ public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowA
 
     @Test(expected = NullPointerException.class)
     public void constructNullEventRegistry() {
-        intentRecognitionProvider = new DialogFlowApi(null, buildConfiguration(), null);
+        intentRecognitionProvider = new DialogFlowIntentRecognitionProvider(null, buildConfiguration(), null);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
-        intentRecognitionProvider = new DialogFlowApi(new EventDefinitionRegistry(), null, null);
+        intentRecognitionProvider = new DialogFlowIntentRecognitionProvider(new EventDefinitionRegistry(), null, null);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class DialogFlowApiTest extends IntentRecognitionProviderTest<DialogFlowA
     }
 
     @Override
-    protected DialogFlowApi getIntentRecognitionProvider() {
-        return new DialogFlowApi(eventRegistry, buildConfiguration(), null);
+    protected DialogFlowIntentRecognitionProvider getIntentRecognitionProvider() {
+        return new DialogFlowIntentRecognitionProvider(eventRegistry, buildConfiguration(), null);
     }
 }
