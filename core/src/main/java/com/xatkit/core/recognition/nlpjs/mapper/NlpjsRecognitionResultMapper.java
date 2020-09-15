@@ -62,7 +62,7 @@ public class NlpjsRecognitionResultMapper {
                 contextInstance.setLifespanCount(1);
                 ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType, recognizedIntent.getDefinition().getOutContexts(),
                         nlpjsEntityReferenceMapper);
-                if (nonNull(contextParameter) ) {
+                if (nonNull(contextParameter)) {
                     ContextParameterValue contextParameterValue =
                             IntentFactory.eINSTANCE.createContextParameterValue();
                     if (nonNull(extractedEntity.getOption())) {
@@ -76,7 +76,6 @@ public class NlpjsRecognitionResultMapper {
                     contextInstance.getValues().add(contextParameterValue);
                 }
                 contextInstances.add(contextInstance);
-
             }
         }
         return contextInstances;
@@ -110,6 +109,4 @@ public class NlpjsRecognitionResultMapper {
         Log.error("Cannot convert the provided value {0}", resolution);
         return "";
     }
-
-
 }
