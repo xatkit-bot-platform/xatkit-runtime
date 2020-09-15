@@ -52,7 +52,6 @@ public class NlpjsService {
                             "on {1}. The API responded with the status {2} and the error message \"{3}\" ",
                     nlpjsApi.getAgentInfo(agentId).request().method(),
                     nlpjsApi.getAgentInfo(agentId).request().url(), agentResponse.code(), errorBody.getMessage());
-            Log.error(errorMessage);
             throw new IntentRecognitionProviderException(errorMessage);
         }
         return agentResponse.body();
@@ -67,7 +66,6 @@ public class NlpjsService {
                             "on {1}. The API responded with the status {2} and the error message \"{3}\" ",
                     nlpjsApi.createAgent(agentInit).request().method(),
                     nlpjsApi.createAgent(agentInit).request().url(), response.code(), errorBody.getMessage());
-            Log.error(errorMessage);
             throw new IntentRecognitionProviderException(errorMessage);
         }
         return true;
@@ -81,7 +79,6 @@ public class NlpjsService {
                             "on {1}. The API responded with the status {2} and the error message: {3} ",
                     nlpjsApi.trainAgent(agentId, trainingData).request().method(),
                     nlpjsApi.trainAgent(agentId, trainingData).request().url(), response.code(), errorBody.getMessage());
-            Log.error(errorMessage);
             throw new IntentRecognitionProviderException(errorMessage);
         }
         return true;
@@ -95,7 +92,6 @@ public class NlpjsService {
                             "on {1}. The API responded with the status {2} and the error code {3} ",
                     nlpjsApi.getIntent(agentId, userMessage).request().method(),
                     nlpjsApi.getIntent(agentId, userMessage).request().url(), response.code(), errorBody.getMessage());
-            Log.error(errorMessage);
             throw new IntentRecognitionProviderException(errorMessage);
         }
         return response.body();
