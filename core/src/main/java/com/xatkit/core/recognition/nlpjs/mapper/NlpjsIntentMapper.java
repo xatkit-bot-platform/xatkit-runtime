@@ -61,12 +61,12 @@ public class NlpjsIntentMapper {
                     }
                 }
             }
+
             String[] splitTrainingSentence = preparedTrainingSentence.split("#");
             StringBuilder intentExampleBuilder = new StringBuilder();
-            for (int i = 0; i < splitTrainingSentence.length; i++) {
-                String sentencePart = splitTrainingSentence[i];
+            for (String sentencePart : splitTrainingSentence) {
                 boolean isParameter = false;
-                for (com.xatkit.intent.Context context : outContexts) {
+                for (Context context : outContexts) {
                     for (ContextParameter parameter : context.getParameters()) {
                         if (sentencePart.equals(parameter.getTextFragment())) {
                             checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the " +
@@ -80,7 +80,7 @@ public class NlpjsIntentMapper {
                                     nlpjsEntityReferenceMapper.getMappingFor(parameter.getEntity()
                                             .getReferredEntity());
                             StringBuilder nlpjsIntentParameterBuilder = new StringBuilder().append(nlpEntity);
-                            if (NlpjsHelper.getEntityCount(parameter.getEntity().getReferredEntity(),outContexts) > 1) {
+                            if (NlpjsHelper.getEntityCount(parameter.getEntity().getReferredEntity(), outContexts) > 1) {
                                 nlpjsIntentParameterBuilder.append("_").append(NlpjsHelper.getEntityTypeIndex(parameter.getTextFragment(),
                                         parameter.getEntity().getReferredEntity(), outContexts));
                             }
@@ -89,7 +89,6 @@ public class NlpjsIntentMapper {
                             IntentParameter intentParameter = new IntentParameter();
                             intentParameter.setSlot(nlpsjIntentParameter);
                             intentParameters.add(intentParameter);
-
                         }
                     }
                 }
@@ -97,7 +96,6 @@ public class NlpjsIntentMapper {
                     System.out.println(sentencePart);
                     intentExampleBuilder.append(sentencePart);
                 }
-
             }
             return new IntentExample(intentExampleBuilder.toString());
 
