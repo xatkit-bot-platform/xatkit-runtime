@@ -50,7 +50,7 @@ public class NlpjsRecognitionResultMapper {
         return  recognizedIntents;
     }
 
-    public List<ContextInstance> mapParamterValues(RecognizedIntent recognizedIntent, List<ExtractedEntity> extractedEntities) {
+    public List<ContextInstance> mapParameterValues(RecognizedIntent recognizedIntent, List<ExtractedEntity> extractedEntities) {
         List<ContextInstance> contextInstances = new ArrayList<>();
         for (ExtractedEntity extractedEntity: extractedEntities) {
             String entityType = extractedEntity.getEntity();

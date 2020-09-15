@@ -192,7 +192,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             }
             List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
             RecognizedIntent recognizedIntent = getBestCandidate(recognizedIntents, context);
-            recognizedIntent.getOutContextInstances().addAll(nlpjsRecognitionResultMapper.mapParamterValues(recognizedIntent, recognitionResult.getEntities()));
+            recognizedIntent.getOutContextInstances().addAll(nlpjsRecognitionResultMapper.mapParameterValues(recognizedIntent, recognitionResult.getEntities()));
             if (nonNull(recognitionMonitor)) {
                 recognitionMonitor.logRecognizedIntent(context, recognizedIntent);
             }
