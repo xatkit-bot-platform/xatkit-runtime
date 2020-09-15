@@ -34,7 +34,6 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
         this.addEntityMapping(DATE,"date");
         this.addEntityMapping(DATE_PERIOD,"date");
         this.addEntityMapping(DATE_TIME,"date");
-
     }
 
     @Override

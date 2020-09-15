@@ -11,8 +11,9 @@ public class NlpjsHelper {
         int count = 0;
         for (Context context : outContexts) {
             for (ContextParameter parameter : context.getParameters()) {
-                if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName()))
+                if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName())) {
                     count++;
+                }
             }
         }
         return count;
@@ -23,15 +24,17 @@ public class NlpjsHelper {
         boolean found = false;
         for (Context context : outContexts) {
             for (ContextParameter parameter : context.getParameters()) {
-                if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName()))
+                if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName())) {
                     suffix++;
+                }
                 if (textFragment.equals(parameter.getTextFragment())) {
                     found = true;
                     break;
                 }
             }
-            if (found)
+            if (found) {
                 break;
+            }
         }
         return suffix;
     }
@@ -48,8 +51,9 @@ public class NlpjsHelper {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
                         if (nlpjsEntityReferenceMapper.getReversedEntity(baseEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())) &&
-                                (++i == index))
+                                (++i == index)) {
                             return context;
+                        }
                     } else if (parameter.getEntity().getReferredEntity() instanceof CustomEntityDefinition) {
                         CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) parameter.getEntity().getReferredEntity();
                         if (customEntityDefinition.getName().equals(baseEntityType) && (++i == index))
@@ -61,8 +65,9 @@ public class NlpjsHelper {
             for (Context context : outContexts) {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
-                        if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())))
+                        if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
                             return context;
+                        }
                     } else if (parameter.getEntity().getReferredEntity() instanceof CustomEntityDefinition) {
                         CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) parameter.getEntity().getReferredEntity();
                         if (customEntityDefinition.getName().equals(nlpjsEntityType))
@@ -87,12 +92,14 @@ public class NlpjsHelper {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
                         if (nlpjsEntityReferenceMapper.getReversedEntity(baseEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())) &&
-                                (++i == index))
+                                (++i == index)) {
                             return parameter;
+                        }
                     } else if (parameter.getEntity().getReferredEntity() instanceof CustomEntityDefinition) {
                         CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) parameter.getEntity().getReferredEntity();
-                        if (customEntityDefinition.getName().equals(baseEntityType) && (++i == index))
+                        if (customEntityDefinition.getName().equals(baseEntityType) && (++i == index)) {
                             return parameter;
+                        }
                     }
                 }
             }
@@ -100,12 +107,14 @@ public class NlpjsHelper {
             for (Context context : outContexts) {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
-                        if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())))
+                        if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
                             return parameter;
+                        }
                     } else if (parameter.getEntity().getReferredEntity() instanceof CustomEntityDefinition) {
                         CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) parameter.getEntity().getReferredEntity();
-                        if (customEntityDefinition.getName().equals(nlpjsEntityType))
+                        if (customEntityDefinition.getName().equals(nlpjsEntityType)) {
                             return parameter;
+                        }
                     }
                 }
             }

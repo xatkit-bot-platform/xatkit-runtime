@@ -83,7 +83,7 @@ public class NlpjsRecognitionResultMapper {
     }
 
     private IntentDefinition convertNlpjsIntentNameToIntentDefinition(@NonNull String intentName) {
-        if(intentName.equals("None")) {
+        if (intentName.equals("None")) {
             return DEFAULT_FALLBACK_INTENT;
         }
         IntentDefinition result = eventRegistry.getIntentDefinition(intentName);
@@ -97,8 +97,9 @@ public class NlpjsRecognitionResultMapper {
 
     private String convertParameterValueToString(@NonNull Resolution resolution) {
         Object value = resolution.getValue();
-        if (value instanceof String)
+        if (value instanceof String) {
             return (String) value;
+        }
         if (value instanceof Number) {
             DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
             decimalFormatSymbols.setDecimalSeparator('.');

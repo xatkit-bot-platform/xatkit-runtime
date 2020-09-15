@@ -31,7 +31,7 @@ public class NlpjsEntityMapper {
         String entityName = customEntityDefinition.getName();
         Entity.Builder builder = Entity.newBuilder();
         builder.entityName(entityName);
-        if(customEntityDefinition instanceof MappingEntityDefinition) {
+        if (customEntityDefinition instanceof MappingEntityDefinition) {
             MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) customEntityDefinition;
             List<EntityValue> entityValues = createReferencesFromMapping(mappingEntityDefinition);
             builder.type(EntityType.ENUM).references(entityValues);

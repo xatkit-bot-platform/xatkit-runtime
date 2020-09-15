@@ -24,10 +24,11 @@ public class ResolutionDeserializer implements JsonDeserializer<Resolution> {
 
         if (jsonObject.has("value") &&  jsonObject.get("value").isJsonPrimitive()) {
                 JsonPrimitive jsonPrimitive = jsonObject.get("value").getAsJsonPrimitive();
-                if (jsonPrimitive.isNumber())
+                if (jsonPrimitive.isNumber()) {
                     resolution.setValue(jsonPrimitive.getAsNumber());
-                else if (jsonPrimitive.isString())
+                } else if (jsonPrimitive.isString()) {
                     resolution.setValue(jsonPrimitive.getAsString());
+                }
             }
         return resolution;
         }
