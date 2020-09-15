@@ -14,6 +14,7 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.Loader;
 import lombok.NonNull;
+import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
@@ -36,6 +37,22 @@ import java.util.stream.Collectors;
  * @see RegExIntentRecognitionProvider
  */
 public class IntentRecognitionProviderFactory {
+
+    /**
+     * The database model that will be used for this instance of Xatkit.
+     * <p>
+     * This property is optional, and it's default value is set to "MAPDB" if not specified
+     */
+    public static final String DATABASE_MODEL_KEY = "xatkit.database.model";
+
+    /**
+     * The default value for xatkit.database.model in case it's not specified in the properties file.
+     */
+    public static final String DATABASE_MODEL_MAPDB = "mapdb";
+
+    public static final String DATABASE_MODEL_INFLUXDB = "influxdb";
+
+    public static final String DEFAULT_DATABASE_MODEL = DATABASE_MODEL_MAPDB;
 
     /**
      * Returns the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}.
@@ -133,7 +150,13 @@ public class IntentRecognitionProviderFactory {
          */
         RecognitionMonitor monitor = null;
         if (configuration.isEnableRecognitionAnalytics()) {
-            monitor = new RecognitionMonitor(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+            if(configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY, DEFAULT_DATABASE_MODEL).toLowerCase().equals(DATABASE_MODEL_INFLUXDB)){
+                Log.info("Using InfluxDB to store monitoring data");
+                monitor = new RecognitionMonitorInflux(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+            } else {
+                Log.info("Using MapDB to store monitoring data");
+                monitor = new RecognitionMonitorMapDB(xatkitCore.getXatkitServer(), configuration.getBaseConfiguration());
+            } 
         }
         return monitor;
     }

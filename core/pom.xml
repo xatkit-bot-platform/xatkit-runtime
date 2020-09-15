@@ -27,6 +27,7 @@
         <lombok.version>1.18.12</lombok.version>
         <retrofit.version>2.9.0</retrofit.version>
         <okhttp3.logging-interceptor.version>3.14.0</okhttp3.logging-interceptor.version>
+        <influxdb-client.version>1.7.0</influxdb-client.version>
     </properties>
 
     <dependencies>
@@ -51,6 +52,12 @@
         <dependency>
             <groupId>org.eclipse.emf</groupId>
             <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+        </dependency>
+
+        <!-- InfluxDB -->
+        <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>influxdb-client-java</artifactId>
         </dependency>
 
         <!-- Utils -->
@@ -207,6 +214,13 @@
                 <groupId>com.google.cloud</groupId>
                 <artifactId>google-cloud-dialogflow</artifactId>
                 <version>${dialogflow.version}</version>
+            </dependency>
+
+            <!-- InfluxDB -->
+            <dependency>
+                <groupId>com.influxdb</groupId>
+                <artifactId>influxdb-client-java</artifactId>
+                <version>${influxdb-client.version}</version>
             </dependency>
 
             <!-- Utils -->
