@@ -14,6 +14,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.xatkit.core.recognition.IntentRecognitionProvider.DEFAULT_FALLBACK_INTENT;
 import static java.util.Objects.isNull;
@@ -37,6 +38,7 @@ public class NlpjsRecognitionResultMapper {
 
     public List<RecognizedIntent> mapRecognitionResult(@NonNull RecognitionResult recognitionResult){
         List<Classification> classifications = recognitionResult.getClassifications();
+        classifications = classifications.stream().filter(c -> c.getScore() > 0.1).collect(Collectors.toList());
         List<RecognizedIntent> recognizedIntents = new ArrayList<>();
         for(Classification classification: classifications){
             RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
