@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.nonNull;
 
 public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
 
@@ -163,7 +164,10 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     public void shutdown() throws IntentRecognitionProviderException {
-
+        checkNotShutdown();
+        if (nonNull(this.recognitionMonitor)) {
+            this.recognitionMonitor.shutdown();
+        }
     }
 
     @Override
