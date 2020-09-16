@@ -21,8 +21,6 @@ public class NlpjsConfiguration {
 
     public static String CLEAN_AGENT_ON_STARTUP_KEY = "xatkit.nlpjs.clean_on_startup";
 
-    
-
     Configuration baseConfiguration;
 
     String languageCode;
@@ -50,7 +48,7 @@ public class NlpjsConfiguration {
             languageCode = DEFAULT_LANGUAGE_CODE;
         }
 
-        this.cleanAgentOnStartup = baseConfiguration.getBoolean(CLEAN_AGENT_ON_STARTUP_KEY, false);
+        this.cleanAgentOnStartup = baseConfiguration.getBoolean(CLEAN_AGENT_ON_STARTUP_KEY, true);
 
     }
 }
