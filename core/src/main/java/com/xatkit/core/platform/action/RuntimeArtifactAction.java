@@ -88,17 +88,17 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
     /**
      * Retrieve the {@link XatkitSession} associated to the client of the artifact and merges it with the current one.
      * <p>
-     * This method relies on {@link #getClientSession()} to retrieve the {@link XatkitSession} associated to the
+     * This method relies on {@link #getClientStateContext()} to retrieve the {@link XatkitSession} associated to the
      * client of the artifact, and merges the current {@code session} with the client one if they are different.
      * This allows to pass client-independent context variables (e.g. from {@link RuntimeEventProvider}s)
      * to new client sessions.
      *
-     * @throws XatkitException if the provided {@code session} is different from the {@link #getClientSession()} and
+     * @throws XatkitException if the provided {@code session} is different from the {@link #getClientStateContext()} and
      *                         the merge operation between the contexts failed
      */
     @Override
     public void init() {
-        StateContext clientSession = getClientSession();
+        StateContext clientSession = getClientStateContext();
         if (!clientSession.equals(this.context)) {
             Log.info("Merging {0} session to the client one", this.getClass().getSimpleName());
             try {
@@ -240,6 +240,6 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      *
      * @return the {@link StateContext} associated to the client of the artifact to send
      */
-    protected abstract StateContext getClientSession();
+    protected abstract StateContext getClientStateContext();
 
 }

@@ -51,8 +51,8 @@ public class RuntimeMessageActionTest extends AbstractActionTest<RuntimeMessageA
         session.getRuntimeContexts().setContextValue("Test", 5, "key", "value");
         RuntimeMessageAction runtimeMessageAction = new StubRuntimeMessageAction(getPlatform(), session, MESSAGE);
         runtimeMessageAction.init();
-        assertThat(runtimeMessageAction.getClientSession()).isInstanceOf(XatkitSession.class);
-        XatkitSession clientSession = (XatkitSession) runtimeMessageAction.getClientSession();
+        assertThat(runtimeMessageAction.getClientStateContext()).isInstanceOf(XatkitSession.class);
+        XatkitSession clientSession = (XatkitSession) runtimeMessageAction.getClientStateContext();
         assertThat(clientSession).as("Not null client session").isNotNull();
         RuntimeContexts context = clientSession.getRuntimeContexts();
         assertThat(context.getContextValue("Test", "key")).as("Session context has been merged in the client one")

@@ -28,7 +28,7 @@ public class StubRuntimeMessageAction extends RuntimeMessageAction {
     }
 
     @Override
-    protected XatkitSession getClientSession() {
+    protected XatkitSession getClientStateContext() {
         return clientSession;
     }
 
