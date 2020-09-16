@@ -1,9 +1,8 @@
 package com.xatkit.dsl.intent.impl;
 
-import com.xatkit.dsl.intent.IntentContextLifespanStep;
+import com.xatkit.dsl.intent.IntentContextParameterFragmentStep;
 import com.xatkit.dsl.intent.IntentMandatoryTrainingSentenceStep;
 import com.xatkit.dsl.intent.IntentOptionalTrainingSentenceStep;
-import com.xatkit.intent.Context;
 import com.xatkit.intent.IntentFactory;
 import lombok.NonNull;
 
@@ -20,11 +19,10 @@ public class IntentDefinitionBuilder extends IntentDefinitionProviderImpl implem
     }
 
     @Override
-    public @NonNull IntentContextLifespanStep context(@NonNull String name) {
-        Context context = IntentFactory.eINSTANCE.createContext();
-        context.setName(name);
-        this.intent.getOutContexts().add(context);
-        return new IntentContextBuilder(this.intent, context);
+    public @NonNull IntentContextParameterFragmentStep parameter(@NonNull String parameterName) {
+        IntentContextParameterBuilder intentContextParameterBuilder = new IntentContextParameterBuilder(this.intent);
+        intentContextParameterBuilder.name(parameterName);
+        return intentContextParameterBuilder;
     }
 
     @Override

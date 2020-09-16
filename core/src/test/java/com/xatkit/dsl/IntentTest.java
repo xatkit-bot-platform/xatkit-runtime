@@ -26,22 +26,19 @@ public class IntentTest {
     }
 
     @Test
-    public void intentWithContext() {
+    public void intentWithParameter() {
         val intent = intent("LiveIn")
                 .trainingSentence("I live in Barcelona")
-                .context("Location")
-                    .lifespan(10)
-                    .parameter("cityName")
-                    .fromFragment("Barcelona")
-                    .entity(city());
+                .parameter("cityName")
+                .fromFragment("Barcelona")
+                .entity(city());
 
         IntentDefinition base = intent.getIntentDefinition();
         assertThat(base.getTrainingSentences()).hasSize(1);
         assertThat(base.getTrainingSentences()).contains("I live in Barcelona");
         assertThat(base.getOutContexts()).hasSize(1);
         Context context = base.getOutContexts().get(0);
-        assertThat(context.getLifeSpan()).isEqualTo(10);
-        assertThat(context.getName()).isEqualTo("Location");
+        assertThat(context.getName()).isEqualTo("XATKITCONTEXT");
         assertThat(context.getParameters()).hasSize(1);
         ContextParameter parameter1 = context.getParameters().get(0);
         assertThat(parameter1.getName()).isEqualTo("cityName");

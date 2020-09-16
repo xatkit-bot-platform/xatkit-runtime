@@ -57,7 +57,6 @@ public class IntentProviderTestBot {
     private IntentDefinition createSystemEntityIntent() {
         return intent("SystemEntityIntent")
                 .trainingSentence("Hello World")
-                .context("Hello")
                 .parameter("helloTo")
                 .fromFragment("World")
                 .entity(any())
@@ -79,7 +78,6 @@ public class IntentProviderTestBot {
         reference.setCustomEntity(this.mappingEntity);
         return intent("MappingEntityIntent")
                 .trainingSentence("Give me some information about FOUNDER")
-                .context("Founder")
                 .parameter("name")
                 .fromFragment("FOUNDER")
                 .entity(reference)
@@ -103,7 +101,6 @@ public class IntentProviderTestBot {
         reference.setCustomEntity(this.compositeEntity);
         return intent("CompositeEntityIntent")
                 .trainingSentence("Does Jordi knows Barcelona?")
-                .context("Query")
                 .parameter("founderCity")
                 .fromFragment("Jordi knows Barcelona")
                 .entity(reference)

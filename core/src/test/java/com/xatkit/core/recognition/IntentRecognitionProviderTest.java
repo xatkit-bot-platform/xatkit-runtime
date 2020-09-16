@@ -241,7 +241,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         context.setState(intentProviderTestBot.getModel().getInitState());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Hello Test", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance intentContext = recognizedIntent.getOutContextInstance("Hello");
+        ContextInstance intentContext = recognizedIntent.getOutContextInstance("XATKITCONTEXT");
         assertThat(intentContext).isNotNull();
         assertThatContextContainsParameterWithValue(intentContext, "helloTo", "Test");
     }
@@ -259,7 +259,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Give me some information about " +
                 "Gwendal", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance intentContext = recognizedIntent.getOutContextInstance("Founder");
+        ContextInstance intentContext = recognizedIntent.getOutContextInstance("XATKITCONTEXT");
         assertThat(intentContext).isNotNull();
         assertThatContextContainsParameterWithValue(intentContext, "name", "Gwendal");
     }
@@ -278,7 +278,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         context.setState(intentProviderTestBot.getModel().getInitState());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Does Jordi knows Barcelona?", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance intentContext = recognizedIntent.getOutContextInstance("Query");
+        ContextInstance intentContext = recognizedIntent.getOutContextInstance("XATKITCONTEXT");
         assertThat(intentContext).isNotNull();
         assertThatContextContainsParameterValue(intentContext, "founderCity");
         Object parameterValue = intentContext.getValues().stream()

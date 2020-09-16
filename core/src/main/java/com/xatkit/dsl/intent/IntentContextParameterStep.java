@@ -2,7 +2,7 @@ package com.xatkit.dsl.intent;
 
 import lombok.NonNull;
 
-public interface IntentContextParameterStep extends IntentContextStep, IntentDefinitionProvider {
+public interface IntentContextParameterStep extends IntentDefinitionProvider {
 
     @NonNull IntentContextParameterFragmentStep parameter(@NonNull String parameterName);
 }

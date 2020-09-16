@@ -1,6 +1,6 @@
 package com.xatkit.dsl.intent;
 
-public interface IntentOptionalTrainingSentenceStep extends IntentMandatoryTrainingSentenceStep, IntentContextStep,
+public interface IntentOptionalTrainingSentenceStep extends IntentMandatoryTrainingSentenceStep, IntentContextParameterStep,
         IntentDefinitionProvider {
 
 }

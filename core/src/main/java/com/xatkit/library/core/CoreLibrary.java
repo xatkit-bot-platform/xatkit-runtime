@@ -217,7 +217,6 @@ public class CoreLibrary extends LibraryImpl {
     private static @NonNull IntentDefinition createDataTypeIntent(@NonNull String name, @NonNull EntityDefinitionReference type) {
         return intent(name)
                 .trainingSentence("VALUE")
-                .context("Value")
                     .parameter("value")
                     .fromFragment("VALUE")
                     .entity(type)
