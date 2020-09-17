@@ -142,10 +142,11 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             while (!isDone && attemptsLeft > 0) {
                 Thread.sleep(2000);
                 Agent agent = this.nlpjsService.getAgentInfo(this.agentId);
-                if (agent.getStatus().equals(AgentStatus.READY))
+                if (agent.getStatus().equals(AgentStatus.READY)) {
                     isDone = true;
-                else
+                } else {
                     attemptsLeft--;
+                }
             }
             if (isDone) {
                 Log.info("NLP.js agent trained.");
