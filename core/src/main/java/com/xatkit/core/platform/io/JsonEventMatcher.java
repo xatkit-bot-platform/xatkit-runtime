@@ -115,9 +115,9 @@ public class JsonEventMatcher {
      * {@code content} contains a registered field. If at least one {@code header} and one field of the {@code
      * content} are matched the corresponding {@link EventInstance} is returned.
      * <p>
-     * The returned {@link EventInstance} contains the request {@code content} in its context parameter {@code
-     * data.json}. Note that this method will throw an {@link IllegalArgumentException} if the {@link EventInstance}
-     * 's definition doesn't define such context parameter.
+     * The returned {@link EventInstance} contains the request {@code content} in its {@code json} context parameter.
+     * Note that this method will throw an {@link IllegalArgumentException} if the {@link EventInstance}'s definition
+     * doesn't define such context parameter.
      * <p>
      * <b>Note:</b> the current implementation only check top-level field from the provided {@code content}. (see
      * <a href="https://github.com/xatkit-bot-platform/xatkit-runtime/issues/139">#139</a>)
@@ -167,8 +167,8 @@ public class JsonEventMatcher {
      * Creates an {@link EventInstance} for the provided {@code eventDefinition} and sets its context with {@code
      * content}.
      * <p>
-     * The returned {@link EventInstance} contains the request {@code content} in its context parameter {@code data
-     * .json}. Note that this method will throw an {@link IllegalArgumentException} if the provided {@code
+     * The returned {@link EventInstance} contains the request {@code content} in its {@code json} context parameter.
+     * Note that this method will throw an {@link IllegalArgumentException} if the provided {@code
      * eventDefinition} doesn't define such context parameter.
      * <p>
      *
@@ -181,10 +181,10 @@ public class JsonEventMatcher {
      *                                  context parameter
      */
     protected @NonNull EventInstance createEventInstance(@NonNull EventDefinition eventDefinition,
-                                                 @NonNull JsonElement content) {
-        Context dataContext = eventDefinition.getOutContext("data");
+                                                         @NonNull JsonElement content) {
+        Context dataContext = eventDefinition.getOutContext("XATKITCONTEXT");
         checkArgument(nonNull(dataContext), "Cannot create the %s for the provided %s %s: " +
-                        "the %s does not contain a \"data\" context", EventInstance.class.getSimpleName(),
+                        "the %s does not contain a \"XATKITCONTEXT\" context", EventInstance.class.getSimpleName(),
                 EventDefinition.class.getSimpleName(), eventDefinition.getName(),
                 EventDefinition.class.getSimpleName());
         ContextParameter jsonParameter = dataContext.getContextParameter("json");
@@ -354,7 +354,8 @@ public class JsonEventMatcher {
          * A static {@link FieldValue} used to match requests without inspecting its Json fields.
          * <p>
          * This {@link FieldValue} should be used when the {@link HeaderValue} provided in
-         * {@link #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)} is sufficient to uniquely identify an event.
+         * {@link #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)} is sufficient to uniquely identify an
+         * event.
          *
          * @see #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)
          * @see #match(List, JsonElement)

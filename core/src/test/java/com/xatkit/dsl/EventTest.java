@@ -13,7 +13,6 @@ public class EventTest {
     @Test
     public void eventWithoutContext() {
         val event = event("Event");
-
         EventDefinition base = event.getEventDefinition();
         assertThat(base.getName()).isEqualTo("Event");
         assertThat(base.getOutContexts()).isEmpty();
@@ -22,29 +21,20 @@ public class EventTest {
     @Test
     public void eventWithContext() {
         val event = event("Event")
-                .context("Context1")
-                    .lifespan(10)
-                    .parameter("p1")
-                    .parameter("p2")
-                .context("Context2")
-                    .parameter("p3")
-                    .parameter("p4");
+            .parameter("p1")
+            .parameter("p2")
+            .parameter("p3")
+            .parameter("p4");
 
         EventDefinition base = event.getEventDefinition();
         assertThat(base.getName()).isEqualTo("Event");
-        assertThat(base.getOutContexts()).hasSize(2);
-        Context context1 = base.getOutContexts().get(0);
-        assertThat(context1.getName()).isEqualTo("Context1");
-        assertThat(context1.getLifeSpan()).isEqualTo(10);
-        assertThat(context1.getParameters()).hasSize(2);
-        assertThat(context1.getParameters()).anyMatch(p -> p.getName().equals("p1"));
-        assertThat(context1.getParameters()).anyMatch(p -> p.getName().equals("p2"));
-        Context context2 = base.getOutContexts().get(1);
-        assertThat(context2.getName()).isEqualTo("Context2");
-        assertThat(context2.getLifeSpan()).isEqualTo(5);
-        assertThat(context2.getParameters()).hasSize(2);
-        assertThat(context2.getParameters()).anyMatch(p -> p.getName().equals("p3"));
-        assertThat(context2.getParameters()).anyMatch(p -> p.getName().equals("p4"));
-
+        assertThat(base.getOutContexts()).hasSize(1);
+        Context context = base.getOutContexts().get(0);
+        assertThat(context.getName()).isEqualTo("XATKITCONTEXT");
+        assertThat(context.getParameters()).hasSize(4);
+        assertThat(context.getParameters()).anyMatch(p -> p.getName().equals("p1"));
+        assertThat(context.getParameters()).anyMatch(p -> p.getName().equals("p2"));
+        assertThat(context.getParameters()).anyMatch(p -> p.getName().equals("p3"));
+        assertThat(context.getParameters()).anyMatch(p -> p.getName().equals("p4"));
     }
 }

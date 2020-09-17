@@ -4,7 +4,7 @@ import com.xatkit.dsl.entity.CompositeEntryStep;
 import com.xatkit.dsl.entity.MappingEntryStep;
 import com.xatkit.dsl.entity.impl.CompositeEntityDefinitionBuilder;
 import com.xatkit.dsl.entity.impl.MappingEntityDefinitionBuilder;
-import com.xatkit.dsl.intent.EventContextStep;
+import com.xatkit.dsl.intent.EventContextParameterStep;
 import com.xatkit.dsl.intent.EventDefinitionProvider;
 import com.xatkit.dsl.intent.IntentDefinitionProvider;
 import com.xatkit.dsl.intent.IntentMandatoryTrainingSentenceStep;
@@ -61,7 +61,7 @@ public class DSL {
         return intentDefinitionBuilder;
     }
 
-    public static @NonNull EventContextStep event(@NonNull String name) {
+    public static @NonNull EventContextParameterStep event(@NonNull String name) {
         EventDefinitionBuilder eventDefinitionBuilder = new EventDefinitionBuilder();
         eventDefinitionBuilder.name(name);
         return eventDefinitionBuilder;

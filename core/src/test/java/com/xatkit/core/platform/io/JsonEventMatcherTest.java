@@ -61,7 +61,6 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
         validHeaders = new ArrayList<>();
         validHeaders.add(new BasicHeader(validHeaderValue.getKey(), validHeaderValue.getValue()));
         eventWithDataJsonValue = event("EventWithDataJsonValue")
-                .context("data")
                 .parameter("json")
                 .getEventDefinition();
         eventWithoutDataJsonValue = event("EventWithoutDataJsonValue")
@@ -108,7 +107,6 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, eventWithDataJsonValue);
         JsonEventMatcher.FieldValue validFieldValue2 = JsonEventMatcher.FieldValue.of("fkey2", "fvalue2");
         EventDefinition event2 = event("Event2")
-                .context("data")
                 .parameter("json")
                 .getEventDefinition();
         String validEventTypeName2 = "EventName2";
@@ -135,7 +133,6 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, eventWithDataJsonValue);
         JsonEventMatcher.HeaderValue validHeaderValue2 = JsonEventMatcher.HeaderValue.of("hkey2", "hvalue2");
         EventDefinition event2 = event("Event2")
-                .context("data")
                 .parameter("json")
                 .getEventDefinition();
         matcher.addMatchableEvent(validHeaderValue2, validFieldValue, event2);
@@ -209,7 +206,6 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
     @Test(expected = XatkitException.class)
     public void addMatchableEventsSameHeaderValuesSameFieldValuesDifferentEventNames() {
         EventDefinition event2 = event("Event2")
-                .context("data")
                 .parameter("json")
                 .getEventDefinition();
         matcher.addMatchableEvent(validHeaderValue, validFieldValue, eventWithDataJsonValue);
@@ -245,7 +241,7 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
         assertThat(outContextInstance).as("Not null out context instance").isNotNull();
         assertThat(outContextInstance.getDefinition()).as("Not null out context instance definition").isNotNull();
         assertThat(outContextInstance.getDefinition().getName()).as("Valid out context instance definition")
-                .isEqualTo("data");
+                .isEqualTo("XATKITCONTEXT");
         assertThat(outContextInstance.getValues()).as("Out context instance contains two out values").hasSize
                 (1);
         ContextParameterValue value = outContextInstance.getValues().get(0);
