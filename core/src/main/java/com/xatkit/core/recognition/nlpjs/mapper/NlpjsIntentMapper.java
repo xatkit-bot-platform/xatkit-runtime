@@ -11,7 +11,9 @@ import com.xatkit.intent.IntentDefinition;
 import lombok.NonNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 
@@ -33,22 +35,22 @@ public class NlpjsIntentMapper {
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());
         Intent.Builder builder = Intent.newBuilder()
                 .intentName(intentDefinition.getName());
-        List<IntentParameter> intentParameters = new ArrayList<>();
-        List<IntentExample> intentExamples = createIntentExamples(intentDefinition, intentParameters);
+        Map<String, IntentParameter> intentParametersMap = new HashMap<>();
+        List<IntentExample> intentExamples = createIntentExamples(intentDefinition, intentParametersMap);
         builder.examples(intentExamples);
-        builder.parameters(intentParameters);
+        builder.parameters(new ArrayList<>(intentParametersMap.values()));
         return builder.build();
     }
 
-    private List<IntentExample> createIntentExamples(@NonNull IntentDefinition intentDefinition, @NonNull List<IntentParameter> intentParameters) {
+    private List<IntentExample> createIntentExamples(@NonNull IntentDefinition intentDefinition, @NonNull Map<String, IntentParameter> intentParametersMap) {
         List<IntentExample> intentExamples = new ArrayList<>();
         for (String trainingSentence : intentDefinition.getTrainingSentences()) {
-            intentExamples.add(createIntentExample(trainingSentence, intentDefinition.getOutContexts(),intentParameters));
+            intentExamples.add(createIntentExample(trainingSentence, intentDefinition.getOutContexts(),intentParametersMap));
         }
         return intentExamples;
     }
 
-    private IntentExample createIntentExample(@NonNull String trainingSentence, @NonNull List<Context> outContexts, @NonNull List<IntentParameter> intentParameters) {
+    private IntentExample createIntentExample(@NonNull String trainingSentence, @NonNull List<Context> outContexts, @NonNull Map<String, IntentParameter> intentParametersMap) {
         if (outContexts.isEmpty()) {
             return new IntentExample(trainingSentence);
         } else {
@@ -86,9 +88,11 @@ public class NlpjsIntentMapper {
                             }
                             String nlpjsIntentParameter = nlpjsIntentParameterBuilder.toString();
                             intentExampleBuilder.append("%").append(nlpjsIntentParameter).append("%");
-                            IntentParameter intentParameter = new IntentParameter();
-                            intentParameter.setSlot(nlpjsIntentParameter);
-                            intentParameters.add(intentParameter);
+                            if (!intentParametersMap.containsKey(parameter.getName())) {
+                                IntentParameter intentParameter = new IntentParameter();
+                                intentParameter.setSlot(nlpjsIntentParameter);
+                                intentParametersMap.put(parameter.getName(),intentParameter);
+                            }
                         }
                     }
                 }
