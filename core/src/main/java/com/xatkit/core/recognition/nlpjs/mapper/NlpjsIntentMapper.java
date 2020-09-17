@@ -84,10 +84,10 @@ public class NlpjsIntentMapper {
                                 nlpjsIntentParameterBuilder.append("_").append(NlpjsHelper.getEntityTypeIndex(parameter.getTextFragment(),
                                         parameter.getEntity().getReferredEntity(), outContexts));
                             }
-                            String nlpsjIntentParameter = nlpjsIntentParameterBuilder.toString();
-                            intentExampleBuilder.append("%").append(nlpsjIntentParameter).append("%");
+                            String nlpjsIntentParameter = nlpjsIntentParameterBuilder.toString();
+                            intentExampleBuilder.append("%").append(nlpjsIntentParameter).append("%");
                             IntentParameter intentParameter = new IntentParameter();
-                            intentParameter.setSlot(nlpsjIntentParameter);
+                            intentParameter.setSlot(nlpjsIntentParameter);
                             intentParameters.add(intentParameter);
                         }
                     }
