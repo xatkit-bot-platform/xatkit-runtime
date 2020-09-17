@@ -14,6 +14,10 @@ public class Entity {
 
     private List<EntityValue> references;
 
+    private List<String> afterLast;
+
+    private List<String> beforeLast;
+
     public static Builder newBuilder() {
         return new Builder();
     }
@@ -21,8 +25,15 @@ public class Entity {
     public static class Builder {
 
         private String _entityName;
+
         private EntityType _type;
+
         private List<EntityValue> _references;
+
+        private List<String> _afterLast;
+
+        private List<String> _beforeLast;
+
 
         public Builder() {
             this._references = new ArrayList<>();
@@ -43,6 +54,16 @@ public class Entity {
             return this;
         }
 
+        public Builder afterLast(List<String> afterLastValues) {
+            _afterLast = afterLastValues;
+            return this;
+        }
+
+        public Builder beforeLast(List<String> beforeLast) {
+            _beforeLast = beforeLast;
+            return this;
+        }
+
         public Builder addReference(EntityValue entityValue) {
             _references.add(entityValue);
             return this;
@@ -53,6 +74,8 @@ public class Entity {
             entity.setEntityName(_entityName);
             entity.setType(_type);
             entity.setReferences(_references);
+            entity.setAfterLast(_afterLast);
+            entity.setBeforeLast(_beforeLast);
 
             return entity;
         }

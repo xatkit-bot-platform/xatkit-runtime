@@ -11,7 +11,8 @@ import java.io.IOException;
 public enum EntityType {
 
     ENUM("enum"),
-    REGEX("REGEX");
+    REGEX("regex"),
+    TRIM("trim");
 
     private String value;
 
