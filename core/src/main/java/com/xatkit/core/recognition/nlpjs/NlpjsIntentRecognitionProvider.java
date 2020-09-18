@@ -112,7 +112,13 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                     "intent already exists", intentDefinition.getName()));
         }
         Log.debug("Registering NLP.js intent {0}", intentDefinition.getName());
-        Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition);
+        List<Entity> anyEntitiesCollector = new ArrayList<>();
+        Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition,anyEntitiesCollector);
+        if (!anyEntitiesCollector.isEmpty()) {
+            for (Entity entity: anyEntitiesCollector) {
+                this.entitiesToRegister.put(entity.getEntityName(),entity);
+            }
+        }
         this.intentsToRegister.put(intentDefinition.getName(), intent);
     }
 
