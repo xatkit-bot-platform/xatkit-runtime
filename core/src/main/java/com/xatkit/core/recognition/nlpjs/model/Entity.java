@@ -8,6 +8,12 @@ import java.util.List;
 @Data
 public class Entity {
 
+    public Entity() {
+        afterLast = new ArrayList<>();
+        beforeLast = new ArrayList<>();
+        between = new BetweenCondition();
+    }
+
     private String entityName;
 
     private EntityType type;
@@ -17,6 +23,8 @@ public class Entity {
     private List<String> afterLast;
 
     private List<String> beforeLast;
+
+    private BetweenCondition between;
 
     public static Builder newBuilder() {
         return new Builder();
@@ -34,9 +42,13 @@ public class Entity {
 
         private List<String> _beforeLast;
 
+        private BetweenCondition between;
+
 
         public Builder() {
             this._references = new ArrayList<>();
+            this._afterLast = new ArrayList<>();
+            this._beforeLast = new ArrayList<>();
         }
 
         public Builder entityName(String entityName) {
@@ -59,8 +71,23 @@ public class Entity {
             return this;
         }
 
+        public Builder addAfterLast(String condition) {
+            _afterLast.add(condition);
+            return this;
+        }
+
+        public Builder addBeforeLast(String condition) {
+            _beforeLast.add(condition);
+            return this;
+        }
+
         public Builder beforeLast(List<String> beforeLast) {
             _beforeLast = beforeLast;
+            return this;
+        }
+
+        public Builder between(BetweenCondition between) {
+            this.between = between;
             return this;
         }
 
@@ -76,6 +103,7 @@ public class Entity {
             entity.setReferences(_references);
             entity.setAfterLast(_afterLast);
             entity.setBeforeLast(_beforeLast);
+            entity.setBetween(between);
 
             return entity;
         }
