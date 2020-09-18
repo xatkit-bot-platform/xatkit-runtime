@@ -40,16 +40,20 @@ public class NlpjsHelper {
     }
 
     // This method still needs some improvement in terms of redundant code and performance
-    public static Context getContextFromNlpEntity(String nlpjsEntityType, List<Context> outContexts, NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
+    public static Context getContextFromNlpEntity(String nlpjsEntityType, RecognizedIntent recognizedIntent, NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
         String[] splitEntity = nlpjsEntityType.split("_");
         // The suffixed types do not work with v4 of NLP.js. We need to wait for the update from the guys of NLP.js
         if (splitEntity.length > 1 && isNumeric(splitEntity[splitEntity.length - 1])) {
-            int index = Integer.valueOf(splitEntity[splitEntity.length - 1]);
+            int index = Integer.parseInt(splitEntity[splitEntity.length - 1]);
             String baseEntityType = nlpjsEntityType.substring(0, nlpjsEntityType.lastIndexOf("_"));
             int i = 0;
-            for (Context context : outContexts) {
+            for (Context context : recognizedIntent.getDefinition().getOutContexts()) {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
+                        if (((BaseEntityDefinition) parameter.getEntity().getReferredEntity()).getEntityType().equals(EntityType.ANY)
+                                && nlpjsEntityType.equals(recognizedIntent.getDefinition().getName() + parameter.getName() + "Any")) {
+                            return context;
+                        }
                         if (nlpjsEntityReferenceMapper.getReversedEntity(baseEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())) &&
                                 (++i == index)) {
                             return context;
@@ -62,9 +66,13 @@ public class NlpjsHelper {
                 }
             }
         } else {
-            for (Context context : outContexts) {
+            for (Context context : recognizedIntent.getDefinition().getOutContexts()) {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
+                        if (((BaseEntityDefinition) parameter.getEntity().getReferredEntity()).getEntityType().equals(EntityType.ANY)
+                                && nlpjsEntityType.equals(recognizedIntent.getDefinition().getName() + parameter.getName() + "Any")) {
+                            return context;
+                        }
                         if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
                             return context;
                         }
@@ -81,16 +89,20 @@ public class NlpjsHelper {
     }
 
     // This method still needs some improvement in terms of redundant code and performance
-    public static ContextParameter getContextParameterFromNlpEntity(String nlpjsEntityType, List<Context> outContexts, NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
+    public static ContextParameter getContextParameterFromNlpEntity(String nlpjsEntityType, RecognizedIntent recognizedIntent, NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
         // The suffixed types do not work with v4 of NLP.js. We need to wait for the update from the guys of NLP.js
         String[] splitEntity = nlpjsEntityType.split("_");
         if (splitEntity.length > 1 && isNumeric(splitEntity[splitEntity.length - 1])) {
-            int index = Integer.valueOf(splitEntity[splitEntity.length - 1]);
+            int index = Integer.parseInt(splitEntity[splitEntity.length - 1]);
             String baseEntityType = nlpjsEntityType.substring(0, nlpjsEntityType.lastIndexOf("_"));
             int i = 0;
-            for (Context context : outContexts) {
+            for (Context context : recognizedIntent.getDefinition().getOutContexts()) {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
+                        if (((BaseEntityDefinition) parameter.getEntity().getReferredEntity()).getEntityType().equals(EntityType.ANY)
+                                && nlpjsEntityType.equals(recognizedIntent.getDefinition().getName() + parameter.getName() + "Any")) {
+                            return parameter;
+                        }
                         if (nlpjsEntityReferenceMapper.getReversedEntity(baseEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())) &&
                                 (++i == index)) {
                             return parameter;
@@ -104,9 +116,13 @@ public class NlpjsHelper {
                 }
             }
         } else {
-            for (Context context : outContexts) {
+            for (Context context : recognizedIntent.getDefinition().getOutContexts()) {
                 for (ContextParameter parameter : context.getParameters()) {
                     if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
+                        if (((BaseEntityDefinition) parameter.getEntity().getReferredEntity()).getEntityType().equals(EntityType.ANY)
+                                && nlpjsEntityType.equals(recognizedIntent.getDefinition().getName() + parameter.getName() + "Any")) {
+                            return parameter;
+                        }
                         if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
                             return parameter;
                         }

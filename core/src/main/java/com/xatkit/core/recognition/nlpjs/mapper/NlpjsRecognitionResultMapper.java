@@ -56,13 +56,13 @@ public class NlpjsRecognitionResultMapper {
         List<ContextInstance> contextInstances = new ArrayList<>();
         for (ExtractedEntity extractedEntity: extractedEntities) {
             String entityType = extractedEntity.getEntity();
-            Context contextDefinition = NlpjsHelper.getContextFromNlpEntity(entityType, recognizedIntent.getDefinition().getOutContexts(),
+            Context contextDefinition = NlpjsHelper.getContextFromNlpEntity(entityType, recognizedIntent,
                     nlpjsEntityReferenceMapper);
             if (nonNull(contextDefinition)) {
                 ContextInstance contextInstance = IntentFactory.eINSTANCE.createContextInstance();
                 contextInstance.setDefinition(contextDefinition);
                 contextInstance.setLifespanCount(1);
-                ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType, recognizedIntent.getDefinition().getOutContexts(),
+                ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType, recognizedIntent,
                         nlpjsEntityReferenceMapper);
                 if (nonNull(contextParameter)) {
                     ContextParameterValue contextParameterValue =
