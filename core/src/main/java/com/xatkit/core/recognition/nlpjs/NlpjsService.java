@@ -3,7 +3,7 @@ package com.xatkit.core.recognition.nlpjs;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
-import com.xatkit.core.recognition.nlpjs.adapter.ResolutionDeserializer;
+import com.xatkit.core.recognition.nlpjs.adapter.ExtractedEntitynDeserializer;
 import com.xatkit.core.recognition.nlpjs.model.*;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -29,7 +29,7 @@ public class NlpjsService {
 
     public NlpjsService(@NonNull String nlpjsServer) {
         this.nlpjsServer = nlpjsServer;
-        gson = new GsonBuilder().registerTypeAdapter(Resolution.class, new ResolutionDeserializer())
+        gson = new GsonBuilder().registerTypeAdapter(ExtractedEntity.class, new ExtractedEntitynDeserializer())
                 .create();
         String nlpjsApiFullPath = this.nlpjsServer + NLPJS_BASE_PATH + "/";
         OkHttpClient httpClient = new OkHttpClient.Builder()

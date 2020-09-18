@@ -26,6 +26,7 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
     }
 
     private void registerEntities() {
+        this.addEntityMapping(ANY,"any");
         this.addEntityMapping(EMAIL,"email");
         this.addEntityMapping(PHONE_NUMBER,"phonenumber");
         this.addEntityMapping(URL,"url");
@@ -44,7 +45,7 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
     }
 
     @Override
-    protected String getMappingForCustomEntity(CustomEntityDefinition customEntityDefinition) {
+    public String getMappingForCustomEntity(CustomEntityDefinition customEntityDefinition) {
         return customEntityDefinition.getName();
     }
 

@@ -5,24 +5,18 @@ import lombok.Data;
 @Data
 public class ExtractedEntity {
 
-    private Double start;
-
-    private Double end;
-
-    private Double len;
-
-    private Double accuracy;
+    private Float accuracy;
 
     private String entity;
 
     private String type;
 
-    private String option;
+    private String subType;
 
     private String sourceText;
 
     private String utteranceText;
 
-    private Resolution resolution;
+    private Object value;
 
 }

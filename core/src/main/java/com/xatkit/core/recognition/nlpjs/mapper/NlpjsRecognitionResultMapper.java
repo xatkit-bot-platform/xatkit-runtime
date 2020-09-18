@@ -67,10 +67,8 @@ public class NlpjsRecognitionResultMapper {
                 if (nonNull(contextParameter)) {
                     ContextParameterValue contextParameterValue =
                             IntentFactory.eINSTANCE.createContextParameterValue();
-                    if (nonNull(extractedEntity.getOption())) {
-                        contextParameterValue.setValue(extractedEntity.getOption());
-                    } else if (nonNull(extractedEntity.getResolution()) && nonNull(extractedEntity.getResolution().getValue())) {
-                        contextParameterValue.setValue(convertParameterValueToString(extractedEntity.getResolution()));
+                    if (nonNull(extractedEntity.getValue())) {
+                        contextParameterValue.setValue(extractedEntity.getValue());
                     } else {
                         Log.warn("Cannot retrieve the value for the context parameter {0}", contextParameter.getName());
                     }
@@ -96,8 +94,8 @@ public class NlpjsRecognitionResultMapper {
         return result;
     }
 
-    private String convertParameterValueToString(@NonNull Resolution resolution) {
-        Object value = resolution.getValue();
+    private String convertParameterValueToString(@NonNull ExtractedEntity extractedEntity) {
+        Object value = extractedEntity.getValue();
         if (value instanceof String) {
             return (String) value;
         }
@@ -108,7 +106,7 @@ public class NlpjsRecognitionResultMapper {
             decimalFormat.setGroupingUsed(false);
             return decimalFormat.format(value);
         }
-        Log.error("Cannot convert the provided value {0}", resolution);
+        Log.error("Cannot convert the provided value {0}", extractedEntity);
         return "";
     }
 }
