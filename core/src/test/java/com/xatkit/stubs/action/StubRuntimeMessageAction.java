@@ -2,7 +2,8 @@ package com.xatkit.stubs.action;
 
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeMessageAction;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.StateContext;
 import fr.inria.atlanmod.commons.log.Log;
 
 import java.util.UUID;
@@ -13,10 +14,12 @@ public class StubRuntimeMessageAction extends RuntimeMessageAction {
 
     protected int attempts;
 
-    private XatkitSession clientSession = new XatkitSession(UUID.randomUUID().toString());
+    private StateContext clientStateContext;
 
-    public StubRuntimeMessageAction(RuntimePlatform runtimePlatform, XatkitSession session, String rawMessage) {
-        super(runtimePlatform, session, rawMessage);
+    public StubRuntimeMessageAction(RuntimePlatform runtimePlatform, StateContext context, String rawMessage) {
+        super(runtimePlatform, context, rawMessage);
+        this.clientStateContext = ExecutionFactory.eINSTANCE.createStateContext();
+        this.clientStateContext.setContextId(UUID.randomUUID().toString());
         attempts = 0;
     }
 
@@ -28,8 +31,8 @@ public class StubRuntimeMessageAction extends RuntimeMessageAction {
     }
 
     @Override
-    protected XatkitSession getClientStateContext() {
-        return clientSession;
+    protected StateContext getClientStateContext() {
+        return clientStateContext;
     }
 
     public int getAttempts() {

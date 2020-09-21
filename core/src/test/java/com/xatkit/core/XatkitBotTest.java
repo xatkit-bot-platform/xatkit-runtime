@@ -91,12 +91,6 @@ public class XatkitBotTest extends AbstractXatkitTest {
          * returned XatkitSession.
          */
         assertThat(context.getContextId()).as("Valid context ID").contains("contextId");
-        assertThat(context.getNlpContext()).as("Not null session context").isNotNull();
-        /*
-         * We have one outgoing transition with an intent. This means that a context has been created to enable the
-         * corresponding intent matching.
-         */
-        assertThat(context.getNlpContext()).hasSize(1);
     }
 
     @Test

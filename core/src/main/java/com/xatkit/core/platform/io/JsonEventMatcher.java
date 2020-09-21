@@ -2,8 +2,6 @@ package com.xatkit.core.platform.io;
 
 import com.google.gson.JsonElement;
 import com.xatkit.core.XatkitException;
-import com.xatkit.intent.Context;
-import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EventDefinition;
@@ -182,26 +180,18 @@ public class JsonEventMatcher {
      */
     protected @NonNull EventInstance createEventInstance(@NonNull EventDefinition eventDefinition,
                                                          @NonNull JsonElement content) {
-        Context dataContext = eventDefinition.getOutContext("XATKITCONTEXT");
-        checkArgument(nonNull(dataContext), "Cannot create the %s for the provided %s %s: " +
-                        "the %s does not contain a \"XATKITCONTEXT\" context", EventInstance.class.getSimpleName(),
-                EventDefinition.class.getSimpleName(), eventDefinition.getName(),
-                EventDefinition.class.getSimpleName());
-        ContextParameter jsonParameter = dataContext.getContextParameter("json");
-        checkArgument(nonNull(jsonParameter), "Cannot create the %s for the provided %s %s: the %s'data context does " +
-                        "not contain a \"json\" parameter", EventInstance.class.getSimpleName(),
+        ContextParameter jsonParameter = eventDefinition.getParameter("json");
+        checkArgument(nonNull(jsonParameter), "Cannot create the %s for the provided %s %s: the %s'json parameter " +
+                        "does not exist", EventInstance.class.getSimpleName(),
                 EventDefinition.class.getSimpleName(), eventDefinition.getName(),
                 EventDefinition.class.getSimpleName());
 
         EventInstance eventInstance = IntentFactory.eINSTANCE.createEventInstance();
         eventInstance.setDefinition(eventDefinition);
-        ContextInstance dataContextInstance = IntentFactory.eINSTANCE.createContextInstance();
-        dataContextInstance.setDefinition(dataContext);
-        eventInstance.getOutContextInstances().add(dataContextInstance);
         ContextParameterValue jsonParameterValue = IntentFactory.eINSTANCE.createContextParameterValue();
         jsonParameterValue.setContextParameter(jsonParameter);
         jsonParameterValue.setValue(content);
-        dataContextInstance.getValues().add(jsonParameterValue);
+        eventInstance.getValues().add(jsonParameterValue);
         return eventInstance;
     }
 

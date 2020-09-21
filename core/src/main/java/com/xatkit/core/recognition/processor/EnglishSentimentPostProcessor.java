@@ -1,6 +1,5 @@
 package com.xatkit.core.recognition.processor;
 
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
 import edu.stanford.nlp.ling.CoreAnnotations;
@@ -22,7 +21,7 @@ public class EnglishSentimentPostProcessor extends StanfordNLPPostProcessor {
     /**
      * The context parameter key used to store the sentiment extracted from the user input.
      */
-    protected final static String SENTIMENT_PARAMETER_KEY = "sentiment";
+    protected final static String SENTIMENT_PARAMETER_KEY = NLP_CONTEXT_KEY + ".sentiment";
 
     /**
      * The default value for the {@link #SENTIMENT_PARAMETER_KEY} parameter.
@@ -53,13 +52,8 @@ public class EnglishSentimentPostProcessor extends StanfordNLPPostProcessor {
      */
     @Override
     public RecognizedIntent process(RecognizedIntent recognizedIntent, StateContext context) {
-        /*
-         * TODO this should be handled properly
-         */
-        XatkitSession xatkitSession = (XatkitSession) context;
-        xatkitSession.getRuntimeContexts().setContextValue(NLP_CONTEXT_KEY, 1, SENTIMENT_PARAMETER_KEY,
-                DEFAULT_SENTIMENT_VALUE);
-        Annotation annotation = getAnnotation(recognizedIntent.getMatchedInput(), xatkitSession);
+        recognizedIntent.getNlpData().put(SENTIMENT_PARAMETER_KEY, DEFAULT_SENTIMENT_VALUE);
+        Annotation annotation = getAnnotation(recognizedIntent.getMatchedInput(), context);
         /*
          * We only get the sentiment in the last sentence, we need some heuristics to compute the sentiment of a
          * whole corpus (or use some other API from the NLP pipeline).
@@ -67,7 +61,7 @@ public class EnglishSentimentPostProcessor extends StanfordNLPPostProcessor {
         List<CoreMap> sentenceAnnotations = annotation.get(CoreAnnotations.SentencesAnnotation.class);
         String sentimentValue =
                 sentenceAnnotations.get(sentenceAnnotations.size() - 1).get(SentimentCoreAnnotations.SentimentClass.class);
-        xatkitSession.getRuntimeContexts().setContextValue(NLP_CONTEXT_KEY, 1, SENTIMENT_PARAMETER_KEY, sentimentValue);
+        recognizedIntent.getNlpData().put(SENTIMENT_PARAMETER_KEY, sentimentValue);
         return recognizedIntent;
     }
 }

@@ -2,7 +2,8 @@ package com.xatkit.platform.core.io;
 
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentFactory;
@@ -116,8 +117,9 @@ public class CronEventProvider extends RuntimeEventProvider<CorePlatform> {
             try {
                 EventInstance cronTickEvent = IntentFactory.eINSTANCE.createEventInstance();
                 cronTickEvent.setDefinition(CronTick);
-                XatkitSession cronSession = new XatkitSession("cron");
-                this.sendEventInstance(cronTickEvent, cronSession);
+                StateContext cronContext = ExecutionFactory.eINSTANCE.createStateContext();
+                cronContext.setContextId("cron");
+                this.sendEventInstance(cronTickEvent, cronContext);
             } catch (Exception e) {
                 e.printStackTrace();
             }

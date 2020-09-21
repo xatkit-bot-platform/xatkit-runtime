@@ -10,7 +10,6 @@ import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
 import com.xatkit.intent.BaseEntityDefinition;
-import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.IntentDefinition;
@@ -70,15 +69,15 @@ public class RecognizedIntentMapper {
      * <p>
      * This method relies on the {@link #convertDialogFlowIntentToIntentDefinition(Intent)} method to retrieve the
      * {@link IntentDefinition} associated to the {@link QueryResult}'s {@link Intent}, and the
-     * {@link EventDefinitionRegistry#getEventDefinitionOutContext(String)} method to retrieve the registered
-     * {@link ContextParameter}s from the DialogFlow contexts.
+     * {@link IntentDefinition#getParameter(String)} method to retrieve the {@link ContextParameter}s to set the
+     * value of from the DialogFlow contexts.
      *
      * @param result the DialogFlow {@link QueryResult} containing the {@link Intent} to reify
      * @return the reified {@link RecognizedIntent}
      * @throws NullPointerException     if the provided {@link QueryResult} is {@code null}
      * @throws IllegalArgumentException if the provided {@link QueryResult}'s {@link Intent} is {@code null}
      * @see #convertDialogFlowIntentToIntentDefinition(Intent)
-     * @see EventDefinitionRegistry#getEventDefinitionOutContext(String)
+     * @see IntentDefinition#getParameter(String)
      */
     public RecognizedIntent mapQueryResult(@NonNull QueryResult result) {
         checkArgument(nonNull(result.getIntent()), "Cannot create a %s from the provided %s'%s %s", RecognizedIntent
@@ -105,11 +104,10 @@ public class RecognizedIntentMapper {
          */
         if (!recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT) && recognizedIntent.getRecognitionConfidence() < this.configuration.getConfidenceThreshold()) {
             boolean containsAnyEntity =
-                    recognizedIntent.getDefinition().getOutContexts().stream().flatMap(c -> c.getParameters().stream())
-                            .anyMatch(
-                                    p -> p.getEntity().getReferredEntity() instanceof BaseEntityDefinition &&
-                                            ((BaseEntityDefinition) p.getEntity().getReferredEntity()).getEntityType().equals(com.xatkit.intent.EntityType.ANY)
-                            );
+                    recognizedIntent.getDefinition().getParameters().stream().anyMatch(
+                            p -> p.getEntity().getReferredEntity() instanceof BaseEntityDefinition &&
+                                    ((BaseEntityDefinition) p.getEntity().getReferredEntity()).getEntityType().equals(com.xatkit.intent.EntityType.ANY)
+                    );
             /*
              * We should not reject a recognized intent if it contains an any entity, these intents typically have a
              * low confidence level.
@@ -132,40 +130,21 @@ public class RecognizedIntentMapper {
          */
         for (Context context : result.getOutputContextsList()) {
             String contextName = ContextName.parse(context.getName()).getContext();
-            /*
-             * Search if the Context exists in the retrieved IntentDefinition. It may not be the case because
-             * DialogFlow merges all the context values in the active contexts. In that case the only solution is to
-             * find the Context from the global registry, that may return inconsistent result if there are multiple
-             * contexts defined with the same name.
-             */
-            com.xatkit.intent.Context contextDefinition = intentDefinition.getOutContext(contextName);
-            if (isNull(contextDefinition)) {
-                contextDefinition = this.eventRegistry.getEventDefinitionOutContext(contextName);
-            }
-            if (nonNull(contextDefinition)) {
-                int lifespanCount = context.getLifespanCount();
-                ContextInstance contextInstance = IntentFactory.eINSTANCE.createContextInstance();
-                contextInstance.setDefinition(contextDefinition);
-                contextInstance.setLifespanCount(lifespanCount);
-                Log.debug("Processing context {0}", context.getName());
-                Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
-                for (String key : parameterValues.keySet()) {
-                    Value value = parameterValues.get(key);
+            Log.debug("Processing context {0}", context.getName());
+            Map<String, Value> parameterValues = context.getParameters().getFieldsMap();
+            for (String key : parameterValues.keySet()) {
+                Value value = parameterValues.get(key);
 
-                    Object parameterValue = buildParameterValue(value);
+                Object parameterValue = buildParameterValue(value);
 
-                    ContextParameter contextParameter = contextDefinition.getContextParameter(key);
-                    if (nonNull(contextParameter) && !key.contains(".original")) {
-                        ContextParameterValue contextParameterValue =
-                                IntentFactory.eINSTANCE.createContextParameterValue();
-                        contextParameterValue.setContextParameter(contextParameter);
-                        contextParameterValue.setValue(parameterValue);
-                        contextInstance.getValues().add(contextParameterValue);
-                    }
+                ContextParameter contextParameter = intentDefinition.getParameter(key);
+                if (nonNull(contextParameter) && !key.contains(".original")) {
+                    ContextParameterValue contextParameterValue =
+                            IntentFactory.eINSTANCE.createContextParameterValue();
+                    contextParameterValue.setContextParameter(contextParameter);
+                    contextParameterValue.setValue(parameterValue);
+                    recognizedIntent.getValues().add(contextParameterValue);
                 }
-                recognizedIntent.getOutContextInstances().add(contextInstance);
-            } else {
-                Log.warn("Cannot retrieve the context definition for the context value {0}", contextName);
             }
         }
         return recognizedIntent;

@@ -3,7 +3,7 @@ package com.xatkit.core.recognition;
 import com.xatkit.core.XatkitBot;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
@@ -120,7 +120,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public abstract XatkitSession createContext(@NonNull String sessionId) throws IntentRecognitionProviderException;
+    public abstract StateContext createContext(@NonNull String sessionId) throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
@@ -199,7 +199,13 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
                 "collection is empty");
         RecognizedIntent bestCandidate =
                 recognizedIntents.stream().sorted(Comparator.comparingDouble(RecognizedIntent::getRecognitionConfidence).reversed())
-                        .filter(intent -> context.getNlpContext().containsKey("Enable" + intent.getDefinition().getName()))
+                        .filter(intent -> {
+                            State state = context.getState();
+                            /*
+                             * We cast intent.getDefinition() here to avoid suspicious contains call detection.
+                             */
+                            return state.getAllAccessedIntents().contains((IntentDefinition) intent.getDefinition());
+                        })
                         .findFirst().orElse(null);
         if (isNull(bestCandidate)) {
             bestCandidate = IntentFactory.eINSTANCE.createRecognizedIntent();

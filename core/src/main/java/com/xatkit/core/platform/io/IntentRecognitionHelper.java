@@ -2,8 +2,6 @@ package com.xatkit.core.platform.io;
 
 import com.xatkit.core.XatkitBot;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
-import com.xatkit.core.session.RuntimeContexts;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
@@ -25,12 +23,6 @@ public class IntentRecognitionHelper {
      * {@link com.xatkit.core.recognition.IntentRecognitionProvider}, and avoid uncontrolled accesses to the
      * {@link com.xatkit.core.recognition.IntentRecognitionProvider} from {@link RuntimeEventProvider}s (such as
      * intent creation, removal, and context manipulation).
-     * <p>
-     * <b>Note:</b> this method decrements the lifespan counts of the variables in the current context (context
-     * lifespan are used to represent the number of user interaction to handled before deleting the variable).
-     * <b>Client classes must call this method before setting any context variable</b> otherwise there lifespan
-     * counts may be inconsistent from their expected values (e.g. context variables with a lifespan count of {@code
-     * 1} will be immediately removed by the {@link RuntimeContexts#decrementLifespanCounts()} call).
      *
      * @param input   the textual user input to extract the {@link RecognizedIntent} from
      * @param context the {@link StateContext} wrapping the underlying
@@ -46,15 +38,10 @@ public class IntentRecognitionHelper {
      */
     public static RecognizedIntent getRecognizedIntent(@NonNull String input, @NonNull StateContext context,
                                                        @NonNull XatkitBot xatkitBot) throws IntentRecognitionProviderException {
-        /*
-         * TODO remove this cast, the underlying IntentRecognitionProvider should handle StateContexts.
-         */
-        XatkitSession session = (XatkitSession) context;
-        session.getRuntimeContexts().decrementLifespanCounts();
-        RecognizedIntent recognizedIntent = xatkitBot.getIntentRecognitionProvider().getIntent(input, session);
+        RecognizedIntent recognizedIntent = xatkitBot.getIntentRecognitionProvider().getIntent(input, context);
         Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\" ({3})",
                 recognizedIntent.getDefinition().getName(), recognizedIntent.getRecognitionConfidence(),
-                recognizedIntent.getMatchedInput(), session.toString());
+                recognizedIntent.getMatchedInput(), context.toString());
         return recognizedIntent;
     }
 }

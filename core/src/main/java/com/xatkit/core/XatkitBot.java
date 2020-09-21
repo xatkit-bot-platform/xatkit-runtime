@@ -7,18 +7,15 @@ import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.server.XatkitServer;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.dsl.model.ExecutionModelProvider;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.StateContext;
-import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
-import com.xatkit.util.ExecutionModelUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
@@ -105,7 +102,7 @@ public class XatkitBot implements Runnable {
      *
      * @see #getOrCreateContext(String)
      */
-    private Map<String, StateContext> sessions;
+    private Map<String, StateContext> stateContexts;
 
     /**
      * The {@link XatkitServer} instance used to capture incoming webhooks.
@@ -163,7 +160,7 @@ public class XatkitBot implements Runnable {
             this.xatkitServer = new XatkitServer(configuration);
             this.intentRecognitionProvider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(this,
                     configuration);
-            this.sessions = new HashMap<>();
+            this.stateContexts = new HashMap<>();
             this.executionService = new ExecutionService(executionModel, configuration);
             this.loadExecutionModel(executionModel);
             xatkitServer.start();
@@ -220,7 +217,7 @@ public class XatkitBot implements Runnable {
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");
 
-        Iterable<EventDefinition> accessedEvents = ExecutionModelUtils.getAllAccessedEvents(executionModel);
+        Iterable<EventDefinition> accessedEvents = executionModel.getAllAccessedEvents();
         for (EventDefinition e : accessedEvents) {
             intentRegistered |= this.registerEventDefinition(e);
         }
@@ -286,14 +283,12 @@ public class XatkitBot implements Runnable {
         Log.debug("Registering event {0}", eventDefinition.getName());
         if (eventDefinition instanceof IntentDefinition) {
             IntentDefinition intentDefinition = (IntentDefinition) eventDefinition;
-            for (Context outContext : intentDefinition.getOutContexts()) {
-                for (ContextParameter parameter : outContext.getParameters()) {
-                    try {
-                        this.intentRecognitionProvider.registerEntityDefinition(parameter.getEntity()
-                                .getReferredEntity());
-                    } catch (IntentRecognitionProviderException e) {
-                        Log.error(e.getMessage());
-                    }
+            for (ContextParameter parameter : intentDefinition.getParameters()) {
+                try {
+                    this.intentRecognitionProvider.registerEntityDefinition(parameter.getEntity()
+                            .getReferredEntity());
+                } catch (IntentRecognitionProviderException e) {
+                    Log.error(e.getMessage());
                 }
             }
             try {
@@ -416,7 +411,7 @@ public class XatkitBot implements Runnable {
                 throw new XatkitException(MessageFormat.format("Cannot create session {0}, see attached exception",
                         contextId), e);
             }
-            sessions.put(contextId, context);
+            stateContexts.put(contextId, context);
             /*
              * The executor service takes care of configuring the new session and setting the init state.
              */
@@ -434,18 +429,18 @@ public class XatkitBot implements Runnable {
      */
     public @Nullable
     StateContext getContext(@NonNull String contextId) {
-        return sessions.get(contextId);
+        return stateContexts.get(contextId);
     }
 
     public Iterable<StateContext> getContexts() {
-        return sessions.values();
+        return stateContexts.values();
     }
 
     /**
-     * Invalidates all the {@link XatkitSession}s and clear the session registry.
+     * Invalidates all the {@link StateContext}s and clear the session registry.
      */
     public void clearContexts() {
-        this.sessions.clear();
+        this.stateContexts.clear();
     }
 
     /**

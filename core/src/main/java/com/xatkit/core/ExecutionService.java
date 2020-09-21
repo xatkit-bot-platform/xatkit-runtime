@@ -1,15 +1,12 @@
 package com.xatkit.core;
 
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.AutoTransition;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.GuardedTransition;
 import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.execution.Transition;
-import com.xatkit.intent.ContextInstance;
-import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EventInstance;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
@@ -116,6 +113,9 @@ public class ExecutionService {
          * transitions. We don't want to return a transition that matches the exact same intent as the one that
          * triggered this state.
          */
+        // TODO here we probably have an issue if we re-enter the state after a fallback?
+        // This works fine, why?
+        // This is maybe a genius move
         context.setEventInstance(null);
         Transition navigableTransition = getNavigableTransitions(state, context);
         if (nonNull(navigableTransition)) {
@@ -140,6 +140,9 @@ public class ExecutionService {
     private void executeFallback(@NonNull State state, @NonNull StateContext context) {
         Consumer<StateContext> fallback = state.getFallback();
         if (isNull(fallback)) {
+            /*
+             * We don't change the state here, the fallback body is executed as if it was in the current state.
+             */
             this.executeBody(model.getDefaultFallbackState(), context);
         } else {
             try {
@@ -148,18 +151,6 @@ public class ExecutionService {
                 Log.error(t, "An error occurred when executing the fallback of state {0}", state.getName());
                 throw t;
             }
-        }
-        /*
-         * The fallback semantics implies that the execution engine stays in the same state. This means that we need
-         * to increment all the context lifespans to be sure they will be available for the next intent recognition
-         * (otherwise they will be deleted and the matching will be inconsistent).
-         */
-        if(context instanceof XatkitSession) {
-            ((XatkitSession) context).getRuntimeContexts().incrementLifespanCounts();
-        } else {
-            throw new IllegalStateException(MessageFormat.format("Cannot increment the lifespan values of the " +
-                    "provided {0}: expected a {1}, found a {2}", StateContext.class.getSimpleName(),
-                    XatkitSession.class.getSimpleName(), context.getClass().getSimpleName()));
         }
     }
 
@@ -247,34 +238,10 @@ public class ExecutionService {
                  * Reset the event instance, we don't need it anymore and we don't want to corrupt future condition
                  * evaluations.
                  */
-                context.setEventInstance(null);
+                // TODO check this, removed it to make sure the event is accessible (e.g. to reply)
+//                context.setEventInstance(null);
                 executeFallback(sessionState, context);
             } else {
-                for (ContextInstance contextInstance : eventInstance.getOutContextInstances()) {
-                    /*
-                     * Register the context first: this allows to register context without parameters (e.g. follow-up
-                     * contexts).
-                     */
-                    if(context instanceof XatkitSession) {
-                        /*
-                         * TODO we should handle all kind of StateContexts here.
-                         */
-                        XatkitSession session = (XatkitSession) context;
-                        session.getRuntimeContexts().setContext(contextInstance.getDefinition().getName(),
-                                contextInstance.getLifespanCount());
-                        for(ContextParameterValue value : contextInstance.getValues()) {
-                            session.getRuntimeContexts().setContextValue(value);
-                        }
-                    } else {
-                        throw new IllegalStateException(MessageFormat.format("Cannot merge the event's context values" +
-                                " to the current session: expected a {0}, found a {1}",
-                                XatkitSession.class.getSimpleName(), context.getClass().getSimpleName()));
-                    }
-                }
-                /*
-                 * Store the event that triggered the rule execution in the context, it can be useful to some actions (e
-                 * .g. analytics)
-                 */
                 context.setState(navigableTransition.getState());
                 executeBody(navigableTransition.getState(), context);
             }

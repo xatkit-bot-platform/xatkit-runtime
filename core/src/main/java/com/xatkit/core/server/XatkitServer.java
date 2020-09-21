@@ -3,7 +3,6 @@ package com.xatkit.core.server;
 import com.google.gson.JsonElement;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.WebhookEventProvider;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import com.xatkit.util.FileUtils;
 import fr.inria.atlanmod.commons.log.Log;
@@ -482,7 +481,7 @@ public class XatkitServer {
      * Retrieves the public URL associated to the provided {@code file} if it exists.
      * <p>
      * This method is typically called to retrieve the public URL of a file created with
-     * {@link #createOrReplacePublicFile(XatkitSession, String, String)}.
+     * {@link #createOrReplacePublicFile(StateContext, String, String)}.
      *
      * @param file the {@link File} to retrieve the public URL for
      * @return the retrieved URL if it exists, {@code null} otherwise
@@ -519,33 +518,33 @@ public class XatkitServer {
     }
 
     /**
-     * Retrieves the public {@link File} associated to the provided {@code session} and {@code filePath}.
+     * Retrieves the public {@link File} associated to the provided {@code context} and {@code filePath}.
      *
-     * @param session  the {@link XatkitSession} to retrieve the {@link File} from
+     * @param context  the {@link StateContext} to retrieve the {@link File} from
      * @param filePath the path of the {@link File} to retrieve
      * @return the retrieved {@link File} if it exists, {@code null} otherwise
-     * @throws NullPointerException if the provided {@code session} if {@code filePath} is {@code null}
+     * @throws NullPointerException if the provided {@code context} if {@code filePath} is {@code null}
      * @throws XatkitException      if the provided {@code filePath} refers to an illegal location
      * @see #getPublicFile(String)
      */
     public @Nullable
-    File getPublicFile(@NonNull XatkitSession session, @NonNull String filePath) {
-        return getPublicFile(session.getContextId() + "/" + filePath);
+    File getPublicFile(@NonNull StateContext context, @NonNull String filePath) {
+        return getPublicFile(context.getContextId() + "/" + filePath);
     }
 
     /**
      * Retrieves the public {@link File} associated to the provided {@code filePath}.
      * <p>
      * This method expects a full relative path under the {@code /content/} location. This means that {@link File}
-     * associated to {@link XatkitSession}s must be retrieved with the following path: {@code sessionId/path}. Check
-     * {@link #getPublicFile(XatkitSession, String)} to easily retrieve a {@link File} associated to a
-     * {@link XatkitSession}.
+     * associated to {@link StateContext}s must be retrieved with the following path: {@code sessionId/path}. Check
+     * {@link #getPublicFile(StateContext, String)} to easily retrieve a {@link File} associated to a
+     * {@link StateContext}.
      *
      * @param filePath the path of the {@link File} to retrieve
      * @return the retrieved {@link File} if it exists, {@code null} otherwise
      * @throws NullPointerException if the provided {@code filePath} is {@code null}
      * @throws XatkitException      if the provided {@code filePath} refers to an illegal location
-     * @see #getPublicFile(XatkitSession, String)
+     * @see #getPublicFile(StateContext, String)
      */
     public @Nullable
     File getPublicFile(@NonNull String filePath) {
@@ -574,7 +573,7 @@ public class XatkitServer {
      *
      * @param context the {@link StateContext} to retrieve or create a {@link File} from
      * @return the {@link File}
-     * @see #getSessionFile(XatkitSession)
+     * @see #getSessionFile(StateContext)
      */
     private @NonNull
     File getOrCreateSessionFile(StateContext context) {

@@ -1,15 +1,15 @@
 package com.xatkit.stubs.action;
 
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 
 import java.io.IOException;
 
 public class StubRuntimeMessageActionIOExceptionThenOk extends StubRuntimeMessageAction {
 
-    public StubRuntimeMessageActionIOExceptionThenOk(RuntimePlatform runtimePlatform, XatkitSession session, String
+    public StubRuntimeMessageActionIOExceptionThenOk(RuntimePlatform runtimePlatform, StateContext context, String
             rawMessage) {
-        super(runtimePlatform, session, rawMessage);
+        super(runtimePlatform, context, rawMessage);
     }
 
     @Override

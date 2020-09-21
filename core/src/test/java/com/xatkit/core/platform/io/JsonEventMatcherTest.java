@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitException;
-import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EventDefinition;
@@ -235,16 +234,8 @@ public class JsonEventMatcherTest extends AbstractXatkitTest {
         assertThat(eventInstance).as("Not null EventInstance").isNotNull();
         assertThat(eventInstance.getDefinition()).as("Not null EventDefinition").isNotNull();
         assertThat(eventInstance.getDefinition()).as("Valid EventDefinition").isEqualTo(eventWithDataJsonValue);
-        assertThat(eventInstance.getOutContextInstances()).as("Event Instance contains one out context instance")
-                .hasSize(1);
-        ContextInstance outContextInstance = eventInstance.getOutContextInstances().get(0);
-        assertThat(outContextInstance).as("Not null out context instance").isNotNull();
-        assertThat(outContextInstance.getDefinition()).as("Not null out context instance definition").isNotNull();
-        assertThat(outContextInstance.getDefinition().getName()).as("Valid out context instance definition")
-                .isEqualTo("XATKITCONTEXT");
-        assertThat(outContextInstance.getValues()).as("Out context instance contains two out values").hasSize
-                (1);
-        ContextParameterValue value = outContextInstance.getValues().get(0);
+        assertThat(eventInstance.getValues()).as("Out context instance contains two out values").hasSize(1);
+        ContextParameterValue value = eventInstance.getValues().get(0);
         assertThat(value.getContextParameter()).as("Value1 context parameter not null").isNotNull();
         ContextParameter contextParameter1 = value.getContextParameter();
         assertThat(contextParameter1.getName()).as("Valid value1 context parameter name").isEqualTo

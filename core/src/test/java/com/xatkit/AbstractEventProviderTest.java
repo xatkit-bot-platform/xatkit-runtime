@@ -4,7 +4,6 @@ import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
-import com.xatkit.core.session.XatkitSession;
 import org.junit.After;
 import org.junit.Before;
 
@@ -47,7 +46,7 @@ public abstract class AbstractEventProviderTest<E extends RuntimeEventProvider<P
     protected IntentRecognitionProvider mockedIntentRecognitionProvider;
 
     /**
-     * Initializes the {@link RuntimePlatform} and the empty {@link XatkitSession}.
+     * Initializes the {@link RuntimePlatform}.
      */
     @Before
     public void setUp() {

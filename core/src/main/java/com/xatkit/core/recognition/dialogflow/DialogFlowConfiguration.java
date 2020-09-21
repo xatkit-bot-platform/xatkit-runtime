@@ -36,7 +36,8 @@ public class DialogFlowConfiguration {
     /**
      * The {@link Configuration} key to store the path of the {@code JSON} credential file for DialogFlow.
      * <p>
-     * If this key is not set the {@link DialogFlowIntentRecognitionProvider} will use the {@code GOOGLE_APPLICATION_CREDENTIALS}
+     * If this key is not set the {@link DialogFlowIntentRecognitionProvider} will use the {@code
+     * GOOGLE_APPLICATION_CREDENTIALS}
      * environment variable to retrieve the credentials file.
      */
     public static String GOOGLE_CREDENTIALS_PATH_KEY = "xatkit.dialogflow.credentials.path";
@@ -59,8 +60,10 @@ public class DialogFlowConfiguration {
      * The {@link Configuration} key to store whether to initialize the registered intents {@link Map} with the
      * {@link Intent}s already stored in the DialogFlow project.
      * <p>
-     * Intent loading is enabled by default, and should not be an issue when using the {@link DialogFlowIntentRecognitionProvider} in
-     * development context. However, creating multiple instances of the {@link DialogFlowIntentRecognitionProvider} (e.g. when running the
+     * Intent loading is enabled by default, and should not be an issue when using the
+     * {@link DialogFlowIntentRecognitionProvider} in
+     * development context. However, creating multiple instances of the {@link DialogFlowIntentRecognitionProvider}
+     * (e.g. when running the
      * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
      * avoid Intent loading, limiting the number of queries to the DialogFlow API.
      * <p>
@@ -73,8 +76,10 @@ public class DialogFlowConfiguration {
      * The {@link Configuration} key to store whether to initialize the registered entity types {@link Map} with the
      * {@link EntityType}s already stored in the DialogFlow project.
      * <p>
-     * Entity loading is enabled by default, and should not be an issue when using the {@link DialogFlowIntentRecognitionProvider} in
-     * development context. However, creating multiple instances of the {@link DialogFlowIntentRecognitionProvider} (e.g. when running the
+     * Entity loading is enabled by default, and should not be an issue when using the
+     * {@link DialogFlowIntentRecognitionProvider} in
+     * development context. However, creating multiple instances of the {@link DialogFlowIntentRecognitionProvider}
+     * (e.g. when running the
      * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
      * avoid Entity loading, limiting the number of queries to the DialogFlow API.
      * <p>
@@ -83,19 +88,17 @@ public class DialogFlowConfiguration {
      */
     public static String ENABLE_ENTITY_LOADING_KEY = "xatkit.dialogflow.entity.loading";
 
+    // TODO check if this is still needed?
     /**
-     * The {@link Configuration} key to store whether to merge the local
-     * {@link com.xatkit.core.session.XatkitSession} in the DialogFlow one.
+     * The {@link Configuration} key to store whether to merge the local context in the DialogFlow one.
      * <p>
-     * This option is enabled by default to ensure consistency between the local
-     * {@link com.xatkit.core.session.XatkitSession} and the
-     * DialogFlow's one. However, bot implementations that strictly rely on the DialogFlow API and do not use local
-     * {@link com.xatkit.core.session.XatkitSession}s can disable this option to improve the bot's performances and
+     * This option is enabled by default to ensure consistency between the local context and the DialogFlow's one.
+     * However, bot implementations that strictly rely on the DialogFlow API and do not use local contexts can disable
+     * this option to improve the bot's performances and
      * reduce the number of calls to the remote DialogFlow API.
      * <p>
-     * Note that disabling this option for a bot implementation that manipulates local
-     * {@link com.xatkit.core.session.XatkitSession}s may generate consistency issues and unexpected behaviors (such
-     * as unmatched intents and context value overwriting).
+     * Note that disabling this option for a bot implementation that manipulates local contexts may generate
+     * consistency issues and unexpected behaviors (such as unmatched intents and context value overwriting).
      */
     public static String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "xatkit.dialogflow.context.merge";
 
@@ -147,7 +150,8 @@ public class DialogFlowConfiguration {
     private String googleCredentialsPath;
 
     /**
-     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to perform a complete clean of the agent before its initialization.
+     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to perform a complete clean of the agent
+     * before its initialization.
      * <p>
      * This option is set to {@code false} by default. Setting it to {@code true} allows to easily re-deploy bots
      * under development, but should not be used in production-ready bots (re-training the agent may take a while to
@@ -158,7 +162,8 @@ public class DialogFlowConfiguration {
     private boolean cleanAgentOnStartup;
 
     /**
-     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered {@link Intent} from the DialogFlow agent.
+     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered {@link Intent}
+     * from the DialogFlow agent.
      * <p>
      * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
      * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
@@ -169,7 +174,8 @@ public class DialogFlowConfiguration {
     private boolean enableIntentLoader;
 
     /**
-     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered {@link EntityType}s from the
+     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered
+     * {@link EntityType}s from the
      * DialogFlow agent.
      * <p>
      * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries

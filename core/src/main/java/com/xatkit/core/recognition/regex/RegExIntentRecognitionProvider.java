@@ -5,13 +5,12 @@ import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.EntityMapper;
 import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.recognition.RecognitionMonitor;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinitionEntry;
-import com.xatkit.intent.Context;
-import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.CustomEntityDefinition;
@@ -28,6 +27,7 @@ import com.xatkit.intent.TextFragment;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ConfigurationConverter;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.Objects.isNull;
+import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -85,7 +85,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
     /**
      * The application's {@link Configuration}.
      * <p>
-     * This {@link Configuration} is used to customize the created {@link XatkitSession}s.
+     * This {@link Configuration} is used to customize the created {@link StateContext}s.
      */
     private Configuration configuration;
 
@@ -120,7 +120,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
     /**
      * Constructs a {@link RegExIntentRecognitionProvider} with the provided {@code configuration}.
      *
-     * @param configuration the {@link Configuration} used to customize the created {@link XatkitSession}s
+     * @param configuration the {@link Configuration} used to customize the created {@link StateContext}s
      *                      * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent
      *                      matching information
      * @throws NullPointerException if the provided {@code configuration} is {@code null}
@@ -265,19 +265,21 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
         List<Pattern> patterns = new ArrayList<>();
         for (String trainingSentence : intentDefinition.getTrainingSentences()) {
             trainingSentence = escapeRegExpReservedCharacters(trainingSentence);
-            if (intentDefinition.getOutContexts().isEmpty()) {
+            if (intentDefinition.getParameters().isEmpty()) {
+                /*
+                 * The intent doesn't define any parameter, this means we can simply use the full training sentence
+                 * in the regular expression.
+                 */
                 patterns.add(Pattern.compile("^(?i)" + trainingSentence + "$"));
             } else {
                 String preparedTrainingSentence = trainingSentence;
-                for (Context context : intentDefinition.getOutContexts()) {
-                    for (ContextParameter parameter : context.getParameters()) {
-                        if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
-                            /*
-                             * only support single word for now
-                             */
-                            preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(),
-                                    buildRegExpGroup(context, parameter, parameter.getEntity().getReferredEntity()));
-                        }
+                for (ContextParameter parameter : intentDefinition.getParameters()) {
+                    if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
+                        /*
+                         * only support single word for now
+                         */
+                        preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(),
+                                buildRegExpGroup(parameter));
                     }
                 }
                 patterns.add(Pattern.compile("^" + preparedTrainingSentence + "$"));
@@ -298,32 +300,23 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
     }
 
     /**
-     * Creates a RegExp named group from the provided {@code context}, {@code parameter}, and {@code entityDefinition}.
-     * <p>
-     * This method procudes RegExp group names with the following pattern: {@code <ContextName>0000<Parameter>}. Note
-     * that '0000' is used as a delimiter because named groups only support alphanumeric values.
-     * <p>
-     * This intent provider only creates named groups for context parameters, and thus requires a non-null {@code
-     * entityDefinition} value.
+     * Creates a RegExp named group from the provided {@code parameter}.
      *
-     * @param context          the {@link Context} to build a named group from
-     * @param parameter        the {@link ContextParameter} to build a named group from
-     * @param entityDefinition the {@link EntityDefinition} to build a named group from
+     * @param parameter the {@link ContextParameter} to build a named group from
      * @return the {@link String} representing the built RegExp group
-     * @throws NullPointerException if the provided {@code context}, {@code parameter}, or {@code entityDefinition}
-     *                              is {@code null}
+     * @throws NullPointerException {@code parameter}, or {@code parameter.getEntity().getReferredEntity()} is {@code
+     *                              null}
      */
-    private String buildRegExpGroup(@NonNull Context context, @NonNull ContextParameter parameter,
-                                    @NonNull EntityDefinition entityDefinition) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("(?<");
-        sb.append(context.getName());
-        sb.append(REGEXP_GROUP_NAME_DELIMITER);
-        sb.append(parameter.getName());
-        sb.append(">");
-        sb.append(entityMapper.getMappingFor(entityDefinition));
-        sb.append(")");
-        return sb.toString();
+    private String buildRegExpGroup(@NonNull ContextParameter parameter) {
+        EntityDefinition parameterEntity = parameter.getEntity().getReferredEntity();
+        checkNotNull(parameterEntity, "Cannot construct a RegExp group for the provided parameter %s: the parameter's" +
+                " entity is null", parameter.getName());
+        String regExpGroup = "(?<" +
+                parameter.getName() +
+                ">" +
+                entityMapper.getMappingFor(parameterEntity) +
+                ")";
+        return regExpGroup;
     }
 
     /**
@@ -370,8 +363,11 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * {@inheritDoc}
      */
     @Override
-    public XatkitSession createContext(@NonNull String sessionId) {
-        return new XatkitSession(sessionId, configuration);
+    public StateContext createContext(@NonNull String sessionId) {
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId(sessionId);
+        context.setConfiguration(ConfigurationConverter.getMap(configuration));
+        return context;
     }
 
     /**
@@ -423,7 +419,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * alternative {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support such features.
      *
      * @param input   the {@link String} representing the textual input to process and extract the intent from
-     * @param context the {@link XatkitSession} used to access context information
+     * @param context the {@link StateContext} used to access context information
      * @return the {@link RecognizedIntent} matched from the provided {@code input}
      * @throws NullPointerException if the provided {@code input} or {@code context} is {@code null}
      */
@@ -447,11 +443,6 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
                         setContextParameterValuesFromMatcher(matcher, intentDefinition, recognizedIntent);
                     }
                     /*
-                     * Sets additional values that are not part of the matched expressions. These values can be
-                     * follow-up contexts, or empty contexts.
-                     */
-                    setEmptyContexts(intentDefinition, recognizedIntent);
-                    /*
                      * Return the first one we find, no need to iterate the rest of the map
                      */
                     if (nonNull(this.recognitionMonitor)) {
@@ -466,6 +457,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
          */
         recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
         if (nonNull(recognitionMonitor)) {
+            // TODO refactor this? it's duplicated from above.
             this.recognitionMonitor.logRecognizedIntent(context, recognizedIntent);
         }
         return recognizedIntent;
@@ -482,7 +474,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * </ul>
      *
      * @param intentDefinitions the {@link Set} of {@link IntentDefinition} to retrieve the matchable intents from
-     * @param context           the {@link XatkitSession} storing contextual values
+     * @param context           the {@link StateContext} storing contextual values
      * @return the {@link List} of {@link IntentDefinition} that can be matched according to the provided {@code
      * context}
      * @throws NullPointerException if the provided {@code intentDefinitions} or {@code context} is {@code null}
@@ -491,7 +483,9 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
                                                        @NonNull StateContext context) {
         List<IntentDefinition> result = new ArrayList<>();
         for (IntentDefinition intentDefinition : intentDefinitions) {
-            if (context.getNlpContext().containsKey("Enable" + intentDefinition.getName())) {
+            State state = context.getState();
+            // TODO check if this is fine or if we need to redefine equals/hashcode
+            if (state.getAllAccessedIntents().contains(intentDefinition)) {
                 result.add(intentDefinition);
             }
         }
@@ -509,49 +503,29 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * @param recognizedIntent the {@link RecognizedIntent} to set the created {@link ContextParameterValue} of
      * @throws NullPointerException if the provided {@code matcher}, {@code intentDefinition}, or {@code
      *                              recognizedIntent} is {@code null}
-     * @see #getOrCreateContextInstance(RecognizedIntent, Context)
      * @see #createContextParameterValue(ContextParameter, String)
      */
     private void setContextParameterValuesFromMatcher(@NonNull Matcher matcher,
                                                       @NonNull IntentDefinition intentDefinition,
                                                       @NonNull RecognizedIntent recognizedIntent) {
-        for (Context context : intentDefinition.getOutContexts()) {
-            for (ContextParameter contextParameter : context.getParameters()) {
-                String groupName =
-                        context.getName() + REGEXP_GROUP_NAME_DELIMITER + contextParameter.getName();
-                String matchedValue;
-                try {
-                    matchedValue = matcher.group(groupName);
-                } catch (IllegalArgumentException e) {
-                    /*
-                     * The group with the name Context:Parameter does not exist (this can be the case if the intent
-                     * contains multiple inputs setting different parameters).
-                     */
-                    Log.warn("Cannot set the value of the context parameter {0}.{1}, the parameter hasn't been " +
-                            "matched from the provided input \"\"", context.getName(), contextParameter.getName());
-                    continue;
-                }
-                ContextParameterValue contextParameterValue = createContextParameterValue(contextParameter,
-                        matchedValue);
-                ContextInstance contextInstance = getOrCreateContextInstance(recognizedIntent, context);
-                contextInstance.getValues().add(contextParameterValue);
+        for (ContextParameter contextParameter : intentDefinition.getParameters()) {
+            String groupName = contextParameter.getName();
+            String matchedValue;
+            try {
+                matchedValue = matcher.group(groupName);
+            } catch (IllegalArgumentException e) {
+                /*
+                 * The group with the name <parameter> does not exist (this can be the case if the intent
+                 * contains multiple inputs setting different parameters).
+                 */
+                Log.warn("Cannot set the value of the parameter {0}, the parameter hasn't been matched from the " +
+                        "provided input \"\"", contextParameter.getName());
+                continue;
             }
+            ContextParameterValue contextParameterValue = createContextParameterValue(contextParameter,
+                    matchedValue);
+            recognizedIntent.getValues().add(contextParameterValue);
         }
-    }
-
-    /**
-     * Creates and sets the {@link ContextInstance}s corresponding to empty {@link Context}s from the provided {@code
-     * intentDefinition}.
-     *
-     * @param intentDefinition the {@link IntentDefinition} containing the {@link Context} definitions
-     * @param recognizedIntent the {@link RecognizedIntent} to set the {@link ContextInstance}s of
-     * @throws NullPointerException if the provided {@code intentDefinition} or {@code recognizedIntent} is {@code null}
-     */
-    private void setEmptyContexts(@NonNull IntentDefinition intentDefinition,
-                                  @NonNull RecognizedIntent recognizedIntent) {
-        intentDefinition.getOutContexts().stream()
-                .filter(context -> context.getParameters().isEmpty())
-                .forEach(context -> getOrCreateContextInstance(recognizedIntent, context));
     }
 
     /**
@@ -571,26 +545,5 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
         contextParameterValue.setContextParameter(contextParameter);
         contextParameterValue.setValue(value);
         return contextParameterValue;
-    }
-
-    /**
-     * Retrieves or creates the {@link ContextInstance} associated to the provided {@code context} in the given
-     * {@code recognizedIntent}.
-     *
-     * @param recognizedIntent the {@link RecognizedIntent} to retrieve the {@link ContextInstance} from
-     * @param context          the {@link Context} to retrieve an instance of
-     * @return the {@link ContextInstance}
-     * @throws NullPointerException if the provided {@code recognizedIntent} or {@code context} is {@code null}
-     */
-    private ContextInstance getOrCreateContextInstance(@NonNull RecognizedIntent recognizedIntent,
-                                                       @NonNull Context context) {
-        ContextInstance contextInstance = recognizedIntent.getOutContextInstance(context.getName());
-        if (isNull(contextInstance)) {
-            contextInstance = IntentFactory.eINSTANCE.createContextInstance();
-            recognizedIntent.getOutContextInstances().add(contextInstance);
-            contextInstance.setDefinition(context);
-            contextInstance.setLifespanCount(context.getLifeSpan());
-        }
-        return contextInstance;
     }
 }

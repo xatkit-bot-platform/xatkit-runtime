@@ -3,7 +3,8 @@ package com.xatkit;
 import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.action.RuntimeAction;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.StateContext;
 import org.junit.After;
 import org.junit.Before;
 
@@ -14,7 +15,7 @@ import static org.mockito.Mockito.mock;
  * A generic test case that defines utility methods to test {@link RuntimeAction} subclasses.
  * <p>
  * Test cases targeting {@link RuntimeAction}s can extend this class to reuse the initialized {@link RuntimePlatform}
- * , an empty {@link XatkitSession}, as well as a mocked {@link XatkitBot} instance. This class takes care of the
+ * , an empty {@link StateContext}, as well as a mocked {@link XatkitBot} instance. This class takes care of the
  * life-cycle of the initialized {@link RuntimePlatform} and {@link XatkitBot}.
  *
  * @param <A> the {@link RuntimeAction} {@link Class} under test
@@ -38,20 +39,25 @@ public abstract class AbstractActionTest<A extends RuntimeAction<P>, P extends R
     protected XatkitBot mockedXatkitBot;
 
     /**
-     * An empty {@link XatkitSession} that can be used to create instances of the action under test.
+     * An empty {@link StateContext} that can be used to create instances of the action under test.
      * <p>
-     * This session is reset before each test.
+     * This context is reset before each test.
      */
-    protected XatkitSession session;
+    protected StateContext context;
 
     /**
-     * Initializes the {@link RuntimePlatform} and the empty {@link XatkitSession}.
+     * Initializes the {@link RuntimePlatform} and the empty {@link StateContext}.
      */
     @Before
     public void setUp() {
         mockedXatkitBot = mock(XatkitBot.class);
         platform = getPlatform();
-        session = new XatkitSession("session");
+        context = ExecutionFactory.eINSTANCE.createStateContext();
+        /*
+         * This context was previously a XatkitSession instance. We keep the previous name in case some test cases
+         * rely on it.
+         */
+        context.setContextId("session");
     }
 
     /**

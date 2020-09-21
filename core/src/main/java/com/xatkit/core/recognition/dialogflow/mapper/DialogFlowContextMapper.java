@@ -2,24 +2,24 @@ package com.xatkit.core.recognition.dialogflow.mapper;
 
 import com.google.cloud.dialogflow.v2.Context;
 import com.google.cloud.dialogflow.v2.ContextName;
-import com.google.cloud.dialogflow.v2.DetectIntentRequest;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
-import com.xatkit.core.recognition.dialogflow.DialogFlowSession;
+import com.xatkit.core.recognition.dialogflow.DialogFlowStateContext;
+import com.xatkit.execution.State;
+import com.xatkit.intent.IntentDefinition;
 import lombok.NonNull;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Maps {@link DialogFlowSession} instances to DialogFlow {@link Context}s.
+ * Maps {@link DialogFlowStateContext} instances to DialogFlow {@link Context}s.
  * <p>
  * This mapper is used to create an {@link Iterable} of {@link Context}s representing a snapshot of a given
- * {@link DialogFlowSession}, that can be used to deploy contexts on DialogFlow, or ensure the contexts are correctly
+ * {@link DialogFlowStateContext}, that can be used to deploy contexts on DialogFlow, or ensure the contexts are correctly
  * set before detecting an intent.
  */
 public class DialogFlowContextMapper {
@@ -42,40 +42,15 @@ public class DialogFlowContextMapper {
         this.configuration = configuration;
     }
 
-    /**
-     * Maps the provided {@link DialogFlowSession} to an {@link Iterable} of DialogFlow {@link Context}s.
-     * <p>
-     * The returned {@link Iterable} is a mirror of the runtime {@code session} that can be deployed on DialogFlow.
-     * It is typically used to make sure contexts are correctly set when calling
-     * {@link com.google.cloud.dialogflow.v2.SessionsClient#detectIntent(DetectIntentRequest)}.
-     * <p>
-     * <b>Note</b>: this method does not call the DialogFlow API to deploy the created {@link Context}s.
-     *
-     * @param session the {@link DialogFlowSession} to map
-     * @return the created {@link Iterable} of {@link Context}
-     * @throws NullPointerException if the provided {@code session} is {@code null}
-     */
-    public Iterable<Context> mapDialogFlowSession(@NonNull DialogFlowSession session) {
+    // TODO documentation
+    public @NonNull Iterable<Context> createOutContextsForState(@NonNull DialogFlowStateContext context) {
         List<Context> result = new ArrayList<>();
-        session.getRuntimeContexts().getContextMap().entrySet().stream().forEach(contextEntry ->
-        {
-            String contextName = contextEntry.getKey();
-            int contextLifespanCount = session.getRuntimeContexts().getContextLifespanCount
-                    (contextName);
-            Context.Builder builder =
-                    Context.newBuilder().setName(ContextName.of(this.configuration.getProjectId(),
-                            session.getSessionName().getSession(), contextName).toString());
-            Map<String, Object> contextVariables = contextEntry.getValue();
-            Map<String, Value> dialogFlowContextVariables = new HashMap<>();
-            contextVariables.entrySet().stream().forEach(contextVariableEntry -> {
-                Value value = buildValue(contextVariableEntry.getValue());
-                dialogFlowContextVariables.put(contextVariableEntry.getKey(), value);
-            });
-            /*
-             * Need to put the lifespanCount otherwise the context is ignored.
-             */
-            builder.setParameters(Struct.newBuilder().putAllFields(dialogFlowContextVariables))
-                    .setLifespanCount(contextLifespanCount);
+        State state = context.getState();
+        Iterable<IntentDefinition> accessedIntents = state.getAllAccessedIntents();
+        accessedIntents.forEach(intent -> {
+            // TODO check the lifespan count, should it be 2 or 1?
+            Context.Builder builder = Context.newBuilder().setName(ContextName.of(this.configuration.getProjectId(),
+                    context.getSessionName().getSession(), "Enable" + intent.getName()).toString()).setLifespanCount(2);
             result.add(builder.build());
         });
         return result;

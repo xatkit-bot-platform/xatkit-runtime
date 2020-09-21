@@ -1,7 +1,8 @@
 package com.xatkit.core;
 
 import com.xatkit.AbstractXatkitTest;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.StateContext;
 import com.xatkit.test.bot.TestBot;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.After;
@@ -50,7 +51,9 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     @Test(expected = NullPointerException.class)
     public void handleEventNullEvent() {
         executionService = getValidExecutionService();
-        executionService.handleEventInstance(null, new XatkitSession("sessionID"));
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("contextID");
+        executionService.handleEventInstance(null, context);
     }
 
     @Test(expected = NullPointerException.class)
@@ -62,16 +65,17 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     @Test
     public void handleEventNavigableEvent() throws InterruptedException {
         executionService = getValidExecutionService();
-        XatkitSession session = new XatkitSession("sessionID");
-        executionService.initContext(session);
-        executionService.handleEventInstance(testBot.getNavigableIntent(), session);
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("contextId");
+        executionService.initContext(context);
+        executionService.handleEventInstance(testBot.getNavigableIntent(), context);
         /*
          * Sleep because actions are computed asynchronously
          */
         Thread.sleep(1000);
         assertThat(testBot.isGreetingsStateBodyExecuted()).isTrue();
         /*
-         * The session check transition hasn't been navigated.
+         * The context check transition hasn't been navigated.
          */
         assertThat(testBot.isDefaultFallbackExecuted()).isFalse();
     }
@@ -79,20 +83,21 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     @Test
     public void handleEventNotNavigableEvent() throws InterruptedException {
         executionService = getValidExecutionService();
-        XatkitSession session = new XatkitSession("sessionID");
-        executionService.initContext(session);
-        executionService.handleEventInstance(testBot.getNotNavigableIntent(), session);
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("contextId");
+        executionService.initContext(context);
+        executionService.handleEventInstance(testBot.getNotNavigableIntent(), context);
         Thread.sleep(1000);
         assertThat(testBot.isGreetingsStateBodyExecuted()).isFalse();
         assertThat(testBot.isDefaultFallbackExecuted()).isTrue();
         /*
-         * The session check transition hasn't been navigated.
+         * The context check transition hasn't been navigated.
          */
         assertThat(testBot.isSessionCheckedBodyExecuted()).isFalse();
         /*
          * We stay in Init if the event does not trigger a transition.
          */
-        assertThat(session.getState().getName()).isEqualTo("Init");
+        assertThat(context.getState().getName()).isEqualTo("Init");
     }
 
     /*
@@ -104,18 +109,19 @@ public class ExecutionServiceTest extends AbstractXatkitTest {
     @Test
     public void handleEventToContextCheckingState() throws InterruptedException {
         executionService = getValidExecutionService();
-        XatkitSession session =  new XatkitSession("sessionId");
-        session.getSession().put("key", "value");
-        executionService.initContext(session);
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("contextId");
+        context.getSession().put("key", "value");
+        executionService.initContext(context);
         Thread.sleep(1000);
         /*
-         * The session checked state has been visited.
+         * The context checked state has been visited.
          */
         assertThat(testBot.isSessionCheckedBodyExecuted()).isTrue();
         /*
          * And the auto transition to Init too.
          */
-        assertThat(session.getState().getName()).isEqualTo("Init");
+        assertThat(context.getState().getName()).isEqualTo("Init");
     }
 
     private ExecutionService getValidExecutionService() {

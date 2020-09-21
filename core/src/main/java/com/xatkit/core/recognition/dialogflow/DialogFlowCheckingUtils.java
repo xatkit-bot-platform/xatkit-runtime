@@ -1,7 +1,6 @@
 package com.xatkit.core.recognition.dialogflow;
 
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
-import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.EventDefinition;
@@ -25,25 +24,23 @@ public class DialogFlowCheckingUtils {
     }
 
     /**
-     * Checks the out {@link Context}s of the provided {@code intentDefinition}.
+     * Checks the parameters of the provided {@code intentDefinition}.
      * <p>
-     * This method searches for consistency issues in the provided {@code intentDefinition} out contexts, e.g. text
+     * This method searches for consistency issues in the provided {@code intentDefinition} parameters, e.g. text
      * fragment in {@link ContextParameter}s that does not correspond to their corresponding entity value, or text
      * fragments that are not contained in the intentDefinition training sentences.
      * <p>
      * Non-critical errors are logged as warning. Critical errors (i.e. errors that will generate a non-working bot)
      * throw an exception.
      *
-     * @param intentDefinition the {@link IntentDefinition} to check the out {@link Context} of
+     * @param intentDefinition the {@link IntentDefinition} to check the parameters of
      * @throws IntentRecognitionProviderException if there is no training sentence containing a provided {@code
      *                                            intentDefinition}'s parameter fragment
      */
-    public static void checkOutContexts(IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
-        for (Context outContext : intentDefinition.getOutContexts()) {
-            for (ContextParameter contextParameter : outContext.getParameters()) {
-                checkContextParameterFragmentIsValidMappingEntityValue(contextParameter);
-                checkContextParameterFragmentIsInTrainingSentence(contextParameter);
-            }
+    public static void checkParameters(IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
+        for (ContextParameter contextParameter : intentDefinition.getParameters()) {
+            checkContextParameterFragmentIsValidMappingEntityValue(contextParameter);
+            checkContextParameterFragmentIsInTrainingSentence(contextParameter);
         }
     }
 
@@ -60,8 +57,7 @@ public class DialogFlowCheckingUtils {
     private static void checkContextParameterFragmentIsValidMappingEntityValue(ContextParameter parameter) {
         String textFragment = parameter.getTextFragment();
         EntityDefinition referredEntity = parameter.getEntity().getReferredEntity();
-        Context context = (Context) parameter.eContainer();
-        EventDefinition eventDefinition = (EventDefinition) context.eContainer();
+        EventDefinition eventDefinition = (EventDefinition) parameter.eContainer();
         if (referredEntity instanceof MappingEntityDefinition) {
             MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) referredEntity;
             List<String> mappingValues = mappingEntityDefinition.getEntryValues();
@@ -84,13 +80,12 @@ public class DialogFlowCheckingUtils {
      *
      * @param parameter the {@link ContextParameter} to check
      * @throws IntentRecognitionProviderException if there is no training sentence containing the provided {@code
-     *                                            paramter}'s fragment
+     *                                            parameter}'s fragment
      */
     private static void checkContextParameterFragmentIsInTrainingSentence(ContextParameter parameter) throws IntentRecognitionProviderException {
         String textFragment = parameter.getTextFragment();
-        Context context = (Context) parameter.eContainer();
-        if (context.eContainer() instanceof IntentDefinition) {
-            IntentDefinition intentDefinition = (IntentDefinition) context.eContainer();
+        if (parameter.eContainer() instanceof IntentDefinition) {
+            IntentDefinition intentDefinition = (IntentDefinition) parameter.eContainer();
             Optional<String> fragmentTrainingSentence = intentDefinition.getTrainingSentences().stream().filter
                     (trainingSentence -> trainingSentence.contains(textFragment)).findAny();
             if (!fragmentTrainingSentence.isPresent()) {

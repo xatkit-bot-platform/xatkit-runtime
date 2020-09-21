@@ -1,6 +1,5 @@
 package com.xatkit.core.recognition.processor;
 
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
 import edu.stanford.nlp.ling.CoreAnnotations;
@@ -31,7 +30,7 @@ public class IsEnglishYesNoQuestionPostProcessor extends StanfordNLPPostProcesso
     /**
      * The context parameter key used to store whether the user input is a yes/no question.
      */
-    protected final static String IS_YES_NO_PARAMETER_KEY = "isYesNo";
+    protected final static String IS_YES_NO_PARAMETER_KEY = NLP_CONTEXT_KEY + ".isYesNo";
 
     /**
      * The default value of the {@link #IS_YES_NO_PARAMETER_KEY} parameter.
@@ -67,13 +66,8 @@ public class IsEnglishYesNoQuestionPostProcessor extends StanfordNLPPostProcesso
      */
     @Override
     public RecognizedIntent process(RecognizedIntent recognizedIntent, StateContext context) {
-        /*
-         * TODO this should be handled properly
-         */
-        XatkitSession xatkitSession = (XatkitSession) context;
-        xatkitSession.getRuntimeContexts().setContextValue(NLP_CONTEXT_KEY, 1, IS_YES_NO_PARAMETER_KEY,
-                DEFAULT_IS_YES_NO_VALUE);
-        Annotation annotation = getAnnotation(recognizedIntent.getMatchedInput(), xatkitSession);
+        recognizedIntent.getNlpData().put(IS_YES_NO_PARAMETER_KEY, DEFAULT_IS_YES_NO_VALUE);
+        Annotation annotation = getAnnotation(recognizedIntent.getMatchedInput(), context);
         List<CoreMap> sentenceAnnotations = annotation.get(CoreAnnotations.SentencesAnnotation.class);
         /*
          * We want to know if the latest sentence is a yes/no question, previous sentences do not matter in this
@@ -87,7 +81,7 @@ public class IsEnglishYesNoQuestionPostProcessor extends StanfordNLPPostProcesso
                 treeConstituents.stream().filter(c -> nonNull(c.label()) && c.label().toString().equals("SQ")).collect(Collectors.toList());
         for (Constituent sqConstituent : sqConstituents) {
             if (sqConstituent.start() == 0) {
-                xatkitSession.getRuntimeContexts().setContextValue(NLP_CONTEXT_KEY, 1, IS_YES_NO_PARAMETER_KEY, true);
+                recognizedIntent.getNlpData().put(IS_YES_NO_PARAMETER_KEY, true);
             }
         }
         return recognizedIntent;

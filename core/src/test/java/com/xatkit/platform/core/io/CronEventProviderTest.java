@@ -4,7 +4,7 @@ import com.xatkit.AbstractEventProviderTest;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.ExecutionService;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.platform.core.CorePlatform;
 import com.xatkit.platform.core.CoreUtils;
@@ -146,7 +146,7 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
     private void assertThatXatkitBotContainsCronTicks(int cronTickCount) {
         ArgumentCaptor<EventInstance> captor = ArgumentCaptor.forClass(EventInstance.class);
         verify(mockedExecutionService, times(cronTickCount)).handleEventInstance(captor.capture(),
-                any(XatkitSession.class));
+                any(StateContext.class));
         assertThat(captor.getAllValues()).allMatch(e -> e.getDefinition().getName().equals("CronTick"));
     }
 }

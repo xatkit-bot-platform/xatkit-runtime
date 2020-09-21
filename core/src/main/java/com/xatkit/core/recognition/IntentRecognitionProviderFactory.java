@@ -2,12 +2,11 @@ package com.xatkit.core.recognition;
 
 import com.xatkit.core.XatkitBot;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
+import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.Loader;
@@ -23,8 +22,7 @@ import java.util.stream.Collectors;
  * <p>
  * This factory inspects the provided {@code configuration} and finds the concrete {@link IntentRecognitionProvider}
  * to construct. If the provided {@code configuration} does not define any {@link IntentRecognitionProvider}, a
- * {@link RegExIntentRecognitionProvider} is returned, providing minimal support to
- * {@link XatkitSession} management.
+ * {@link RegExIntentRecognitionProvider} is returned, providing minimal NLP support.
  * <p>
  * <b>Note:</b> {@link RegExIntentRecognitionProvider} does not handle {@link IntentDefinition} and
  * {@link RecognizedIntent} computation. If the bot application requires such features a valid
@@ -39,8 +37,7 @@ public class IntentRecognitionProviderFactory {
      * Returns the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}.
      * <p>
      * If the provided {@code configuration} does not define any {@link AbstractIntentRecognitionProvider}, a
-     * {@link RegExIntentRecognitionProvider} is returned, providing minimal support to {@link XatkitSession}
-     * management.
+     * {@link RegExIntentRecognitionProvider} is returned, providing minimal NLP support.
      * <p>
      * The created {@link AbstractIntentRecognitionProvider} embeds a {@link RecognitionMonitor} that logs monitoring
      * information regarding the intent recognition. The {@link RecognitionMonitor} can be disabled by setting the
@@ -54,10 +51,10 @@ public class IntentRecognitionProviderFactory {
      * {@link IntentRecognitionProviderFactoryConfiguration#RECOGNITION_POSTPROCESSORS_KEY}, respectively, and are
      * specified as comma-separated list of processor's names.
      *
-     * @param xatkitBot        the {@link XatkitBot} instance to build the
-     * {@link AbstractIntentRecognitionProvider} from
+     * @param xatkitBot         the {@link XatkitBot} instance to build the
+     *                          {@link AbstractIntentRecognitionProvider} from
      * @param baseConfiguration the {@link Configuration} used to define the
-     * {@link AbstractIntentRecognitionProvider} to build
+     *                          {@link AbstractIntentRecognitionProvider} to build
      * @return the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}
      * @throws XatkitException      if an error occurred when loading the pre/post processors.
      * @throws NullPointerException if the provided {@code xatkitBot} is {@code null}
@@ -80,7 +77,8 @@ public class IntentRecognitionProviderFactory {
             /*
              * The provided configuration contains DialogFlow-related information.
              */
-            provider = new DialogFlowIntentRecognitionProvider(xatkitBot.getEventDefinitionRegistry(), baseConfiguration,
+            provider = new DialogFlowIntentRecognitionProvider(xatkitBot.getEventDefinitionRegistry(),
+                    baseConfiguration,
                     recognitionMonitor);
         } else {
             /*
@@ -111,7 +109,7 @@ public class IntentRecognitionProviderFactory {
     /**
      * Retrieves and creates the {@link RecognitionMonitor} from the provided {@link Configuration}.
      *
-     * @param xatkitBot    the {@link XatkitBot} used to initialize the {@link RecognitionMonitor}
+     * @param xatkitBot     the {@link XatkitBot} used to initialize the {@link RecognitionMonitor}
      * @param configuration the {@link Configuration} used to initialize the {@link RecognitionMonitor}
      * @return the created {@link RecognitionMonitor}, or {@code null} intent recognition monitoring is disabled in
      * the provided {@link Configuration}

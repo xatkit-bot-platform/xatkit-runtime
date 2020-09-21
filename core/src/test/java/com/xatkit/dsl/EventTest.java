@@ -1,6 +1,5 @@
 package com.xatkit.dsl;
 
-import com.xatkit.intent.Context;
 import com.xatkit.intent.EventDefinition;
 import lombok.val;
 import org.junit.Test;
@@ -15,7 +14,7 @@ public class EventTest {
         val event = event("Event");
         EventDefinition base = event.getEventDefinition();
         assertThat(base.getName()).isEqualTo("Event");
-        assertThat(base.getOutContexts()).isEmpty();
+        assertThat(base.getParameters()).isEmpty();
     }
 
     @Test
@@ -28,13 +27,10 @@ public class EventTest {
 
         EventDefinition base = event.getEventDefinition();
         assertThat(base.getName()).isEqualTo("Event");
-        assertThat(base.getOutContexts()).hasSize(1);
-        Context context = base.getOutContexts().get(0);
-        assertThat(context.getName()).isEqualTo("XATKITCONTEXT");
-        assertThat(context.getParameters()).hasSize(4);
-        assertThat(context.getParameters()).anyMatch(p -> p.getName().equals("p1"));
-        assertThat(context.getParameters()).anyMatch(p -> p.getName().equals("p2"));
-        assertThat(context.getParameters()).anyMatch(p -> p.getName().equals("p3"));
-        assertThat(context.getParameters()).anyMatch(p -> p.getName().equals("p4"));
+        assertThat(base.getParameters()).hasSize(4);
+        assertThat(base.getParameter("p1")).isNotNull();
+        assertThat(base.getParameter("p2")).isNotNull();
+        assertThat(base.getParameter("p3")).isNotNull();
+        assertThat(base.getParameter("p4")).isNotNull();
     }
 }

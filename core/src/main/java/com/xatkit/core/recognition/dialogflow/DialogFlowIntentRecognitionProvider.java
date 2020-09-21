@@ -25,7 +25,6 @@ import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowEntityMapper;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowEntityReferenceMapper;
 import com.xatkit.core.recognition.dialogflow.mapper.DialogFlowIntentMapper;
 import com.xatkit.core.recognition.dialogflow.mapper.RecognizedIntentMapper;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
@@ -123,7 +122,7 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
     private DialogFlowEntityMapper dialogFlowEntityMapper;
 
     /**
-     * The mapper creating DialogFlow {@link Context}s from {@link DialogFlowSession} instances.
+     * The mapper creating DialogFlow {@link Context}s from {@link DialogFlowStateContext} instances.
      */
     private DialogFlowContextMapper dialogFlowContextMapper;
 
@@ -541,19 +540,19 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
     /**
      * {@inheritDoc}
      * <p>
-     * The created session wraps the internal DialogFlow session that is used on the DialogFlow project to retrieve
+     * The created context wraps the internal DialogFlow context that is used on the DialogFlow project to retrieve
      * conversation parts from a given user.
      * <p>
-     * The returned {@link XatkitSession} is configured by the global {@link Configuration} provided in
+     * The returned {@link StateContext} is configured by the global {@link Configuration} provided in
      * {@link #DialogFlowIntentRecognitionProvider(EventDefinitionRegistry, Configuration, RecognitionMonitor)}.
      *
      * @throws NullPointerException if the provided {@code sessionId} is {@code null}
      */
     @Override
-    public XatkitSession createContext(@NonNull String sessionId) throws IntentRecognitionProviderException {
+    public StateContext createContext(@NonNull String sessionId) throws IntentRecognitionProviderException {
         checkNotShutdown();
         SessionName sessionName = SessionName.of(this.configuration.getProjectId(), sessionId);
-        return new DialogFlowSession(sessionName, this.configuration.getBaseConfiguration());
+        return new DialogFlowStateContext(sessionName, this.configuration.getBaseConfiguration());
     }
 
     /**
@@ -566,7 +565,7 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      * API, using the mapping defined in {@link RecognizedIntentMapper}.
      * <p>
      * If the {@link DialogFlowConfiguration#ENABLE_LOCAL_CONTEXT_MERGE_KEY} property is set to {@code true} this
-     * method will first merge the local {@link XatkitSession} in the remote DialogFlow one, in order to ensure that
+     * method will first merge the local context in the remote DialogFlow one, in order to ensure that
      * all the local contexts are propagated to the recognition engine.
      *
      * @throws NullPointerException     if the provided {@code input} or {@code context} is {@code null}
@@ -576,22 +575,21 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
     protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
-        checkArgument(context instanceof DialogFlowSession, "Cannot handle the message, expected context type to be " +
-                "%s, found %s", DialogFlowSession.class.getSimpleName(), context.getClass().getSimpleName());
-        DialogFlowSession dialogFlowSession = (DialogFlowSession) context;
+        checkArgument(context instanceof DialogFlowStateContext, "Cannot handle the message, expected context type to be " +
+                "%s, found %s", DialogFlowStateContext.class.getSimpleName(), context.getClass().getSimpleName());
+        DialogFlowStateContext dialogFlowStateContext = (DialogFlowStateContext) context;
 
         TextInput.Builder textInput =
                 TextInput.newBuilder().setText(input).setLanguageCode(this.configuration.getLanguageCode());
         QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
 
-        Iterable<Context> contexts =
-                dialogFlowContextMapper.mapDialogFlowSession(dialogFlowSession);
+        Iterable<Context> contexts = dialogFlowContextMapper.createOutContextsForState(dialogFlowStateContext);
 
         DetectIntentRequest request = DetectIntentRequest.newBuilder().setQueryInput(queryInput)
                 .setQueryParams(QueryParameters.newBuilder()
                         .addAllContexts(contexts)
                         .build())
-                .setSession(dialogFlowSession.getSessionName().toString())
+                .setSession(dialogFlowStateContext.getSessionName().toString())
                 .build();
 
         DetectIntentResponse response;

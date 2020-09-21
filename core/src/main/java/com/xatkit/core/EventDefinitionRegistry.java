@@ -1,6 +1,5 @@
 package com.xatkit.core;
 
-import com.xatkit.intent.Context;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
 import fr.inria.atlanmod.commons.log.Log;
@@ -12,13 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.nonNull;
-
 /**
  * A registry that stores {@link EventDefinition}s and provide utility methods to retrieve them.
  * <p>
- * This class provides methods to retrieve specific {@link EventDefinition}s, filter {@link IntentDefinition}s, and
- * retrieve an existing {@link Context} stored in a registered {@link EventDefinition}.
+ * This class provides methods to retrieve specific {@link EventDefinition}s, and filter {@link IntentDefinition}s.
  */
 public class EventDefinitionRegistry {
 
@@ -112,29 +108,6 @@ public class EventDefinitionRegistry {
         List<IntentDefinition> intentDefinitions = this.eventDefinitionMap.values().stream().filter(e -> e instanceof
                 IntentDefinition).map(i -> (IntentDefinition) i).collect(Collectors.toList());
         return Collections.unmodifiableCollection(intentDefinitions);
-    }
-
-    /**
-     * Retrieve the {@link Context} matching the provided {@code contextName} from the registered
-     * {@link EventDefinition}s.
-     * <p>
-     * This method performs a lookup on the registered {@link EventDefinition} and searches for an output
-     * {@link Context} matching the provided {@code contextName}. <b>Note that name comparison is not case
-     * sensitive.</b>
-     * <p>
-     * If there are multiple output {@link Context} that match the provided {@code contextName} the first one is
-     * returned.
-     * @param contextName the name of the output {@link Context} to retrieve
-     * @return the output {@link Context} matching the provided {@code contextName}
-     */
-    public Context getEventDefinitionOutContext(String contextName) {
-        for (EventDefinition eventDefinition : getAllEventDefinitions()) {
-            Context outContext = eventDefinition.getOutContext(contextName);
-            if (nonNull(outContext)) {
-                return outContext;
-            }
-        }
-        return null;
     }
 
     /**

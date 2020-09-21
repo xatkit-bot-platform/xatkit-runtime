@@ -6,7 +6,8 @@ import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.WebhookEventProvider;
-import com.xatkit.core.session.XatkitSession;
+import com.xatkit.execution.ExecutionFactory;
+import com.xatkit.execution.StateContext;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -356,19 +357,25 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test(expected = NullPointerException.class)
     public void createOrReplacePublicFileNullPath() {
         this.server = getValidXatkitServer();
-        this.server.createOrReplacePublicFile(new XatkitSession("test"), null, "A test file");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        this.server.createOrReplacePublicFile(context, null, "A test file");
     }
 
     @Test(expected = NullPointerException.class)
     public void createOrReplacePublicFileNullOrigin() {
         this.server = getValidXatkitServer();
-        this.server.createOrReplacePublicFile(new XatkitSession("test"), "test.txt", (File) null);
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        this.server.createOrReplacePublicFile(context, "test.txt", (File) null);
     }
 
     @Test
     public void createOrReplacePublicFileValidFile() throws IOException {
         this.server = getValidXatkitServer();
-        File file = this.server.createOrReplacePublicFile(new XatkitSession("test"), "test.txt", "A test file");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        File file = this.server.createOrReplacePublicFile(context, "test.txt", "A test file");
         assertThat(file).as("Not null file").isNotNull();
         assertThat(file).as("File exists").exists();
         String readContent = FileUtils.readFileToString(file);
@@ -378,7 +385,9 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void createOrReplacePublicFileHierarchy() throws IOException {
         this.server = getValidXatkitServer();
-        File file = this.server.createOrReplacePublicFile(new XatkitSession("test"), "/test2/test.txt", "A test file");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        File file = this.server.createOrReplacePublicFile(context, "/test2/test.txt", "A test file");
         assertThat(file).as("Not null file").isNotNull();
         assertThat(file).as("File exists").exists();
         String readContent = FileUtils.readFileToString(file);
@@ -388,9 +397,10 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void createOrReplacePublicFileReplaceExistingFile() throws IOException {
         this.server = getValidXatkitServer();
-        XatkitSession session = new XatkitSession("test");
-        File file = this.server.createOrReplacePublicFile(session, "test.txt", "A test file");
-        File file2 = this.server.createOrReplacePublicFile(session, "test.txt", "Another test file");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        File file = this.server.createOrReplacePublicFile(context, "test.txt", "A test file");
+        File file2 = this.server.createOrReplacePublicFile(context, "test.txt", "Another test file");
         assertThat(file2).as("File2 is not null").isNotNull();
         assertThat(file2).as("File2 exists").exists();
         String readContent = FileUtils.readFileToString(file2);
@@ -400,8 +410,9 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test(expected = XatkitException.class)
     public void createOrReplacePublicFileForbiddenPath() {
         this.server = getValidXatkitServer();
-        XatkitSession session = new XatkitSession("test");
-        File file = this.server.createOrReplacePublicFile(session, "../../test.txt", "A forbidden test file");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        File file = this.server.createOrReplacePublicFile(context, "../../test.txt", "A forbidden test file");
     }
 
     @Test(expected = NullPointerException.class)
@@ -413,7 +424,9 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test(expected = NullPointerException.class)
     public void getPublicFileNullFile() {
         this.server = getValidXatkitServer();
-        server.getPublicFile(new XatkitSession("test"), null);
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        server.getPublicFile(context, null);
     }
 
     @Test(expected = NullPointerException.class)
@@ -425,9 +438,10 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void getPublicFileValidFile() {
         this.server = getValidXatkitServer();
-        XatkitSession session = new XatkitSession("test");
-        server.createOrReplacePublicFile(session, "test.txt", "A test file");
-        File file = server.getPublicFile(session, "test.txt");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        server.createOrReplacePublicFile(context, "test.txt", "A test file");
+        File file = server.getPublicFile(context, "test.txt");
         assertThat(file).as("The file is not null").isNotNull();
         assertThat(file).as("The file exists").exists();
     }
@@ -435,9 +449,10 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void getPublicFileValidFileHierarchy() {
         this.server = getValidXatkitServer();
-        XatkitSession session = new XatkitSession("test");
-        server.createOrReplacePublicFile(session, "test2/test.txt", "A test file");
-        File file = server.getPublicFile(session, "test2/test.txt");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        server.createOrReplacePublicFile(context, "test2/test.txt", "A test file");
+        File file = server.getPublicFile(context, "test2/test.txt");
         assertThat(file).as("File is not null").isNotNull();
         assertThat(file).as("File exists").exists();
     }
@@ -455,9 +470,10 @@ public class XatkitServerTest extends AbstractXatkitTest {
         /*
          * Need to first create a dummy file, otherwise the path is not resolved at all.
          */
-        XatkitSession session = new XatkitSession("test");
-        server.createOrReplacePublicFile(session, "test.txt", "A test file");
-        File file = server.getPublicFile(session, "../../pom.xml");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        server.createOrReplacePublicFile(context, "test.txt", "A test file");
+        File file = server.getPublicFile(context, "../../pom.xml");
     }
 
     @Test(expected = NullPointerException.class)
@@ -469,8 +485,9 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void getPublicURLValidFile() {
         this.server = getValidXatkitServer();
-        XatkitSession session = new XatkitSession("test");
-        server.createOrReplacePublicFile(session, "test.txt", "A test file");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        server.createOrReplacePublicFile(context, "test.txt", "A test file");
         File file = server.getPublicFile("test/test.txt");
         String url = server.getPublicURL(file);
         assertThat(url).as("URL not null").isNotNull();
@@ -480,9 +497,10 @@ public class XatkitServerTest extends AbstractXatkitTest {
     @Test
     public void getPublicURLValidFileHierarchy() {
         this.server = getValidXatkitServer();
-        XatkitSession session = new XatkitSession("test");
-        server.createOrReplacePublicFile(session, "test2/test.txt", "A test file");
-        File file = server.getPublicFile(session, "test2/test.txt");
+        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
+        context.setContextId("test");
+        server.createOrReplacePublicFile(context, "test2/test.txt", "A test file");
+        File file = server.getPublicFile(context, "test2/test.txt");
         String url = server.getPublicURL(file);
         assertThat(url).as("URL is not null").isNotNull();
         assertThat(url).as("Valid URL").isEqualTo("http://localhost:1234/content/test/test2/test.txt");

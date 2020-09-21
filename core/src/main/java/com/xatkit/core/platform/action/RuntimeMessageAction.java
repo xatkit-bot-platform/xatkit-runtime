@@ -1,8 +1,6 @@
 package com.xatkit.core.platform.action;
 
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.session.RuntimeContexts;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import lombok.Getter;
 import lombok.NonNull;
@@ -37,8 +35,7 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * @throws NullPointerException     if the provided {@code platform}, {@code context}, or {@code
      * rawMessage} is {@code null}
      * @throws IllegalArgumentException if the provided {@code rawMessage} is {@code null} or empty
-     * @see XatkitSession
-     * @see RuntimeContexts
+     * @see StateContext
      */
     public RuntimeMessageAction(@NonNull T platform, @NonNull StateContext context, @NonNull String rawMessage) {
         super(platform, context);

@@ -3,7 +3,6 @@ package com.xatkit.core.recognition.dialogflow.mapper;
 import com.google.cloud.dialogflow.v2.Intent;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
-import com.xatkit.intent.Context;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.test.bot.IntentProviderTestBot;
@@ -92,11 +91,9 @@ public class DialogFlowIntentMapperTest {
     private void assertCorrectMappingForIntentDefinitionWithEntityReference(IntentDefinition intentDefinition,
                                                                             Intent dialogFlowIntent) {
         assertCorrectMappingForIntentDefinition(intentDefinition, dialogFlowIntent);
-        for (Context outContext : intentDefinition.getOutContexts()) {
-            assertThat(hasOutContext(dialogFlowIntent, outContext.getName())).isTrue();
-            for (ContextParameter parameter : outContext.getParameters()) {
-                assertIntentContainsParameter(dialogFlowIntent, parameter);
-            }
+        assertThat(hasOutContext(dialogFlowIntent, "Xatkit")).isTrue();
+        for (ContextParameter parameter : intentDefinition.getParameters()) {
+            assertIntentContainsParameter(dialogFlowIntent, parameter);
         }
     }
 

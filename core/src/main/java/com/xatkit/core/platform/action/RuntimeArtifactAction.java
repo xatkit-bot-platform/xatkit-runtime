@@ -4,8 +4,6 @@ import com.xatkit.core.ExecutionService;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.core.session.RuntimeContexts;
-import com.xatkit.core.session.XatkitSession;
 import com.xatkit.execution.StateContext;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -21,7 +19,6 @@ import static java.util.Objects.nonNull;
  *
  * @param <T> the concrete {@link RuntimePlatform} subclass type containing the action
  * @see RuntimePlatform
- * @see RuntimeContexts
  */
 public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends RuntimeAction<T> {
 
@@ -76,8 +73,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * @param platform the {@link RuntimePlatform} containing this action
      * @param context         the {@link StateContext} associated to this action
      * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
-     * @see XatkitSession
-     * @see RuntimeContexts
+     * @see StateContext
      */
     public RuntimeArtifactAction(@NonNull T platform, @NonNull StateContext context) {
         super(platform, context);
@@ -86,9 +82,9 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
     }
 
     /**
-     * Retrieve the {@link XatkitSession} associated to the client of the artifact and merges it with the current one.
+     * Retrieve the {@link StateContext} associated to the client of the artifact and merges it with the current one.
      * <p>
-     * This method relies on {@link #getClientStateContext()} to retrieve the {@link XatkitSession} associated to the
+     * This method relies on {@link #getClientStateContext()} to retrieve the {@link StateContext} associated to the
      * client of the artifact, and merges the current {@code session} with the client one if they are different.
      * This allows to pass client-independent context variables (e.g. from {@link RuntimeEventProvider}s)
      * to new client sessions.

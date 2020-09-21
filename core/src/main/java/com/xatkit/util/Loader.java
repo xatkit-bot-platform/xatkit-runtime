@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Provides a set of utility methods to dynamically load and construct classes.
@@ -302,7 +301,7 @@ public class Loader {
      * @return a {@link String} containing the formatted parameters
      */
     private static String printArray(Object[] array) {
-        List<String> toStringList = StreamSupport.stream(Arrays.asList(array).spliterator(), false).map(o ->
+        List<String> toStringList = Arrays.stream(array).map(o ->
         {
             if (o instanceof String) {
                 return "\"" + o.toString() + "\"";

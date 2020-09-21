@@ -3,7 +3,6 @@ package com.xatkit.core.recognition;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.execution.StateContext;
-import com.xatkit.intent.ContextInstance;
 import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
@@ -241,9 +240,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         context.setState(intentProviderTestBot.getModel().getInitState());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Hello Test", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance intentContext = recognizedIntent.getOutContextInstance("XATKITCONTEXT");
-        assertThat(intentContext).isNotNull();
-        assertThatContextContainsParameterWithValue(intentContext, "helloTo", "Test");
+        assertThatIntentContainsParameterWithValue(recognizedIntent, "helloTo", "Test");
     }
 
     @Test
@@ -259,9 +256,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Give me some information about " +
                 "Gwendal", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance intentContext = recognizedIntent.getOutContextInstance("XATKITCONTEXT");
-        assertThat(intentContext).isNotNull();
-        assertThatContextContainsParameterWithValue(intentContext, "name", "Gwendal");
+        assertThatIntentContainsParameterWithValue(recognizedIntent, "name", "Gwendal");
     }
 
     @Test
@@ -278,10 +273,8 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         context.setState(intentProviderTestBot.getModel().getInitState());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Does Jordi knows Barcelona?", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
-        ContextInstance intentContext = recognizedIntent.getOutContextInstance("XATKITCONTEXT");
-        assertThat(intentContext).isNotNull();
-        assertThatContextContainsParameterValue(intentContext, "founderCity");
-        Object parameterValue = intentContext.getValues().stream()
+        assertThatIntentContainsParameter(recognizedIntent, "founderCity");
+        Object parameterValue = recognizedIntent.getValues().stream()
                 .filter(p -> p.getContextParameter().getName().equals("founderCity"))
                 .map(ContextParameterValue::getValue).findAny().get();
         assertThat(parameterValue).isInstanceOf(Map.class);
@@ -305,17 +298,16 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         assertThat(recognizedIntent.getDefinition().getName()).isEqualTo(definitionName);
     }
 
-    protected void assertThatContextContainsParameterValue(ContextInstance contextInstance, String parameterName) {
-        assertThat(contextInstance.getValues()).isNotEmpty();
-        assertThat(contextInstance.getValues()).anyMatch(p -> p.getContextParameter().getName().equals(parameterName));
+    protected void assertThatIntentContainsParameter(RecognizedIntent intent, String parameterName) {
+        assertThat(intent.getValues()).anyMatch(v -> v.getContextParameter().getName().equals(parameterName));
     }
 
-    protected void assertThatContextContainsParameterWithValue(ContextInstance contextInstance, String parameterName,
-                                                               Object value) {
-        assertThatContextContainsParameterValue(contextInstance, parameterName);
+    protected void assertThatIntentContainsParameterWithValue(RecognizedIntent intent, String parameterName,
+                                                              Object value) {
+        assertThatIntentContainsParameter(intent, parameterName);
         /*
          * Separate the two checks to have a better log error.
          */
-        assertThat(contextInstance.getValues()).anyMatch(p -> p.getContextParameter().getName().equals(parameterName) && p.getValue().equals(value));
+        assertThat(intent.getValues()).anyMatch(v -> v.getContextParameter().getName().equals(parameterName) && v.getValue().equals(value));
     }
 }

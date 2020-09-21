@@ -84,21 +84,19 @@ public class RemoveEnglishStopWordsPostProcessor implements IntentPostProcessor 
      */
     @Override
     public RecognizedIntent process(RecognizedIntent recognizedIntent, StateContext context) {
-        recognizedIntent.getOutContextInstances().forEach(c -> {
-            c.getValues().forEach(v -> {
-                EntityDefinition referredEntity = v.getContextParameter().getEntity().getReferredEntity();
-                if (referredEntity instanceof BaseEntityDefinition) {
-                    BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) referredEntity;
-                    if (baseEntityDefinition.getEntityType().equals(EntityType.ANY)) {
-                        if(v.getValue() instanceof String) {
-                            String processedValue = removeStopWords((String) v.getValue());
-                            v.setValue(processedValue);
-                        } else {
-                            Log.error("Found {1} parameter value for an any entity", v.getClass().getSimpleName());
-                        }
+        recognizedIntent.getValues().forEach(v -> {
+            EntityDefinition referredEntity = v.getContextParameter().getEntity().getReferredEntity();
+            if (referredEntity instanceof BaseEntityDefinition) {
+                BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) referredEntity;
+                if (baseEntityDefinition.getEntityType().equals(EntityType.ANY)) {
+                    if(v.getValue() instanceof String) {
+                        String processedValue = removeStopWords((String) v.getValue());
+                        v.setValue(processedValue);
+                    } else {
+                        Log.error("Found {1} parameter value for an any entity", v.getClass().getSimpleName());
                     }
                 }
-            });
+            }
         });
         return recognizedIntent;
     }

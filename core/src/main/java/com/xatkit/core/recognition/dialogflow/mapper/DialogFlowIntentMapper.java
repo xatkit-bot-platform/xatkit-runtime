@@ -13,6 +13,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,7 +82,7 @@ public class DialogFlowIntentMapper {
         builder.addAllInputContextNames(inContextNames);
         List<Context> outContexts = createOutContexts(intentDefinition);
         builder.addAllOutputContexts(outContexts);
-        List<Intent.Parameter> parameters = createParameters(intentDefinition.getOutContexts());
+        List<Intent.Parameter> parameters = createParameters(intentDefinition);
         builder.addAllParameters(parameters);
         /*
          * We need to set an empty list for messages.
@@ -115,7 +116,7 @@ public class DialogFlowIntentMapper {
     private List<Intent.TrainingPhrase> createTrainingPhrases(@NonNull IntentDefinition intentDefinition) {
         List<Intent.TrainingPhrase> trainingPhrases = new ArrayList<>();
         for (String trainingSentence : intentDefinition.getTrainingSentences()) {
-            trainingPhrases.add(createTrainingPhrase(trainingSentence, intentDefinition.getOutContexts()));
+            trainingPhrases.add(createTrainingPhrase(trainingSentence, intentDefinition.getParameters()));
         }
         return trainingPhrases;
     }
@@ -131,8 +132,8 @@ public class DialogFlowIntentMapper {
      *
      * @param trainingSentence the {@link IntentDefinition}'s training sentence to create a
      *                         {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase} from
-     * @param outContexts      the {@link IntentDefinition}'s output {@link com.xatkit.intent.Context}s
-     *                         associated to the provided training sentence
+     * @param parameters       the {@link ContextParameter} containing the entities referenced in the {@code
+     * trainingSentence}
      * @return the created DialogFlow's {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase}
      * @throws NullPointerException if the provided {@code trainingSentence} or {@code outContexts} {@link List} is
      *                              {@code null}, or if one of the {@link ContextParameter}'s name from the provided
@@ -140,8 +141,8 @@ public class DialogFlowIntentMapper {
      * @see DialogFlowEntityReferenceMapper
      */
     private Intent.TrainingPhrase createTrainingPhrase(@NonNull String trainingSentence,
-                                                       @NonNull List<com.xatkit.intent.Context> outContexts) {
-        if (outContexts.isEmpty()) {
+                                                       @NonNull List<ContextParameter> parameters) {
+        if (parameters.isEmpty()) {
             return Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part.newBuilder().setText
                     (trainingSentence).build()).build();
         } else {
@@ -153,15 +154,12 @@ public class DialogFlowIntentMapper {
              * issue we can reshape this method to avoid this pre-processing phase.
              */
             String preparedTrainingSentence = trainingSentence;
-            for (com.xatkit.intent.Context context : outContexts) {
-                for (ContextParameter parameter : context.getParameters()) {
-                    if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
-                        preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(), "#"
-                                + parameter.getTextFragment() + "#");
-                    }
+            for (ContextParameter parameter : parameters) {
+                if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
+                    preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(), "#"
+                            + parameter.getTextFragment() + "#");
                 }
             }
-
             /*
              * Process the pre-processed String and bind its entities.
              */
@@ -171,22 +169,22 @@ public class DialogFlowIntentMapper {
                 String sentencePart = splitTrainingSentence[i];
                 Intent.TrainingPhrase.Part.Builder partBuilder = Intent.TrainingPhrase.Part.newBuilder().setText
                         (sentencePart);
-                for (com.xatkit.intent.Context context : outContexts) {
-                    for (ContextParameter parameter : context.getParameters()) {
-                        if (sentencePart.equals(parameter.getTextFragment())) {
-                            checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the " +
-                                            "parameter for the fragment \"%s\" does not define a name",
-                                    trainingSentence, parameter.getTextFragment());
-                            checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the " +
-                                            "parameter for the fragment \"%s\" does not define an entity",
-                                    trainingSentence, parameter.getTextFragment());
-                            String dialogFlowEntity =
-                                    dialogFlowEntityReferenceMapper.getMappingFor(parameter.getEntity()
-                                            .getReferredEntity());
-                            partBuilder.setEntityType(dialogFlowEntity).setAlias(parameter.getName());
-                        }
+//                for (com.xatkit.intent.Context context : outContexts) {
+                for (ContextParameter parameter : parameters) {
+                    if (sentencePart.equals(parameter.getTextFragment())) {
+                        checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the " +
+                                        "parameter for the fragment \"%s\" does not define a name",
+                                trainingSentence, parameter.getTextFragment());
+                        checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the " +
+                                        "parameter for the fragment \"%s\" does not define an entity",
+                                trainingSentence, parameter.getTextFragment());
+                        String dialogFlowEntity =
+                                dialogFlowEntityReferenceMapper.getMappingFor(parameter.getEntity()
+                                        .getReferredEntity());
+                        partBuilder.setEntityType(dialogFlowEntity).setAlias(parameter.getName());
                     }
                 }
+//                }
                 trainingPhraseBuilder.addParts(partBuilder.build());
             }
             return trainingPhraseBuilder.build();
@@ -216,81 +214,62 @@ public class DialogFlowIntentMapper {
 
     /**
      * Creates the DialogFlow output {@link Context}s from the provided {@code intentDefinition}.
-     * <p>
-     * This method iterates the provided {@code intentDefinition}'s out {@link com.xatkit.intent.Context}s, and
-     * maps them to their concrete DialogFlow implementations.
      *
      * @param intentDefinition the {@link IntentDefinition} to create the DialogFlow output {@link Context}s from
      * @return the created {@link List} of DialogFlow {@link Context}s
      * @throws NullPointerException               if the provided {@code intentDefinition} is {@code null}
      * @throws IntentRecognitionProviderException if there is no training sentence containing a provided {@code
      *                                            intentDefinition}'s parameter fragment
-     * @see IntentDefinition#getOutContexts()
      */
     private List<Context> createOutContexts(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
-        DialogFlowCheckingUtils.checkOutContexts(intentDefinition);
-        List<com.xatkit.intent.Context> intentDefinitionContexts = intentDefinition.getOutContexts();
-        List<Context> results = new ArrayList<>();
-        for (com.xatkit.intent.Context context : intentDefinitionContexts) {
-            /*
-             * Use a dummy session to create the context.
-             */
-            ContextName contextName = ContextName.of(this.configuration.getProjectId(),
-                    SessionName.of(this.configuration.getProjectId(), "setup").getSession(),
-                    context.getName());
-            Context dialogFlowContext = Context.newBuilder().setName(contextName.toString()).setLifespanCount(context
-                    .getLifeSpan()).build();
-            results.add(dialogFlowContext);
-        }
-        return results;
+        DialogFlowCheckingUtils.checkParameters(intentDefinition);
+        ContextName contextName = ContextName.of(this.configuration.getProjectId(),
+                SessionName.of(this.configuration.getProjectId(), "setup").getSession(), "Xatkit");
+        // TODO check if 2 is fine here
+        Context dialogFlowContext = Context.newBuilder().setName(contextName.toString()).setLifespanCount(2).build();
+        // TODO should we return a single context if it's always a singleton list?
+        return Collections.singletonList(dialogFlowContext);
     }
 
     /**
-     * Creates the DialogFlow context parameters from the provided Xatkit {@code contexts}.
-     * <p>
-     * This method iterates the provided {@link com.xatkit.intent.Context}s, and maps their contained
-     * {@link ContextParameter} to DialogFlow {@link Intent.Parameter}. The entities associated to the
-     * {@link ContextParameter} are mapped as references using the {@link DialogFlowEntityReferenceMapper}.
+     * Creates the DialogFlow context parameters from the provided Xatkit {@code intentDefinition}.
      * <p>
      * Note that this method does not check whether the referred entities are deployed in the DialogFlow agent.
      *
-     * @param contexts the {@link List} of Xatkit {@link com.xatkit.intent.Context}s to create the parameters
-     *                 from
+     * @param intentDefinition the {@link IntentDefinition} to create the parameters from
      * @return the {@link List} of DialogFlow context parameters
      * @throws NullPointerException if the provided {@code contexts} {@link List} is {@code null}, or if one of the
      *                              provided {@link ContextParameter}'s name is {@code null}
      */
-    private List<Intent.Parameter> createParameters(@NonNull List<com.xatkit.intent.Context> contexts) {
+    private List<Intent.Parameter> createParameters(@NonNull IntentDefinition intentDefinition) {
         List<Intent.Parameter> results = new ArrayList<>();
-        for (com.xatkit.intent.Context context : contexts) {
-            for (ContextParameter contextParameter : context.getParameters()) {
-                checkNotNull(contextParameter.getName(), "Cannot create the %s from the provided %s %s, the" +
-                        " name %s is invalid", Intent.Parameter.class.getSimpleName(), ContextParameter.class
-                        .getSimpleName(), contextParameter, contextParameter.getName());
-                String dialogFlowEntity =
-                        dialogFlowEntityReferenceMapper.getMappingFor(contextParameter.getEntity().getReferredEntity());
+        for (ContextParameter contextParameter : intentDefinition.getParameters()) {
+            checkNotNull(contextParameter.getName(), "Cannot create the %s from the provided %s %s, the" +
+                    " name %s is invalid", Intent.Parameter.class.getSimpleName(), ContextParameter.class
+                    .getSimpleName(), contextParameter, contextParameter.getName());
+            String dialogFlowEntity =
+                    dialogFlowEntityReferenceMapper.getMappingFor(contextParameter.getEntity().getReferredEntity());
+            /*
+             * DialogFlow parameters are prefixed with a '$'.
+             */
+            Intent.Parameter parameter = Intent.Parameter.newBuilder().setDisplayName(contextParameter.getName())
+                    .setEntityTypeDisplayName(dialogFlowEntity).setValue("$" + contextParameter.getName()).build();
+            Optional<Intent.Parameter> parameterAlreadyRegistered =
+                    results.stream().filter(r -> r.getDisplayName().equals(parameter.getDisplayName())).findAny();
+            if (parameterAlreadyRegistered.isPresent()) {
                 /*
-                 * DialogFlow parameters are prefixed with a '$'.
+                 * Don't register the parameter if it has been added to the list, this means that we have a
+                 * parameter initialized with different fragments, and this is already handled when constructing
+                 * the training sentence.
+                 * If the parameter is added the agent seems to work fine, but there is an error message
+                 * "Parameter name must be unique within the action" in the corresponding intent page.
                  */
-                Intent.Parameter parameter = Intent.Parameter.newBuilder().setDisplayName(contextParameter.getName())
-                        .setEntityTypeDisplayName(dialogFlowEntity).setValue("$" + contextParameter
-                                .getName()).build();
-                Optional<Intent.Parameter> parameterAlreadyRegistered =
-                        results.stream().filter(r -> r.getDisplayName().equals(parameter.getDisplayName())).findAny();
-                if (parameterAlreadyRegistered.isPresent()) {
-                    /*
-                     * Don't register the parameter if it has been added to the list, this means that we have a
-                     * parameter initialized with different fragments, and this is already handled when constructing
-                     * the training sentence.
-                     * If the parameter is added the agent seems to work fine, but there is an error message
-                     * "Parameter name must be unique within the action" in the corresponding intent page.
-                     */
-                    Log.warn("Parameter {0} is defined multiple times", parameter.getDisplayName());
-                } else {
-                    results.add(parameter);
-                }
+                Log.warn("Parameter {0} is defined multiple times", parameter.getDisplayName());
+            } else {
+                results.add(parameter);
             }
         }
+//        }
         return results;
     }
 }
