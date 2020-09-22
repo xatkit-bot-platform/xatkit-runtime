@@ -65,14 +65,6 @@ import static java.util.Objects.nonNull;
 public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
 
     /**
-     * The delimiter used to separate context and parameter names in RegExp group names.
-     * <p>
-     * RegExp group names only accept A-z and 0-9 characters as identifiers (see https://docs.oracle
-     * .com/javase/7/docs/api/java/util/regex/Pattern.html#groupname) for more information.
-     */
-    private static String REGEXP_GROUP_NAME_DELIMITER = "0000";
-
-    /**
      * The {@link Pattern} matching all the reserved RegExp characters.
      * <p>
      * This {@link Pattern} is used to escape the RegExp characters that are contained in the training sentences and
@@ -80,7 +72,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      *
      * @see #escapeRegExpReservedCharacters(String)
      */
-    private static Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
+    private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
 
     /**
      * The application's {@link Configuration}.
