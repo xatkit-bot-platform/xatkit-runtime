@@ -4,12 +4,15 @@ import com.xatkit.core.XatkitBot;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
 import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
+import com.xatkit.core.recognition.nlpjs.NlpjsConfiguration;
+import com.xatkit.core.recognition.nlpjs.NlpjsIntentRecognitionProvider;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.Loader;
+import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
@@ -32,6 +35,22 @@ import java.util.stream.Collectors;
  * @see RegExIntentRecognitionProvider
  */
 public class IntentRecognitionProviderFactory {
+
+    /**
+     * The database model that will be used for this instance of Xatkit.
+     * <p>
+     * This property is optional, and it's default value is set to "MAPDB" if not specified
+     */
+    public static final String DATABASE_MODEL_KEY = "xatkit.database.model";
+
+    /**
+     * The default value for xatkit.database.model in case it's not specified in the properties file.
+     */
+    public static final String DATABASE_MODEL_MAPDB = "mapdb";
+
+    public static final String DATABASE_MODEL_INFLUXDB = "influxdb";
+
+    public static final String DEFAULT_DATABASE_MODEL = DATABASE_MODEL_MAPDB;
 
     /**
      * Returns the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}.
@@ -80,6 +99,12 @@ public class IntentRecognitionProviderFactory {
             provider = new DialogFlowIntentRecognitionProvider(xatkitBot.getEventDefinitionRegistry(),
                     baseConfiguration,
                     recognitionMonitor);
+        } else if (baseConfiguration.containsKey(NlpjsConfiguration.AGENT_ID_KEY)) {
+            /*
+             * The provided configuration contains NLP.js-related information.
+             */
+            provider = new NlpjsIntentRecognitionProvider(xatkitBot.getEventDefinitionRegistry(), baseConfiguration,
+                    recognitionMonitor);
         } else {
             /*
              * The provided configuration does not contain any IntentRecognitionProvider information, returning a
@@ -123,7 +148,13 @@ public class IntentRecognitionProviderFactory {
          */
         RecognitionMonitor monitor = null;
         if (configuration.isEnableRecognitionAnalytics()) {
-            monitor = new RecognitionMonitor(xatkitBot.getXatkitServer(), configuration.getBaseConfiguration());
+            if(configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY, DEFAULT_DATABASE_MODEL).toLowerCase().equals(DATABASE_MODEL_INFLUXDB)){
+                Log.info("Using InfluxDB to store monitoring data");
+                monitor = new RecognitionMonitorInflux(xatkitBot.getXatkitServer(), configuration.getBaseConfiguration());
+            } else {
+                Log.info("Using MapDB to store monitoring data");
+                monitor = new RecognitionMonitorMapDB(xatkitBot.getXatkitServer(), configuration.getBaseConfiguration());
+            } 
         }
         return monitor;
     }
