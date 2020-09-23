@@ -9,9 +9,9 @@ cache:
 before_install:
 - bash .util/build_xatkit.sh
 - openssl aes-256-cbc -K $encrypted_8e77b177e614_key -iv $encrypted_8e77b177e614_iv
-  -in core/src/test/resources/xatkit-secrets.tar.enc -out core/src/test/resources/xatkit-secrets.tar
+  -in src/test/resources/xatkit-secrets.tar.enc -out src/test/resources/xatkit-secrets.tar
   -d
-- tar xvf core/src/test/resources/xatkit-secrets.tar -C core/src/test/resources
+- tar xvf src/test/resources/xatkit-secrets.tar -C src/test/resources
 script:
 - mvn -B jacoco:prepare-agent test jacoco:report jacoco:report-aggregate
 after_success:
