@@ -48,8 +48,8 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends 
      */
     @Override
     public void start(@NonNull Configuration configuration) {
-        super.start(configuration);
         this.restHandler = createRestHandler();
+        super.start(configuration);
     }
 
     /**
