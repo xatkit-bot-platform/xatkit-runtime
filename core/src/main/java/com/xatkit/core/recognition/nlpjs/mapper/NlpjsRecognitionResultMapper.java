@@ -7,7 +7,6 @@ import com.xatkit.core.recognition.nlpjs.NlpjsHelper;
 import com.xatkit.core.recognition.nlpjs.model.Classification;
 import com.xatkit.core.recognition.nlpjs.model.ExtractedEntity;
 import com.xatkit.core.recognition.nlpjs.model.RecognitionResult;
-import com.xatkit.core.recognition.nlpjs.model.Resolution;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.IntentDefinition;
@@ -20,6 +19,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.xatkit.core.recognition.IntentRecognitionProvider.DEFAULT_FALLBACK_INTENT;
 import static java.util.Objects.isNull;
@@ -43,6 +43,7 @@ public class NlpjsRecognitionResultMapper {
 
     public List<RecognizedIntent> mapRecognitionResult(@NonNull RecognitionResult recognitionResult){
         List<Classification> classifications = recognitionResult.getClassifications();
+        classifications = classifications.stream().filter(c -> c.getScore() > 0.1).collect(Collectors.toList());
         List<RecognizedIntent> recognizedIntents = new ArrayList<>();
         for(Classification classification: classifications){
             RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
@@ -56,36 +57,34 @@ public class NlpjsRecognitionResultMapper {
         return  recognizedIntents;
     }
 
-    public List<ContextParameterValue> mapParamterValues(RecognizedIntent recognizedIntent,
-                                            List<ExtractedEntity> extractedEntities) {
+    public List<ContextParameterValue> mapParameterValues(RecognizedIntent recognizedIntent,
+                                                          List<ExtractedEntity> extractedEntities) {
         List<ContextParameterValue> contextParameterValues = new ArrayList<>();
         for (ExtractedEntity extractedEntity: extractedEntities) {
             String entityType = extractedEntity.getEntity();
-            ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType,
-                    (IntentDefinition) recognizedIntent.getDefinition(), nlpjsEntityReferenceMapper);
-            if (nonNull(contextParameter) ) {
-                ContextParameterValue contextParameterValue =
-                        IntentFactory.eINSTANCE.createContextParameterValue();
-                if (nonNull(extractedEntity.getOption())) {
-                    contextParameterValue.setValue(extractedEntity.getOption());
-                } else if (nonNull(extractedEntity.getResolution()) && nonNull(extractedEntity.getResolution().getValue())) {
-                    contextParameterValue.setValue(convertParameterValueToString(extractedEntity.getResolution()));
-                } else {
-                    Log.warn("Cannot retrieve the value for the context parameter {0}", contextParameter.getName());
+                ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType,
+                        (IntentDefinition) recognizedIntent.getDefinition(), nlpjsEntityReferenceMapper);
+                if (nonNull(contextParameter)) {
+                    ContextParameterValue contextParameterValue =
+                            IntentFactory.eINSTANCE.createContextParameterValue();
+                    if (nonNull(extractedEntity.getValue())) {
+                        contextParameterValue.setValue(extractedEntity.getValue());
+                    } else {
+                        Log.warn("Cannot retrieve the value for the context parameter {0}", contextParameter.getName());
+                    }
+                    contextParameterValue.setContextParameter(contextParameter);
+                    contextParameterValues.add(contextParameterValue);
                 }
-                contextParameterValue.setContextParameter(contextParameter);
-                contextParameterValues.add(contextParameterValue);
-            }
         }
         /*
          * Warning: do not add the context parameters to the recognized intent, otherwise they will be added twice
-         * (they are already addded in NlpjsIntentRecognitionProvider#getIntentInternal).
+         * (they are already added in NlpjsIntentRecognitionProvider#getIntentInternal).
          */
         return contextParameterValues;
     }
 
     private IntentDefinition convertNlpjsIntentNameToIntentDefinition(@NonNull String intentName) {
-        if(intentName.equals("None")) {
+        if (intentName.equals("None")) {
             return DEFAULT_FALLBACK_INTENT;
         }
         IntentDefinition result = eventRegistry.getIntentDefinition(intentName);
@@ -97,10 +96,11 @@ public class NlpjsRecognitionResultMapper {
         return result;
     }
 
-    private String convertParameterValueToString(@NonNull Resolution resolution) {
-        Object value = resolution.getValue();
-        if (value instanceof String)
+    private String convertParameterValueToString(@NonNull ExtractedEntity extractedEntity) {
+        Object value = extractedEntity.getValue();
+        if (value instanceof String) {
             return (String) value;
+        }
         if (value instanceof Number) {
             DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
             decimalFormatSymbols.setDecimalSeparator('.');
@@ -108,9 +108,7 @@ public class NlpjsRecognitionResultMapper {
             decimalFormat.setGroupingUsed(false);
             return decimalFormat.format(value);
         }
-        Log.error("Cannot convert the provided value {0}", resolution);
+        Log.error("Cannot convert the provided value {0}", extractedEntity);
         return "";
     }
-
-
 }

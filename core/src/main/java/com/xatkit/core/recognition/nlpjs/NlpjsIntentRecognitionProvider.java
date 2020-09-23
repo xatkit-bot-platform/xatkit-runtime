@@ -40,6 +40,7 @@ import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static java.util.Objects.nonNull;
 
 public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
 
@@ -124,7 +125,13 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                     "intent already exists", intentDefinition.getName()));
         }
         Log.debug("Registering NLP.js intent {0}", intentDefinition.getName());
-        Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition);
+        List<Entity> anyEntitiesCollector = new ArrayList<>();
+        Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition,anyEntitiesCollector);
+        if (!anyEntitiesCollector.isEmpty()) {
+            for (Entity entity: anyEntitiesCollector) {
+                this.entitiesToRegister.put(entity.getEntityName(),entity);
+            }
+        }
         this.intentsToRegister.put(intentDefinition.getName(), intent);
     }
 
@@ -143,7 +150,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         checkNotShutdown();
         Log.info("Starting NLP.js agent training (this may take a few minutes)");
         TrainingData trainingData = TrainingData.newBuilder()
-                .config(new AgentConfig(this.configuration.getLanguageCode()))
+                .config(new AgentConfig(this.configuration.getLanguageCode(), this.configuration.isCleanAgentOnStartup()))
                 .intents(new ArrayList<>(this.intentsToRegister.values()))
                 .entities(new ArrayList<>(this.entitiesToRegister.values()))
                 .build();
@@ -154,10 +161,11 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             while (!isDone && attemptsLeft > 0) {
                 Thread.sleep(2000);
                 Agent agent = this.nlpjsService.getAgentInfo(this.agentId);
-                if (agent.getStatus().equals(AgentStatus.READY))
+                if (agent.getStatus().equals(AgentStatus.READY)) {
                     isDone = true;
-                else
+                } else {
                     attemptsLeft--;
+                }
             }
             if (isDone) {
                 Log.info("NLP.js agent trained.");
@@ -178,7 +186,10 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     public void shutdown() throws IntentRecognitionProviderException {
-
+        checkNotShutdown();
+        if (nonNull(this.recognitionMonitor)) {
+            this.recognitionMonitor.shutdown();
+        }
     }
 
     @Override
@@ -203,8 +214,11 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             }
             List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
             RecognizedIntent recognizedIntent = getBestCandidate(recognizedIntents, context);
-            recognizedIntent.getValues().addAll(nlpjsRecognitionResultMapper.mapParamterValues(recognizedIntent,
+            recognizedIntent.getValues().addAll(nlpjsRecognitionResultMapper.mapParameterValues(recognizedIntent,
                     recognitionResult.getEntities()));
+            if (nonNull(recognitionMonitor)) {
+                recognitionMonitor.logRecognizedIntent(context, recognizedIntent);
+            }
             return recognizedIntent;
 
         } catch (IOException e) {

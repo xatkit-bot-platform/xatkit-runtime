@@ -6,11 +6,13 @@ import lombok.Data;
 public class AgentConfig {
 
     private String language;
+    private boolean clean;
 
     public AgentConfig() {
     }
 
-    public AgentConfig(String language) {
+    public AgentConfig(String language, boolean clean) {
         this.language = language;
+        this.clean = clean;
     }
 }
