@@ -138,7 +138,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public final RecognizedIntent getIntent(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
+    public final @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
         String preProcessedInput = input;
         for (InputPreProcessor preProcessor : this.preProcessors) {
             long preStart = System.currentTimeMillis();
