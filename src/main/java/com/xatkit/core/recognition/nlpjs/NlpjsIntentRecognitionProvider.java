@@ -202,20 +202,21 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         try {
+            RecognizedIntent recognizedIntent;
             UserMessage userMessage = new UserMessage(input);
             RecognitionResult recognitionResult = this.nlpjsService.getIntent(agentId, userMessage);
             List<Classification> classifications = recognitionResult.getClassifications();
             if (!classifications.isEmpty() && classifications.get(0).getIntent().equals("None")) {
-                RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+                recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
                 recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
                 recognizedIntent.setRecognitionConfidence(recognitionResult.getScore());
                 recognizedIntent.setMatchedInput(recognitionResult.getUtterance());
-                return recognizedIntent;
+            } else {
+                List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
+                recognizedIntent = getBestCandidate(recognizedIntents, context);
+                recognizedIntent.getValues().addAll(nlpjsRecognitionResultMapper.mapParameterValues(recognizedIntent,
+                        recognitionResult.getEntities()));
             }
-            List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
-            RecognizedIntent recognizedIntent = getBestCandidate(recognizedIntents, context);
-            recognizedIntent.getValues().addAll(nlpjsRecognitionResultMapper.mapParameterValues(recognizedIntent,
-                    recognitionResult.getEntities()));
             if (nonNull(recognitionMonitor)) {
                 recognitionMonitor.logRecognizedIntent(context, recognizedIntent);
             }
