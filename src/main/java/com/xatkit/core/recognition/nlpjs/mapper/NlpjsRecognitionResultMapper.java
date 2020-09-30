@@ -68,7 +68,7 @@ public class NlpjsRecognitionResultMapper {
                     ContextParameterValue contextParameterValue =
                             IntentFactory.eINSTANCE.createContextParameterValue();
                     if (nonNull(extractedEntity.getValue())) {
-                        contextParameterValue.setValue(extractedEntity.getValue());
+                        contextParameterValue.setValue(convertParameterValueToString(extractedEntity.getValue()));
                     } else {
                         Log.warn("Cannot retrieve the value for the context parameter {0}", contextParameter.getName());
                     }
@@ -96,19 +96,18 @@ public class NlpjsRecognitionResultMapper {
         return result;
     }
 
-    private String convertParameterValueToString(@NonNull ExtractedEntity extractedEntity) {
-        Object value = extractedEntity.getValue();
-        if (value instanceof String) {
-            return (String) value;
+    private String convertParameterValueToString(@NonNull Object parameterValue) {
+        if (parameterValue instanceof String) {
+            return (String) parameterValue;
         }
-        if (value instanceof Number) {
+        if (parameterValue instanceof Number) {
             DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
             decimalFormatSymbols.setDecimalSeparator('.');
             DecimalFormat decimalFormat = new DecimalFormat("0.###", decimalFormatSymbols);
             decimalFormat.setGroupingUsed(false);
-            return decimalFormat.format(value);
+            return decimalFormat.format(parameterValue);
         }
-        Log.error("Cannot convert the provided value {0}", extractedEntity);
+        Log.error("Cannot convert the provided value {0}", parameterValue);
         return "";
     }
 }
