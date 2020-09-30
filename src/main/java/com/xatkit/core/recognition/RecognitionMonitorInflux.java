@@ -123,6 +123,13 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     public static final String DEFAULT_URL = "http://localhost:7777";
 
     /**
+     * The bot ID key.
+     * <p>
+     * This property is optional and defaults to {@code "xatkitBot} if not specified.
+     */
+    public static final String INFLUX_BOT_ID_KEY = "xatkit.influx.bot_id";
+
+    /**
      * The default ID of the bot
      */
     public static final String DEFAULT_BOT_ID = "xatkitBot";
@@ -159,7 +166,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
         token = configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
         bucket = configuration.getString(INFLUX_BUCKET_KEY, DEFAULT_BUCKET);
         organization = configuration.getString(INFLUX_ORG_KEY, DEFAULT_ORGANIZATION);
-        bot_Id = DEFAULT_BOT_ID; //TODO: load the actual id of the bot!
+        bot_Id = configuration.getString(INFLUX_BOT_ID_KEY, DEFAULT_BOT_ID);
         String url = configuration.getString(INFLUX_URL_KEY, DEFAULT_URL);
         Log.info("Bucket: {0}", bucket);
         Log.info("Organization: {0}", organization);
