@@ -199,9 +199,7 @@ public class DialogFlowClients {
                 } else {
                     Log.warn("Cannot load the credentials file at {0}, trying to load it from the classpath",
                             credentialsPath);
-                    String classpathCredentialsPath = this.getClass().getClassLoader().getResource(credentialsPath)
-                            .getFile();
-                    credentialsInputStream = new FileInputStream(classpathCredentialsPath);
+                    credentialsInputStream = this.getClass().getClassLoader().getResourceAsStream(credentialsPath);
                 }
                 return FixedCredentialsProvider.create(GoogleCredentials.fromStream(credentialsInputStream));
             } catch (FileNotFoundException e) {
