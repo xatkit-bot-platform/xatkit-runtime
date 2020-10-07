@@ -10,15 +10,21 @@ import lombok.NonNull;
 
 public interface UseEventStep extends UsePlatformStep {
 
+    @Deprecated
     @NonNull UseEventStep useEvent(@NonNull EventDefinitionProvider eventProvider);
 
+    @Deprecated
     @NonNull UseEventStep useEvent(@NonNull EventDefinition event);
 
+    @Deprecated
     @NonNull UseEventStep useIntent(@NonNull IntentDefinitionProvider intentProvider);
 
+    @Deprecated
     @NonNull UseEventStep useIntent(@NonNull IntentDefinition intent);
 
+    @Deprecated
     @NonNull UseEventStep useIntents(@NonNull LibraryProvider libraryProvider);
 
+    @Deprecated
     @NonNull UseEventStep useIntents(@NonNull Library library);
 }
