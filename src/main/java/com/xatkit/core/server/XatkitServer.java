@@ -1,6 +1,7 @@
 package com.xatkit.core.server;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.WebhookEventProvider;
 import com.xatkit.execution.StateContext;
@@ -219,6 +220,17 @@ public class XatkitServer {
             server.shutdown(5, TimeUnit.SECONDS);
             isStarted = false;
         }));
+        /*
+         * Create a endpoint to access the status of the bot.
+         * For the moment this endpoint only returns a status value, but this may evolve to include bot-related
+         * information.
+         */
+        this.registerRestEndpoint(HttpMethod.GET, "/status",
+                RestHandlerFactory.createEmptyContentRestHandler((headers, params, content) -> {
+                    JsonObject statusObject = new JsonObject();
+                    statusObject.addProperty("status", "alive");
+                    return statusObject;
+                }));
         Log.info("XatkitServer started, listening on {0}:{1}", server.getInetAddress().toString(), server
                 .getLocalPort());
     }
