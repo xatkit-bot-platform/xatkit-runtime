@@ -231,8 +231,7 @@ public class XatkitServer {
                     statusObject.addProperty("status", "alive");
                     return statusObject;
                 }));
-        Log.info("XatkitServer started, listening on {0}:{1}", server.getInetAddress().toString(), server
-                .getLocalPort());
+        Log.info("XatkitServer started, listening on port {0}", server.getLocalPort());
     }
 
     /**
