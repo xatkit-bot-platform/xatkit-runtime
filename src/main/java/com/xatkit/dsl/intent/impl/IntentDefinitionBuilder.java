@@ -6,6 +6,8 @@ import com.xatkit.dsl.intent.IntentOptionalTrainingSentenceStep;
 import com.xatkit.intent.IntentFactory;
 import lombok.NonNull;
 
+import java.util.Arrays;
+
 public class IntentDefinitionBuilder extends IntentDefinitionProviderImpl implements IntentMandatoryTrainingSentenceStep,
         IntentOptionalTrainingSentenceStep {
 
@@ -35,5 +37,10 @@ public class IntentDefinitionBuilder extends IntentDefinitionProviderImpl implem
     public @NonNull IntentOptionalTrainingSentenceStep trainingSentences(@NonNull Iterable<String> trainingSentences) {
         trainingSentences.forEach(this::trainingSentence);
         return this;
+    }
+
+    @Override
+    public @NonNull IntentOptionalTrainingSentenceStep trainingSentences(@NonNull String[] trainingSentences) {
+        return this.trainingSentences(Arrays.asList(trainingSentences));
     }
 }
