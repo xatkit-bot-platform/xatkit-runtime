@@ -20,6 +20,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.nonNull;
+
 /**
  * Builds {@link IntentRecognitionProvider}s from the provided {@code configuration}.
  * <p>
@@ -87,8 +89,22 @@ public class IntentRecognitionProviderFactory {
 
         RecognitionMonitor recognitionMonitor = getRecognitionMonitor(xatkitBot, configuration);
 
-        List<? extends InputPreProcessor> preProcessors = loadPreProcessors(configuration.getPreProcessorNames());
-        List<? extends IntentPostProcessor> postProcessors = loadPostProcessors(configuration.getPostProcessorNames());
+        List<? extends InputPreProcessor> preProcessors;
+        List<? extends IntentPostProcessor> postProcessors;
+
+        try {
+            preProcessors = loadPreProcessors(configuration.getPreProcessorNames());
+            postProcessors = loadPostProcessors(configuration.getPostProcessorNames());
+        } catch(Exception e) {
+            /*
+             * Make sure we close the recognition monitor in case something bad happens while loading the processors.
+             * We don't want to run into lock errors, especially in the test cases.
+             */
+            if(nonNull(recognitionMonitor)) {
+                recognitionMonitor.shutdown();
+            }
+            throw e;
+        }
 
         IntentRecognitionProvider provider;
 
