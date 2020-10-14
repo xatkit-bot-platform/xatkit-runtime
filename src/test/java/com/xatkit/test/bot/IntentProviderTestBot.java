@@ -1,5 +1,6 @@
 package com.xatkit.test.bot;
 
+import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.CustomEntityDefinitionReference;
@@ -19,6 +20,7 @@ import static com.xatkit.dsl.DSL.mapping;
 import static com.xatkit.dsl.DSL.model;
 import static com.xatkit.dsl.DSL.state;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
+import static org.mockito.Mockito.mock;
 
 @Value
 public class IntentProviderTestBot {
@@ -36,6 +38,8 @@ public class IntentProviderTestBot {
     IntentDefinition compositeEntityIntent;
 
     ExecutionModel model;
+
+    RuntimeEventProvider provider = mock(RuntimeEventProvider.class);
 
     public IntentProviderTestBot() {
         this.simpleIntent = createSimpleIntent();
@@ -126,6 +130,7 @@ public class IntentProviderTestBot {
                 .useIntent(this.simpleIntent)
                 .useIntent(this.mappingEntityIntent)
                 .useIntent(this.compositeEntityIntent)
+                .listenTo(provider)
                 .useState(endState)
                 .initState(initState)
                 .defaultFallbackState(fallback)

@@ -1,5 +1,6 @@
 package com.xatkit.test.bot;
 
+import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.dsl.DSL;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.intent.IntentFactory;
@@ -11,6 +12,7 @@ import static com.xatkit.dsl.DSL.fallbackState;
 import static com.xatkit.dsl.DSL.intent;
 import static com.xatkit.dsl.DSL.intentIs;
 import static com.xatkit.dsl.DSL.state;
+import static org.mockito.Mockito.mock;
 
 @Data
 public class TestBot {
@@ -26,6 +28,8 @@ public class TestBot {
     private boolean sessionCheckedBodyExecuted;
 
     private ExecutionModel model;
+
+    private RuntimeEventProvider provider = mock(RuntimeEventProvider.class);
 
     public TestBot() {
         this.greetingsStateBodyExecuted = false;
@@ -64,6 +68,7 @@ public class TestBot {
 
         model = DSL.model()
                 .useIntent(greetings)
+                .listenTo(provider)
                 .useState(greetingsState)
                 .useState(sessionCheckedState)
                 .initState(init)

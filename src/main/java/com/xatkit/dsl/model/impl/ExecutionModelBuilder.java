@@ -78,7 +78,7 @@ public class ExecutionModelBuilder extends ExecutionModelProviderImpl implements
     }
 
     @Override
-    public @NonNull ListenToStep listenTo(@NonNull RuntimeEventProvider<?> provider) {
+    public @NonNull StateStep listenTo(@NonNull RuntimeEventProvider<?> provider) {
         this.model.getUsedProviders().add(provider);
         return this;
     }

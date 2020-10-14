@@ -64,6 +64,7 @@ public class ExecutionModelTest {
         val model = model()
                 .useEvent(i1)
                 .useEvent(i2)
+                .listenTo(provider)
                 .initState(s1)
                 .defaultFallbackState(s2);
 
@@ -77,6 +78,7 @@ public class ExecutionModelTest {
     public void createModelWithLibrary() {
         val model = model()
                 .useIntents(library)
+                .listenTo(provider)
                 .initState(s1)
                 .defaultFallbackState(s2);
 
@@ -89,6 +91,7 @@ public class ExecutionModelTest {
     @Test
     public void createModelWithStates() {
         val model = model()
+                .listenTo(provider)
                 .useState(s1)
                 .useState(s2)
                 .initState(s1)
@@ -104,6 +107,7 @@ public class ExecutionModelTest {
     public void createModelWithPlatform() {
         val model = model()
                 .usePlatform(platform)
+                .listenTo(provider)
                 .initState(s1)
                 .defaultFallbackState(s2);
 

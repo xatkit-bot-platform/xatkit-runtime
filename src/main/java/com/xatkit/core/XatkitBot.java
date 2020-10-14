@@ -256,6 +256,10 @@ public class XatkitBot implements Runnable {
      * @param executionModel the {@link ExecutionModel} to start the {@link RuntimeEventProvider}s from
      */
     private void startEventProviders(ExecutionModel executionModel) {
+        if(executionModel.getUsedEvents().isEmpty()) {
+            throw new IllegalStateException(MessageFormat.format("The provided bot does not listen to any {0}",
+                    RuntimeEventProvider.class.getSimpleName()));
+        }
         for (Object object : executionModel.getUsedProviders()) {
             /*
              * TODO this cast shouldn't exist: we need to fix the metamodel.

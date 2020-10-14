@@ -3,6 +3,7 @@ package com.xatkit.core;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
 import com.xatkit.dsl.model.ExecutionModelProvider;
+import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventDefinition;
@@ -63,6 +64,13 @@ public class XatkitBotTest extends AbstractXatkitTest {
          * This method checks that the intent provider is the RegEx one, any other provider should be tested in its
          * own class.
          */
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void runExecutionModelDoesNotContainAnyEventProvider() {
+        ExecutionModel executionModel = ExecutionFactory.eINSTANCE.createExecutionModel();
+        xatkitBot = new XatkitBot(executionModel, new BaseConfiguration());
+        xatkitBot.run();
     }
 
     @Test(expected = XatkitException.class)
