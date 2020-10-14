@@ -8,25 +8,15 @@ e() {
 main() {
 	
 	# Do not print the build log, it is already available in the Xatkit build
-    e "Building Xatkit Parent"
+    e "Building Required Xatkit Dependencies"
     cd /tmp
     git clone https://github.com/xatkit-bot-platform/xatkit.git > /dev/null
     cd xatkit
-    mvn install -DskipTests > /dev/null
-    e "Done"
-
-    e "Building Xatkit Metamodels"
-    cd /tmp
-    git clone https://github.com/xatkit-bot-platform/xatkit-metamodels.git > /dev/null
+    git submodule update --init --recursive
+    mvn clean install -N -DskipTests > /dev/null
     cd xatkit-metamodels
-    mvn install -DskipTests > /dev/null
-    e "Done"
-
-    e "Building Xatkit Languages"
-    cd /tmp
-    git clone https://github.com/xatkit-bot-platform/xatkit-eclipse.git > /dev/null
-    cd xatkit-eclipse
-    mvn install -DskipTests > /dev/null
+    git checkout master
+    mvn clean install -DskipTests > /dev/null
     e "Done"
 }
 
