@@ -33,32 +33,38 @@ public class ExecutionModelBuilder extends ExecutionModelProviderImpl implements
     }
 
 
+    @Deprecated
     @Override
     public @NonNull UseEventStep useEvent(@NonNull EventDefinitionProvider eventProvider) {
         return this.useEvent(eventProvider.getEventDefinition());
     }
 
+    @Deprecated
     @Override
     public @NonNull UseEventStep useEvent(@NonNull EventDefinition event) {
         this.model.getUsedEvents().add(event);
         return this;
     }
 
+    @Deprecated
     @Override
     public @NonNull UseEventStep useIntent(@NonNull IntentDefinitionProvider intentProvider) {
         return this.useEvent(intentProvider);
     }
 
+    @Deprecated
     @Override
     public @NonNull UseEventStep useIntent(@NonNull IntentDefinition intent) {
         return this.useEvent(intent);
     }
 
+    @Deprecated
     @Override
     public @NonNull UseEventStep useIntents(@NonNull LibraryProvider libraryProvider) {
         return this.useIntents(libraryProvider.getLibrary());
     }
 
+    @Deprecated
     @Override
     public @NonNull UseEventStep useIntents(@NonNull Library library) {
         library.getEventDefinitions().forEach(e -> this.model.getUsedEvents().add(e));
@@ -77,6 +83,7 @@ public class ExecutionModelBuilder extends ExecutionModelProviderImpl implements
         return this;
     }
 
+    @Deprecated
     @Override
     public @NonNull StateStep useState(@NonNull StateProvider stateProvider) {
         this.model.getStates().add(stateProvider.getState());

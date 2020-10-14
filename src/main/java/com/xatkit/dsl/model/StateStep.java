@@ -5,5 +5,6 @@ import lombok.NonNull;
 
 public interface StateStep extends InitStateStep {
 
+    @Deprecated
     @NonNull StateStep useState(@NonNull StateProvider stateProvider);
 }

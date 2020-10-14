@@ -50,7 +50,7 @@ public class DialogFlowContextMapper {
         accessedIntents.forEach(intent -> {
             // TODO check the lifespan count, should it be 2 or 1?
             Context.Builder builder = Context.newBuilder().setName(ContextName.of(this.configuration.getProjectId(),
-                    context.getSessionName().getSession(), "Enable" + intent.getName()).toString()).setLifespanCount(2);
+                    context.getSessionName().getSession(), "Enable" + intent.getName()).toString()).setLifespanCount(1);
             result.add(builder.build());
         });
         return result;

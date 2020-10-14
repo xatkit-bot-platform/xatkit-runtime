@@ -33,7 +33,12 @@ public class NlpjsService {
                 .create();
         String nlpjsApiFullPath = this.nlpjsServer + NLPJS_BASE_PATH + "/";
         OkHttpClient httpClient = new OkHttpClient.Builder()
-                .addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+                .addInterceptor(new HttpLoggingInterceptor(message -> {
+                    message = message.replaceAll("'", "''");
+                    message = message.replaceAll("\\{", "'{'");
+                    message = message.replaceAll("}", "'}'");
+                    Log.debug(message);
+                }).setLevel(HttpLoggingInterceptor.Level.BODY))
                 .readTimeout(3, TimeUnit.SECONDS)
                 .build();
         Retrofit retrofit = new Retrofit.Builder()

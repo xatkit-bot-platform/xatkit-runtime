@@ -213,6 +213,7 @@ public class XatkitBot implements Runnable {
      */
     private void loadExecutionModel(ExecutionModel executionModel) {
         boolean intentRegistered = false;
+        executionModel.consolidate();
         this.startPlatforms(executionModel);
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");

@@ -108,18 +108,21 @@ public class ExecutionService {
                 throw t;
             }
         }
+        EventInstance eventInstance = context.getEventInstance();
         /*
          * Set the current event instance to null: we want to check automated transitions and context-based
          * transitions. We don't want to return a transition that matches the exact same intent as the one that
          * triggered this state.
          */
-        // TODO here we probably have an issue if we re-enter the state after a fallback?
-        // This works fine, why?
-        // This is maybe a genius move
         context.setEventInstance(null);
         Transition navigableTransition = getNavigableTransitions(state, context);
         if (nonNull(navigableTransition)) {
             context.setState(navigableTransition.getState());
+            /*
+             * Reset the event instance: we have moved to a new state that may use the received event.
+             * TODO we need a proper refactoring for this.
+             */
+            context.setEventInstance(eventInstance);
             executeBody(navigableTransition.getState(), context);
         }
     }
