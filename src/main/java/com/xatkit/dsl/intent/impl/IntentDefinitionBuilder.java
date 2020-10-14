@@ -30,4 +30,10 @@ public class IntentDefinitionBuilder extends IntentDefinitionProviderImpl implem
         this.intent.getTrainingSentences().add(trainingSentence);
         return this;
     }
+
+    @Override
+    public @NonNull IntentOptionalTrainingSentenceStep trainingSentences(@NonNull Iterable<String> trainingSentences) {
+        trainingSentences.forEach(this::trainingSentence);
+        return this;
+    }
 }

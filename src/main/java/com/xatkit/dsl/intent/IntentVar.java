@@ -9,4 +9,6 @@ import lombok.NonNull;
 public interface IntentVar extends IntentDefinitionProvider {
 
     @NonNull IntentOptionalTrainingSentenceStep trainingSentence(@NonNull String trainingSentence);
+
+    @NonNull IntentOptionalTrainingSentenceStep trainingSentences(@NonNull Iterable<String> trainingSentences);
 }
