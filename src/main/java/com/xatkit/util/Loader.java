@@ -40,16 +40,12 @@ public class Loader {
             if (superClass.isAssignableFrom(clazz)) {
                 return (Class<? extends T>) clazz;
             } else {
-                String errorMessage = MessageFormat.format("The class {0} is not a subclass of {1}",
-                        clazz.getSimpleName(), superClass.getSimpleName());
-                Log.error(errorMessage);
-                throw new XatkitException(errorMessage);
+                throw new XatkitException(MessageFormat.format("The class {0} is not a subclass of {1}",
+                        clazz.getSimpleName(), superClass.getSimpleName()));
             }
         } catch (ClassNotFoundException e) {
-            String errorMessage = MessageFormat.format("Cannot find the {0} with the name {1}", superClass
-                    .getSimpleName(), qualifiedName);
-            Log.error(errorMessage);
-            throw new XatkitException(errorMessage, e);
+            throw new XatkitException(MessageFormat.format("Cannot find the {0} with the name {1}", superClass
+                    .getSimpleName(), qualifiedName), e);
         }
     }
 
@@ -66,8 +62,7 @@ public class Loader {
      * @param <T>        the type of the {@link Class} to construct an instance of
      * @return the constructed instance
      * @throws NoSuchMethodException     if the provided {@code clazz} does not define a constructor matching the
-     * provided
-     *                                   {@code parameters}
+     *                                   provided {@code parameters}
      * @throws InvocationTargetException if the called constructor throws an exception
      * @see #construct(Class, List, List)
      */
@@ -115,10 +110,8 @@ public class Loader {
         try {
             return clazz.newInstance();
         } catch (ReflectiveOperationException e) {
-            String errorMessage = MessageFormat.format("Cannot construct an instance of {0} with its default " +
-                    "constructor", clazz.getSimpleName());
-            Log.error(errorMessage);
-            throw new XatkitException(errorMessage, e);
+            throw new XatkitException(MessageFormat.format("Cannot construct an instance of {0} with its default " +
+                    "constructor", clazz.getSimpleName()), e);
         }
     }
 
@@ -215,7 +208,7 @@ public class Loader {
      * utility method.
      *
      * @param runtimePlatformClass the {@link RuntimePlatform} {@link Class} to construct a new instance of
-     * @param xatkitBot           the {@link XatkitBot} instance used to construct the {@link RuntimePlatform}
+     * @param xatkitBot            the {@link XatkitBot} instance used to construct the {@link RuntimePlatform}
      * @param configuration        the {@link Configuration} instance used to construct the {@link RuntimePlatform}
      * @return the constructed {@link RuntimePlatform}
      * @throws XatkitException if the {@link RuntimePlatform} does not define a constructor matching the provided
