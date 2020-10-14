@@ -3,6 +3,7 @@ package com.xatkit.core.recognition;
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitBot;
+import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProviderTest;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
@@ -111,12 +112,12 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
 
     @Ignore
     @Test
-    public void getIntentRecognitionProviderEmptyConfigurationPreProcessor() {
+    public void getIntentRecognitionProviderWithPreProcessor() {
         // TODO when at least one pre-processor is implemented in xatkit-runtime
     }
 
     @Test
-    public void getIntentRecognitionProviderEmptyConfigurationPostProcessor() {
+    public void getIntentRecognitionProviderWithPostProcessor() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_POSTPROCESSORS_KEY,
                 "RemoveEnglishStopWords");
@@ -125,5 +126,21 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
         IntentPostProcessor postProcessor = provider.getPostProcessors().get(0);
         assertThat(postProcessor.getClass().getSimpleName()).as("Valid PostProcessor").isEqualTo(
                 "RemoveEnglishStopWordsPostProcessor");
+    }
+
+    @Test(expected = XatkitException.class)
+    public void getIntentRecognitionProviderInvalidPreProcessorName() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_PREPROCESSORS_KEY,
+                "Invalid");
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
+    }
+
+    @Test(expected = XatkitException.class)
+    public void getIntentRecognitionProviderInvalidPostProcessorName() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_POSTPROCESSORS_KEY,
+                "Invalid");
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
     }
 }
