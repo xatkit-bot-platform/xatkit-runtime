@@ -393,8 +393,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
         checkNotNull(intentDefinition.getName(), "Cannot register the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName());
         if (this.registeredIntents.containsKey(intentDefinition.getName())) {
-            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the intent {0}, the " +
-                    "intent already exists", intentDefinition.getName()));
+            throw new IntentRecognitionProviderException(MessageFormat.format("Intent {0} already exists in the agent" +
+                    " and will not be updated", intentDefinition.getName()));
         }
         Log.debug("Registering DialogFlow intent {0}", intentDefinition.getName());
         Intent intent = dialogFlowIntentMapper.mapIntentDefinition(intentDefinition);
@@ -404,8 +404,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
             Log.debug("Intent {0} successfully registered", response.getDisplayName());
         } catch (FailedPreconditionException | InvalidArgumentException e) {
             if (e.getMessage().contains("already exists")) {
-                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the intent {0}, " +
-                        "the intent already exists", intentDefinition.getName()), e);
+                throw new IntentRecognitionProviderException(MessageFormat.format("Intent {0} already exists in the " +
+                        "agent and will not be updated", intentDefinition.getName()), e);
             }
         }
     }
@@ -575,7 +575,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
     protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
-        checkArgument(context instanceof DialogFlowStateContext, "Cannot handle the message, expected context type to be " +
+        checkArgument(context instanceof DialogFlowStateContext, "Cannot handle the message, expected context type to" +
+                " be " +
                 "%s, found %s", DialogFlowStateContext.class.getSimpleName(), context.getClass().getSimpleName());
         DialogFlowStateContext dialogFlowStateContext = (DialogFlowStateContext) context;
 

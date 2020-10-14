@@ -296,7 +296,7 @@ public class XatkitBot implements Runnable {
                 this.intentRecognitionProvider.registerIntentDefinition(intentDefinition);
                 return true;
             } catch (IntentRecognitionProviderException e) {
-                Log.error(e.getMessage());
+                Log.warn(e.getMessage());
             }
         }
         return false;
