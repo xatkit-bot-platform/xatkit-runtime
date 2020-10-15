@@ -1,6 +1,6 @@
 os: linux
 sudo: false
-dist: trusty
+dist: focal
 language: java
 jdk: openjdk8
 cache:
