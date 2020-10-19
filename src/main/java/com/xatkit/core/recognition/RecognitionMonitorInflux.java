@@ -242,7 +242,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     private void registerGetPing(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/ping",
                 RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
-                    JsonArray res = new JsonArray();
+                    JsonObject res = new JsonObject();
                     res.addProperty("alive", true);
                     return res;
                 })    
