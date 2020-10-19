@@ -138,6 +138,23 @@ public class RecognitionMonitorMapDB implements RecognitionMonitor {
         this.registerGetUnmatchedUtterances(xatkitServer);
         this.registerGetMatchedUtterances(xatkitServer);
         this.registerGetSessionsStats(xatkitServer);
+        this.registerGetPing(xatkitServer);
+    }
+
+    /**
+     * Returns a json Object with "{alive:true}" if the recognition monitor is working. 
+     * Used to test the API / see if the bot is crashed.
+     * 
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
+     */
+    private void registerGetPing(XatkitServer xatkitServer) {
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/ping",
+                RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
+                    JsonArray res = new JsonArray();
+                    res.addProperty("alive", true);
+                    return res;
+                })    
+        );
     }
 
     /**

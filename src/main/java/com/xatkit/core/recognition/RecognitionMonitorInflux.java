@@ -12,6 +12,7 @@ import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.HttpUtils;
+import com.xatkit.core.server.RestHandler;
 import com.xatkit.core.server.RestHandlerException;
 import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
@@ -187,6 +188,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
         this.registerGetMatchedUtterances(xatkitServer);
         this.registerGetSessionsStats(xatkitServer);
         this.registerGetOriginStats(xatkitServer);
+        this.registerGetPing(xatkitServer);
     }
 
     /**
@@ -229,6 +231,22 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
             }
         }
         return res;
+    }
+
+    /**
+     * Returns a json Object with "{alive:true}" if the recognition monitor is working. 
+     * Used to test the API / see if the bot is crashed.
+     * 
+     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
+     */
+    private void registerGetPing(XatkitServer xatkitServer) {
+        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/ping",
+                RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
+                    JsonArray res = new JsonArray();
+                    res.addProperty("alive", true);
+                    return res;
+                })    
+        );
     }
 
     /**
