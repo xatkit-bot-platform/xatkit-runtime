@@ -195,6 +195,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
      * Resolves a simple query applying the given filters.
      *
      * @param filter
+     * @param rfcStartTime rfc3339 format (similar to ISO-8601): YYYY-MM-DDThh:mm:ssZ Can be an empty string.
      * @return JsonArray
      * <p>
      * <pre>
@@ -293,10 +294,10 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                     String[] aux = {"r.is_Matched == \"false\""};
                     String fromDate = HttpUtils.getParameterValue("from", params);
                     if (isNull(fromDate)) {
-                        res = basicQuery(filter, "");
+                        res = basicQuery(aux, "");
                     }
                     else{
-                        res = basicQuery(filter, fromDate);
+                        res = basicQuery(aux, fromDate);
                     }
                     return res;
                 })
@@ -410,7 +411,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
      */
     private void registerGetMonitoringData(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
-                RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
+                RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
                     String fromDate = HttpUtils.getParameterValue("from", params);
                     if (isNull(fromDate)) {
                         fromDate = "";
@@ -466,7 +467,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
      */
     private void registerGetOriginStats(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/origin",
-                RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
+                RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
                     String fromDate = HttpUtils.getParameterValue("from", params);
                     if (isNull(fromDate)) {
                         fromDate = "";
