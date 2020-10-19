@@ -217,9 +217,9 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
      * }
      * </pre>
      */
-    private JsonArray basicQuery(String[] filter) {
+    private JsonArray basicQuery(String[] filter, String rfcStartTime) {
         JsonArray res = new JsonArray();
-        String query = queryBuilder("", filter, true, false);
+        String query = queryBuilder(rfcStartTime, filter, true, false);
         List<FluxTable> tables = db.getQueryApi().query(query);
         for (FluxTable table : tables) {
             //Each table equals to 1 session with the current Query
@@ -264,7 +264,13 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                     JsonArray res = new JsonArray();
                     //Query database for matched intents and retrieve them.
                     String[] filter = {"r.is_Matched == \"true\""};
-                    res = basicQuery(filter);
+                    String fromDate = HttpUtils.getParameterValue("from", params);
+                    if (isNull(fromDate)) {
+                        res = basicQuery(filter, "");
+                    }
+                    else{
+                        res = basicQuery(filter, fromDate);
+                    }
                     return res;
                 })
         );
@@ -285,7 +291,13 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                     JsonArray res = new JsonArray();
                     //Query database for matched intents and retrieve them.
                     String[] aux = {"r.is_Matched == \"false\""};
-                    res = basicQuery(aux);
+                    String fromDate = HttpUtils.getParameterValue("from", params);
+                    if (isNull(fromDate)) {
+                        res = basicQuery(filter, "");
+                    }
+                    else{
+                        res = basicQuery(filter, fromDate);
+                    }
                     return res;
                 })
         );
@@ -313,13 +325,17 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     private void registerGetSessionsStats(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring/sessions/stats",
                 RestHandlerFactory.createJsonRestHandler(((headers, params, content) -> {
+                            String fromDate = HttpUtils.getParameterValue("from", params);
+                            if (isNull(fromDate)) {
+                                fromDate = "";
+                            }
                             JsonObject result = new JsonObject();
                             int sessionCount = 0;
                             int totalMatchedUtteranceCount = 0;
                             int totalUnmatchedUtteranceCount = 0;
                             long totalSessionTime = 0;
                             String[] filters = {};
-                            String query = queryBuilder("", filters, true, false);
+                            String query = queryBuilder(fromDate, filters, true, false);
                             query = query.concat("|> group(columns: [\"session_id\"])");
 
                             List<FluxTable> tables = db.getQueryApi().query(query);
@@ -338,12 +354,12 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                                 totalSessionTime += (timeEnd - timeStart);
                             }
                             filters = new String[]{"r.is_Matched == \"true\""};
-                            query = queryBuilder("", filters, true, true);
+                            query = queryBuilder(fromDate, filters, true, true);
                             tables = db.getQueryApi().query(query);
                             //Data is grouped and filtered which means tables.size() = 1 with nr matched utts as rows
                             totalMatchedUtteranceCount = tables.get(0).getRecords().size();
                             filters = new String[]{"r.is_Matched == \"false\""};
-                            query = queryBuilder("", filters, true, true);
+                            query = queryBuilder(fromDate, filters, true, true);
                             tables = db.getQueryApi().query(query);
                             //Data is grouped and filtered which means tables.size() = 1 with nr unmatched utts as rows
                             totalUnmatchedUtteranceCount = tables.get(0).getRecords().size();
@@ -395,6 +411,10 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     private void registerGetMonitoringData(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/monitoring",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
+                    String fromDate = HttpUtils.getParameterValue("from", params);
+                    if (isNull(fromDate)) {
+                        fromDate = "";
+                    }
                     JsonArray sessionsArray = new JsonArray();
                     JsonObject globalInfo = new JsonObject();
                     double accRecognitionConfidence = 0.0;
@@ -403,7 +423,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                     int nSessions = 0;
                     //query pivoted and grouped by sessionID
                     String[] filters = {};
-                    String query = queryBuilder("", filters, true, true);
+                    String query = queryBuilder(fromDate, filters, true, true);
                     query = query.concat("|> group(columns: [\"session_id\"])");
                     List<FluxTable> tables = db.getQueryApi().query(query);
                     //Each table equals to 1 session
@@ -447,13 +467,17 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     private void registerGetOriginStats(XatkitServer xatkitServer) {
         xatkitServer.registerRestEndpoint(HttpMethod.GET, "/analytics/origin",
                 RestHandlerFactory.createJsonRestHandler((headers, param, content) -> {
+                    String fromDate = HttpUtils.getParameterValue("from", params);
+                    if (isNull(fromDate)) {
+                        fromDate = "";
+                    }
                     JsonObject result = new JsonObject();
                     JsonArray originArray = new JsonArray();
                     result.add("Origins", originArray);
                     int totalSessions = 0;
                     //query pivoted and grouped by sessionID
                     String[] filters = {};
-                    String query = queryBuilder("", filters, true, false);
+                    String query = queryBuilder(fromDate, filters, true, false);
                     query = query.concat("|> group(columns: [\"origin\"])");
                     //Each table equals 1 origin, so list lenght = number of different origins
                     List<FluxTable> tables = db.getQueryApi().query(query);
@@ -467,7 +491,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                             String origin = table.getRecords().get(0).getValueByKey("origin").toString();
                             //Now search the unique sessions in a new Query
                             String[] filterByOrigin = {"r.origin == \"" + origin + "\""};
-                            String query2 = queryBuilder("", filterByOrigin, true, false);
+                            String query2 = queryBuilder(fromDate, filterByOrigin, true, false);
                             query2 = query2.concat("|> group(columns: [\"session_id\"])");
                             //The number of tables equal to the number of sessions in that origin
                             int nrSessions = db.getQueryApi().query(query2).size();
