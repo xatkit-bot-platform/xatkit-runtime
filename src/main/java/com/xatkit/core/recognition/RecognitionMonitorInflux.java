@@ -188,7 +188,6 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
         this.registerGetMatchedUtterances(xatkitServer);
         this.registerGetSessionsStats(xatkitServer);
         this.registerGetOriginStats(xatkitServer);
-        this.registerGetPing(xatkitServer);
     }
 
     /**
@@ -232,22 +231,6 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
             }
         }
         return res;
-    }
-
-    /**
-     * Returns a json Object with "{alive:true}" if the recognition monitor is working. 
-     * Used to test the API / see if the bot is crashed.
-     * 
-     * @param xatkitServer the {@link XatkitServer} instance used to register the REST endpoints
-     */
-    private void registerGetPing(XatkitServer xatkitServer) {
-        xatkitServer.registerRestEndpoint(HttpMethod.GET, "/ping",
-                RestHandlerFactory.createJsonRestHandler((headers, params, content) -> {
-                    JsonObject res = new JsonObject();
-                    res.addProperty("alive", true);
-                    return res;
-                })    
-        );
     }
 
     /**
