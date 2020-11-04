@@ -155,9 +155,11 @@ public class DialogFlowIntentMapper {
              */
             String preparedTrainingSentence = trainingSentence;
             for (ContextParameter parameter : parameters) {
-                if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
-                    preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(), "#"
-                            + parameter.getTextFragment() + "#");
+                for (String textFragment : parameter.getTextFragments()) {
+                    if (preparedTrainingSentence.contains(textFragment)) {
+                        preparedTrainingSentence = preparedTrainingSentence.replace(textFragment, "#"
+                                + textFragment + "#");
+                    }
                 }
             }
             /*
@@ -169,22 +171,20 @@ public class DialogFlowIntentMapper {
                 String sentencePart = splitTrainingSentence[i];
                 Intent.TrainingPhrase.Part.Builder partBuilder = Intent.TrainingPhrase.Part.newBuilder().setText
                         (sentencePart);
-//                for (com.xatkit.intent.Context context : outContexts) {
                 for (ContextParameter parameter : parameters) {
-                    if (sentencePart.equals(parameter.getTextFragment())) {
+                    if(parameter.getTextFragments().contains(sentencePart)) {
                         checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the " +
                                         "parameter for the fragment \"%s\" does not define a name",
-                                trainingSentence, parameter.getTextFragment());
+                                trainingSentence, sentencePart);
                         checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the " +
                                         "parameter for the fragment \"%s\" does not define an entity",
-                                trainingSentence, parameter.getTextFragment());
+                                trainingSentence, sentencePart);
                         String dialogFlowEntity =
                                 dialogFlowEntityReferenceMapper.getMappingFor(parameter.getEntity()
                                         .getReferredEntity());
                         partBuilder.setEntityType(dialogFlowEntity).setAlias(parameter.getName());
                     }
                 }
-//                }
                 trainingPhraseBuilder.addParts(partBuilder.build());
             }
             return trainingPhraseBuilder.build();
