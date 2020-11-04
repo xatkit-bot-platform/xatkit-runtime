@@ -100,7 +100,7 @@ public class RemoveEnglishStopWordsPostProcessorTest extends AbstractXatkitTest 
         intentDefinition.setName("IntentContextNoStopWord");
         ContextParameter contextParameter = IntentFactory.eINSTANCE.createContextParameter();
         contextParameter.setName("parameter");
-        contextParameter.setTextFragment("fragment");
+        contextParameter.getTextFragments().add("fragment");
         BaseEntityDefinition baseEntityDefinition = IntentFactory.eINSTANCE.createBaseEntityDefinition();
         baseEntityDefinition.setEntityType(entityType);
         BaseEntityDefinitionReference baseEntityDefinitionReference =
