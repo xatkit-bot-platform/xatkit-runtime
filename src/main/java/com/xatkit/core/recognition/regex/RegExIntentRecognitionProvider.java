@@ -266,12 +266,14 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
             } else {
                 String preparedTrainingSentence = trainingSentence;
                 for (ContextParameter parameter : intentDefinition.getParameters()) {
-                    if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
-                        /*
-                         * only support single word for now
-                         */
-                        preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(),
-                                buildRegExpGroup(parameter));
+                    for(String textFragment : parameter.getTextFragments()) {
+                        if (preparedTrainingSentence.contains(textFragment)) {
+                            /*
+                             * only support single word for now
+                             */
+                            preparedTrainingSentence = preparedTrainingSentence.replace(textFragment,
+                                    buildRegExpGroup(parameter));
+                        }
                     }
                 }
                 patterns.add(Pattern.compile("^" + preparedTrainingSentence + "$"));
