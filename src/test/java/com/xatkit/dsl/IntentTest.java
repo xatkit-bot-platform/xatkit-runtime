@@ -38,7 +38,26 @@ public class IntentTest {
         assertThat(base.getParameters()).hasSize(1);
         ContextParameter parameter1 = base.getParameters().get(0);
         assertThat(parameter1.getName()).isEqualTo("cityName");
-        assertThat(parameter1.getTextFragment()).isEqualTo("Barcelona");
+        assertThat(parameter1.getTextFragments()).contains("Barcelona");
+        assertThat(parameter1.getEntity().getReferredEntity().getName()).isEqualTo(city().getReferredEntity().getName());
+    }
+
+    @Test
+    public void intentWithParameterMultipleFragments() {
+        val intent = intent("LiveIn")
+                .trainingSentence("I live in Barcelona")
+                .trainingSentence("I am from Paris")
+                .parameter("cityName")
+                .fromFragment("Barcelona", "Paris")
+                .entity(city());
+
+        IntentDefinition base = intent.getIntentDefinition();
+        assertThat(base.getTrainingSentences()).hasSize(2);
+        assertThat(base.getTrainingSentences()).contains("I live in Barcelona", "I am from Paris");
+        assertThat(base.getParameters()).hasSize(1);
+        ContextParameter parameter1 = base.getParameters().get(0);
+        assertThat(parameter1.getName()).isEqualTo("cityName");
+        assertThat(parameter1.getTextFragments()).contains("Barcelona", "Paris");
         assertThat(parameter1.getEntity().getReferredEntity().getName()).isEqualTo(city().getReferredEntity().getName());
     }
 }

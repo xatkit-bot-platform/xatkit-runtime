@@ -10,6 +10,8 @@ import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import lombok.NonNull;
 
+import java.util.Arrays;
+
 public class IntentContextParameterBuilder extends IntentDefinitionProviderImpl implements IntentContextParameterFragmentStep,
         IntentContextParameterEntityStep,
         IntentContextParameterStep {
@@ -40,7 +42,13 @@ public class IntentContextParameterBuilder extends IntentDefinitionProviderImpl 
 
     @Override
     public @NonNull IntentContextParameterEntityStep fromFragment(@NonNull String fragment) {
-        this.parameter.setTextFragment(fragment);
+        this.parameter.getTextFragments().add(fragment);
+        return this;
+    }
+
+    @Override
+    public @NonNull IntentContextParameterEntityStep fromFragment(@NonNull String... fragment) {
+        this.parameter.getTextFragments().addAll(Arrays.asList(fragment));
         return this;
     }
 
