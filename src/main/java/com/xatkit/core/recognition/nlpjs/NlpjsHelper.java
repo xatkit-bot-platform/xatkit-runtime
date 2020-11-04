@@ -24,7 +24,7 @@ public class NlpjsHelper {
         for (ContextParameter parameter : intentDefinition.getParameters()) {
             if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName()))
                 suffix++;
-            if (textFragment.equals(parameter.getTextFragment())) {
+            if (textFragment.equals(parameter.getTextFragments().get(0))) {
                 break;
             }
         }

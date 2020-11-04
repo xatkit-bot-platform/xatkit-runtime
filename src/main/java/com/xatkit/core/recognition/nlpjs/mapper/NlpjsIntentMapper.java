@@ -62,9 +62,9 @@ public class NlpjsIntentMapper {
         } else {
             String preparedTrainingSentence = trainingSentence;
             for (ContextParameter parameter : intentDefinition.getParameters()) {
-                if (preparedTrainingSentence.contains(parameter.getTextFragment())) {
-                    preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragment(), "#"
-                            + parameter.getTextFragment() + "#");
+                if (preparedTrainingSentence.contains(parameter.getTextFragments().get(0))) {
+                    preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragments().get(0), "#"
+                            + parameter.getTextFragments().get(0) + "#");
                 }
             }
 
@@ -73,20 +73,22 @@ public class NlpjsIntentMapper {
             for (String sentencePart : splitTrainingSentence) {
                 boolean isParameter = false;
                     for (ContextParameter parameter : intentDefinition.getParameters()) {
-                        if (sentencePart.equals(parameter.getTextFragment())) {
+                        if (sentencePart.equals(parameter.getTextFragments().get(0))) {
                             checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the " +
                                             "parameter for the fragment \"%s\" does not define a name",
-                                    trainingSentence, parameter.getTextFragment());
+                                    trainingSentence, parameter.getTextFragments().get(0));
                             checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the " +
                                             "parameter for the fragment \"%s\" does not define an entity",
-                                    trainingSentence, parameter.getTextFragment());
+                                    trainingSentence, parameter.getTextFragments().get(0));
                             isParameter = true;
                             String nlpEntity = null;
                             boolean isAny = false;
                             if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition &&
                                     ((BaseEntityDefinition) parameter.getEntity().getReferredEntity()).getEntityType().equals(EntityType.ANY)) {
-                                int textFragmentIndexStart = trainingSentence.indexOf(parameter.getTextFragment());
-                                int textFragmentIndexEnd = textFragmentIndexStart + parameter.getTextFragment().length();
+                                int textFragmentIndexStart =
+                                        trainingSentence.indexOf(parameter.getTextFragments().get(0));
+                                int textFragmentIndexEnd =
+                                        textFragmentIndexStart + parameter.getTextFragments().get(0).length();
                                 String[] preParameterArray = null;
                                 String[] postParameterArray = null;
                                 if (textFragmentIndexStart != 0) {
@@ -146,7 +148,7 @@ public class NlpjsIntentMapper {
                             StringBuilder nlpjsIntentParameterBuilder = new StringBuilder().append(nlpEntity);
                             if (!isAny && NlpjsHelper.getEntityCount(parameter.getEntity().getReferredEntity(),
                                     intentDefinition) > 1) {
-                                nlpjsIntentParameterBuilder.append("_").append(NlpjsHelper.getEntityTypeIndex(parameter.getTextFragment(),
+                                nlpjsIntentParameterBuilder.append("_").append(NlpjsHelper.getEntityTypeIndex(parameter.getTextFragments().get(0),
                                         parameter.getEntity().getReferredEntity(), intentDefinition));
                             }
                             String nlpjsIntentParameter = nlpjsIntentParameterBuilder.toString();
