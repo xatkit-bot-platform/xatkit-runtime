@@ -40,7 +40,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitBot, Configuration)
      * @see #getIntent(String, StateContext)
      */
-    private List<? extends InputPreProcessor> preProcessors = new ArrayList<>();
+    private List<InputPreProcessor> preProcessors = new ArrayList<>();
 
     /**
      * The {@link List} of {@link IntentPostProcessor}s set for this provider.
@@ -48,7 +48,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitBot, Configuration)
      * @see #getIntent(String, StateContext)
      */
-    private List<? extends IntentPostProcessor> postProcessors = new ArrayList<>();
+    private List<IntentPostProcessor> postProcessors = new ArrayList<>();
 
     /**
      * {@inheritDoc}
@@ -74,7 +74,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public final List<? extends InputPreProcessor> getPreProcessors() {
+    public final List<InputPreProcessor> getPreProcessors() {
         return this.preProcessors;
     }
 
@@ -82,7 +82,7 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public final List<? extends IntentPostProcessor> getPostProcessors() {
+    public final List<IntentPostProcessor> getPostProcessors() {
         return this.postProcessors;
     }
 

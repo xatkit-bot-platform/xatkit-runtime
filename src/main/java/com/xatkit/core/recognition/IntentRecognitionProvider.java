@@ -33,28 +33,28 @@ public interface IntentRecognitionProvider {
      *
      * @param preProcessors the {@link InputPreProcessor} to set
      */
-    void setPreProcessors(@NonNull List<? extends InputPreProcessor> preProcessors);
+    void setPreProcessors(@NonNull List<InputPreProcessor> preProcessors);
 
     /**
      * Returns the {@link InputPreProcessor}s associated to this provider.
      *
      * @return the {@link InputPreProcessor}s associated to this provider
      */
-    List<? extends InputPreProcessor> getPreProcessors();
+    List<InputPreProcessor> getPreProcessors();
 
     /**
      * Set the {@link IntentPostProcessor}s.
      *
      * @param postProcessors the {@link IntentPostProcessor} to set
      */
-    void setPostProcessors(@NonNull List<? extends IntentPostProcessor> postProcessors);
+    void setPostProcessors(@NonNull List<IntentPostProcessor> postProcessors);
 
     /**
      * Returns the {@link IntentPostProcessor}s associated to this provider.
      *
      * @return the {@link IntentPostProcessor}s associated to this provider
      */
-    List<? extends IntentPostProcessor> getPostProcessors();
+    List<IntentPostProcessor> getPostProcessors();
 
     /**
      * Registers the provided {@code entityDefinition} in the underlying intent recognition provider.

@@ -89,8 +89,8 @@ public class IntentRecognitionProviderFactory {
 
         RecognitionMonitor recognitionMonitor = getRecognitionMonitor(xatkitBot, configuration);
 
-        List<? extends InputPreProcessor> preProcessors;
-        List<? extends IntentPostProcessor> postProcessors;
+        List<InputPreProcessor> preProcessors;
+        List<IntentPostProcessor> postProcessors;
 
         try {
             preProcessors = loadPreProcessors(configuration.getPreProcessorNames());
@@ -175,7 +175,7 @@ public class IntentRecognitionProviderFactory {
         return monitor;
     }
 
-    private static List<? extends InputPreProcessor> loadPreProcessors(List<String> preProcessorNames) {
+    private static List<InputPreProcessor> loadPreProcessors(List<String> preProcessorNames) {
         return preProcessorNames.stream().map(preProcessorName -> {
             Class<? extends InputPreProcessor> processor;
             try {
@@ -193,7 +193,7 @@ public class IntentRecognitionProviderFactory {
         }).collect(Collectors.toList());
     }
 
-    private static List<? extends IntentPostProcessor> loadPostProcessors(List<String> postProcessorNames) {
+    private static List<IntentPostProcessor> loadPostProcessors(List<String> postProcessorNames) {
         return postProcessorNames.stream().map(postProcessorName -> {
             Class<? extends IntentPostProcessor> processor;
             try {
