@@ -56,8 +56,15 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * @throws NullPointerException if the provided {@code preProcessors} is {@code null}
      */
     @Override
-    public final void setPreProcessors(@NonNull List<? extends InputPreProcessor> preProcessors) {
-        this.preProcessors = preProcessors;
+    public final void setPreProcessors(@NonNull List<InputPreProcessor> preProcessors) {
+        /*
+         * Use addAll(preProcessors) instead of direct affectation (this.preProcessors = preProcessors) to be safe if
+         * the subclass needs to register additional processors.
+         * For example: a IntentRecognitionProvider may need to process inputs in a specific way. Depending on the
+         * execution order this additional processor may be overriden by a call to setProcessors occurring after
+         * initialization.
+         */
+        this.preProcessors.addAll(preProcessors);
     }
 
     /**
@@ -66,8 +73,15 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * @throws NullPointerException if the provided {@code postProcessors} is {@code null}
      */
     @Override
-    public final void setPostProcessors(@NonNull List<? extends IntentPostProcessor> postProcessors) {
-        this.postProcessors = postProcessors;
+    public final void setPostProcessors(@NonNull List<IntentPostProcessor> postProcessors) {
+        /*
+         * Use addAll(postProcessors) instead of direct affectation (this.postProcessors = postProcessors) to be safe
+         * if the subclass needs to register additional processors.
+         * For example: a IntentRecognitionProvider may need to process recognized intents in a specific way.
+         * Depending on the execution order this additional processor may be overriden by a call to setProcessors
+         * occurring after initialization.
+         */
+        this.postProcessors.addAll(postProcessors);
     }
 
     /**
