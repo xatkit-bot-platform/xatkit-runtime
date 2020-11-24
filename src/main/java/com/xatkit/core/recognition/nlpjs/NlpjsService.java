@@ -39,7 +39,7 @@ public class NlpjsService {
                     message = message.replaceAll("}", "'}'");
                     Log.debug(message);
                 }).setLevel(HttpLoggingInterceptor.Level.BODY))
-                .readTimeout(3, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
                 .build();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(nlpjsApiFullPath)
