@@ -358,6 +358,9 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      */
     @Override
     public StateContext createContext(@NonNull String sessionId) {
+        /*
+         * FIXME duplicated code from NlpjsIntentRecognitionProvider
+         */
         StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
         context.setContextId(sessionId);
         context.setConfiguration(ConfigurationConverter.getMap(configuration));
