@@ -14,6 +14,7 @@ import com.xatkit.intent.IntentDefinition;
 import lombok.NonNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +106,11 @@ public class NlpjsIntentMapper {
                                     afterLast = preParameterArray[preParameterArray.length - 1];
                                 }
                                 if (nonNull(postParameterArray) && postParameterArray.length > 0) {
-                                    beforeLast = postParameterArray[0];
+                                    beforeLast =
+                                            Arrays.stream(postParameterArray).filter(v -> !v.equals("")).findFirst().orElse(null);
+                                    if(nonNull(beforeLast) && beforeLast.equals("?")) {
+                                        beforeLast = "\\?";
+                                    }
                                 }
 
                                 if (nonNull(beforeLast) || nonNull(afterLast)) {
@@ -113,7 +118,11 @@ public class NlpjsIntentMapper {
                                     isAny = true;
                                     if (anyEntitiesMap.containsKey(nlpEntity)) {
                                         if (nonNull(beforeLast) && nonNull(afterLast)) {
-                                            Entity entity = anyEntitiesMap.get(beforeLast);
+                                            Entity entity = anyEntitiesMap.get(nlpEntity);
+                                            if(entity.getBetween() == null) {
+                                                BetweenCondition betweenCondition = new BetweenCondition();
+                                                entity.setBetween(betweenCondition);
+                                            }
                                             entity.getBetween().getLeft().add(afterLast);
                                             entity.getBetween().getRight().add(beforeLast);
                                         } else if (nonNull(beforeLast)) {

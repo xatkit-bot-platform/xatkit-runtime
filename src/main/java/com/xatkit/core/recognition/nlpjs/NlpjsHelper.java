@@ -46,7 +46,10 @@ public class NlpjsHelper {
                             && nlpjsEntityType.equals(intentDefinition.getName() + parameter.getName() + "Any")) {
                         return parameter;
                     }
-                    if (nlpjsEntityReferenceMapper.getReversedEntity(baseEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())) &&
+                    /*
+                     * TODO getReversedEntity should return an empty collection instead of null
+                     */
+                    if (nlpjsEntityReferenceMapper.getReversedEntity(baseEntityType) != null && nlpjsEntityReferenceMapper.getReversedEntity(baseEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName())) &&
                             (++i == index)) {
                         return parameter;
                     }
@@ -64,7 +67,10 @@ public class NlpjsHelper {
                             && nlpjsEntityType.equals(intentDefinition.getName() + parameter.getName() + "Any")) {
                         return parameter;
                     }
-                    if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
+                    /*
+                     * TODO getReversedEntity should return an empty collection instead of null
+                     */
+                    if (nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType) != null && nlpjsEntityReferenceMapper.getReversedEntity(nlpjsEntityType).stream().anyMatch(entityType -> entityType.equals(parameter.getEntity().getReferredEntity().getName()))) {
                         return parameter;
                     }
                 } else if (parameter.getEntity().getReferredEntity() instanceof CustomEntityDefinition) {
