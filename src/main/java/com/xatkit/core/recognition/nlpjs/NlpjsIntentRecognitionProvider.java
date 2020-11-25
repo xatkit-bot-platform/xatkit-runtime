@@ -17,6 +17,8 @@ import com.xatkit.core.recognition.nlpjs.model.Intent;
 import com.xatkit.core.recognition.nlpjs.model.RecognitionResult;
 import com.xatkit.core.recognition.nlpjs.model.TrainingData;
 import com.xatkit.core.recognition.nlpjs.model.UserMessage;
+import com.xatkit.core.recognition.processor.SpacePunctuationPreProcessor;
+import com.xatkit.core.recognition.processor.TrimPunctuationPostProcessor;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.BaseEntityDefinition;
@@ -29,6 +31,7 @@ import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ConfigurationConverter;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -76,6 +79,20 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     public NlpjsIntentRecognitionProvider(@NonNull EventDefinitionRegistry eventRegistry, @NonNull Configuration configuration,
                                           @Nullable RecognitionMonitor recognitionMonitor) {
         Log.info("Starting NLP.js Client");
+        /*
+         * Nlp.js uses regular expressions to match any entities. These expressions are quite sensible to spacing and
+         * punctuation, which may alter the recognition, but also appear in matched parameter. We use the following
+         * processors to mitigate these issues:
+         * - TrimPunctuationPostProcessor: remove punctuation from matched parameters (e.g. "Barcelona?" becomes
+         * "Barcelona")
+         * - SpacePunctuationPreProcessor: adds an extra space before punctuation symbol to ease the recognition
+         * based on regular expressions (e.g. input "Barcelona?" is pre-processed as "Barcelona ?" before it is sent
+         * for recognition).
+         * These capabilities are defined a processors because they may be useful for other use cases, even for bots
+         * not using Nlp.js.
+         */
+        this.getPostProcessors().add(new TrimPunctuationPostProcessor());
+        this.getPreProcessors().add(new SpacePunctuationPreProcessor());
         this.configuration = new NlpjsConfiguration(configuration);
         this.agentId = this.configuration.getAgentId();
         this.nlpjsServer = this.configuration.getNlpjsServer();
@@ -179,8 +196,12 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     @Override
     public StateContext createContext(@NonNull String sessionId) throws IntentRecognitionProviderException {
+        /*
+         * FIXME duplicated code from RegExIntentRecognitionProvider
+         */
         StateContext stateContext = ExecutionFactory.eINSTANCE.createStateContext();
         stateContext.setContextId(sessionId);
+        stateContext.setConfiguration(ConfigurationConverter.getMap(configuration.getBaseConfiguration()));
         return stateContext;
     }
 
