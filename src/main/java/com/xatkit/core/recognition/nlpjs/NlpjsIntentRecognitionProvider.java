@@ -68,6 +68,21 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     private Map<String, Entity> entitiesToRegister;
 
+    /**
+     * A flag indicating if the provider has been shutdown.
+     * <p>
+     * A shutdown provider cannot be used to extract or configure intents and entities, and will throw an
+     * {@link IntentRecognitionProviderException} when accessed.
+     * <p>
+     * This flag is set to {@code false} by default, and is updated iff the framework calls the {@link #shutdown()}
+     * method (typically when a bot is stopped). The value of this flag is used in combination with internal checks
+     * to compute the value to return by {@link #isShutdown()}.
+     *
+     * @see #shutdown()
+     * @see #isShutdown()
+     */
+    private boolean isShutdown = false;
+
 
     /**
      * The {@link RecognitionMonitor} used to track intent matching information.
@@ -211,11 +226,16 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         if (nonNull(this.recognitionMonitor)) {
             this.recognitionMonitor.shutdown();
         }
+        this.isShutdown = true;
     }
 
     @Override
     public boolean isShutdown() {
-        return nlpjsService.isShutdown();
+        /*
+         * We use the isShutdown flag here in case the provider has been stopped by the framework, but we also want
+         * to return true if the underlying NlpjsService is not able to access the agent.
+         */
+        return this.isShutdown || nlpjsService.isShutdown();
     }
 
     @Override
