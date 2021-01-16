@@ -13,52 +13,41 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * A testing {@link StateContext} that can be configured to enable the matching of specific {@link IntentDefinition}s.
+ * A {@link StateContext} wrapper that can be configured to enable the matching of specific {@link IntentDefinition}s.
+ * <p>
+ * This testing context is initialized with a the {@code contextId} of the provided base {@link StateContext}. Note that
+ * the {@link #getState()} method has a dedicated implementation that always returns a {@link TestingState}, which is
+ * used to enable specific intent matching.
  * <p>
  * This class is used to quickly create a {@link StateContext} with a given set of intents enabled (as if they were
  * part of the current state's transition). This shortens intent provider test cases as they don't require a valid
  * bot model anymore.
  * <p>
- * This class is typically used to setup
- * {@link com.xatkit.core.recognition.IntentRecognitionProvider#getIntent(String, StateContext)} tests.
+ * Instances of this class are typically created with {@link TestingStateContextFactory#wrap(StateContext)}.
  * <p>
- * Example of a test case involving this class:
- * <pre>
- * {@code
- * IntentRecognitionProvider intentProvider = getIntentProvider();
- * TestingStateContext context = new TestingStateContext();
- * context.enableIntents(intent1, intent2);
- * RecognizedIntent recognizedIntent = intentProvider.getIntent("Hello", context);
- * assertThat(...);
- * }
- * </pre>
+ * <b>Warning:</b> this class is not a complete decorator, it only reuses the {@code contextId} of the provided base
+ * {@link StateContext}. Other attributes such as the configuration or the session are not duplicated nor
+ * synchronized with the base context.
+ *
+ * @see #enableIntents(IntentDefinition...)
  */
 public class TestingStateContext extends StateContextImpl implements StateContext {
 
     /**
-     * The identifier of the context.
+     * Creates an empty {@link TestingStateContext} wrapping the provided {@code base}.
      * <p>
-     * This value is set by default when constructing an instance of this class. Since test cases typically involve a
-     * single context it is safe to use the same identifier for every instance. If needed the context identifier can
-     * be changed with {@link #setContextId(String)}
-     *
-     * @see #setContextId(String)
-     */
-    private static final String CONTEXT_ID = "TestingStateContext";
-
-    /**
-     * Creates an empty {@link TestingStateContext}.
-     * <p>
-     * The created context identifier is set with {@link #CONTEXT_ID}, and can be updated with
-     * {@link #setContextId(String)} if necessary. A new {@link TestingStateContext} does not enable any
-     * {@link IntentDefinition} by default, use {@link #enableIntents(IntentDefinition...)} to configure the context
+     * A new {@link TestingStateContext} does not enable any {@link IntentDefinition} by default, use
+     * {@link #enableIntents(IntentDefinition...)} to configure the context
      * according to your test case.
      *
-     * @see #setContextId(String)
      * @see #enableIntents(IntentDefinition...)
      */
-    public TestingStateContext() {
-        this.contextId = CONTEXT_ID;
+    public TestingStateContext(StateContext base) {
+        /*
+         * We are just reusing the contextId, we don't do a complete delegate pattern as in
+         * DialogFlowTestingStateContext, because the StateContext interface is very dense (inherited from EMF).
+         */
+        this.contextId = base.getContextId();
         this.state = new TestingState();
     }
 
