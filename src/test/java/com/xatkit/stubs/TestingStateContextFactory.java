@@ -37,17 +37,9 @@ public class TestingStateContextFactory {
      * @throws NullPointerException if the provided {@code stateContext} is {@code null}
      */
     public static TestingStateContext wrap(@NonNull StateContext stateContext) {
+        if(stateContext instanceof DialogFlowStateContext) {
+            return new DialogFlowTestingStateContext((DialogFlowStateContext) stateContext);
+        }
         return new TestingStateContext(stateContext);
-    }
-
-    /**
-     * Wraps the provided {@code stateContext} into a {@link TestingStateContext}.
-     *
-     * @param stateContext the {@link StateContext} to wrap
-     * @return the created {@link TestingStateContext}
-     * @throws NullPointerException if the provided {@code stateContext} is {@code null}
-     */
-    public static TestingStateContext wrap(DialogFlowStateContext stateContext) {
-        return new DialogFlowTestingStateContext(stateContext);
     }
 }

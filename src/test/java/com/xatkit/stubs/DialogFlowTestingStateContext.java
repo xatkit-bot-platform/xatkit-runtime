@@ -39,6 +39,7 @@ public class DialogFlowTestingStateContext extends TestingStateContext implement
      */
     public DialogFlowTestingStateContext(@NonNull DialogFlowStateContext base) {
         super(base);
+        this.base = base;
     }
 
     /**
