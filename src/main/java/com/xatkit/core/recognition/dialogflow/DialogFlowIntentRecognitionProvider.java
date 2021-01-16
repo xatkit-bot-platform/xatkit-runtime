@@ -552,7 +552,7 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
     public StateContext createContext(@NonNull String sessionId) throws IntentRecognitionProviderException {
         checkNotShutdown();
         SessionName sessionName = SessionName.of(this.configuration.getProjectId(), sessionId);
-        return new DialogFlowStateContext(sessionName, this.configuration.getBaseConfiguration());
+        return new DialogFlowStateContextImpl(sessionName, this.configuration.getBaseConfiguration());
     }
 
     /**
@@ -575,9 +575,9 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
     protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
-        checkArgument(context instanceof DialogFlowStateContext, "Cannot handle the message, expected context type to" +
-                " be " +
-                "%s, found %s", DialogFlowStateContext.class.getSimpleName(), context.getClass().getSimpleName());
+        checkArgument(context instanceof DialogFlowStateContext, "Cannot handle the message, expected context type to"
+                        + " be %s, found %s", DialogFlowStateContextImpl.class.getSimpleName(),
+                context.getClass().getSimpleName());
         DialogFlowStateContext dialogFlowStateContext = (DialogFlowStateContext) context;
 
         TextInput.Builder textInput =
