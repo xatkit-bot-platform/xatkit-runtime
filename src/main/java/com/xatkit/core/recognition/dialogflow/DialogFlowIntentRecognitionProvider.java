@@ -576,7 +576,7 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         checkArgument(context instanceof DialogFlowStateContext, "Cannot handle the message, expected context type to"
-                        + " be %s, found %s", DialogFlowStateContextImpl.class.getSimpleName(),
+                        + " be %s, found %s", DialogFlowStateContext.class.getSimpleName(),
                 context.getClass().getSimpleName());
         DialogFlowStateContext dialogFlowStateContext = (DialogFlowStateContext) context;
 
