@@ -3,20 +3,17 @@ package com.xatkit.core.recognition.regex;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.IntentRecognitionProviderTest;
 import com.xatkit.execution.ExecutionFactory;
-import com.xatkit.execution.State;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.stubs.TestingStateContext;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.Collections;
-
+import static com.xatkit.stubs.TestingStateContextFactory.wrap;
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RegExIntentRecognitionProviderTest extends IntentRecognitionProviderTest<RegExIntentRecognitionProvider> {
 
@@ -54,9 +51,8 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
     public void getIntentValidIntentDefinitionNoOutContextUpperCase() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.registerIntentDefinition(intentProviderTestBot.getSimpleIntent());
-        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
-        context.setContextId("contextId");
-        context.setState(intentProviderTestBot.getModel().getInitState());
+        TestingStateContext context = wrap(intentRecognitionProvider.createContext("contextId"));
+        context.enableIntents(intentProviderTestBot.getSimpleIntent());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Greetings".toUpperCase(),
                 context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, intentProviderTestBot.getSimpleIntent().getName());
@@ -69,14 +65,8 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
         intentDefinition.setName("TestReservedRegExpCharacters");
         intentDefinition.getTrainingSentences().add("$test");
         intentRecognitionProvider.registerIntentDefinition(intentDefinition);
-        StateContext context = ExecutionFactory.eINSTANCE.createStateContext();
-        context.setContextId("contextID");
-        /*
-         * We need to set the context manually because the intent is not part of the loaded model.
-         */
-        State mockedInitState = mock(State.class);
-        context.setState(mockedInitState);
-        when(mockedInitState.getAllAccessedIntents()).thenReturn(Collections.singletonList(intentDefinition));
+        TestingStateContext context = wrap(intentRecognitionProvider.createContext("contextId"));
+        context.enableIntents(intentDefinition);
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("$test", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, intentDefinition.getName());
     }
