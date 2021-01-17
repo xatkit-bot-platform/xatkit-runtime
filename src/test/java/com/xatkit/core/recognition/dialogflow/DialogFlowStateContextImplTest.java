@@ -13,7 +13,7 @@ import java.util.AbstractMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DialogFlowStateContextTest extends AbstractXatkitTest {
+public class DialogFlowStateContextImplTest extends AbstractXatkitTest {
 
     private static String VALID_PROJECT_ID = VariableLoaderHelper.getXatkitDialogFlowProject();
 
@@ -24,26 +24,26 @@ public class DialogFlowStateContextTest extends AbstractXatkitTest {
 
     @Test(expected = NullPointerException.class)
     public void constructNullSessionName() {
-        stateContext = new DialogFlowStateContext(null);
+        stateContext = new DialogFlowStateContextImpl(null);
     }
 
     @Test
     public void constructValidSessionName() {
         SessionName sessionName = getValidSessionName();
-        stateContext = new DialogFlowStateContext(sessionName);
+        stateContext = new DialogFlowStateContextImpl(sessionName);
         assertDialogFlowStateContextHasName(stateContext, sessionName);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructNullConfiguration() {
         SessionName sessionName = getValidSessionName();
-        stateContext = new DialogFlowStateContext(sessionName, null);
+        stateContext = new DialogFlowStateContextImpl(sessionName, null);
     }
 
     @Test
     public void constructEmptyConfiguration() {
         SessionName sessionName = getValidSessionName();
-        stateContext = new DialogFlowStateContext(sessionName, new BaseConfiguration());
+        stateContext = new DialogFlowStateContextImpl(sessionName, new BaseConfiguration());
         assertDialogFlowStateContextHasName(stateContext, sessionName);
     }
 
@@ -52,7 +52,7 @@ public class DialogFlowStateContextTest extends AbstractXatkitTest {
         SessionName sessionName = getValidSessionName();
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(DialogFlowConfiguration.PROJECT_ID_KEY, "test");
-        stateContext = new DialogFlowStateContext(sessionName, configuration);
+        stateContext = new DialogFlowStateContextImpl(sessionName, configuration);
         assertDialogFlowStateContextHasName(stateContext, sessionName);
         assertThat(stateContext.getConfiguration()).contains(new AbstractMap.SimpleEntry<>(DialogFlowConfiguration.PROJECT_ID_KEY,
                 "test"));

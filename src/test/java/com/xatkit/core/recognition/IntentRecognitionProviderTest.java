@@ -7,6 +7,7 @@ import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.stubs.TestingStateContext;
 import com.xatkit.test.bot.IntentProviderTestBot;
 import org.junit.After;
 import org.junit.Before;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.xatkit.stubs.TestingStateContextFactory.wrap;
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -211,8 +213,7 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
     @Test
     public void getIntentNotRegistered() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
-        StateContext context = intentRecognitionProvider.createContext("TEST");
-        context.setState(intentProviderTestBot.getModel().getInitState());
+        TestingStateContext context = wrap(intentRecognitionProvider.createContext("TEST"));
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Error", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent,
                 IntentRecognitionProvider.DEFAULT_FALLBACK_INTENT.getName());
@@ -224,8 +225,8 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         registeredIntentDefinition = intentProviderTestBot.getSimpleIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        StateContext context = intentRecognitionProvider.createContext("TEST");
-        context.setState(intentProviderTestBot.getModel().getInitState());
+        TestingStateContext context = wrap(intentRecognitionProvider.createContext("TEST"));
+        context.enableIntents(registeredIntentDefinition);
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Greetings", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
     }
@@ -236,8 +237,8 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         registeredIntentDefinition = intentProviderTestBot.getSystemEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        StateContext context = intentRecognitionProvider.createContext("TEST");
-        context.setState(intentProviderTestBot.getModel().getInitState());
+        TestingStateContext context = wrap(intentRecognitionProvider.createContext("TEST"));
+        context.enableIntents(registeredIntentDefinition);
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Hello Test", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
         assertThatIntentContainsParameterWithValue(recognizedIntent, "helloTo", "Test");
@@ -251,8 +252,8 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         registeredIntentDefinition = intentProviderTestBot.getMappingEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        StateContext context = intentRecognitionProvider.createContext("TEST");
-        context.setState(intentProviderTestBot.getModel().getInitState());
+        TestingStateContext context = wrap(intentRecognitionProvider.createContext("TEST"));
+        context.enableIntents(registeredIntentDefinition);
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Give me some information about " +
                 "Gwendal", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
@@ -269,8 +270,8 @@ public abstract class IntentRecognitionProviderTest<T extends IntentRecognitionP
         registeredIntentDefinition = intentProviderTestBot.getCompositeEntityIntent();
         intentRecognitionProvider.registerIntentDefinition(registeredIntentDefinition);
         intentRecognitionProvider.trainMLEngine();
-        StateContext context = intentRecognitionProvider.createContext("TEST");
-        context.setState(intentProviderTestBot.getModel().getInitState());
+        TestingStateContext context = wrap(intentRecognitionProvider.createContext("TEST"));
+        context.enableIntents(registeredIntentDefinition);
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Does Jordi knows Barcelona?", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, registeredIntentDefinition.getName());
         assertThatIntentContainsParameter(recognizedIntent, "founderCity");

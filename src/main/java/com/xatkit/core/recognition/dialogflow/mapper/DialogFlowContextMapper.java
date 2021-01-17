@@ -19,7 +19,8 @@ import java.util.Map;
  * Maps {@link DialogFlowStateContext} instances to DialogFlow {@link Context}s.
  * <p>
  * This mapper is used to create an {@link Iterable} of {@link Context}s representing a snapshot of a given
- * {@link DialogFlowStateContext}, that can be used to deploy contexts on DialogFlow, or ensure the contexts are correctly
+ * {@link DialogFlowStateContext}, that can be used to deploy contexts on DialogFlow, or ensure the contexts are
+ * correctly
  * set before detecting an intent.
  */
 public class DialogFlowContextMapper {
