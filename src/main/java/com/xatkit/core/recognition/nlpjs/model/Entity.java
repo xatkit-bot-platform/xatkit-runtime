@@ -26,6 +26,8 @@ public class Entity {
 
     private BetweenCondition between;
 
+    private String regex;
+
     public static Builder newBuilder() {
         return new Builder();
     }
@@ -44,6 +46,7 @@ public class Entity {
 
         private BetweenCondition between;
 
+        private String regex;
 
         public Builder() {
             this._references = new ArrayList<>();
@@ -96,6 +99,11 @@ public class Entity {
             return this;
         }
 
+        public Builder addRegex(String regex) {
+            this.regex = regex;
+            return this;
+        }
+
         public Entity build() {
             Entity entity = new Entity();
             entity.setEntityName(_entityName);
@@ -104,6 +112,7 @@ public class Entity {
             entity.setAfterLast(_afterLast);
             entity.setBeforeLast(_beforeLast);
             entity.setBetween(between);
+            entity.setRegex(regex);
 
             return entity;
         }

@@ -147,7 +147,23 @@ public class NlpjsIntentMapper {
                                         anyEntitiesMap.put(nlpEntity,builder.build());
                                     }
                                 } else {
-                                    //TODO input Text
+                                    /*
+                                     * We didn't find anything before or after the text fragment mapped to an "any"
+                                     * entity. This means that the entire training sentence is mapped to the entity,
+                                     * and we map it to a regex matching anything.
+                                     */
+                                    nlpEntity = intentDefinition.getName() + parameter.getName() + "Any";
+                                    Entity entity = Entity.newBuilder()
+                                            .entityName(nlpEntity)
+                                            .type(com.xatkit.core.recognition.nlpjs.model.EntityType.REGEX)
+                                            /*
+                                             * Note that we use + here instead of *: otherwise the NLP.js server goes on
+                                             * an infinite recursion trying to match it.
+                                             */
+                                            .addRegex("/.+/")
+                                            .build();
+                                    anyEntitiesMap.put(nlpEntity, entity);
+                                    isAny = true;
                                 }
                             } else {
                                 nlpEntity = nlpjsEntityReferenceMapper.getMappingFor(parameter.getEntity()

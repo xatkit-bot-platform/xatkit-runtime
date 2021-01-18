@@ -69,6 +69,14 @@ public class NlpjsRecognitionResultMapper {
                             IntentFactory.eINSTANCE.createContextParameterValue();
                     if (nonNull(extractedEntity.getValue())) {
                         contextParameterValue.setValue(extractedEntity.getValue());
+                    } else if (extractedEntity.getType().equals("regex")) {
+                        /*
+                         * Regex in NLP.js are applied to the entire source text. This means that when a regex entity
+                         * is matched its entire source text is the value of the regex.
+                         * Since NLP.js doesn't set the value field of regex entities we use the utterance text to
+                         * populate the parameter value.
+                         */
+                        contextParameterValue.setValue(extractedEntity.getUtteranceText());
                     } else {
                         Log.warn("Cannot retrieve the value for the context parameter {0}", contextParameter.getName());
                     }
