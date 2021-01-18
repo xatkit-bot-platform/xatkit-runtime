@@ -34,18 +34,18 @@ public class NlpjsRecognitionResultMapper {
     private NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper;
 
     public NlpjsRecognitionResultMapper(@NonNull NlpjsConfiguration configuration,
-                                  @NonNull EventDefinitionRegistry eventRegistry,
+                                        @NonNull EventDefinitionRegistry eventRegistry,
                                         @NonNull NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
         this.configuration = configuration;
         this.eventRegistry = eventRegistry;
         this.nlpjsEntityReferenceMapper = nlpjsEntityReferenceMapper;
     }
 
-    public List<RecognizedIntent> mapRecognitionResult(@NonNull RecognitionResult recognitionResult){
+    public List<RecognizedIntent> mapRecognitionResult(@NonNull RecognitionResult recognitionResult) {
         List<Classification> classifications = recognitionResult.getClassifications();
         classifications = classifications.stream().filter(c -> c.getScore() > 0.1).collect(Collectors.toList());
         List<RecognizedIntent> recognizedIntents = new ArrayList<>();
-        for(Classification classification: classifications){
+        for (Classification classification : classifications) {
             RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
             IntentDefinition intentDefinition = convertNlpjsIntentNameToIntentDefinition(classification.getIntent());
             recognizedIntent.setDefinition(intentDefinition);
@@ -54,35 +54,35 @@ public class NlpjsRecognitionResultMapper {
             recognizedIntents.add(recognizedIntent);
         }
 
-        return  recognizedIntents;
+        return recognizedIntents;
     }
 
     public List<ContextParameterValue> mapParameterValues(RecognizedIntent recognizedIntent,
                                                           List<ExtractedEntity> extractedEntities) {
         List<ContextParameterValue> contextParameterValues = new ArrayList<>();
-        for (ExtractedEntity extractedEntity: extractedEntities) {
+        for (ExtractedEntity extractedEntity : extractedEntities) {
             String entityType = extractedEntity.getEntity();
-                ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType,
-                        (IntentDefinition) recognizedIntent.getDefinition(), nlpjsEntityReferenceMapper);
-                if (nonNull(contextParameter)) {
-                    ContextParameterValue contextParameterValue =
-                            IntentFactory.eINSTANCE.createContextParameterValue();
-                    if (nonNull(extractedEntity.getValue())) {
-                        contextParameterValue.setValue(extractedEntity.getValue());
-                    } else if (extractedEntity.getType().equals("regex")) {
-                        /*
-                         * Regex in NLP.js are applied to the entire source text. This means that when a regex entity
-                         * is matched its entire source text is the value of the regex.
-                         * Since NLP.js doesn't set the value field of regex entities we use the utterance text to
-                         * populate the parameter value.
-                         */
-                        contextParameterValue.setValue(extractedEntity.getUtteranceText());
-                    } else {
-                        Log.warn("Cannot retrieve the value for the context parameter {0}", contextParameter.getName());
-                    }
-                    contextParameterValue.setContextParameter(contextParameter);
-                    contextParameterValues.add(contextParameterValue);
+            ContextParameter contextParameter = NlpjsHelper.getContextParameterFromNlpEntity(entityType,
+                    (IntentDefinition) recognizedIntent.getDefinition(), nlpjsEntityReferenceMapper);
+            if (nonNull(contextParameter)) {
+                ContextParameterValue contextParameterValue =
+                        IntentFactory.eINSTANCE.createContextParameterValue();
+                if (nonNull(extractedEntity.getValue())) {
+                    contextParameterValue.setValue(convertParameterValueToString(extractedEntity.getValue()));
+                } else if (extractedEntity.getType().equals("regex")) {
+                    /*
+                     * Regex in NLP.js are applied to the entire source text. This means that when a regex entity
+                     * is matched its entire source text is the value of the regex.
+                     * Since NLP.js doesn't set the value field of regex entities we use the utterance text to
+                     * populate the parameter value.
+                     */
+                    contextParameterValue.setValue(convertParameterValueToString(extractedEntity.getUtteranceText()));
+                } else {
+                    Log.warn("Cannot retrieve the value for the context parameter {0}", contextParameter.getName());
                 }
+                contextParameterValue.setContextParameter(contextParameter);
+                contextParameterValues.add(contextParameterValue);
+            }
         }
         /*
          * Warning: do not add the context parameters to the recognized intent, otherwise they will be added twice
@@ -98,25 +98,24 @@ public class NlpjsRecognitionResultMapper {
         IntentDefinition result = eventRegistry.getIntentDefinition(intentName);
         if (isNull(result)) {
             Log.warn("Cannot retrieve the {0} with the provided name {1}, returning the Default Fallback Intent",
-                    IntentDefinition.class.getSimpleName(),intentName);
+                    IntentDefinition.class.getSimpleName(), intentName);
             result = DEFAULT_FALLBACK_INTENT;
         }
         return result;
     }
 
-    private String convertParameterValueToString(@NonNull ExtractedEntity extractedEntity) {
-        Object value = extractedEntity.getValue();
-        if (value instanceof String) {
-            return (String) value;
+    private String convertParameterValueToString(@NonNull Object parameterValue) {
+        if (parameterValue instanceof String) {
+            return (String) parameterValue;
         }
-        if (value instanceof Number) {
+        if (parameterValue instanceof Number) {
             DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
             decimalFormatSymbols.setDecimalSeparator('.');
             DecimalFormat decimalFormat = new DecimalFormat("0.###", decimalFormatSymbols);
             decimalFormat.setGroupingUsed(false);
-            return decimalFormat.format(value);
+            return decimalFormat.format(parameterValue);
         }
-        Log.error("Cannot convert the provided value {0}", extractedEntity);
+        Log.error("Cannot convert the provided value {0}", parameterValue);
         return "";
     }
 }
