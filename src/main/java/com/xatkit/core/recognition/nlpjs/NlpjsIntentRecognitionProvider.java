@@ -111,7 +111,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         checkNotShutdown();
         if (entityDefinition instanceof BaseEntityDefinition) {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
-            if (nlpjsEntityReferenceMapper.isSupported(baseEntityDefinition.getEntityType())) {
+            if (!nlpjsEntityReferenceMapper.isSupported(baseEntityDefinition.getEntityType())) {
                 throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
                         "{0}. This type is not supported by NLP.js", entityDefinition));
             }
