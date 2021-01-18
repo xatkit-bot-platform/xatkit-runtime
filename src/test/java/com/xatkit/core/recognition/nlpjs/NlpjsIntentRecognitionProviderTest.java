@@ -9,14 +9,45 @@ import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
 
+import static com.xatkit.dsl.DSL.countyGb;
 import static com.xatkit.stubs.TestingStateContextFactory.wrap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProviderTest<NlpjsIntentRecognitionProvider> {
 
     /*
-     * Our connector uses a dedicated mapping for "any" intents containing training sentences entirely mapped to an
-     * "any" entity. This test case ensures that the provider returns a correct RecognizedIntent for an input text
+     * This test ensures that registering a base entity that is not supported by NLP.js doesn't throw any exception.
+     * It was the case before, but now Xatkit gracefully degrades to using "any" entities if a base entity is not
+     * supported.
+     */
+    @Test
+    public void registerEntityDefinitionNotSupportedBaseEntity() throws IntentRecognitionProviderException {
+        this.intentRecognitionProvider = getIntentRecognitionProvider();
+        this.intentRecognitionProvider.registerEntityDefinition(countyGb().getReferredEntity());
+    }
+
+    /*
+     * The NLP.js connector uses "any" entities if the provided base entity is not supported. This means that the
+     * intent should be more permissive and match more input. This test ensures that matching is correctly done after
+     * degrading an unsupported base entity to "any".
+     */
+    @Test
+    public void getIntentNotSupportedBaseEntity() throws IntentRecognitionProviderException {
+        this.eventRegistry.registerEventDefinition(CoreLibrary.CountyGBValue);
+        this.intentRecognitionProvider = getIntentRecognitionProvider();
+        this.intentRecognitionProvider.registerIntentDefinition(CoreLibrary.CountyGBValue);
+        this.intentRecognitionProvider.trainMLEngine();
+        TestingStateContext context = wrap(this.intentRecognitionProvider.createContext("contextId"));
+        context.enableIntents(CoreLibrary.CountyGBValue);
+        RecognizedIntent recognizedIntent = this.intentRecognitionProvider.getIntent("London", context);
+        assertThat(recognizedIntent.getDefinition().getName()).isEqualTo(CoreLibrary.CountyGBValue.getName());
+        assertThat(recognizedIntent.getRecognitionConfidence()).isEqualTo(1);
+        assertThat(recognizedIntent.getValue("value")).isEqualTo("London");
+    }
+
+    /*
+     * The NLP.js connector uses a dedicated mapping for "any" intents containing training sentences entirely mapped
+     * to an "any" entity. This test case ensures that the provider returns a correct RecognizedIntent for an input text
      * matching such intent.
      */
     @Test

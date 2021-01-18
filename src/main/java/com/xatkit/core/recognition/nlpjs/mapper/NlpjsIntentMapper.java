@@ -84,6 +84,24 @@ public class NlpjsIntentMapper {
                             isParameter = true;
                             String nlpEntity = null;
                             boolean isAny = false;
+
+                            /*
+                             * Gracefully degrades the provided parameter type to "any" if the base entity it refers to
+                             * is not supported. This allows NLP.js to match the entity, but it is more permissive
+                             * than a correct implementation of it (it will basically match any value for the
+                             * parameter).
+                             * This pre-processing is done before any-specific entity configuration, allowing to
+                             * reuse before/after extraction rules or regex, depending on the nature of the training
+                             * sentence.
+                             */
+                            if (nlpjsEntityReferenceMapper.getMappingFor(parameter.getEntity().getReferredEntity()).equals("none")) {
+                                if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
+                                    BaseEntityDefinition baseEntityDefinition =
+                                            (BaseEntityDefinition) parameter.getEntity().getReferredEntity();
+                                    baseEntityDefinition.setEntityType(EntityType.ANY);
+                                }
+                            }
+
                             if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition &&
                                     ((BaseEntityDefinition) parameter.getEntity().getReferredEntity()).getEntityType().equals(EntityType.ANY)) {
                                 int textFragmentIndexStart =

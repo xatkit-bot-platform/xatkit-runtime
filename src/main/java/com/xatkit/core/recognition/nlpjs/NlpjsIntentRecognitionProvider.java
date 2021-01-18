@@ -127,8 +127,10 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         if (entityDefinition instanceof BaseEntityDefinition) {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
             if (!nlpjsEntityReferenceMapper.isSupported(baseEntityDefinition.getEntityType())) {
-                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
-                        "{0}. This type is not supported by NLP.js", entityDefinition));
+                Log.warn("Entity \"{0}\" is not supported by NLP.js, Xatkit will gracefully degrade to using an "
+                        + "\"any\" entity instead. This makes the recognition more permissive and may produce "
+                                + "false positive matches. You can migrate your bot to another provider if needed.",
+                        entityDefinition.getName());
             }
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             Log.debug("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
