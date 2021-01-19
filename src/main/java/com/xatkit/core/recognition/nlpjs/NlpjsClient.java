@@ -25,19 +25,16 @@ import java.util.concurrent.TimeUnit;
 
 public class NlpjsClient {
 
-    private final static String NLPJS_BASE_PATH = "/api";
-
-    private String nlpjsServer;
+    private static final String NLPJS_API_BASE_PATH = "/api";
 
     private NlpjsApi nlpjsApi;
 
     private Gson gson;
 
-    public NlpjsClient(@NonNull String nlpjsServer) {
-        this.nlpjsServer = nlpjsServer;
+    public NlpjsClient(@NonNull String nlpjsServerUrl) {
         gson = new GsonBuilder().registerTypeAdapter(ExtractedEntity.class, new ExtractedEntityDeserializer())
                 .create();
-        String nlpjsApiFullPath = this.nlpjsServer + NLPJS_BASE_PATH + "/";
+        String nlpjsApiUrl = nlpjsServerUrl + NLPJS_API_BASE_PATH + "/";
         OkHttpClient httpClient = new OkHttpClient.Builder()
                 .addInterceptor(new HttpLoggingInterceptor(message -> {
                     message = message.replaceAll("'", "''");
@@ -48,7 +45,7 @@ public class NlpjsClient {
                 .readTimeout(30, TimeUnit.SECONDS)
                 .build();
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(nlpjsApiFullPath)
+                .baseUrl(nlpjsApiUrl)
                 .client(httpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson)).build();
         this.nlpjsApi = retrofit.create(NlpjsApi.class);
