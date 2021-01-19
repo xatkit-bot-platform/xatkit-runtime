@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class ErrorBody {
 
-    String message;
+    private String message;
 }

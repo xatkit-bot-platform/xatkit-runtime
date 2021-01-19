@@ -29,7 +29,7 @@ public class NlpjsEntityMapper {
 
     private Entity mapCustomEntityDefinition(@NonNull CustomEntityDefinition customEntityDefinition) throws IntentRecognitionProviderException {
         String entityName = customEntityDefinition.getName();
-        Entity.Builder builder = Entity.newBuilder();
+        Entity.EntityBuilder builder = Entity.builder();
         builder.entityName(entityName);
         if (customEntityDefinition instanceof MappingEntityDefinition) {
             MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) customEntityDefinition;
@@ -49,8 +49,10 @@ public class NlpjsEntityMapper {
     private List<EntityValue> createReferencesFromMapping(MappingEntityDefinition mappingEntityDefinition) {
         List<EntityValue> entityValues = new ArrayList<>();
         for (MappingEntityDefinitionEntry entry : mappingEntityDefinition.getEntries()) {
-            EntityValue.Builder builder = EntityValue.newBuilder().value(entry.getReferenceValue())
-                    .synonyms(entry.getSynonyms()).addSynonym(entry.getReferenceValue());
+            EntityValue.EntityValueBuilder builder = EntityValue.builder()
+                    .value(entry.getReferenceValue())
+                    .synonyms(entry.getSynonyms())
+                    .synonym(entry.getReferenceValue());
             entityValues.add(builder.build());
         }
         return entityValues;

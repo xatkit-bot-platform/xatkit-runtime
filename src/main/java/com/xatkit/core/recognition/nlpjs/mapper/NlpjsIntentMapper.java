@@ -38,7 +38,7 @@ public class NlpjsIntentMapper {
     public Intent mapIntentDefinition(@NonNull IntentDefinition intentDefinition, List<Entity> anyEntitiesCollector) {
         checkNotNull(intentDefinition.getName(), "Cannot map the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());
-        Intent.Builder builder = Intent.newBuilder()
+        Intent.IntentBuilder builder = Intent.builder()
                 .intentName(intentDefinition.getName());
         Map<String, IntentParameter> intentParametersMap = new HashMap<>();
         Map<String, Entity> anyEntitiesMap = new HashMap<>();
@@ -149,7 +149,7 @@ public class NlpjsIntentMapper {
                                             anyEntitiesMap.get(nlpEntity).getAfterLast().add(afterLast);
                                         }
                                     } else {
-                                        Entity.Builder builder = Entity.newBuilder();
+                                        Entity.EntityBuilder builder = Entity.builder();
                                         builder.entityName(nlpEntity);
                                         builder.type(com.xatkit.core.recognition.nlpjs.model.EntityType.TRIM);
                                         if (nonNull(beforeLast) && nonNull(afterLast)) {
@@ -171,14 +171,14 @@ public class NlpjsIntentMapper {
                                      * and we map it to a regex matching anything.
                                      */
                                     nlpEntity = intentDefinition.getName() + parameter.getName() + "Any";
-                                    Entity entity = Entity.newBuilder()
+                                    Entity entity = Entity.builder()
                                             .entityName(nlpEntity)
                                             .type(com.xatkit.core.recognition.nlpjs.model.EntityType.REGEX)
                                             /*
                                              * Note that we use + here instead of *: otherwise the NLP.js server goes on
                                              * an infinite recursion trying to match it.
                                              */
-                                            .addRegex("/.+/")
+                                            .regex("/.+/")
                                             .build();
                                     anyEntitiesMap.put(nlpEntity, entity);
                                     isAny = true;

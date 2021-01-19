@@ -183,7 +183,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     public void trainMLEngine() throws IntentRecognitionProviderException {
         checkNotShutdown();
         Log.info("Starting NLP.js agent training (this may take a few minutes)");
-        TrainingData trainingData = TrainingData.newBuilder()
+        TrainingData trainingData = TrainingData.builder()
                 .config(new AgentConfig(this.configuration.getLanguageCode(), this.configuration.isCleanAgentOnStartup()))
                 .intents(new ArrayList<>(this.intentsToRegister.values()))
                 .entities(new ArrayList<>(this.entitiesToRegister.values()))
