@@ -149,7 +149,7 @@ public class NlpjsClient {
      * The provided {@code agentId} must match the identifier of an existing agent, see
      * {@link #createAgent(AgentInit)} to create an agent.
      *
-     * @param agentId the identifier of the agent to train
+     * @param agentId the identifier of the agent
      * @param message the message to recognize
      * @return the {@link RecognitionResult} computed by NLP.js for the provided {@code message}
      * @throws NlpjsClientException if the server is unreachable or if the API returned an error status code
