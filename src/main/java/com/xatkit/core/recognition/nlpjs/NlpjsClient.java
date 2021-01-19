@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.concurrent.TimeUnit;
 
-public class NlpjsService {
+public class NlpjsClient {
 
     private final static String NLPJS_BASE_PATH = "/api";
 
@@ -27,7 +27,7 @@ public class NlpjsService {
 
     private Gson gson;
 
-    public NlpjsService(@NonNull String nlpjsServer) {
+    public NlpjsClient(@NonNull String nlpjsServer) {
         this.nlpjsServer = nlpjsServer;
         gson = new GsonBuilder().registerTypeAdapter(ExtractedEntity.class, new ExtractedEntityDeserializer())
                 .create();

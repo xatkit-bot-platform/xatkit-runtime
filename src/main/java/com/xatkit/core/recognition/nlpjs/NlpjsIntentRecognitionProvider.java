@@ -58,7 +58,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     private NlpjsRecognitionResultMapper nlpjsRecognitionResultMapper;
 
-    private NlpjsService nlpjsService;
+    private NlpjsClient nlpjsClient;
 
     private String agentId;
 
@@ -114,7 +114,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.nlpjsEntityReferenceMapper = new NlpjsEntityReferenceMapper();
         this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration, nlpjsEntityReferenceMapper);
         this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry, nlpjsEntityReferenceMapper);
-        this.nlpjsService = new NlpjsService(this.nlpjsServer);
+        this.nlpjsClient = new NlpjsClient(this.nlpjsServer);
         this.nlpjsEntityMapper = new NlpjsEntityMapper();
         this.recognitionMonitor = recognitionMonitor;
         this.intentsToRegister = new HashMap<>();
@@ -191,10 +191,10 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         try {
             boolean isDone = false;
             int attemptsLeft = 10;
-            this.nlpjsService.trainAgent(agentId, trainingData);
+            this.nlpjsClient.trainAgent(agentId, trainingData);
             while (!isDone && attemptsLeft > 0) {
                 Thread.sleep(2000);
-                Agent agent = this.nlpjsService.getAgentInfo(this.agentId);
+                Agent agent = this.nlpjsClient.getAgentInfo(this.agentId);
                 if (agent.getStatus().equals(AgentStatus.READY)) {
                     isDone = true;
                 } else {
@@ -237,7 +237,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
          * We use the isShutdown flag here in case the provider has been stopped by the framework, but we also want
          * to return true if the underlying NlpjsService is not able to access the agent.
          */
-        return this.isShutdown || nlpjsService.isShutdown();
+        return this.isShutdown || nlpjsClient.isShutdown();
     }
 
     @Override
@@ -247,7 +247,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         try {
             RecognizedIntent recognizedIntent;
             UserMessage userMessage = new UserMessage(input);
-            RecognitionResult recognitionResult = this.nlpjsService.getIntent(agentId, userMessage);
+            RecognitionResult recognitionResult = this.nlpjsClient.getIntent(agentId, userMessage);
             List<Classification> classifications = recognitionResult.getClassifications();
             if (!classifications.isEmpty() && classifications.get(0).getIntent().equals("None")) {
                 recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
