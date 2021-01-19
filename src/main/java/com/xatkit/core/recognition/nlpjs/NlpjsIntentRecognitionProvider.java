@@ -206,7 +206,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             } else {
                 throw new IntentRecognitionProviderException("Failed to train the NLP.js agent");
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (NlpjsClientException | InterruptedException e) {
             throw new IntentRecognitionProviderException("An error occurred during the NLP agent training: ", e);
         }
     }
@@ -265,7 +265,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             }
             return recognizedIntent;
 
-        } catch (IOException e) {
+        } catch (NlpjsClientException e) {
             throw new IntentRecognitionProviderException(e);
         }
     }
