@@ -1,219 +1,173 @@
 package com.xatkit.core.recognition.nlpjs.mapper;
 
-import com.xatkit.core.recognition.nlpjs.NlpjsConfiguration;
-import com.xatkit.core.recognition.nlpjs.NlpjsHelper;
-import com.xatkit.core.recognition.nlpjs.model.BetweenCondition;
-import com.xatkit.core.recognition.nlpjs.model.Entity;
 import com.xatkit.core.recognition.nlpjs.model.Intent;
 import com.xatkit.core.recognition.nlpjs.model.IntentExample;
 import com.xatkit.core.recognition.nlpjs.model.IntentParameter;
-import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.ContextParameter;
-import com.xatkit.intent.EntityType;
 import com.xatkit.intent.IntentDefinition;
 import lombok.NonNull;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
-import static java.util.Objects.nonNull;
 
+/**
+ * Maps {@link IntentDefinition} instances to NLP.js {@link Intent}s.
+ * <p>
+ * This class is used to translate generic {@link IntentDefinition}s to platform-specific construct representing NLP
+ * .js intents.
+ * <p>
+ * Calling {@link #mapIntentDefinition(IntentDefinition)} produces a complete NLP.js {@link Intent} containing the
+ * training sentences as well as the parameters specified in the abstract {@link IntentDefinition}. Note that this
+ * method does not create the {@link com.xatkit.core.recognition.nlpjs.model.Entity} instances used in the intent
+ * training sentences. See {@link NlpjsEntityMapper} for Xatkit to NLP.js entity mapping.
+ * <p>
+ * This class uses the provided {@link NlpjsEntityReferenceMapper} to replace parameter references (defined in
+ * {@link ContextParameter#getTextFragments()}) with a string literal that can be properly interpreted by NLP.js.
+ */
 public class NlpjsIntentMapper {
 
-    private NlpjsConfiguration configuration;
-
+    /**
+     * The {@link NlpjsEntityReferenceMapper} used to map parameter references.
+     * <p>
+     * Parameter references are specified in {@link ContextParameter#getTextFragments()}. This mapper transforms this
+     * abstract representation into a string literal that can be included in NLP.js intent examples and
+     * properly interpreted by the NLP.js server.
+     */
     private NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper;
 
-    public NlpjsIntentMapper(@NonNull NlpjsConfiguration configuration,
-                             @NonNull NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
-        this.configuration = configuration;
+    /**
+     * Construct an instance of the mapper with the provided {@code nlpjsEntityReferenceMapper}.
+     *
+     * @param nlpjsEntityReferenceMapper the mapper used to map parameter references
+     * @throws NullPointerException if the provided {@code nlpjsEntityReferenceMapper} is {@code null}
+     * @see #nlpjsEntityReferenceMapper
+     */
+    public NlpjsIntentMapper(@NonNull NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper) {
         this.nlpjsEntityReferenceMapper = nlpjsEntityReferenceMapper;
-
     }
 
-    public Intent mapIntentDefinition(@NonNull IntentDefinition intentDefinition, List<Entity> anyEntitiesCollector) {
+    /**
+     * Maps the provided {@link IntentDefinition} to a NLP.js {@link Intent}.
+     * <p>
+     * This method sets the name of the created intent, its training sentences, and the parameters used to extract
+     * information from user input. Note that this method does not check if the entities referred in the
+     * intent parameters are registered in the NLP.js agent.
+     *
+     * @param intentDefinition the {@link IntentDefinition} to map
+     * @return the created {@link Intent}
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
+     */
+    public Intent mapIntentDefinition(@NonNull IntentDefinition intentDefinition) {
         checkNotNull(intentDefinition.getName(), "Cannot map the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());
         Intent.IntentBuilder builder = Intent.builder()
                 .intentName(intentDefinition.getName());
-        Map<String, IntentParameter> intentParametersMap = new HashMap<>();
-        Map<String, Entity> anyEntitiesMap = new HashMap<>();
-        List<IntentExample> intentExamples = createIntentExamples(intentDefinition, intentParametersMap,
-                anyEntitiesMap);
-        anyEntitiesCollector.addAll(anyEntitiesMap.values());
+        List<IntentExample> intentExamples = createIntentExamples(intentDefinition);
         builder.examples(intentExamples);
-        builder.parameters(new ArrayList<>(intentParametersMap.values()));
+        builder.parameters(createIntentParameters(intentDefinition));
         return builder.build();
     }
 
-    private List<IntentExample> createIntentExamples(@NonNull IntentDefinition intentDefinition, @NonNull Map<String,
-            IntentParameter> intentParametersMap, Map<String, Entity> anyEntitiesMap) {
-        List<IntentExample> intentExamples = new ArrayList<>();
+    /**
+     * Creates the {@link IntentExample}s representing the training sentences of the provided {@code intentDefinition}.
+     * <p>
+     * This method replaces the parameter references (specified in {@link ContextParameter#getTextFragments()}) with
+     * NLP.js-compatible references retrieved from the {@link NlpjsEntityReferenceMapper}. Note that this method does
+     * not register the referred entities, nor check if these entities have been registered.
+     *
+     * @param intentDefinition the {@link IntentDefinition} to map the training sentences of
+     * @return the {@link IntentExample}s representing the training sentences of the provided {@code intentDefinition}
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
+     */
+    private List<IntentExample> createIntentExamples(@NonNull IntentDefinition intentDefinition) {
+        List<IntentExample> result = new ArrayList<>();
         for (String trainingSentence : intentDefinition.getTrainingSentences()) {
-            intentExamples.add(createIntentExample(intentDefinition, trainingSentence, intentParametersMap,
-                    anyEntitiesMap));
-        }
-        return intentExamples;
-    }
-
-    private IntentExample createIntentExample(@NonNull IntentDefinition intentDefinition,
-                                              @NonNull String trainingSentence,
-                                              @NonNull Map<String, IntentParameter> intentParametersMap, Map<String,
-            Entity> anyEntitiesMap) {
-        if (intentDefinition.getParameters().isEmpty()) {
-            return new IntentExample(trainingSentence);
-        } else {
-            String preparedTrainingSentence = trainingSentence;
-            for (ContextParameter parameter : intentDefinition.getParameters()) {
-                if (preparedTrainingSentence.contains(parameter.getTextFragments().get(0))) {
-                    preparedTrainingSentence = preparedTrainingSentence.replace(parameter.getTextFragments().get(0), "#"
-                            + parameter.getTextFragments().get(0) + "#");
-                }
-            }
-
-            String[] splitTrainingSentence = preparedTrainingSentence.split("#");
-            StringBuilder intentExampleBuilder = new StringBuilder();
-            for (String sentencePart : splitTrainingSentence) {
-                boolean isParameter = false;
+            if (intentDefinition.getParameters().isEmpty()) {
+                /*
+                 * There is no parameter in the IntentDefinition, we don't need to do any processing and we can
+                 * create the IntentExample with the raw training sentence.
+                 */
+                result.add(new IntentExample(trainingSentence));
+            } else {
+                /*
+                 * First mark all the context parameter literals with #<literal>#. This pre-processing allows to easily
+                 * split the training sentence into TrainingPhrase parts, that are bound to their concrete entity when
+                 * needed, and sent to the DialogFlow API.
+                 * We use this two-step process for simplicity. If the performance of TrainingPhrase creation become an
+                 * issue we can reshape this method to avoid this pre-processing phase.
+                 * TODO this code is duplicated from DialogFlowIntentMapper
+                 */
+                String preparedTrainingSentence = trainingSentence;
                 for (ContextParameter parameter : intentDefinition.getParameters()) {
-                    if (sentencePart.equals(parameter.getTextFragments().get(0))) {
-                        checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the parameter "
-                                        + "for the fragment \"%s\" does not define a name", trainingSentence,
-                                parameter.getTextFragments().get(0));
-                        checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the parameter"
-                                        + " for the fragment \"%s\" does not define an entity", trainingSentence,
-                                parameter.getTextFragments().get(0));
-                        isParameter = true;
-                        String nlpEntity = null;
-                        boolean isAny = false;
-
-                        /*
-                         * Gracefully degrades the provided parameter type to "any" if the base entity it refers to
-                         * is not supported. This allows NLP.js to match the entity, but it is more permissive
-                         * than a correct implementation of it (it will basically match any value for the
-                         * parameter).
-                         * This pre-processing is done before any-specific entity configuration, allowing to
-                         * reuse before/after extraction rules or regex, depending on the nature of the training
-                         * sentence.
-                         */
-                        if (nlpjsEntityReferenceMapper.getMappingFor(parameter.getEntity().getReferredEntity()).equals("none")) {
-                            if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
-                                BaseEntityDefinition baseEntityDefinition =
-                                        (BaseEntityDefinition) parameter.getEntity().getReferredEntity();
-                                baseEntityDefinition.setEntityType(EntityType.ANY);
-                            }
-                        }
-
-                        if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition
-                                && ((BaseEntityDefinition) parameter.getEntity().getReferredEntity()).getEntityType().equals(EntityType.ANY)) {
-                            int textFragmentIndexStart =
-                                    trainingSentence.indexOf(parameter.getTextFragments().get(0));
-                            int textFragmentIndexEnd =
-                                    textFragmentIndexStart + parameter.getTextFragments().get(0).length();
-                            String[] preParameterArray = null;
-                            String[] postParameterArray = null;
-                            if (textFragmentIndexStart != 0) {
-                                preParameterArray = trainingSentence.substring(0, textFragmentIndexStart).split(" ");
-                            }
-                            if (textFragmentIndexEnd != trainingSentence.length()) {
-                                postParameterArray = trainingSentence.substring(textFragmentIndexEnd).split(" ");
-                            }
-
-                            String beforeLast = null;
-                            String afterLast = null;
-
-                            if (nonNull(preParameterArray) && preParameterArray.length > 0) {
-                                afterLast = preParameterArray[preParameterArray.length - 1];
-                            }
-                            if (nonNull(postParameterArray) && postParameterArray.length > 0) {
-                                beforeLast =
-                                        Arrays.stream(postParameterArray).filter(v -> !v.equals("")).findFirst().orElse(null);
-                                if (nonNull(beforeLast) && beforeLast.equals("?")) {
-                                    beforeLast = "\\?";
-                                }
-                            }
-
-                            if (nonNull(beforeLast) || nonNull(afterLast)) {
-                                nlpEntity = intentDefinition.getName() + parameter.getName() + "Any";
-                                isAny = true;
-                                if (anyEntitiesMap.containsKey(nlpEntity)) {
-                                    if (nonNull(beforeLast) && nonNull(afterLast)) {
-                                        Entity entity = anyEntitiesMap.get(nlpEntity);
-                                        if (entity.getBetween() == null) {
-                                            BetweenCondition betweenCondition = new BetweenCondition();
-                                            entity.setBetween(betweenCondition);
-                                        }
-                                        entity.getBetween().getLeft().add(afterLast);
-                                        entity.getBetween().getRight().add(beforeLast);
-                                    } else if (nonNull(beforeLast)) {
-                                        anyEntitiesMap.get(nlpEntity).getBeforeLast().add(beforeLast);
-                                    } else {
-                                        anyEntitiesMap.get(nlpEntity).getAfterLast().add(afterLast);
-                                    }
-                                } else {
-                                    Entity.EntityBuilder builder = Entity.builder();
-                                    builder.entityName(nlpEntity);
-                                    builder.type(com.xatkit.core.recognition.nlpjs.model.EntityType.TRIM);
-                                    if (nonNull(beforeLast) && nonNull(afterLast)) {
-                                        BetweenCondition betweenCondition = new BetweenCondition();
-                                        betweenCondition.getRight().add(beforeLast);
-                                        betweenCondition.getLeft().add(afterLast);
-                                        builder.between(betweenCondition);
-                                    } else if (nonNull(beforeLast)) {
-                                        builder.addBeforeLast(beforeLast);
-                                    } else {
-                                        builder.addAfterLast(afterLast);
-                                    }
-                                    anyEntitiesMap.put(nlpEntity, builder.build());
-                                }
-                            } else {
-                                /*
-                                 * We didn't find anything before or after the text fragment mapped to an "any"
-                                 * entity. This means that the entire training sentence is mapped to the entity,
-                                 * and we map it to a regex matching anything.
-                                 */
-                                nlpEntity = intentDefinition.getName() + parameter.getName() + "Any";
-                                Entity entity = Entity.builder()
-                                        .entityName(nlpEntity)
-                                        .type(com.xatkit.core.recognition.nlpjs.model.EntityType.REGEX)
-                                        /*
-                                         * Note that we use + here instead of *: otherwise the NLP.js server goes on
-                                         * an infinite recursion trying to match it.
-                                         */
-                                        .regex("/.+/")
-                                        .build();
-                                anyEntitiesMap.put(nlpEntity, entity);
-                                isAny = true;
-                            }
-                        } else {
-                            nlpEntity = nlpjsEntityReferenceMapper.getMappingFor(parameter.getEntity()
-                                    .getReferredEntity());
-
-                        }
-                        StringBuilder nlpjsIntentParameterBuilder = new StringBuilder().append(nlpEntity);
-                        if (!isAny && NlpjsHelper.getEntityCount(parameter.getEntity().getReferredEntity(),
-                                intentDefinition) > 1) {
-                            nlpjsIntentParameterBuilder.append("_").append(NlpjsHelper.getEntityTypeIndex(parameter.getTextFragments().get(0),
-                                    parameter.getEntity().getReferredEntity(), intentDefinition));
-                        }
-                        String nlpjsIntentParameter = nlpjsIntentParameterBuilder.toString();
-                        intentExampleBuilder.append("%").append(nlpjsIntentParameter).append("%");
-                        if (!intentParametersMap.containsKey(parameter.getName())) {
-                            IntentParameter intentParameter = new IntentParameter();
-                            intentParameter.setSlot(nlpjsIntentParameter);
-                            intentParametersMap.put(parameter.getName(), intentParameter);
-                        }
+                    if (preparedTrainingSentence.contains(parameter.getTextFragments().get(0))) {
+                        preparedTrainingSentence =
+                                preparedTrainingSentence.replace(parameter.getTextFragments().get(0), "#"
+                                        + parameter.getTextFragments().get(0) + "#");
                     }
                 }
-                if (!isParameter) {
-                    intentExampleBuilder.append(sentencePart);
+                String[] splitTrainingSentence = preparedTrainingSentence.split("#");
+                StringBuilder intentExampleBuilder = new StringBuilder();
+                for (String sentencePart : splitTrainingSentence) {
+                    boolean isParameter = false;
+                    for (ContextParameter parameter : intentDefinition.getParameters()) {
+                        if (sentencePart.equals(parameter.getTextFragments().get(0))) {
+                            checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the "
+                                            + "parameter for the fragment \"%s\" does not define a name",
+                                    trainingSentence, parameter.getTextFragments().get(0));
+                            checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the "
+                                            + "parameter for the fragment \"%s\" does not define an entity",
+                                    trainingSentence, parameter.getTextFragments().get(0));
+                            isParameter = true;
+                            String entityReference = nlpjsEntityReferenceMapper.getMappingFor(parameter).get();
+                            /*
+                             * NLP.js uses the following format for entity reference in IntentExamples %entity_name%.
+                             */
+                            intentExampleBuilder.append("%").append(entityReference).append("%");
+                        }
+                    }
+                    if (!isParameter) {
+                        /*
+                         * The sentence part is not a fragment of a context parameter. There is no processing to do
+                         * for this specific part and we can add it as is in the builder.
+                         */
+                        intentExampleBuilder.append(sentencePart);
+                    }
                 }
+                result.add(new IntentExample(intentExampleBuilder.toString()));
             }
-            return new IntentExample(intentExampleBuilder.toString());
         }
+        return result;
+    }
+
+    /**
+     * Creates the {@link IntentParameter}s representing the parameters of the provided {@code intentDefinition}.
+     * <p>
+     * This method sets the {@code slot} references of the created {@link IntentParameter}s. Each slot matches an
+     * {@link IntentExample} fragment, and is used in the intent recognition process to extract parameter values.
+     * <p>
+     * Note: NLP.js {@link IntentParameter}s do not define a name.
+     *
+     * @param intentDefinition the {@link IntentDefinition} to create the parameters from
+     * @return the {@link IntentParameter}s representing the parameters of the provided {@code intentDefinition}
+     * @throws NullPointerException  if the provided {@code intentDefinition} is {@code null}
+     * @throws IllegalStateException if the {@link NlpjsEntityReferenceMapper} cannot find the mapping for a parameter
+     */
+    private Collection<IntentParameter> createIntentParameters(@NonNull IntentDefinition intentDefinition)
+            throws NoSuchElementException {
+        Collection<IntentParameter> result = new ArrayList<>();
+        for (ContextParameter parameter : intentDefinition.getParameters()) {
+            String entityReference =
+                    nlpjsEntityReferenceMapper.getMappingFor(parameter).orElseThrow(() -> new IllegalStateException(
+                            MessageFormat.format("Cannot find the mapping for parameter {0}", parameter.getName())));
+            IntentParameter intentParameter = new IntentParameter();
+            intentParameter.setSlot(entityReference);
+            result.add(intentParameter);
+        }
+        return result;
     }
 }

@@ -4,32 +4,10 @@ import com.xatkit.core.recognition.nlpjs.mapper.NlpjsEntityReferenceMapper;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.CustomEntityDefinition;
-import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.EntityType;
 import com.xatkit.intent.IntentDefinition;
 
 public class NlpjsHelper {
-
-    public static int getEntityCount(EntityDefinition entityType, IntentDefinition intentDefinition) {
-        int count = 0;
-        for (ContextParameter parameter : intentDefinition.getParameters()) {
-            if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName()))
-                count++;
-        }
-        return count;
-    }
-
-    public static int getEntityTypeIndex(String textFragment, EntityDefinition entityType, IntentDefinition intentDefinition) {
-        int suffix = 0;
-        for (ContextParameter parameter : intentDefinition.getParameters()) {
-            if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName()))
-                suffix++;
-            if (textFragment.equals(parameter.getTextFragments().get(0))) {
-                break;
-            }
-        }
-        return suffix;
-    }
 
     // This method still needs some improvement in terms of redundant code and performance
     public static ContextParameter getContextParameterFromNlpEntity(String nlpjsEntityType, IntentDefinition intentDefinition,

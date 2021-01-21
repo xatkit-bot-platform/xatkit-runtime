@@ -23,8 +23,10 @@ import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.CustomEntityDefinition;
 import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.EntityType;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
@@ -36,6 +38,7 @@ import org.apache.commons.configuration2.ConfigurationConverter;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,25 +49,59 @@ import static java.util.Objects.nonNull;
 
 public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
 
-
     private NlpjsConfiguration configuration;
 
+    /**
+     * The mapper creating NLP.js {@link Intent}s from {@link IntentDefinition}s.
+     */
     private NlpjsIntentMapper nlpjsIntentMapper;
 
+    /**
+     * The mapper creating NLP.js {@link Entity} instances from {@link EntityDefinition}s.
+     */
     private NlpjsEntityMapper nlpjsEntityMapper;
 
+    /**
+     * The mapper creating NLP.js {@link Entity} references from {@link EntityDefinition} references.
+     */
     private NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper;
 
     private NlpjsRecognitionResultMapper nlpjsRecognitionResultMapper;
 
+    /**
+     * The client accessing the NLP.js server.
+     */
     private NlpjsClient nlpjsClient;
 
+    /**
+     * The identifier of the agent managed by this provider.
+     */
     private String agentId;
 
-    private String nlpjsServer;
-
+    /**
+     * The list of {@link Intent}s to register in the NLP.js agent.
+     * <p>
+     * This attribute is updated when calling {@link #registerIntentDefinition(IntentDefinition)}. The stored
+     * {@link Intent}s are effectively deployed to the NLP.js agent when {@link #trainMLEngine()} is invoked.
+     *
+     * @see #registerIntentDefinition(IntentDefinition)
+     * @see #trainMLEngine()
+     */
     private Map<String, Intent> intentsToRegister;
 
+    /**
+     * The list of {@link Entity} instances ot register in the NLP.js agent.
+     * <p>
+     * This attribute is updated when calling {@link #registerEntityDefinition(EntityDefinition)}. The stored
+     * {@link Entity} instances are effectively deployed to the NLP.js agent when {@link #trainMLEngine()} is invoked.
+     * <p>
+     * This attribute is also updated when calling {@link #registerIntentDefinition(IntentDefinition)} for
+     * {@link IntentDefinition}s with references to {@code any} entities.
+     *
+     * @see #registerEntityDefinition(EntityDefinition)
+     * @see #registerIntentDefinition(IntentDefinition)
+     * @see #trainMLEngine()
+     */
     private Map<String, Entity> entitiesToRegister;
 
     /**
@@ -110,37 +147,48 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.getPreProcessors().add(new SpacePunctuationPreProcessor());
         this.configuration = new NlpjsConfiguration(configuration);
         this.agentId = this.configuration.getAgentId();
-        this.nlpjsServer = this.configuration.getNlpjsServer();
         this.nlpjsEntityReferenceMapper = new NlpjsEntityReferenceMapper();
-        this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration, nlpjsEntityReferenceMapper);
+        this.nlpjsIntentMapper = new NlpjsIntentMapper(nlpjsEntityReferenceMapper);
         this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry,
                 nlpjsEntityReferenceMapper);
-        this.nlpjsClient = new NlpjsClient(this.nlpjsServer);
-        this.nlpjsEntityMapper = new NlpjsEntityMapper();
+        this.nlpjsClient = new NlpjsClient(this.configuration.getNlpjsServer());
+        this.nlpjsEntityMapper = new NlpjsEntityMapper(this.nlpjsEntityReferenceMapper);
         this.recognitionMonitor = recognitionMonitor;
         this.intentsToRegister = new HashMap<>();
         this.entitiesToRegister = new HashMap<>();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This method does not register {@link BaseEntityDefinition} because they are registered by default in NLP.js
+     * agents. {@code Any} entities are handled by {@link #registerIntentDefinition(IntentDefinition)} because they
+     * require additional information from the {@link IntentDefinition} referring to them.
+     * <p>
+     * This method does not support {@link CompositeEntityDefinition}s.
+     * <p>
+     * This method does not access the NLP.js server, see {@link #trainMLEngine()} to serialize the registered
+     * entities and train the NLP.js agent.
+     *
+     * @param entityDefinition the {@link EntityDefinition} to register in the NLP.js agent
+     * @throws NullPointerException     if the provided {@code entityDefinition} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code entityDefinition} is a {@link CompositeEntityDefinition}
+     */
+    @SuppressWarnings("checkstyle:EmptyBlock")
     @Override
     public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
         checkNotShutdown();
         if (entityDefinition instanceof BaseEntityDefinition) {
-            BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
-            if (!nlpjsEntityReferenceMapper.isSupported(baseEntityDefinition.getEntityType())) {
-                // FIXME this comment isn't located where we actually degrade
-                Log.warn("Entity \"{0}\" is not supported by NLP.js, Xatkit will gracefully degrade to using an "
-                                + "\"any\" entity instead. This makes the recognition more permissive and may produce "
-                                + "false positive matches. You can migrate your bot to another provider if needed.",
-                        entityDefinition.getName());
-            }
+            /*
+             * Do nothing, we don't register BaseEntityDefinition instances in NLP.js
+             */
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             Log.debug("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
             if (entityDefinition instanceof CompositeEntityDefinition) {
-                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity {0}. "
+                throw new IllegalArgumentException(MessageFormat.format("Cannot register the entity {0}. "
                         + "Composite entities are not supported by NLP.js", entityDefinition));
             } else {
-                Entity entity = this.nlpjsEntityMapper.mapEntiyDefinition(entityDefinition);
+                Entity entity = this.nlpjsEntityMapper.mapEntityDefinition(entityDefinition);
                 this.entitiesToRegister.put(entityDefinition.getName(), entity);
             }
 
@@ -151,6 +199,24 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This method degrades the {@link BaseEntityDefinition}s used in the provided {@code intentDefinition} to {@code
+     * any} if they are not supported by NLP.js. This relaxes intent matching but allows to support any Xatkit
+     * {@link BaseEntityDefinition}s.
+     * <p>
+     * This method also registers the {@code any} entities that are referenced in the provided {@code
+     * intentDefinition}. Since NLP.js requires intent-level information to register these entities this process
+     * cannot be done in {@link #registerEntityDefinition(EntityDefinition)}.
+     * <p>
+     * This method does not access the NLP.js server, see {@link #trainMLEngine()} to serialize the registered
+     * intents and train the NLP.js agent.
+     *
+     * @param intentDefinition the {@link IntentDefinition} to register in the NLP.js agent
+     * @throws NullPointerException               if the provided {@code intentDefinition} is {@code null}
+     * @throws IntentRecognitionProviderException if the provided {@code intentDefinition} is already registered
+     */
     @Override
     public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
         checkNotShutdown();
@@ -160,27 +226,84 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
             throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the intent {0}, the "
                     + "intent already exists", intentDefinition.getName()));
         }
+        this.degradeUnsupportedBaseEntities(intentDefinition);
         Log.debug("Registering NLP.js intent {0}", intentDefinition.getName());
-        List<Entity> anyEntitiesCollector = new ArrayList<>();
-        Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition, anyEntitiesCollector);
-        if (!anyEntitiesCollector.isEmpty()) {
-            for (Entity entity : anyEntitiesCollector) {
-                this.entitiesToRegister.put(entity.getEntityName(), entity);
-            }
-        }
+        /*
+         * We need to deal with the any entities here because they are configured with the intent's name and training
+         *  sentences.
+         */
+        Collection<Entity> anyEntities = nlpjsEntityMapper.mapAnyEntityDefinition(intentDefinition);
+        anyEntities.forEach(e -> this.entitiesToRegister.put(e.getEntityName(), e));
+        Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition);
         this.intentsToRegister.put(intentDefinition.getName(), intent);
     }
 
+    /**
+     * Degrades the unsupported {@link BaseEntityDefinition} referenced in {@code intentDefinition} to {@code any}.
+     * <p>
+     * NLP.js does not support all the Xatkit {@link BaseEntityDefinition}. This method mitigates this issue by
+     * degrading these entities to {@code any}, allowing to register them in the NLP.js agent. If an entity is
+     * degraded this way a warning log message is printed to the user because the agent may wrongly match some inputs.
+     *
+     * @param intentDefinition the {@link IntentDefinition} to degrade
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
+     */
+    private void degradeUnsupportedBaseEntities(@NonNull IntentDefinition intentDefinition) {
+        for (ContextParameter parameter : intentDefinition.getParameters()) {
+            if (nlpjsEntityReferenceMapper.getMappingFor(parameter.getEntity().getReferredEntity()).equals("none")) {
+                if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
+                    /*
+                     * Gracefully degrades the provided parameter type to "any" if the base entity it refers to
+                     * is not supported. This allows NLP.js to match the entity, but it is more permissive
+                     * than a correct implementation of it (it will basically match any value for the
+                     * parameter).
+                     * This pre-processing is done before any-specific entity configuration, allowing to
+                     * reuse before/after extraction rules or regex, depending on the nature of the training
+                     * sentence.
+                     */
+                    BaseEntityDefinition baseEntityDefinition =
+                            (BaseEntityDefinition) parameter.getEntity().getReferredEntity();
+                    baseEntityDefinition.setEntityType(EntityType.ANY);
+                    Log.warn("Entity \"{0}\" (intent: {1}, parameter: {2}) is not supported by NLP.js, Xatkit will "
+                                    + "gracefully degrade to using an \"any\" entity instead. This makes the "
+                                    + "recognition more permissive and may produce false positive matches. You can "
+                                    + "migrate your bot to another provider if needed.",
+                            baseEntityDefinition.getName(), intentDefinition.getName(),
+                            parameter.getName());
+                }
+            }
+        }
+    }
+
+    /**
+     * This method is not supported by the {@link NlpjsIntentRecognitionProvider}.
+     *
+     * @param entityDefinition the {@link EntityDefinition} to delete from the NLP.js agent
+     * @throws UnsupportedOperationException when called
+     */
     @Override
-    public void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
+    public void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) {
         throw new UnsupportedOperationException("Not implemented");
     }
 
+    /**
+     * This method is not supported by the {@link NlpjsIntentRecognitionProvider}.
+     *
+     * @param intentDefinition the {@link IntentDefinition} to delete from the NLP.js agent
+     * @throws UnsupportedOperationException when called
+     */
     @Override
-    public void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
+    public void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) {
         throw new UnsupportedOperationException("Not implemented");
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This method serializes the intents/entities stored in this class and deploy them to the NLP.js agent.
+     *
+     * @throws IntentRecognitionProviderException if an error occurred while training the NLP.js agent
+     */
     @Override
     public void trainMLEngine() throws IntentRecognitionProviderException {
         checkNotShutdown();
@@ -192,6 +315,10 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                 .entities(new ArrayList<>(this.entitiesToRegister.values()))
                 .build();
         try {
+            /*
+             * We try to train the agent 10 times (every 2 seconds) in case there is a network issue. After these 10
+             * tries we assume the NLP.js server is unreachable and throw an exception.
+             */
             boolean isDone = false;
             int attemptsLeft = 10;
             this.nlpjsClient.trainAgent(agentId, trainingData);
@@ -214,8 +341,11 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public StateContext createContext(@NonNull String sessionId) throws IntentRecognitionProviderException {
+    public StateContext createContext(@NonNull String sessionId) {
         /*
          * FIXME duplicated code from RegExIntentRecognitionProvider
          */
@@ -225,6 +355,9 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         return stateContext;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void shutdown() throws IntentRecognitionProviderException {
         checkNotShutdown();
@@ -234,6 +367,13 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.isShutdown = true;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This method returns {@code true} if the NLP.js server is unreachable, or if {@link #shutdown()} has been called.
+     *
+     * @return {@code true} if the intent recognition provider client is shutdown, {@code false} otherwise
+     */
     @Override
     public boolean isShutdown() {
         /*
@@ -275,12 +415,23 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Nullable
     @Override
     public RecognitionMonitor getRecognitionMonitor() {
         return this.recognitionMonitor;
     }
 
+    /**
+     * Checks that the {@link NlpjsIntentRecognitionProvider} is not shutdown.
+     * <p>
+     * This method is called before any register/delete operation to make sure the NLP.js configuration is not
+     * updated if the provider is shutdown.
+     *
+     * @throws IntentRecognitionProviderException if the provider is shutdown.
+     */
     private void checkNotShutdown() throws IntentRecognitionProviderException {
         if (this.isShutdown()) {
             throw new IntentRecognitionProviderException("Cannot perform the operation, the NLP API is shutdown");
