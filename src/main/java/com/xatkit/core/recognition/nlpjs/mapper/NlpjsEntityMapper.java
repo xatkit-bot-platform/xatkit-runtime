@@ -4,7 +4,12 @@ import com.xatkit.core.recognition.IntentRecognitionProviderException;
 import com.xatkit.core.recognition.nlpjs.model.Entity;
 import com.xatkit.core.recognition.nlpjs.model.EntityType;
 import com.xatkit.core.recognition.nlpjs.model.EntityValue;
-import com.xatkit.intent.*;
+import com.xatkit.intent.BaseEntityDefinition;
+import com.xatkit.intent.CompositeEntityDefinition;
+import com.xatkit.intent.CustomEntityDefinition;
+import com.xatkit.intent.EntityDefinition;
+import com.xatkit.intent.MappingEntityDefinition;
+import com.xatkit.intent.MappingEntityDefinitionEntry;
 import lombok.NonNull;
 
 import java.text.MessageFormat;
@@ -13,21 +18,23 @@ import java.util.List;
 
 public class NlpjsEntityMapper {
 
-    public Entity mapEntiyDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
+    public Entity mapEntiyDefinition(@NonNull EntityDefinition entityDefinition)
+            throws IntentRecognitionProviderException {
         if (entityDefinition instanceof BaseEntityDefinition) {
-            throw new IllegalArgumentException(MessageFormat.format("Cannot map the provided {0} {1}. Base entities " +
-                            "are already mapped in NLP.js", EntityDefinition.class.getSimpleName(),
+            throw new IllegalArgumentException(MessageFormat.format("Cannot map the provided {0} {1}. Base entities "
+                            + "are already mapped in NLP.js", EntityDefinition.class.getSimpleName(),
                     entityDefinition.toString()));
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             return mapCustomEntityDefinition((CustomEntityDefinition) entityDefinition);
         } else {
-            throw new IllegalArgumentException(MessageFormat.format("Cannot register the provided {0}, " +
-                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+            throw new IllegalArgumentException(MessageFormat.format("Cannot register the provided {0}, unsupported "
+                            + "{1}", entityDefinition.getClass().getSimpleName(),
                     EntityDefinition.class.getSimpleName()));
         }
     }
 
-    private Entity mapCustomEntityDefinition(@NonNull CustomEntityDefinition customEntityDefinition) throws IntentRecognitionProviderException {
+    private Entity mapCustomEntityDefinition(@NonNull CustomEntityDefinition customEntityDefinition)
+            throws IntentRecognitionProviderException {
         String entityName = customEntityDefinition.getName();
         Entity.EntityBuilder builder = Entity.builder();
         builder.entityName(entityName);
@@ -37,12 +44,12 @@ public class NlpjsEntityMapper {
             builder.type(EntityType.ENUM).references(entityValues);
 
         } else if (customEntityDefinition instanceof CompositeEntityDefinition) {
-            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
-                    "{0}. Composite entities are not supported by NLP.js", customEntityDefinition));
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity {0}. "
+                    + "Composite entities are not supported by NLP.js", customEntityDefinition));
         } else {
             throw new IllegalArgumentException(MessageFormat.format("Cannot register the provided {0}, unsupported {1}",
                     customEntityDefinition.getClass().getSimpleName(), EntityDefinition.class.getSimpleName()));
-            }
+        }
         return builder.build();
     }
 
