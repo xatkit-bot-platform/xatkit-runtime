@@ -34,7 +34,6 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.ConfigurationConverter;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,7 +90,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     private RecognitionMonitor recognitionMonitor;
 
 
-    public NlpjsIntentRecognitionProvider(@NonNull EventDefinitionRegistry eventRegistry, @NonNull Configuration configuration,
+    public NlpjsIntentRecognitionProvider(@NonNull EventDefinitionRegistry eventRegistry,
+                                          @NonNull Configuration configuration,
                                           @Nullable RecognitionMonitor recognitionMonitor) {
         Log.info("Starting NLP.js Client");
         /*
@@ -113,7 +113,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.nlpjsServer = this.configuration.getNlpjsServer();
         this.nlpjsEntityReferenceMapper = new NlpjsEntityReferenceMapper();
         this.nlpjsIntentMapper = new NlpjsIntentMapper(this.configuration, nlpjsEntityReferenceMapper);
-        this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry, nlpjsEntityReferenceMapper);
+        this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry,
+                nlpjsEntityReferenceMapper);
         this.nlpjsClient = new NlpjsClient(this.nlpjsServer);
         this.nlpjsEntityMapper = new NlpjsEntityMapper();
         this.recognitionMonitor = recognitionMonitor;
@@ -127,24 +128,25 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         if (entityDefinition instanceof BaseEntityDefinition) {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
             if (!nlpjsEntityReferenceMapper.isSupported(baseEntityDefinition.getEntityType())) {
+                // FIXME this comment isn't located where we actually degrade
                 Log.warn("Entity \"{0}\" is not supported by NLP.js, Xatkit will gracefully degrade to using an "
-                        + "\"any\" entity instead. This makes the recognition more permissive and may produce "
+                                + "\"any\" entity instead. This makes the recognition more permissive and may produce "
                                 + "false positive matches. You can migrate your bot to another provider if needed.",
                         entityDefinition.getName());
             }
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             Log.debug("Registering {0} {1}", CustomEntityDefinition.class.getSimpleName(), entityDefinition.getName());
             if (entityDefinition instanceof CompositeEntityDefinition) {
-                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
-                        "{0}. Composite entities are not supported by NLP.js", entityDefinition));
+                throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity {0}. "
+                        + "Composite entities are not supported by NLP.js", entityDefinition));
             } else {
                 Entity entity = this.nlpjsEntityMapper.mapEntiyDefinition(entityDefinition);
                 this.entitiesToRegister.put(entityDefinition.getName(), entity);
             }
 
         } else {
-            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the provided {0}, " +
-                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the provided {0}, "
+                            + "unsupported {1}", entityDefinition.getClass().getSimpleName(),
                     EntityDefinition.class.getSimpleName()));
         }
     }
@@ -155,15 +157,15 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         checkNotNull(intentDefinition.getName(), "Cannot register the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());
         if (this.intentsToRegister.containsKey(intentDefinition.getName())) {
-            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the intent {0}, the " +
-                    "intent already exists", intentDefinition.getName()));
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the intent {0}, the "
+                    + "intent already exists", intentDefinition.getName()));
         }
         Log.debug("Registering NLP.js intent {0}", intentDefinition.getName());
         List<Entity> anyEntitiesCollector = new ArrayList<>();
-        Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition,anyEntitiesCollector);
+        Intent intent = nlpjsIntentMapper.mapIntentDefinition(intentDefinition, anyEntitiesCollector);
         if (!anyEntitiesCollector.isEmpty()) {
-            for (Entity entity: anyEntitiesCollector) {
-                this.entitiesToRegister.put(entity.getEntityName(),entity);
+            for (Entity entity : anyEntitiesCollector) {
+                this.entitiesToRegister.put(entity.getEntityName(), entity);
             }
         }
         this.intentsToRegister.put(intentDefinition.getName(), intent);
@@ -184,7 +186,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         checkNotShutdown();
         Log.info("Starting NLP.js agent training (this may take a few minutes)");
         TrainingData trainingData = TrainingData.builder()
-                .config(new AgentConfig(this.configuration.getLanguageCode(), this.configuration.isCleanAgentOnStartup()))
+                .config(new AgentConfig(this.configuration.getLanguageCode(),
+                        this.configuration.isCleanAgentOnStartup()))
                 .intents(new ArrayList<>(this.intentsToRegister.values()))
                 .entities(new ArrayList<>(this.entitiesToRegister.values()))
                 .build();
@@ -241,7 +244,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     }
 
     @Override
-    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
+    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context)
+            throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         try {
@@ -255,7 +259,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                 recognizedIntent.setRecognitionConfidence(recognitionResult.getScore());
                 recognizedIntent.setMatchedInput(recognitionResult.getUtterance());
             } else {
-                List<RecognizedIntent> recognizedIntents = nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
+                List<RecognizedIntent> recognizedIntents =
+                        nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
                 recognizedIntent = getBestCandidate(recognizedIntents, context);
                 recognizedIntent.getValues().addAll(nlpjsRecognitionResultMapper.mapParameterValues(recognizedIntent,
                         recognitionResult.getEntities()));
@@ -278,8 +283,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
 
     private void checkNotShutdown() throws IntentRecognitionProviderException {
         if (this.isShutdown()) {
-            throw new IntentRecognitionProviderException("Cannot perform the operation, the NLP API is " +
-                    "shutdown");
+            throw new IntentRecognitionProviderException("Cannot perform the operation, the NLP API is shutdown");
         }
     }
 }
