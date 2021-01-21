@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -17,11 +18,11 @@ public class Entity {
     @Singular
     private List<EntityValue> references;
 
-    @Singular("addAfterLast")
-    private List<String> afterLast;
+    @Builder.Default
+    private List<String> afterLast = new ArrayList<>();
 
-    @Singular("addBeforeLast")
-    private List<String> beforeLast;
+    @Builder.Default
+    private List<String> beforeLast = new ArrayList<>();
 
     private BetweenCondition between;
 
