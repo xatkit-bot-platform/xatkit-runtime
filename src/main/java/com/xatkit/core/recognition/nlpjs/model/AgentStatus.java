@@ -39,7 +39,7 @@ public enum AgentStatus {
     }
 
     public static class Adapter extends TypeAdapter<AgentStatus> {
-        
+
         @Override
         public void write(final JsonWriter jsonWriter, final AgentStatus enumeration) throws IOException {
             jsonWriter.value(enumeration.getValue());

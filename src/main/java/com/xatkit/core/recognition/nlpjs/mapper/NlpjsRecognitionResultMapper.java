@@ -76,7 +76,7 @@ public class NlpjsRecognitionResultMapper {
      * nlpjsEntityReferenceMapper}.
      *
      * @param eventRegistry              the {@link EventDefinitionRegistry} used to retrieve the bot's
-     * {@link IntentDefinition}s
+     *                                   {@link IntentDefinition}s
      * @param nlpjsEntityReferenceMapper the mapper used to retrieve Xatkit entities from NLP.js ones
      * @throws NullPointerException if the provided {@code eventRegistry} or {@code nlpjsEntityReferenceMapper} is
      *                              {@code null}
