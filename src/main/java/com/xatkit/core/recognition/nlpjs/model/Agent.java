@@ -1,4 +1,3 @@
-
 package com.xatkit.core.recognition.nlpjs.model;
 
 import lombok.Data;

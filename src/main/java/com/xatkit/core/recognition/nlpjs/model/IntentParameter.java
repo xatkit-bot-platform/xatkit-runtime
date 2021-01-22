@@ -7,7 +7,8 @@ public class IntentParameter {
 
     private String slot;
 
-    public IntentParameter(){}
+    public IntentParameter() {
+    }
 
     public IntentParameter(String slot) {
         this.slot = slot;

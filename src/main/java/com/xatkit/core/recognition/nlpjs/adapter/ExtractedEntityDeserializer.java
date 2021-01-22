@@ -1,14 +1,36 @@
 package com.xatkit.core.recognition.nlpjs.adapter;
 
-import com.google.gson.*;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import com.xatkit.core.recognition.nlpjs.model.ExtractedEntity;
 
 import java.lang.reflect.Type;
 
+/**
+ * A {@link JsonDeserializer} for NLP.js {@link ExtractedEntity}.
+ * <p>
+ * This class parses the provided {@link JsonElement} and builds an {@link ExtractedEntity} instance from its
+ * attributes. This class is used by the {@link com.xatkit.core.recognition.nlpjs.NlpjsClient} to parse results from
+ * the NLP.js server.
+ */
 public class ExtractedEntityDeserializer implements JsonDeserializer<ExtractedEntity> {
 
+    /**
+     * Parses the provided {@code json} and creates an {@link ExtractedEntity} instance from its attributes.
+     *
+     * @param json    the {@link JsonElement} to parse
+     * @param typeOfT the type to create
+     * @param context the deserialization context
+     * @return the created {@link ExtractedEntity}
+     * @throws JsonParseException if a parsing error occurred
+     */
     @Override
-    public ExtractedEntity deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public ExtractedEntity deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+            throws JsonParseException {
 
         JsonObject jsonObject = json.getAsJsonObject();
         ExtractedEntity extractedEntity = new ExtractedEntity();
@@ -51,7 +73,7 @@ public class ExtractedEntityDeserializer implements JsonDeserializer<ExtractedEn
                 }
             }
 
-            if (resolution.has("value") &&  resolution.get("value").isJsonPrimitive()) {
+            if (resolution.has("value") && resolution.get("value").isJsonPrimitive()) {
                 JsonPrimitive jsonPrimitive = resolution.get("value").getAsJsonPrimitive();
                 if (jsonPrimitive.isNumber()) {
                     extractedEntity.setValue(jsonPrimitive.getAsNumber());
@@ -60,7 +82,6 @@ public class ExtractedEntityDeserializer implements JsonDeserializer<ExtractedEn
                 }
             }
         }
-
         return extractedEntity;
-        }
     }
+}
