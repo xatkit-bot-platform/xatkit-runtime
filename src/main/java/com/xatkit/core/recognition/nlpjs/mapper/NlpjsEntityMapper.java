@@ -166,9 +166,12 @@ public class NlpjsEntityMapper {
      * {@link ContextParameter} (instead of a generic any entity defined for all the intents). These {@link Entity}
      * instances need contextual information such as the {@link IntentDefinition} and {@link ContextParameter} names.
      * <p>
-     * Fragments corresponding to entire training sentences (e.g. {@code "VALUE"}) are mapped to regex {@link Entity}
-     * instances. Fragments that are part of a training sentence (e.g. {@code "I want VALUE"}) are mapped to trim
+     * Fragments that are part of a training sentence (e.g. {@code "I want VALUE"}) are mapped to trim
      * {@link Entity} instances, where the pre/post words are configured from the training sentence.
+     * <p>
+     * This method cannot map fragments corresponding to entire training sentences (e.g. {@code "VALUE"}), and throw
+     * an {@link IllegalStateException}. Note that intents containing these fragments are discarded by the
+     * {@link com.xatkit.core.recognition.nlpjs.NlpjsIntentRecognitionProvider}.
      * <p>
      * This method updates the {@link NlpjsEntityReferenceMapper} associated to this class to allow other mappers
      * to get references to the produced {@link Entity} instances.
@@ -177,7 +180,9 @@ public class NlpjsEntityMapper {
      *
      * @param intentDefinition the {@link IntentDefinition} containing the {@link ContextParameter}s to map
      * @return the created {@link Entity} instances
-     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
+     * @throws NullPointerException  if the provided {@code intentDefinition} is {@code null}
+     * @throws IllegalStateException if the any entity definition corresponds to the entire fragment of an {@code
+     *                               intentDefinition}'s training sentence
      */
     public Collection<Entity> mapAnyEntityDefinition(@NonNull IntentDefinition intentDefinition) {
         Map<String, Entity> createdEntities = new HashMap<>();
@@ -193,13 +198,12 @@ public class NlpjsEntityMapper {
                     if (trainingSentence.contains(parameter.getTextFragments().get(0))) {
                         Optional<String> beforeLast = getBeforeLast(trainingSentence, parameter);
                         Optional<String> afterLast = getAfterLast(trainingSentence, parameter);
-                        Entity entity;
                         if (beforeLast.isPresent() || afterLast.isPresent()) {
                             /*
                              * There are words before and/or after the parameter text fragment. We will use them to
                              * configure a TRIM entity.
                              */
-                            entity = createdEntities.computeIfAbsent(entityName, k ->
+                            Entity entity = createdEntities.computeIfAbsent(entityName, k ->
                                     Entity.builder()
                                             .entityName(entityName)
                                             .type(EntityType.TRIM)
@@ -226,34 +230,27 @@ public class NlpjsEntityMapper {
                                  */
                                 entity.getAfterLast().add(afterLast.get());
                             }
-                        } else {
-                            entity = Entity.builder()
-                                    .entityName(entityName)
-                                    .type(EntityType.REGEX)
-                                    /*
-                                     * We use + here instead of *: otherwise the NLP.js server goes on an infinite
-                                     * recursion trying to match it. This regex does not accept the empty string, but
-                                     * this is not an issue because empty inputs are discarded by the
-                                     * NlpjsIntentRecognitionProvider and not sent to the NLP.js server.
-                                     */
-                                    .regex("/.+/")
-                                    .build();
                             /*
-                             * TODO check this: this code overrides the value already stored in createdEntities.
-                             *  This means that we cannot have in the same intent a training sentence with a regex
-                             *  and a training sentence with a BetweenCondition. If this is an issue for a bot an
-                             *  issue should be opened.
+                             * Register the created entity in the NlpjsEntityReferenceMapper. We need to access it to
+                             * create references to this entity when creating intents.
+                             * Since the created entities are bound to a specific ContextParameter we can't use the
+                             * generic
+                             * entity mapping algorithm already implemented in EntityMapper and we need to go for this
+                             * custom method.
                              */
-                            createdEntities.put(entityName, entity);
+                            this.referenceMapper.addAnyEntityMapping(parameter, entity.getEntityName());
+                        } else {
+                            /*
+                             * The any entity isn't between other words, this means that we are dealing with a pure
+                             * any intent. This should not happen because the NlpjsIntentRecognitionProvider discards
+                             * pure any intents and do not register them to the NLP.js server (they are handled by
+                             * the connector natively).
+                             */
+                            throw new IllegalStateException(MessageFormat.format("Cannot configure the trim entity "
+                                            + "for {0}.{1}: cannot find a word before/after the parameter text "
+                                            + "fragment.",
+                                    intentDefinition.getName(), parameter.getName()));
                         }
-                        /*
-                         * Register the created entity in the NlpjsEntityReferenceMapper. We need to access it to
-                         * create references to this entity when creating intents.
-                         * Since the created entities are bound to a specific ContextParameter we can't use the generic
-                         * entity mapping algorithm already implemented in EntityMapper and we need to go for this
-                         * custom method.
-                         */
-                        this.referenceMapper.addAnyEntityMapping(parameter, entity.getEntityName());
                     }
                 }
             } else {
