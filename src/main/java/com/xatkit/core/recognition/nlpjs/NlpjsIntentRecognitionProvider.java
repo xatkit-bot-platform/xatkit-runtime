@@ -163,6 +163,9 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * </ul>
      * See {@link #getPreProcessors()} and {@link #getPostProcessors()} to access the list of processors configured
      * with this class.
+     * <p>
+     * This constructor checks that the provided information allow to connect to the NLP.js server. If the server is
+     * unreachable a {@link RuntimeException} is thrown.
      *
      * @param eventRegistry      the {@link EventDefinitionRegistry} containing the events defined in the current bot
      * @param configuration      the {@link Configuration} holding the DialogFlow project ID and language code
@@ -170,10 +173,11 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * @throws NullPointerException     if the provided {@code eventRegistry} or {@code configuration} is {@code null}
      * @throws IllegalArgumentException if the provided {@code configuration} does not contain the required
      *                                  information to connect to the NLP.js server
+     * @throws RuntimeException         if the provider cannot connect to the NLP.js server
      */
     public NlpjsIntentRecognitionProvider(@NonNull EventDefinitionRegistry eventRegistry,
                                           @NonNull Configuration configuration,
-                                          @Nullable RecognitionMonitor recognitionMonitor) {
+                                          @Nullable RecognitionMonitor recognitionMonitor) throws RuntimeException {
         Log.info("Starting NLP.js Client");
         this.getPostProcessors().add(new TrimPunctuationPostProcessor());
         this.getPreProcessors().add(new SpacePunctuationPreProcessor());
@@ -187,6 +191,10 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.recognitionMonitor = recognitionMonitor;
         this.intentsToRegister = new HashMap<>();
         this.entitiesToRegister = new HashMap<>();
+        if (this.nlpjsClient.isShutdown()) {
+            throw new RuntimeException(MessageFormat.format("Cannot connect to the NLP.js server "
+                    + "(url = {0})", this.configuration.getNlpjsServer()));
+        }
     }
 
     /**

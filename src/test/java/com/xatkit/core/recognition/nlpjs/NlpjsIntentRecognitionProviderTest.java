@@ -16,6 +16,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProviderTest<NlpjsIntentRecognitionProvider> {
 
     /*
+     * Check that the constructor is failing if the NLP.js server is not reachable.
+     * Related to <a href="https://github.com/xatkit-bot-platform/xatkit-runtime/issues/310">#310</a>.
+     */
+    @Test (expected = RuntimeException.class)
+    public void constructUnreachableNlpjsServer() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(NlpjsConfiguration.AGENT_ID_KEY, "default");
+        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_KEY, "invalid");
+        this.intentRecognitionProvider = new NlpjsIntentRecognitionProvider(eventRegistry, configuration, null);
+    }
+
+    /*
      * This test ensures that registering a base entity that is not supported by NLP.js doesn't throw any exception.
      * It was the case before, but now Xatkit gracefully degrades to using "any" entities if a base entity is not
      * supported.
