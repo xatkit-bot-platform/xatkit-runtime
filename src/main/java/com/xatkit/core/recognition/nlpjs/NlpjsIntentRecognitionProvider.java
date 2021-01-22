@@ -47,8 +47,23 @@ import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
+/**
+ * An {@link AbstractIntentRecognitionProvider} for NLP.js.
+ * <p>
+ * This class relies on the agent identifier and NLP.js server URL in the provided {@code configuration} to connect
+ * to the NLP.js server.
+ * <p>
+ * NLP.js uses regular expressions to match any entities. These expressions are sensible to spacing and punctuation,
+ * which may alter the recognition, but also appear in matched parameters. This class uses two processors to mitigate
+ * these issues (see
+ * {@link #NlpjsIntentRecognitionProvider(EventDefinitionRegistry, Configuration, RecognitionMonitor)} for more
+ * information).
+ */
 public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
 
+    /**
+     * The {@link NlpjsConfiguration} extracted from the provided {@code configuration}.
+     */
     private NlpjsConfiguration configuration;
 
     /**
@@ -66,6 +81,9 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
      */
     private NlpjsEntityReferenceMapper nlpjsEntityReferenceMapper;
 
+    /**
+     * The mapper creating {@link RecognizedIntent}s from NLP.js {@link RecognitionResult}.
+     */
     private NlpjsRecognitionResultMapper nlpjsRecognitionResultMapper;
 
     /**
@@ -127,30 +145,43 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     private RecognitionMonitor recognitionMonitor;
 
 
+    /**
+     * Initializes the {@link NlpjsIntentRecognitionProvider}.
+     * <p>
+     * This method relies on the agent identifier and NLP.js server URL in the provided {@code configuration} to
+     * connect to the NLP.js server. An {@link IllegalArgumentException} is thrown if the {@code configuration} does not
+     * contains these values.
+     * <p>
+     * NLP.js uses regular expressions to match any entities. These expressions are sensible to spacing and
+     * punctuation, which may alter the recognition, but also appear in matched parameters. This class uses two
+     * processors to mitigate these issues:
+     * <ul>
+     *     <li>{@link TrimPunctuationPostProcessor}: removes the punctuation from matched parameters (e.g.
+     *     "Barcelona?" becomes "Barcelona")</li>
+     *     <li>{@link SpacePunctuationPreProcessor}: adds an extra space before punctuation symbol to ease the
+     *     recognition based on regular expressions (e.g. input "Barcelona?" is pre-processed as "Barcelona ?")</li>
+     * </ul>
+     * See {@link #getPreProcessors()} and {@link #getPostProcessors()} to access the list of processors configured
+     * with this class.
+     *
+     * @param eventRegistry      the {@link EventDefinitionRegistry} containing the events defined in the current bot
+     * @param configuration      the {@link Configuration} holding the DialogFlow project ID and language code
+     * @param recognitionMonitor the {@link RecognitionMonitor} instance storing intent matching information
+     * @throws NullPointerException     if the provided {@code eventRegistry} or {@code configuration} is {@code null}
+     * @throws IllegalArgumentException if the provided {@code configuration} does not contain the required
+     *                                  information to connect to the NLP.js server
+     */
     public NlpjsIntentRecognitionProvider(@NonNull EventDefinitionRegistry eventRegistry,
                                           @NonNull Configuration configuration,
                                           @Nullable RecognitionMonitor recognitionMonitor) {
         Log.info("Starting NLP.js Client");
-        /*
-         * Nlp.js uses regular expressions to match any entities. These expressions are quite sensible to spacing and
-         * punctuation, which may alter the recognition, but also appear in matched parameter. We use the following
-         * processors to mitigate these issues:
-         * - TrimPunctuationPostProcessor: remove punctuation from matched parameters (e.g. "Barcelona?" becomes
-         * "Barcelona")
-         * - SpacePunctuationPreProcessor: adds an extra space before punctuation symbol to ease the recognition
-         * based on regular expressions (e.g. input "Barcelona?" is pre-processed as "Barcelona ?" before it is sent
-         * for recognition).
-         * These capabilities are defined a processors because they may be useful for other use cases, even for bots
-         * not using Nlp.js.
-         */
         this.getPostProcessors().add(new TrimPunctuationPostProcessor());
         this.getPreProcessors().add(new SpacePunctuationPreProcessor());
         this.configuration = new NlpjsConfiguration(configuration);
         this.agentId = this.configuration.getAgentId();
         this.nlpjsEntityReferenceMapper = new NlpjsEntityReferenceMapper();
         this.nlpjsIntentMapper = new NlpjsIntentMapper(nlpjsEntityReferenceMapper);
-        this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(this.configuration, eventRegistry,
-                nlpjsEntityReferenceMapper);
+        this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(eventRegistry, nlpjsEntityReferenceMapper);
         this.nlpjsClient = new NlpjsClient(this.configuration.getNlpjsServer());
         this.nlpjsEntityMapper = new NlpjsEntityMapper(this.nlpjsEntityReferenceMapper);
         this.recognitionMonitor = recognitionMonitor;
@@ -383,6 +414,12 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         return this.isShutdown || nlpjsClient.isShutdown();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException               if the provided {@code input} or {@code context} is {@code null}
+     * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
+     */
     @Override
     protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context)
             throws IntentRecognitionProviderException {
@@ -402,8 +439,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                 List<RecognizedIntent> recognizedIntents =
                         nlpjsRecognitionResultMapper.mapRecognitionResult(recognitionResult);
                 recognizedIntent = getBestCandidate(recognizedIntents, context);
-                recognizedIntent.getValues().addAll(nlpjsRecognitionResultMapper.mapParameterValues(recognizedIntent,
-                        recognitionResult.getEntities()));
+                recognizedIntent.getValues().addAll(nlpjsRecognitionResultMapper.mapParameterValues(
+                        (IntentDefinition) recognizedIntent.getDefinition(), recognitionResult.getEntities()));
             }
             if (nonNull(recognitionMonitor)) {
                 recognitionMonitor.logRecognizedIntent(context, recognizedIntent);

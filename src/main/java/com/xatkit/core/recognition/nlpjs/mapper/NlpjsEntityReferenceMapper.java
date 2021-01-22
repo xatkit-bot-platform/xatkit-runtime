@@ -5,12 +5,12 @@ import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.CustomEntityDefinition;
 import com.xatkit.intent.EntityDefinition;
-import com.xatkit.intent.EntityType;
 import com.xatkit.intent.IntentDefinition;
 import lombok.NonNull;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,13 +25,14 @@ import static com.xatkit.intent.EntityType.NUMBER;
 import static com.xatkit.intent.EntityType.PERCENTAGE;
 import static com.xatkit.intent.EntityType.PHONE_NUMBER;
 import static com.xatkit.intent.EntityType.URL;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
  * An {@link EntityMapper} initialized with NLP.js' built-in entities.
  * <p>
- * This class provides a mapping of {@link EntityType}s to NLP.js built-in entities. This mapper also translates
- * {@link CustomEntityDefinition} to the NLP.js parameter representation that can be embedded in
+ * This class provides a mapping of {@link com.xatkit.intent.EntityType}s to NLP.js built-in entities. This mapper
+ * also translates {@link CustomEntityDefinition} to the NLP.js parameter representation that can be embedded in
  * {@link com.xatkit.core.recognition.nlpjs.model.IntentExample}s and
  * {@link com.xatkit.core.recognition.nlpjs.model.IntentParameter}s.
  * <p>
@@ -46,10 +47,23 @@ import static java.util.Objects.nonNull;
  * {@link IntentDefinition} (e.g. to {@code any}). Note that we use {@code none} as a fallback instead of {@code any}
  * because any entity references depend on the {@link IntentDefinition} embedding them, and this information is not
  * available when constructing an instance of this class.
+ * <p>
+ * This class also provides reverse entity lookup (see {@link #getReversedEntity(String)}) to retrieve the Xatkit
+ * entities corresponding to a given NLP.js entity.
  */
 public class NlpjsEntityReferenceMapper extends EntityMapper {
 
-    private Map<String, List<String>> reversedEntities;
+    /**
+     * Contains the NLP.js entity to Xatkit entities mappings.
+     * <p>
+     * This map is used to perform reverse lookups of Xatkit entities from NLP.js entities (see
+     * {@link #getReversedEntity(String)}).
+     * <p>
+     * NLP.js uses the same entity to represent different Xatkit entities (e.g. "date" corresponds to Xatkit's "date"
+     * but also "date-period" and "date-time"). Client code calling {@link #getReversedEntity(String)} need to handle
+     * this to retrieve the correct Xatkit entity from a given NLP.js one.
+     */
+    private final Map<String, List<String>> reversedEntities;
 
     /**
      * The stores the {@code any} entity references associated to {@link ContextParameter}.
@@ -60,7 +74,7 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
      * @see #addAnyEntityMapping(ContextParameter, String)
      * @see #getMappingFor(ContextParameter)
      */
-    private Map<ContextParameter, String> anyEntities = new HashMap<>();
+    private final Map<ContextParameter, String> anyEntities = new HashMap<>();
 
     /**
      * Constructs a {@link NlpjsEntityReferenceMapper} initialized with NLP.js built-in entities.
@@ -167,7 +181,7 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
      *
      * @param entityDefinition the {@link CustomEntityDefinition} to map
      * @param concreteEntity   the mapped value associated to the provided {@code entityDefinition}
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException when called
      * @see #getMappingFor(ContextParameter)
      */
     @Override
@@ -190,23 +204,44 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
         return customEntityDefinition.getName();
     }
 
+    /**
+     * Create a {@link Map} containing the NLP.js entity to Xatkit entities mappings.
+     * <p>
+     * This map is initialized with the values stored in {@link #entities}, and is used to perform reverse lookups of
+     * Xatkit entities from NLP.js entities (see {@link #getReversedEntity(String)}).
+     *
+     * @return a {@link Map} containing the NLP.js entity to Xatkit entities mappings
+     */
     private Map<String, List<String>> reverseEntityTypes() {
-        Map<String, List<String>> reversedEntities = new HashMap<>();
+        Map<String, List<String>> result = new HashMap<>();
         for (Map.Entry<String, String> entityEntry : entities.entrySet()) {
-            if (reversedEntities.containsKey(entityEntry.getValue())) {
-                List<String> entityTypes = reversedEntities.get(entityEntry.getValue());
-                entityTypes.add(entityEntry.getKey());
-            } else {
-                List<String> entityTypes = new ArrayList<>();
-                entityTypes.add(entityEntry.getKey());
-                reversedEntities.put(entityEntry.getValue(), entityTypes);
-            }
+            List<String> entityTypes = result.computeIfAbsent(entityEntry.getValue(), k -> new ArrayList<>());
+            entityTypes.add(entityEntry.getKey());
         }
-        return reversedEntities;
+        return result;
     }
 
-    public List<String> getReversedEntity(@NonNull String nlpjsEntityType) {
-        return reversedEntities.get(nlpjsEntityType);
+    /**
+     * Returns the Xatkit entities corresponding to the provided {@code nlpjsEntityType}.
+     * <p>
+     * This method performs a reverse lookup of Xatkit entities from NLP.js entities. NLP.js uses the same entity to
+     * represent different Xatkit entities (e.g. "date" corresponds to Xatkit's "date" but also "date-period" and
+     * "date-time"). Client code calling this method need to handle this to retrieve the correct Xatkit entity from a
+     * given NLP.js one.
+     * <p>
+     * This method returns an empty {@link java.util.Collection} if there is no Xatkit entity matching the provided
+     * {@code nlpjsEntityType}.
+     *
+     * @param nlpjsEntityType the NLP.js entity to lookup
+     * @return the Xatkit entities corresponding to the provided {@code nlpjsEntityType}
+     * @throws NullPointerException if the provided {@code nlpjsEntityType} is {@code null}
+     */
+    public @NonNull List<String> getReversedEntity(@NonNull String nlpjsEntityType) {
+        List<String> result = reversedEntities.get(nlpjsEntityType);
+        if (isNull(result)) {
+            result = Collections.emptyList();
+        }
+        return result;
     }
 
     /**
@@ -219,8 +254,9 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
     private int getEntityCount(EntityDefinition entityType, IntentDefinition intentDefinition) {
         int count = 0;
         for (ContextParameter parameter : intentDefinition.getParameters()) {
-            if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName()))
+            if (entityType.getName().equals(parameter.getEntity().getReferredEntity().getName())) {
                 count++;
+            }
         }
         return count;
     }
@@ -249,5 +285,4 @@ public class NlpjsEntityReferenceMapper extends EntityMapper {
         }
         return suffix;
     }
-
 }

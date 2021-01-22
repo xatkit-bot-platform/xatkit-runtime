@@ -67,7 +67,7 @@ public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProvide
     /*
      * Composite entities are not supported by our connector for now.
      */
-    @Test(expected = IntentRecognitionProviderException.class)
+    @Test(expected = IllegalArgumentException.class)
     @Override
     public void getCompositeEntityIntent() throws IntentRecognitionProviderException {
         super.getCompositeEntityIntent();
@@ -76,7 +76,7 @@ public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProvide
     /*
      * Composite entities are not supported by our connector for now.
      */
-    @Test(expected = IntentRecognitionProviderException.class)
+    @Test(expected = IllegalArgumentException.class)
     @Override
     public void registerCompositeEntityReferencedEntitiesNotRegistered() throws IntentRecognitionProviderException {
         super.registerCompositeEntityReferencedEntitiesNotRegistered();
@@ -85,7 +85,7 @@ public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProvide
     /*
      * Composite entities are not supported by our connector for now.
      */
-    @Test(expected = IntentRecognitionProviderException.class)
+    @Test(expected = IllegalArgumentException.class)
     @Override
     public void registerCompositeEntityReferencedEntitiesAlreadyRegistered() throws IntentRecognitionProviderException {
         super.registerCompositeEntityReferencedEntitiesAlreadyRegistered();
