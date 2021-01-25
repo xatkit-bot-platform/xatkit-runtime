@@ -18,6 +18,7 @@ import com.xatkit.core.recognition.nlpjs.model.RecognitionResult;
 import com.xatkit.core.recognition.nlpjs.model.TrainingData;
 import com.xatkit.core.recognition.nlpjs.model.UserMessage;
 import com.xatkit.core.recognition.processor.SpacePunctuationPreProcessor;
+import com.xatkit.core.recognition.processor.TrimParameterValuesPostProcessor;
 import com.xatkit.core.recognition.processor.TrimPunctuationPostProcessor;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.StateContext;
@@ -155,11 +156,13 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * contains these values.
      * <p>
      * NLP.js uses regular expressions to match any entities. These expressions are sensible to spacing and
-     * punctuation, which may alter the recognition, but also appear in matched parameters. This class uses two
+     * punctuation, which may alter the recognition, but also appear in matched parameters. This class uses three
      * processors to mitigate these issues:
      * <ul>
      *     <li>{@link TrimPunctuationPostProcessor}: removes the punctuation from matched parameters (e.g.
      *     "Barcelona?" becomes "Barcelona")</li>
+     *     <li>{@link TrimParameterValuesPostProcessor}: removes leading and trailing spaces from matched parameter
+     *     values (e.g. "Barcelona " becomes "Barcelona")</li>
      *     <li>{@link SpacePunctuationPreProcessor}: adds an extra space before punctuation symbol to ease the
      *     recognition based on regular expressions (e.g. input "Barcelona?" is pre-processed as "Barcelona ?")</li>
      * </ul>
@@ -182,6 +185,11 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                                           @Nullable RecognitionMonitor recognitionMonitor) throws RuntimeException {
         Log.info("Starting NLP.js Client");
         this.getPostProcessors().add(new TrimPunctuationPostProcessor());
+        /*
+         * Note: we need to set TrimParameterValuesPostProcessor after TrimPunctuationPostProcessor otherwise it may
+         * miss some leading/trailing spaces that will be produced once the punctuation is removed.
+         */
+        this.getPostProcessors().add(new TrimParameterValuesPostProcessor());
         this.getPreProcessors().add(new SpacePunctuationPreProcessor());
         this.configuration = new NlpjsConfiguration(configuration);
         this.agentId = this.configuration.getAgentId();
