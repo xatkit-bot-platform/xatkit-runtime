@@ -4,7 +4,11 @@ import com.xatkit.execution.StateContext;
 
 /**
  * Applies a pre-processing function on the provided {@code input}.
+ * <p>
+ * This interface is a functional interface, client code can create an {@link InputPreProcessor} with the following
+ * code: {@code (input, context} -> { // pre-processing }}.
  */
+@FunctionalInterface
 public interface InputPreProcessor {
 
     /**

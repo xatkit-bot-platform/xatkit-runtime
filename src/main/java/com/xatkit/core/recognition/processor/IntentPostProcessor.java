@@ -5,7 +5,11 @@ import com.xatkit.intent.RecognizedIntent;
 
 /**
  * Applies a post-processing function on the provided {@code recognizedIntent}.
+ * <p>
+ * This interface is a functional interface, client code can create an {@link IntentPostProcessor} with the following
+ * code: {@code (recognizedIntent, context) -> { // post-processing }}.
  */
+@FunctionalInterface
 public interface IntentPostProcessor {
 
     /**
