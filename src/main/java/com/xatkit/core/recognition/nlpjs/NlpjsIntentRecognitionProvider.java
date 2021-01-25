@@ -549,6 +549,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                     RecognizedIntent r = IntentFactory.eINSTANCE.createRecognizedIntent();
                     r.setDefinition(intent);
                     r.setRecognitionConfidence(1);
+                    r.setMatchedInput(input);
                     ContextParameterValue value = IntentFactory.eINSTANCE.createContextParameterValue();
                     /*
                      * get() cannot throw an exception because isAnyParameter is always true for at least one
