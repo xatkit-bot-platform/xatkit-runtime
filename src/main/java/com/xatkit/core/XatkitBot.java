@@ -20,6 +20,7 @@ import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ConfigurationUtils;
 
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
@@ -152,6 +153,8 @@ public class XatkitBot implements Runnable {
     @Override
     public void run() {
         try {
+            Log.info("Starting {0} with configuration:\n{1}", this.getClass().getSimpleName(),
+                    ConfigurationUtils.toString(configuration));
             this.eventDefinitionRegistry = new EventDefinitionRegistry();
             /*
              * Start the server before creating the IntentRecognitionProvider, we need a valid XatkitServer instance

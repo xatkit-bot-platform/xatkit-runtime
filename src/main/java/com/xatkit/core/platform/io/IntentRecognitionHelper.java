@@ -7,6 +7,8 @@ import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 
+import java.util.stream.Collectors;
+
 /**
  * A helper class that provides method to extract intents from input text.
  * <p>
@@ -39,9 +41,27 @@ public class IntentRecognitionHelper {
     public static RecognizedIntent getRecognizedIntent(@NonNull String input, @NonNull StateContext context,
                                                        @NonNull XatkitBot xatkitBot) throws IntentRecognitionProviderException {
         RecognizedIntent recognizedIntent = xatkitBot.getIntentRecognitionProvider().getIntent(input, context);
-        Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\" ({3})",
+        Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\"{3}",
                 recognizedIntent.getDefinition().getName(), recognizedIntent.getRecognitionConfidence(),
-                recognizedIntent.getMatchedInput(), context.toString());
+                recognizedIntent.getMatchedInput(), printIntentParameters(recognizedIntent));
         return recognizedIntent;
+    }
+
+    /**
+     * Prints a {@link String} representation of the provided {@code recognizedIntent}'s parameter values.
+     *
+     * @param recognizedIntent the {@link RecognizedIntent} to print the parameter values of
+     * @return a {@link String} representation of the provided {@code recognizedIntent}'s parameter values
+     */
+    private static String printIntentParameters(RecognizedIntent recognizedIntent) {
+        if (recognizedIntent.getValues().isEmpty()) {
+            return "";
+        } else {
+            String parameters =
+                    recognizedIntent.getValues().stream()
+                            .map(p -> p.getContextParameter().getName() + "=\"" + p.getValue().toString() + "\"")
+                            .collect(Collectors.joining(", ", "{", "}"));
+            return "\nIntent Parameters: " + parameters;
+        }
     }
 }
