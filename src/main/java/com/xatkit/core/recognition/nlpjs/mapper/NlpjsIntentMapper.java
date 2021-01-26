@@ -5,6 +5,7 @@ import com.xatkit.core.recognition.nlpjs.model.IntentExample;
 import com.xatkit.core.recognition.nlpjs.model.IntentParameter;
 import com.xatkit.intent.ContextParameter;
 import com.xatkit.intent.IntentDefinition;
+import com.xatkit.util.IntentUtils;
 import lombok.NonNull;
 
 import java.text.MessageFormat;
@@ -87,6 +88,14 @@ public class NlpjsIntentMapper {
     private List<IntentExample> createIntentExamples(@NonNull IntentDefinition intentDefinition) {
         List<IntentExample> result = new ArrayList<>();
         for (String trainingSentence : intentDefinition.getTrainingSentences()) {
+            if (IntentUtils.isPureAnyTrainingSentence(intentDefinition, trainingSentence)) {
+                /*
+                 * Pure any training sentences are not considered when creating entities (NLP.js does not support
+                 * them well). To avoid any inconsistency in the matching we also need to ignore them when creating the
+                 * examples of the NLP.js intent.
+                 */
+                continue;
+            }
             if (intentDefinition.getParameters().isEmpty()) {
                 /*
                  * There is no parameter in the IntentDefinition, we don't need to do any processing and we can

@@ -32,6 +32,7 @@ import com.xatkit.intent.EntityType;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.util.IntentUtils;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
@@ -276,7 +277,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                     + "intent already exists", intentDefinition.getName()));
         }
         this.degradeUnsupportedBaseEntities(intentDefinition);
-        if (hasPureAnyTrainingSentence(intentDefinition) && intentDefinition.getTrainingSentences().size() == 1) {
+        if (IntentUtils.hasPureAnyTrainingSentence(intentDefinition)
+                && intentDefinition.getTrainingSentences().size() == 1) {
             /*
              * Intents containing a single, pure any, training sentence aren't well supported by NLP.js. We don't
              * register them and handle them natively in getIntentInternal(). See createPureAnyRecognizedIntent
@@ -505,51 +507,6 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     }
 
     /**
-     * Returns {@code true} if the provided {@code intent} contains a pure any training sentence.
-     * <p>
-     * A pure any training sentence is a training sentence that entirely matches one of the
-     * {@link ContextParameter#getTextFragments()} of an {@link EntityType#ANY} parameter.
-     * <p>
-     * Example:
-     * <pre>
-     * {@code
-     * intent(MyIntent)
-     *     .trainingSentence("VALUE")
-     *     .parameter("p").fromFragments("VALUE").entity(any());
-     * }
-     * </pre>
-     * <p>
-     * Pure any training sentences match any user input, and need to be processed specifically by this provider.
-     * <p>
-     * <b>Note</b>: this method returns {@code true} if the provided {@code intent} contains a mix of pure any and
-     * regular training sentences.
-     *
-     * @param intent the {@link IntentDefinition} to check
-     * @return {@code true} if the provided {@code intent} contains a pure any training sentence
-     * @throws NullPointerException if the provided {@code intent} is {@code null}
-     * @see #isAnyParameter(ContextParameter)
-     */
-    private boolean hasPureAnyTrainingSentence(@NonNull IntentDefinition intent) {
-        return intent.getParameters().stream().anyMatch(p -> isAnyParameter(p)
-                && intent.getTrainingSentences().contains(p.getTextFragments().get(0)));
-    }
-
-    /**
-     * Returns {@code true} if the provided {@code parameter} refers to an {@link EntityType#ANY} entity.
-     *
-     * @param parameter the {@link ContextParameter} to check
-     * @return {@code true} if the provided {@code parameter} refers to an {@link EntityType#ANY} entity
-     * @throws NullPointerException if the provided {@code parameter} is {@code null}
-     */
-    private boolean isAnyParameter(@NonNull ContextParameter parameter) {
-        if (parameter.getEntity().getReferredEntity() instanceof BaseEntityDefinition) {
-            BaseEntityDefinition entity = (BaseEntityDefinition) parameter.getEntity().getReferredEntity();
-            return entity.getEntityType().equals(EntityType.ANY);
-        }
-        return false;
-    }
-
-    /**
      * Creates a pure any {@link RecognizedIntent} from the provided {@code context}, if possible.
      * <p>
      * This method checks if the {@code context} allows a pure {@link IntentDefinition} in its transitions. If it is
@@ -567,7 +524,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     private Optional<RecognizedIntent> createPureAnyRecognizedIntent(@NonNull StateContext context,
                                                                      @NonNull String input) {
         Optional<IntentDefinition> pureAnyIntent =
-                context.getState().getAllAccessedIntents().stream().filter(this::hasPureAnyTrainingSentence).findFirst();
+                context.getState().getAllAccessedIntents().stream()
+                        .filter(IntentUtils::hasPureAnyTrainingSentence).findFirst();
         return pureAnyIntent
                 .map(intent -> {
                     RecognizedIntent r = IntentFactory.eINSTANCE.createRecognizedIntent();
@@ -580,7 +538,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
                      * parameter if isPureAnyIntent is true.
                      */
                     value.setContextParameter(intent.getParameters().stream()
-                            .filter(p -> isAnyParameter(p)
+                            .filter(p -> IntentUtils.isAnyParameter(p)
                                     && intent.getTrainingSentences().contains(p.getTextFragments().get(0)))
                             .findFirst().get());
                     value.setValue(input);
