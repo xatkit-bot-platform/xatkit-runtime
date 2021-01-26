@@ -169,9 +169,8 @@ public class NlpjsEntityMapper {
      * Fragments that are part of a training sentence (e.g. {@code "I want VALUE"}) are mapped to trim
      * {@link Entity} instances, where the pre/post words are configured from the training sentence.
      * <p>
-     * This method cannot map fragments corresponding to entire training sentences (e.g. {@code "VALUE"}), and throw
-     * an {@link IllegalStateException}. Note that intents containing these fragments are discarded by the
-     * {@link com.xatkit.core.recognition.nlpjs.NlpjsIntentRecognitionProvider}.
+     * This method cannot map fragments corresponding to entire training sentences (e.g. {@code "VALUE"}), and
+     * ignores them.
      * <p>
      * This method updates the {@link NlpjsEntityReferenceMapper} associated to this class to allow other mappers
      * to get references to the produced {@link Entity} instances.
@@ -181,8 +180,6 @@ public class NlpjsEntityMapper {
      * @param intentDefinition the {@link IntentDefinition} containing the {@link ContextParameter}s to map
      * @return the created {@link Entity} instances
      * @throws NullPointerException  if the provided {@code intentDefinition} is {@code null}
-     * @throws IllegalStateException if the any entity definition corresponds to the entire fragment of an {@code
-     *                               intentDefinition}'s training sentence
      */
     public Collection<Entity> mapAnyEntityDefinition(@NonNull IntentDefinition intentDefinition) {
         Map<String, Entity> createdEntities = new HashMap<>();
@@ -242,14 +239,11 @@ public class NlpjsEntityMapper {
                         } else {
                             /*
                              * The any entity isn't between other words, this means that we are dealing with a pure
-                             * any intent. This should not happen because the NlpjsIntentRecognitionProvider discards
-                             * pure any intents and do not register them to the NLP.js server (they are handled by
-                             * the connector natively).
+                             * any training sentence. The NlpjsIntentRecognitionProvider has a native way to
+                             * handle these training sentences, and we don't need to register them in the NLP.js
+                             * server.
                              */
-                            throw new IllegalStateException(MessageFormat.format("Cannot configure the trim entity "
-                                            + "for {0}.{1}: cannot find a word before/after the parameter text "
-                                            + "fragment.",
-                                    intentDefinition.getName(), parameter.getName()));
+                            continue;
                         }
                     }
                 }
