@@ -12,13 +12,18 @@ import com.xatkit.core.recognition.nlpjs.model.TrainingData;
 import com.xatkit.core.recognition.nlpjs.model.UserMessage;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
+import okhttp3.Authenticator;
+import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Route;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -63,24 +68,38 @@ public class NlpjsClient {
     private Gson gson;
 
     /**
-     * Creates a {@link NlpjsClient} managing the NLP.js server at {@code nlpjsServerUrl}.
+     * Creates a {@link NlpjsClient} managing the NLP.js server defined in {@code configuration}.
      * <p>
-     * The provided {@code nlpjsServerUrl} must be the base URL of the NLP.js server, including its port (e.g. {@code
-     * http://localhost:8080}). The client appends the {@link #NLPJS_API_BASE_PATH} prefix to the provided {@code
-     * nlpjsServerUrl} and uses the produced URL to send REST requests.
+     * The provided {@link NlpjsConfiguration#NLPJS_SERVER_KEY} value in the provided {@code configuration} must be
+     * the base URL of the NLP.js server, including its port (e.g. {@code http://localhost:8080}). The client appends
+     * the {@link #NLPJS_API_BASE_PATH} prefix to the provided URL and uses the produced URL to send REST requests.
      *
-     * @param nlpjsServerUrl the URL of the NLP.js server to connect to
-     * @throws NullPointerException     if the provided {@code nlpjsServerUrl} is {@code null}
-     * @throws IllegalArgumentException if the provided {@code nlpjsServerUrl} is empty
+     * @param configuration the {@link NlpjsConfiguration} containing the server URL and credentials
+     * @throws NullPointerException     if the provided {@code configuration} is {@code null}
+     * @throws IllegalArgumentException if the URL defined in the provided {@code configuration} is empty
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    public NlpjsClient(@NonNull String nlpjsServerUrl) {
+    public NlpjsClient(@NonNull NlpjsConfiguration configuration) {
+        String nlpjsServerUrl = configuration.getNlpjsServer();
+        String basicAuthUsername = configuration.getNlpjsServerBasicAuthUsername();
+        String basicAuthPassword = configuration.getNlpjsServerBasicAuthPassword();
         checkArgument(!nlpjsServerUrl.isEmpty(), "Cannot create %s, the provided URL for the NLP.js server is empty",
                 this.getClass().getSimpleName());
         gson = new GsonBuilder().registerTypeAdapter(ExtractedEntity.class, new ExtractedEntityDeserializer())
                 .create();
         String nlpjsApiUrl = nlpjsServerUrl + NLPJS_API_BASE_PATH + "/";
         OkHttpClient httpClient = new OkHttpClient.Builder()
+                .authenticator(new Authenticator() {
+                    @Nullable
+                    @Override
+                    public Request authenticate(@Nullable Route route, okhttp3.Response response) throws IOException {
+                        if (nonNull(basicAuthUsername) && nonNull(basicAuthPassword)) {
+                            String credential = Credentials.basic(basicAuthUsername, basicAuthPassword);
+                            return response.request().newBuilder().header("Authorization", credential).build();
+                        }
+                        return response.request();
+                    }
+                })
                 .addInterceptor(new HttpLoggingInterceptor(message -> {
                     /*
                      * We need to process the Json characters that conflict with the message formatting method we use

@@ -10,6 +10,7 @@ import com.xatkit.core.recognition.nlpjs.mapper.NlpjsIntentMapper;
 import com.xatkit.core.recognition.nlpjs.mapper.NlpjsRecognitionResultMapper;
 import com.xatkit.core.recognition.nlpjs.model.Agent;
 import com.xatkit.core.recognition.nlpjs.model.AgentConfig;
+import com.xatkit.core.recognition.nlpjs.model.AgentInit;
 import com.xatkit.core.recognition.nlpjs.model.AgentStatus;
 import com.xatkit.core.recognition.nlpjs.model.Classification;
 import com.xatkit.core.recognition.nlpjs.model.Entity;
@@ -197,7 +198,7 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
         this.nlpjsEntityReferenceMapper = new NlpjsEntityReferenceMapper();
         this.nlpjsIntentMapper = new NlpjsIntentMapper(nlpjsEntityReferenceMapper);
         this.nlpjsRecognitionResultMapper = new NlpjsRecognitionResultMapper(eventRegistry, nlpjsEntityReferenceMapper);
-        this.nlpjsClient = new NlpjsClient(this.configuration.getNlpjsServer());
+        this.nlpjsClient = new NlpjsClient(this.configuration);
         this.nlpjsEntityMapper = new NlpjsEntityMapper(this.nlpjsEntityReferenceMapper);
         this.recognitionMonitor = recognitionMonitor;
         this.intentsToRegister = new HashMap<>();
@@ -366,6 +367,9 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * {@inheritDoc}
      * <p>
      * This method serializes the intents/entities stored in this class and deploy them to the NLP.js agent.
+     * <p>
+     * This method creates a new agent in the NLP.js server. If the server already contains an agent with the same
+     * name it will be erased once this method completes.
      *
      * @throws IntentRecognitionProviderException if an error occurred while training the NLP.js agent
      */
@@ -373,6 +377,11 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
     public void trainMLEngine() throws IntentRecognitionProviderException {
         checkNotShutdown();
         Log.info("Starting NLP.js agent training (this may take a few minutes)");
+        this.nlpjsClient.createAgent(AgentInit.builder()
+                .agentId(this.configuration.getAgentId())
+                .language(this.configuration.getLanguageCode())
+                .build()
+        );
         TrainingData trainingData = TrainingData.builder()
                 .config(new AgentConfig(this.configuration.getLanguageCode(),
                         this.configuration.isCleanAgentOnStartup()))

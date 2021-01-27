@@ -8,6 +8,8 @@ import com.xatkit.core.recognition.nlpjs.model.IntentExample;
 import com.xatkit.core.recognition.nlpjs.model.RecognitionResult;
 import com.xatkit.core.recognition.nlpjs.model.TrainingData;
 import com.xatkit.core.recognition.nlpjs.model.UserMessage;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,6 +26,8 @@ public class NlpjsClientTest extends AbstractXatkitTest {
 
     private static final String VALID_URL = "http://localhost:8080";
 
+    private static final String VALID_AGENT = "default";
+
     private NlpjsClient nlpjsClient;
 
     @Before
@@ -32,18 +36,13 @@ public class NlpjsClientTest extends AbstractXatkitTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructNullServerUrl() {
+    public void constructNullConfiguration() {
         this.nlpjsClient = new NlpjsClient(null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void constructEmptyServerUrl() {
-        this.nlpjsClient = new NlpjsClient("");
-    }
-
     @Test
-    public void constructValidServerUrl() {
-        this.nlpjsClient = new NlpjsClient(VALID_URL);
+    public void constructValidConfiguration() {
+        this.nlpjsClient = new NlpjsClient(getValidConfiguration());
         assertThat(nlpjsClient.isShutdown()).isFalse();
     }
 
@@ -132,7 +131,14 @@ public class NlpjsClientTest extends AbstractXatkitTest {
     }
 
     private NlpjsClient getNlpjsClient() {
-        return new NlpjsClient(VALID_URL);
+        return new NlpjsClient(this.getValidConfiguration());
+    }
+
+    private NlpjsConfiguration getValidConfiguration() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_KEY, VALID_URL);
+        configuration.addProperty(NlpjsConfiguration.AGENT_ID_KEY, VALID_AGENT);
+        return new NlpjsConfiguration(configuration);
     }
 
     private TrainingData getTestTrainingData() {

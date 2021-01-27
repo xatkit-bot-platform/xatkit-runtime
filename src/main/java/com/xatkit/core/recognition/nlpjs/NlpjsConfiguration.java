@@ -25,6 +25,16 @@ public class NlpjsConfiguration {
     public static String NLPJS_SERVER_KEY = "xatkit.nlpjs.server";
 
     /**
+     * The {@link Configuration} key to store the Basic Authentication username to use to connect to the NLP.js server.
+     */
+    public static String NLPJS_SERVER_BASICAUTH_USERNAME_KEY = "xatkit.nlpjs.basicauth.username";
+
+    /**
+     * The {@link Configuration} key to store the Basic Authentication password to use to connect to the NLP.js server.
+     */
+    public static String NLPJS_SERVER_BASICAUTH_PASSWORD_KEY = "xatkit.nlpjs.basicauth.password";
+
+    /**
      * The {@link Configuration} key to store the identifier of the NLP.js agent to use.
      */
     public static String AGENT_ID_KEY = "xatkit.nlpjs.agentId";
@@ -68,6 +78,20 @@ public class NlpjsConfiguration {
     private String nlpjsServer;
 
     /**
+     * The Basic Authentication username to use to connect to the NLP.js server.
+     *
+     * @see #NLPJS_SERVER_BASICAUTH_USERNAME_KEY
+     */
+    private String nlpjsServerBasicAuthUsername;
+
+    /**
+     * The Basic Authentication password to use to connect to the NLP.js server.
+     *
+     * @see #NLPJS_SERVER_BASICAUTH_PASSWORD_KEY
+     */
+    private String nlpjsServerBasicAuthPassword;
+
+    /**
      * The identifier of the NLP.js agent to use.
      *
      * @see #AGENT_ID_KEY
@@ -108,8 +132,9 @@ public class NlpjsConfiguration {
         checkArgument(baseConfiguration.containsKey(AGENT_ID_KEY), "The provided %s does not contain a value for the "
                 + "mandatory property %s", Configuration.class.getSimpleName(), AGENT_ID_KEY);
         this.nlpjsServer = baseConfiguration.getString(NLPJS_SERVER_KEY);
+        this.nlpjsServerBasicAuthUsername = baseConfiguration.getString(NLPJS_SERVER_BASICAUTH_USERNAME_KEY);
+        this.nlpjsServerBasicAuthPassword = baseConfiguration.getString(NLPJS_SERVER_BASICAUTH_PASSWORD_KEY);
         this.agentId = baseConfiguration.getString(AGENT_ID_KEY);
-
         if (baseConfiguration.containsKey(LANGUAGE_CODE_KEY)) {
             languageCode = baseConfiguration.getString(LANGUAGE_CODE_KEY);
         } else {
