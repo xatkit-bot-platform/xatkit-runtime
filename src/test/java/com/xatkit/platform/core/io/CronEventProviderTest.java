@@ -4,6 +4,7 @@ import com.xatkit.AbstractEventProviderTest;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.ExecutionService;
 import com.xatkit.core.XatkitException;
+import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventInstance;
 import com.xatkit.platform.core.CorePlatform;
@@ -42,6 +43,7 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
         super.setUp();
         mockedExecutionService = mock(ExecutionService.class);
         when(mockedXatkitBot.getExecutionService()).thenReturn(mockedExecutionService);
+        when(mockedXatkitBot.getOrCreateContext("cron")).thenReturn(ExecutionFactory.eINSTANCE.createStateContext());
         mockedEventRegistry = mock(EventDefinitionRegistry.class);
         when(mockedXatkitBot.getEventDefinitionRegistry()).thenReturn(mockedEventRegistry);
         when(mockedEventRegistry.getEventDefinition(CronEventProvider.CronTick.getName())).thenReturn(CronEventProvider.CronTick);
@@ -121,7 +123,7 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
         provider.start(configuration);
         Thread.sleep(500);
         provider.close();
-        assertThat(provider.scheduler.isShutdown()).as("Schedule is shutdown").isTrue();
+        assertThat(provider.getScheduler().isShutdown()).as("Schedule is shutdown").isTrue();
     }
 
     @Override
@@ -138,9 +140,9 @@ public class CronEventProviderTest extends AbstractEventProviderTest<CronEventPr
     }
 
     private void assertThatFieldsAreSet(CronEventProvider provider, long initialDelay, long period) {
-        assertThat(provider.initialDelay).as("Initial delay is " + initialDelay).isGreaterThanOrEqualTo(initialDelay);
-        assertThat(provider.period).as("Period is " + period).isEqualTo(period);
-        assertThat(provider.scheduler).as("Schedule not null").isNotNull();
+        assertThat(provider.getInitialDelay()).as("Initial delay is " + initialDelay).isGreaterThanOrEqualTo(initialDelay);
+        assertThat(provider.getPeriod()).as("Period is " + period).isEqualTo(period);
+        assertThat(provider.getScheduler()).as("Schedule not null").isNotNull();
     }
 
     private void assertThatXatkitBotContainsCronTicks(int cronTickCount) {

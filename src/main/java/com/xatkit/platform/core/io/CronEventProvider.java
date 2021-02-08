@@ -2,7 +2,6 @@ package com.xatkit.platform.core.io;
 
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
-import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.EventInstance;
@@ -10,6 +9,7 @@ import com.xatkit.intent.IntentFactory;
 import com.xatkit.platform.core.CorePlatform;
 import com.xatkit.platform.core.CoreUtils;
 import fr.inria.atlanmod.commons.log.Log;
+import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
@@ -28,29 +28,45 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+/**
+ * Generates {@link #CronTick} events periodically.
+ * <p>
+ * This provider is customized in the Xatkit {@link Configuration} with the following properties:
+ * <ul>
+ *     <li>{@code xatkit.core.cron.start_on}: the date/time of the first tick to emmit. This value must follow the
+ *     {@link DateTimeFormatter#ISO_DATE_TIME} format. If this property is not specified the first event will be
+ *     emitted when the provider starts.</li>
+ *     <li>{@code xatkit.core.cron.period}: the interval between ticks (in seconds)</li>
+ * </ul>
+ *
+ * @see CoreUtils
+ */
 public class CronEventProvider extends RuntimeEventProvider<CorePlatform> {
 
     /**
      * The initial delay (in seconds) to wait before generating the first {@code CronTick} event.
      */
-    protected long initialDelay;
+    @Getter
+    private long initialDelay;
 
     /**
      * The interval between the generation of two {@code CronTick} events.
      * <p>
      * <b>Note</b>: this interval cannot be smaller than {@code 1} second.
      */
-    protected long period;
+    @Getter
+    private long period;
 
     /**
      * The scheduler used to queue event generation tasks.
      */
-    protected ScheduledExecutorService scheduler;
+    @Getter
+    private ScheduledExecutorService scheduler;
 
     /**
      * The handler allowing to stop event generation when closing this provider.
      */
-    protected ScheduledFuture<?> handle;
+    private ScheduledFuture<?> handle;
 
     /**
      * Constructs an <b>unstarted</b> {@link CronEventProvider} and binds it to the provided {@code corePlatform}.
@@ -92,8 +108,8 @@ public class CronEventProvider extends RuntimeEventProvider<CorePlatform> {
                         DateTimeFormatter.ISO_DATE_TIME);
                 initialDelay = (cronStartTime.toEpochSecond() - Instant.now().getEpochSecond());
             } catch (DateTimeParseException e) {
-                throw new XatkitException(MessageFormat.format("Cannot parse the provided start date {0}, the date " +
-                        "does not follow the ISO_DATE_TIME convention", cronStartTimeProperty), e);
+                throw new XatkitException(MessageFormat.format("Cannot parse the provided start date {0}, the date "
+                        + "does not follow the ISO_DATE_TIME convention", cronStartTimeProperty), e);
             }
         }
         period = configuration.getLong(CoreUtils.CRON_PERIOD_KEY, -1);
@@ -117,8 +133,7 @@ public class CronEventProvider extends RuntimeEventProvider<CorePlatform> {
             try {
                 EventInstance cronTickEvent = IntentFactory.eINSTANCE.createEventInstance();
                 cronTickEvent.setDefinition(CronTick);
-                StateContext cronContext = ExecutionFactory.eINSTANCE.createStateContext();
-                cronContext.setContextId("cron");
+                StateContext cronContext = this.getRuntimePlatform().getXatkitBot().getOrCreateContext("cron");
                 this.sendEventInstance(cronTickEvent, cronContext);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -148,6 +163,12 @@ public class CronEventProvider extends RuntimeEventProvider<CorePlatform> {
         }
     }
 
+    /**
+     * The Cron tick periodically emitted by this provider.
+     * <p>
+     * Note that this event may be emitted at any point in the bot's state machine. Designers need to take it into
+     * account to ensure the event is properly handled (e.g. with multiple transitions checking for the event).
+     */
     public static EventDefinition CronTick = event("CronTick")
             .getEventDefinition();
 }
