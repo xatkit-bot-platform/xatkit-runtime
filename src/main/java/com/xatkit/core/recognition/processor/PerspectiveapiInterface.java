@@ -3,9 +3,8 @@ package com.xatkit.core.recognition.processor;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.NonNull;
+import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -131,27 +130,68 @@ public class PerspectiveapiInterface {
     private static String apiKey;
     private static String commentText;
     private static String commentType = "PLAIN_TEXT";
-    private static ArrayList<AttributeType> requestedAttributes;
-    private static ArrayList<String> languages;
+    private static AttributeType[] requestedAttributes;
+    private static String language;
     private static Boolean doNotStore;
     private static String clientToken;
     private static String sessionId;
-
-    private JSONObject request;
+    private static JSONObject request;
+    public static Map<String, AttributeType[]> languageAttributes;
+    static {
+        languageAttributes = new HashMap<>();
+        languageAttributes.put("en", new AttributeType[] {
+                AttributeType.TOXICITY,
+                AttributeType.SEVERE_TOXICITY,
+                AttributeType.TOXICITY_FAST,
+                AttributeType.IDENTITY_ATTACK,
+                AttributeType.INSULT,
+                AttributeType.PROFANITY,
+                AttributeType.THREAT,
+                AttributeType.SEXUALLY_EXPLICIT,
+                AttributeType.FLIRTATION,
+                AttributeType.ATTACK_ON_AUTHOR,
+                AttributeType.ATTACK_ON_COMMENTER,
+                AttributeType.INCOHERENT,
+                AttributeType.INFLAMMATORY,
+                AttributeType.LIKELY_TO_REJECT,
+                AttributeType.OBSCENE,
+                AttributeType.SPAM,
+                AttributeType.UNSUBSTANTIAL
+        });
+        languageAttributes.put("es", new AttributeType[] {
+                AttributeType.TOXICITY,
+                AttributeType.SEVERE_TOXICITY,
+                AttributeType.IDENTITY_ATTACK_EXPERIMENTAL,
+                AttributeType.INSULT_EXPERIMENTAL,
+                AttributeType.PROFANITY_EXPERIMENTAL,
+                AttributeType.THREAT_EXPERIMENTAL
+        });
+    }
 
     /**
      * Constructor
      */
-    PerspectiveapiInterface(@NonNull String apiKey, @NonNull String commentText,
-                            @NonNull ArrayList<AttributeType> requestedAttributes,
-                            ArrayList<String> languages, Boolean doNotStore, String clientToken, String sessionId) {
+    PerspectiveapiInterface(@NonNull String apiKey, String language, Boolean doNotStore, String clientToken,
+                            String sessionId) {
         PerspectiveapiInterface.apiKey = apiKey;
-        PerspectiveapiInterface.commentText = commentText;
-        PerspectiveapiInterface.requestedAttributes = (ArrayList<AttributeType>) requestedAttributes.clone();
-        PerspectiveapiInterface.languages = languages != null ? (ArrayList<String>) languages.clone() : null;
+        PerspectiveapiInterface.language = language != null ? language : "en";
         PerspectiveapiInterface.doNotStore = doNotStore != null ? doNotStore : false;
         PerspectiveapiInterface.clientToken = clientToken;
         PerspectiveapiInterface.sessionId = sessionId;
+        PerspectiveapiInterface.setRequestedAttributes();
+    }
+
+    /**
+     * Sets the attributes available for the chosen language
+     */
+    private static AttributeType[] setRequestedAttributes() {
+        if (language.equals("es")) {
+            requestedAttributes = languageAttributes.get("es");
+        }
+        else {
+            requestedAttributes = languageAttributes.get("en");
+        }
+        return requestedAttributes;
     }
 
     /**
@@ -163,31 +203,10 @@ public class PerspectiveapiInterface {
     }
 
     /**
-     * Adds the new attributes to the perspectiveapi class
-     */
-    public static ArrayList<AttributeType> addRequestedAttributes(ArrayList<AttributeType> attributes) {
-        for (AttributeType a : attributes) {
-            if (!PerspectiveapiInterface.requestedAttributes.contains(a)) {
-                PerspectiveapiInterface.requestedAttributes.add(a);
-            }
-
-        }
-        return PerspectiveapiInterface.requestedAttributes;
-    }
-
-    /**
-     * Removes the attributes of the perspectiveapi class
-     */
-    public static ArrayList<AttributeType> removeRequestedAttributes(ArrayList<AttributeType> attributes) {
-        PerspectiveapiInterface.requestedAttributes.removeAll(attributes);
-        return PerspectiveapiInterface.requestedAttributes;
-    }
-
-    /**
      * Analyzes the comment and returns the punctuation for each attribute present in the perspectiveapi class
      */
     public static HashMap<String, Double> analyzeRequest(String keyPrefix) throws UnirestException {
-        JSONObject request = PerspectiveapiInterface.createJSONObjectRequest();
+        request = PerspectiveapiInterface.createJSONObjectRequest();
         JSONObject response = Unirest.post("https://commentanalyzer.googleapis"
                 + ".com/v1alpha1/comments:analyze?key=" + apiKey)
                 .header("Content-Type", "application/json")
@@ -215,28 +234,15 @@ public class PerspectiveapiInterface {
         for (AttributeType a : PerspectiveapiInterface.requestedAttributes) {
             requestedAttributes.put(a.toString(), (Map<?, ?>) null);
         }
+        JSONArray languages = new JSONArray();
+        languages.put(language);
+
         request.put("comment", comment);
         request.put("requestedAttributes", requestedAttributes);
+        request.put("languages", languages);
         request.put("doNotStore", PerspectiveapiInterface.doNotStore);
         request.put("clientToken", PerspectiveapiInterface.clientToken);
         request.put("sessionId", PerspectiveapiInterface.sessionId);
         return request;
-    }
-
-    /**
-     * Prints the class parameters
-     */
-    public static void printParameters() {
-
-        System.out.println("========== PerspectiveAPI Parameters ==========\n");
-        System.out.println(apiKey);
-        System.out.println(commentText);
-        System.out.println(commentType);
-        System.out.println(requestedAttributes);
-        System.out.println(languages);
-        System.out.println(doNotStore);
-        System.out.println(clientToken);
-        System.out.println(sessionId);
-        System.out.println("\n===============================================");
     }
 }

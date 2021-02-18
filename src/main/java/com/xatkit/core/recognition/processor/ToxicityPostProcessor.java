@@ -4,9 +4,12 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
 
-import java.util.ArrayList;
-
 public class ToxicityPostProcessor implements IntentPostProcessor {
+
+    /**
+     * The API key of your project
+     */
+    String API_KEY = "YOUR PERSPECTIVEAPI KEY";
 
     /**
      * The context parameter key used to store the toxicity attributes extracted from the user input.
@@ -16,11 +19,7 @@ public class ToxicityPostProcessor implements IntentPostProcessor {
 
     @Override
     public void init() {
-        String API_KEY = "AIzaSyAcpNUpDO_Dult9LWYOnL_GIWmYztw89Qk";
-        ArrayList<PerspectiveapiInterface.AttributeType> attribs = new ArrayList<>();
-        attribs.add(PerspectiveapiInterface.AttributeType.TOXICITY);
-        new PerspectiveapiInterface(API_KEY, "buenos dias", attribs,
-                null, null, null, null);
+        new PerspectiveapiInterface(API_KEY, "en", null, null,null);
     }
 
     @Override
