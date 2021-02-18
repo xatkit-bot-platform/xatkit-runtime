@@ -17,6 +17,7 @@ import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -93,14 +94,14 @@ public class IntentRecognitionProviderFactory {
         List<IntentPostProcessor> postProcessors;
 
         try {
-            preProcessors = loadPreProcessors(configuration.getPreProcessorNames());
-            postProcessors = loadPostProcessors(configuration.getPostProcessorNames());
-        } catch(Exception e) {
+            preProcessors = loadPreProcessors(configuration);
+            postProcessors = loadPostProcessors(configuration);
+        } catch (Exception e) {
             /*
              * Make sure we close the recognition monitor in case something bad happens while loading the processors.
              * We don't want to run into lock errors, especially in the test cases.
              */
-            if(nonNull(recognitionMonitor)) {
+            if (nonNull(recognitionMonitor)) {
                 recognitionMonitor.shutdown();
             }
             throw e;
@@ -164,19 +165,21 @@ public class IntentRecognitionProviderFactory {
          */
         RecognitionMonitor monitor = null;
         if (configuration.isEnableRecognitionAnalytics()) {
-            if(configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY, DEFAULT_DATABASE_MODEL).toLowerCase().equals(DATABASE_MODEL_INFLUXDB)){
+            if (configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY, DEFAULT_DATABASE_MODEL).toLowerCase().equals(DATABASE_MODEL_INFLUXDB)) {
                 Log.info("Using InfluxDB to store monitoring data");
-                monitor = new RecognitionMonitorInflux(xatkitBot.getXatkitServer(), configuration.getBaseConfiguration());
+                monitor = new RecognitionMonitorInflux(xatkitBot.getXatkitServer(),
+                        configuration.getBaseConfiguration());
             } else {
                 Log.info("Using MapDB to store monitoring data");
-                monitor = new RecognitionMonitorMapDB(xatkitBot.getXatkitServer(), configuration.getBaseConfiguration());
-            } 
+                monitor = new RecognitionMonitorMapDB(xatkitBot.getXatkitServer(),
+                        configuration.getBaseConfiguration());
+            }
         }
         return monitor;
     }
 
-    private static List<InputPreProcessor> loadPreProcessors(List<String> preProcessorNames) {
-        return preProcessorNames.stream().map(preProcessorName -> {
+    private static List<InputPreProcessor> loadPreProcessors(IntentRecognitionProviderFactoryConfiguration configuration) {
+        return configuration.getPreProcessorNames().stream().map(preProcessorName -> {
             Class<? extends InputPreProcessor> processor;
             try {
                 processor = Loader.loadClass("com.xatkit.core.recognition.processor." + preProcessorName +
@@ -189,12 +192,24 @@ public class IntentRecognitionProviderFactory {
                 processor = Loader.loadClass("com.xatkit.core.recognition.processor." + preProcessorName,
                         InputPreProcessor.class);
             }
-            return Loader.construct(processor);
+            try {
+                return Loader.construct(processor, new Object[]{configuration.getBaseConfiguration()});
+            } catch (NoSuchMethodException e) {
+                /*
+                 * Try to construct the processor without the configuration
+                 */
+                return Loader.construct(processor);
+            } catch (InvocationTargetException e) {
+                /*
+                 * Wrap the exception into an unchecked exception
+                 */
+                throw new XatkitException(e);
+            }
         }).collect(Collectors.toList());
     }
 
-    private static List<IntentPostProcessor> loadPostProcessors(List<String> postProcessorNames) {
-        return postProcessorNames.stream().map(postProcessorName -> {
+    private static List<IntentPostProcessor> loadPostProcessors(IntentRecognitionProviderFactoryConfiguration configuration) {
+        return configuration.getPostProcessorNames().stream().map(postProcessorName -> {
             Class<? extends IntentPostProcessor> processor;
             try {
                 processor = Loader.loadClass("com.xatkit.core.recognition.processor." + postProcessorName +
@@ -206,9 +221,19 @@ public class IntentRecognitionProviderFactory {
                 processor = Loader.loadClass("com.xatkit.core.recognition.processor." + postProcessorName,
                         IntentPostProcessor.class);
             }
-            return Loader.construct(processor);
+            try {
+                return Loader.construct(processor, new Object[]{configuration.getBaseConfiguration()});
+            } catch (NoSuchMethodException e) {
+                /*
+                 * Try to construct the processor without the configuration
+                 */
+                return Loader.construct(processor);
+            } catch (InvocationTargetException e) {
+                /*
+                 * Wrap the exception into an unchecked exception
+                 */
+                throw new XatkitException(e);
+            }
         }).collect(Collectors.toList());
     }
-
-
 }
