@@ -7,6 +7,7 @@ import com.xatkit.core.XatkitException;
 import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProviderTest;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
+import com.xatkit.core.recognition.processor.PostProcessorWithConfiguration;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
 import com.xatkit.core.server.XatkitServer;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -126,6 +127,17 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
         IntentPostProcessor postProcessor = provider.getPostProcessors().get(0);
         assertThat(postProcessor.getClass().getSimpleName()).as("Valid PostProcessor").isEqualTo(
                 "RemoveEnglishStopWordsPostProcessor");
+    }
+
+    @Test
+    public void getIntentRecognitionProviderWithPostProcessorConstructedWithConfiguration() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_POSTPROCESSORS_KEY, "PostProcessorWithConfiguration");
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
+        assertThat(provider.getPostProcessors()).hasSize(1);
+        assertThat(provider.getPostProcessors().get(0)).isInstanceOf(PostProcessorWithConfiguration.class);
+        PostProcessorWithConfiguration processor = (PostProcessorWithConfiguration) provider.getPostProcessors().get(0);
+        assertThat(processor.getConfiguration()).isEqualTo(configuration);
     }
 
     @Test(expected = XatkitException.class)

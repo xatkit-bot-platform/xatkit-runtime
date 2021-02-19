@@ -27,4 +27,9 @@ public class LoaderTest extends AbstractXatkitTest {
     public void constructInvalidParameters() throws Exception {
         LoadableClass loaded = Loader.construct(LoadableClass.class, new Object[]{"test", 1});
     }
+
+    @Test(expected = NoSuchMethodException.class)
+    public void constructTooManyParameters() throws Exception {
+        LoadableClass loaded = Loader.construct(LoadableClass.class, new Object[]{"test", "test", "test"});
+    }
 }

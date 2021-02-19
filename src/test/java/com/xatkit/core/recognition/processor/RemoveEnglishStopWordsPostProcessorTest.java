@@ -62,6 +62,17 @@ public class RemoveEnglishStopWordsPostProcessorTest extends AbstractXatkitTest 
         assertThatIntentContainsValue(processedIntent, "entity");
     }
 
+    /**
+     * Test for #321
+     */
+    @Test
+    public void processContextAnyEntityWithStopWordUpperCase() {
+        RecognizedIntent recognizedIntent = createRecognizedIntent("An entity", EntityType.ANY);
+        processor = new RemoveEnglishStopWordsPostProcessor();
+        RecognizedIntent processedIntent = processor.process(recognizedIntent, context);
+        assertThatIntentContainsValue(processedIntent, "entity");
+    }
+
     @Test
     public void processContextAnyEntityWithOnlyStopWord() {
         /*

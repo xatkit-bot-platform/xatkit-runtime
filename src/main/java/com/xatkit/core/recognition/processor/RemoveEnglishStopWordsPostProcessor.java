@@ -123,7 +123,11 @@ public class RemoveEnglishStopWordsPostProcessor implements IntentPostProcessor 
          * Can't use Arrays.asList here, the returned ArrayList does not support remove().
          */
         List<String> splitFrom = Arrays.stream(from.split(" ")).collect(Collectors.toList());
-        splitFrom.removeAll(stopWordsList);
+        /*
+         * Fix #321. The stop words list only contains lowercase entries, so we need to ignore case to compare the
+         * values.
+         */
+        splitFrom.removeIf(value -> stopWordsList.contains(value.toLowerCase()));
         String result = String.join(" ", splitFrom);
         if (result.isEmpty()) {
             /*
