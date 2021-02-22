@@ -39,7 +39,8 @@ public class ToxicityPostProcessor implements IntentPostProcessor {
     }
 
     /**
-     * Analyzes the comment from the {@code recognizedIntent} and computes the toxic attributes values for that comment.
+     * Analyzes the comment from the {@code recognizedIntent} and computes the toxic attributes values for that
+     * comment. If an attribute can not be set, its value is -1
      *
      * @param recognizedIntent the {@link RecognizedIntent} to process
      * @param context          the {@link StateContext} associated to the {@code recognizedIntent}
@@ -58,7 +59,7 @@ public class ToxicityPostProcessor implements IntentPostProcessor {
     }
 
     /**
-     * Gets client.
+     * Gets client. For testing purposes
      *
      * @return the client
      */

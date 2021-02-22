@@ -8,6 +8,8 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONException;
+
 /**
  * The type PerspectiveAPI interface.
  */
@@ -223,11 +225,20 @@ public class PerspectiveapiInterface {
                 .header("Content-Type", "application/json")
                 .body(request)
                 .asJson().getBody().getObject();
-        JSONObject attributes = response.getJSONObject("attributeScores");
         HashMap<String, Double> scores = new HashMap<>();
-        for (String k : attributes.keySet()) {
-            Double score = attributes.getJSONObject(k).getJSONObject("summaryScore").getDouble("value");
-            scores.put(attributesPrefix + k, score);
+        for (AttributeType k : AttributeType.values()) {
+            scores.put(attributesPrefix + k.toString(), -1.);
+        }
+        JSONObject attributes = new JSONObject();
+        try {
+            attributes = response.getJSONObject("attributeScores");
+            Double score;
+            for (String k : attributes.keySet()) {
+                score = attributes.getJSONObject(k).getJSONObject("summaryScore").getDouble("value");
+                scores.put(attributesPrefix + k, score);
+            }
+        } catch (JSONException e) {
+            System.out.println("PERSPECTIVEAPI_ERROR: " + response);
         }
         return scores;
     }
@@ -258,7 +269,7 @@ public class PerspectiveapiInterface {
     }
 
     /**
-     * Gets language attributes.
+     * Gets language attributes. For testing purposes
      *
      * @return the language attributes
      */
