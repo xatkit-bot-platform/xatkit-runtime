@@ -17,8 +17,9 @@ public class PerspectiveapiInterfaceTest {
 
     @Before
     public void setUp() {
-        this.apiKey = System.getenv("PERSPECTIVEAPI_KEY");
-        this.client = new PerspectiveapiInterface(apiKey, null, null, null, null, null);
+        this.apiKey = "YOUR-PERSPECTIVEAPI-KEY";
+        this.client = new PerspectiveapiInterface(apiKey, null, null, null, null,
+                ToxicityPostProcessor.PERSPECTIVEAPI_PARAMETER_KEY);
         this.languages = this.client.getLanguageAttributes().keySet();
     }
 
@@ -26,12 +27,12 @@ public class PerspectiveapiInterfaceTest {
     public void analyzeRequestTest() throws UnirestException {
         for (String language : languages) {
             client = new PerspectiveapiInterface(apiKey, language, null, null, null,
-                    ToxicityPostProcessor.TOXICITY_PARAMETER_KEY);
+                    ToxicityPostProcessor.PERSPECTIVEAPI_PARAMETER_KEY);
             Map<String, Double> scores = client.analyzeRequest("test");
 
             PerspectiveapiInterface.AttributeType[] languageAttributes = client.getLanguageAttributes().get(language);
             for (PerspectiveapiInterface.AttributeType attribute : languageAttributes) {
-                Double score = scores.get(ToxicityPostProcessor.TOXICITY_PARAMETER_KEY + attribute.toString());
+                Double score = scores.get(ToxicityPostProcessor.PERSPECTIVEAPI_PARAMETER_KEY + attribute.toString());
                 assertTrue(score >= 0);
                 assertTrue(score <= 1);
             }

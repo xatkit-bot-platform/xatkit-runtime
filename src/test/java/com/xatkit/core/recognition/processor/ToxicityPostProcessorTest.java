@@ -17,40 +17,60 @@ import static org.junit.Assert.*;
 public class ToxicityPostProcessorTest extends AbstractXatkitTest {
 
     private ToxicityPostProcessor processor;
-    private String apiKey;
+    private String perspectiveapiapiKey;
     private StateContext context;
-    private Set<String> languages;
 
     @Before
     public void setUp() {
-        this.apiKey = System.getenv("PERSPECTIVEAPI_KEY");
-        Configuration botConfiguration = new BaseConfiguration();
-        botConfiguration.setProperty("xatkit.perspectiveapi.apiKey", apiKey);
-        this.processor = new ToxicityPostProcessor(botConfiguration);
-        this.languages = processor.getClient().getLanguageAttributes().keySet();
+        this.processor = null;
+        this.perspectiveapiapiKey = "YOUR-PERSPECTIVEAPI-KEY";
         this.context = ExecutionFactory.eINSTANCE.createStateContext();
         this.context.setContextId("contextId");
     }
 
     @Test
-    public void processCommentForEachLanguage() {
-        for (String language : languages) {
+    public void perspectiveapiProcessCommentForEachLanguage() {
+        Set<String> perspectiveapiLanguages = this.getPerspectiveapiLanguages();
+        for (String language : perspectiveapiLanguages) {
             Configuration botConfiguration = new BaseConfiguration();
-            botConfiguration.setProperty("xatkit.perspectiveapi.apiKey", apiKey);
+            botConfiguration.setProperty("xatkit.perspectiveapi", true);
+            botConfiguration.setProperty("xatkit.perspectiveapi.apiKey", perspectiveapiapiKey);
             botConfiguration.setProperty("xatkit.perspectiveapi.language", language);
             processor = new ToxicityPostProcessor(botConfiguration);
             RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
             recognizedIntent.setMatchedInput("test");
             RecognizedIntent processedIntent = processor.process(recognizedIntent, context);
             PerspectiveapiInterface.AttributeType[] languageAttributes =
-                    processor.getClient().getLanguageAttributes().get(language);
+                    processor.getPerspectiveapiClient().getLanguageAttributes().get(language);
             for (PerspectiveapiInterface.AttributeType attribute : languageAttributes) {
                 Double score = (Double) processedIntent.getNlpData()
-                        .get(ToxicityPostProcessor.TOXICITY_PARAMETER_KEY + attribute.toString());
+                        .get(ToxicityPostProcessor.PERSPECTIVEAPI_PARAMETER_KEY + attribute.toString());
                 assertTrue(score >= 0);
                 assertTrue(score <= 1);
             }
         }
+    }
 
+    @Test
+    public void detoxifyProcessComment() {
+        Configuration botConfiguration = new BaseConfiguration();
+        botConfiguration.setProperty("xatkit.detoxify", true);
+        processor = new ToxicityPostProcessor(botConfiguration);
+        RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
+        recognizedIntent.setMatchedInput("test");
+        RecognizedIntent processedIntent = processor.process(recognizedIntent, context);
+        for (DetoxifyInterface.AttributeType attribute : DetoxifyInterface.AttributeType.values()) {
+            Double score = (Double) processedIntent.getNlpData()
+                    .get(ToxicityPostProcessor.DETOXIFY_PARAMETER_KEY + attribute.toString());
+            assertTrue(score >= 0);
+            assertTrue(score <= 1);
+        }
+    }
+
+    private Set<String> getPerspectiveapiLanguages() {
+        PerspectiveapiInterface perspectiveapiClient = new PerspectiveapiInterface(perspectiveapiapiKey, null, null,
+                null, null,
+                null);
+        return perspectiveapiClient.getLanguageAttributes().keySet();
     }
 }

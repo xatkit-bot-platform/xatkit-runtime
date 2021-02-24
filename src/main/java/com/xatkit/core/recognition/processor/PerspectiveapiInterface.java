@@ -1,7 +1,7 @@
 package com.xatkit.core.recognition.processor;
 
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
+import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -215,30 +215,32 @@ public class PerspectiveapiInterface {
      *
      * @param comment the comment
      * @return the hash map with attributes and their respective scores
-     * @throws UnirestException the unirest exception
      */
-    public HashMap<String, Double> analyzeRequest(String comment) throws UnirestException {
-        this.setCommentText(comment);
-        request = this.createJSONObjectRequest();
-        JSONObject response = Unirest.post("https://commentanalyzer.googleapis"
-                + ".com/v1alpha1/comments:analyze?key=" + apiKey)
-                .header("Content-Type", "application/json")
-                .body(request)
-                .asJson().getBody().getObject();
+    public HashMap<String, Double> analyzeRequest(String comment) {
+        JSONObject response = new JSONObject();
         HashMap<String, Double> scores = new HashMap<>();
-        for (AttributeType k : AttributeType.values()) {
-            scores.put(attributesPrefix + k.toString(), -1.);
-        }
-        JSONObject attributes = new JSONObject();
         try {
-            attributes = response.getJSONObject("attributeScores");
+            for (AttributeType k : AttributeType.values()) {
+                scores.put(attributesPrefix + k.toString(), -1.);
+            }
+            this.setCommentText(comment);
+            request = this.createJSONObjectRequest();
+            response = Unirest.post("https://commentanalyzer.googleapis"
+                    + ".com/v1alpha1/comments:analyze?key=" + apiKey)
+                    .header("Content-Type", "application/json")
+                    .body(request)
+                    .asJson().getBody().getObject();
+
+            JSONObject attributes = response.getJSONObject("attributeScores");
             Double score;
             for (String k : attributes.keySet()) {
                 score = attributes.getJSONObject(k).getJSONObject("summaryScore").getDouble("value");
                 scores.put(attributesPrefix + k, score);
             }
-        } catch (JSONException e) {
-            System.out.println("PERSPECTIVEAPI_ERROR: " + response);
+        } catch (Exception e) {
+            Log.warn("PerspectiveAPI failed to compute toxicity scores");
+            System.out.println("PerspectiveAPIResponse=" + response.toString());
+            e.printStackTrace();
         }
         return scores;
     }
