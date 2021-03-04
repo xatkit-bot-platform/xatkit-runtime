@@ -22,7 +22,7 @@ public class ToxicityPostProcessor implements IntentPostProcessor {
      * The context parameter key used to store the toxicity attributes extracted from the user input.
      */
     protected final static String PERSPECTIVEAPI_PARAMETER_KEY = "nlp.perspectiveapi.";
-    protected final static String DETOXIFY_PARAMETER_KEY = "nlp.detoxify.original.";
+    protected final static String DETOXIFY_PARAMETER_KEY = "nlp.detoxify.";
 
     /**
      * Instantiates a new Toxicity post processor.
@@ -32,22 +32,13 @@ public class ToxicityPostProcessor implements IntentPostProcessor {
     public ToxicityPostProcessor(Configuration configuration) {
         this.perspectiveapiClient = null;
         this.detoxifyClient = null;
-        boolean xatkit_perspectiveapi = configuration.getProperty("xatkit.perspectiveapi") != null &&
-                (boolean) configuration.getProperty("xatkit.perspectiveapi");
-        boolean xatkit_detoxify = configuration.getProperty("xatkit.detoxify") != null &&
-                (boolean) configuration.getProperty("xatkit.detoxify");
+        boolean xatkit_perspectiveapi = configuration.getBoolean("xatkit.perspectiveapi", false);
+        boolean xatkit_detoxify = configuration.getBoolean("xatkit.detoxify", false);
         if (xatkit_perspectiveapi) {
-            String apiKey = (String) configuration.getProperty("xatkit.perspectiveapi.apiKey");
-            String language = (String) configuration.getProperty("xatkit.perspectiveapi.language");
-            Boolean doNotStore = (Boolean) configuration.getProperty("xatkit.perspectiveapi.doNotStore");
-            String clientToken = (String) configuration.getProperty("xatkit.perspectiveapi.clientToken");
-            String sessionId = (String) configuration.getProperty("xatkit.perspectiveapi.sessionId");
-            this.perspectiveapiClient = new PerspectiveapiInterface(apiKey, language, doNotStore, clientToken,
-                    sessionId,
-                    PERSPECTIVEAPI_PARAMETER_KEY);
+            this.perspectiveapiClient = new PerspectiveapiInterface(configuration);
         }
         if (xatkit_detoxify) {
-            this.detoxifyClient = new DetoxifyInterface(DETOXIFY_PARAMETER_KEY);
+            this.detoxifyClient = new DetoxifyInterface(configuration);
         }
     }
 
@@ -64,13 +55,24 @@ public class ToxicityPostProcessor implements IntentPostProcessor {
 
         Map<String, Double> results = new HashMap<>();
         if (detoxifyClient != null) {
-            results.putAll(detoxifyClient.analyzeRequest(recognizedIntent.getMatchedInput()));
+            Map<String, Double> result = detoxifyClient.analyzeRequest(recognizedIntent.getMatchedInput());
+            results.putAll(adaptResult(result, DETOXIFY_PARAMETER_KEY));
         }
         if (perspectiveapiClient != null) {
-            results.putAll(perspectiveapiClient.analyzeRequest(recognizedIntent.getMatchedInput()));
+            Map<String, Double> result = perspectiveapiClient.analyzeRequest(recognizedIntent.getMatchedInput());
+            results.putAll(adaptResult(result, PERSPECTIVEAPI_PARAMETER_KEY));
         }
         recognizedIntent.getNlpData().putAll(results);
         return recognizedIntent;
+    }
+
+    // TODO documentation
+    private Map<String, Double> adaptResult(Map<String, Double> from, String prefix) {
+        Map<String, Double> adaptedResult = new HashMap<>();
+        from.forEach((k, v) -> {
+            adaptedResult.put(prefix + k, v);
+        });
+        return adaptedResult;
     }
 
     /**
