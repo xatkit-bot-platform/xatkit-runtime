@@ -1,15 +1,17 @@
-package com.xatkit.core.recognition.processor;
+package com.xatkit.core.recognition.processor.toxicity.perspectiveapi;
 
-public enum ToxicityLabel {
+/**
+ * Labels representing the toxicity categories defined by Perspective API.
+ * <p>
+ * This enumeration is language-agnostic: it contains all the labels used in Perspective API. Check
+ * {@link PerspectiveApiClient#getLanguageLabels()} to see the attributes available for a given language.
+ */
+public enum PerspectiveApiLabel {
 
     /**
      * Rude, disrespectful, or unreasonable comment that is likely to make people leave a discussion.
      */
     TOXICITY,
-    /**
-     * Rude, disrespectful, or unreasonable comment that is likely to make people leave a discussion.
-     */
-    TOXICITY_EXPERIMENTAL,
     /**
      * A very hateful, aggressive, disrespectful comment or otherwise very likely to make a user leave a
      * discussion or give up on sharing their perspective. This model is much less sensitive to comments that
@@ -17,13 +19,6 @@ public enum ToxicityLabel {
      * found in the same toxicity dataset that is available for the toxicity model.
      */
     SEVERE_TOXICITY,
-    /**
-     * A very hateful, aggressive, disrespectful comment or otherwise very likely to make a user leave a
-     * discussion or give up on sharing their perspective. This model is much less sensitive to comments that
-     * include positive uses of curse words, for example. A labelled dataset and details of the methodology can be
-     * found in the same toxicity dataset that is available for the toxicity model.
-     */
-    SEVERE_TOXICITY_EXPERIMENTAL,
     /**
      * This model is similar to the TOXICITY model, but has lower latency and lower accuracy in its predictions.
      * Unlike TOXICITY, this model returns summary scores as well as span scores. This model uses character-level
@@ -35,11 +30,6 @@ public enum ToxicityLabel {
      * Negative or hateful comments targeting someone because of their identity.
      */
     IDENTITY_ATTACK,
-    /**
-     * Negative or hateful comments targeting someone because of their identity.
-     * TODO is it the same as Identity attack?
-     */
-    IDENTITY_HATE,
     /**
      * Negative or hateful comments targeting someone because of their identity.
      */

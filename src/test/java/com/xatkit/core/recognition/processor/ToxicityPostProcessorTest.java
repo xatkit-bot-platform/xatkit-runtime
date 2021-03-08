@@ -1,6 +1,11 @@
 package com.xatkit.core.recognition.processor;
 
 import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.recognition.processor.toxicity.detoxify.DetoxifyConfiguration;
+import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiLabel;
+import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiConfiguration;
+import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiClient;
+import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiScore;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.IntentFactory;
@@ -17,59 +22,60 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ToxicityPostProcessorTest extends AbstractXatkitTest {
 
     private ToxicityPostProcessor processor;
-    private String perspectiveapiapiKey;
+    private String perspectiveApiKey;
     private StateContext context;
 
     @Before
     public void setUp() {
         this.processor = null;
-        this.perspectiveapiapiKey = "YOUR PERSPECTIVE API KEY";
+        this.perspectiveApiKey = "Your Perspective API Key";
         this.context = ExecutionFactory.eINSTANCE.createStateContext();
         this.context.setContextId("contextId");
     }
 
     @Test
-    public void perspectiveapiProcessCommentForEachLanguage() {
-        Set<String> perspectiveapiLanguages = this.getPerspectiveapiLanguages();
-        for (String language : perspectiveapiLanguages) {
+    public void perspectiveApiProcessIntentForEachLanguage() {
+        Set<String> perspectiveApiLanguages = this.getPerspectiveApiLanguages();
+        for (String language : perspectiveApiLanguages) {
             Configuration botConfiguration = new BaseConfiguration();
             botConfiguration.setProperty("xatkit.perspectiveapi", true);
-            botConfiguration.setProperty(PerspectiveapiConfiguration.API_KEY, perspectiveapiapiKey);
-            botConfiguration.setProperty(PerspectiveapiConfiguration.LANGUAGE, language);
+            botConfiguration.setProperty(PerspectiveApiConfiguration.API_KEY, perspectiveApiKey);
+            botConfiguration.setProperty(PerspectiveApiConfiguration.LANGUAGE, language);
             processor = new ToxicityPostProcessor(botConfiguration);
             RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
             recognizedIntent.setMatchedInput("test");
             RecognizedIntent processedIntent = processor.process(recognizedIntent, context);
-            ToxicityLabel[] languageAttributes =
-                    processor.getPerspectiveapiClient().getLanguageAttributes().get(language);
-            for (ToxicityLabel attribute : languageAttributes) {
-                Double score = (Double) processedIntent.getNlpData()
-                        .get(ToxicityPostProcessor.PERSPECTIVEAPI_PARAMETER_KEY + attribute.toString());
+            PerspectiveApiLabel[] languageLabels =
+                    processor.getPerspectiveapiClient().getLanguageLabels().get(language);
+            PerspectiveApiScore scores =
+                    (PerspectiveApiScore) processedIntent.getNlpData().get(ToxicityPostProcessor.PERSPECTIVEAPI_PARAMETER_KEY);
+            for (PerspectiveApiLabel label : languageLabels) {
+                Double score = scores.getScore(label);
                 assertThat(score).isBetween(0d, 1d);
             }
         }
     }
 
     @Test
-    public void detoxifyProcessComment() {
+    public void detoxifyProcessIntent() {
         Configuration botConfiguration = new BaseConfiguration();
         botConfiguration.setProperty("xatkit.detoxify", true);
-        botConfiguration.setProperty(DetoxifyInterfaceConfiguration.DETOXIFY_SERVER_URL, "http://localhost:8000");
+        botConfiguration.setProperty(DetoxifyConfiguration.DETOXIFY_SERVER_URL, "http://localhost:8000");
         processor = new ToxicityPostProcessor(botConfiguration);
         RecognizedIntent recognizedIntent = IntentFactory.eINSTANCE.createRecognizedIntent();
         recognizedIntent.setMatchedInput("test");
         RecognizedIntent processedIntent = processor.process(recognizedIntent, context);
-        for (ToxicityLabel attribute : ToxicityLabel.values()) {
+        for (PerspectiveApiLabel attribute : PerspectiveApiLabel.values()) {
             Double score = (Double) processedIntent.getNlpData()
                     .get(ToxicityPostProcessor.DETOXIFY_PARAMETER_KEY + attribute.toString());
             assertThat(score).isBetween(0d, 1d);
         }
     }
 
-    private Set<String> getPerspectiveapiLanguages() {
+    private Set<String> getPerspectiveApiLanguages() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(PerspectiveapiConfiguration.API_KEY, perspectiveapiapiKey);
-        PerspectiveapiInterface perspectiveapiClient = new PerspectiveapiInterface(configuration);
-        return perspectiveapiClient.getLanguageAttributes().keySet();
+        configuration.addProperty(PerspectiveApiConfiguration.API_KEY, perspectiveApiKey);
+        PerspectiveApiClient perspectiveapiClient = new PerspectiveApiClient(configuration);
+        return perspectiveapiClient.getLanguageLabels().keySet();
     }
 }

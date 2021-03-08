@@ -1,50 +1,97 @@
 package com.xatkit.core.recognition.processor;
 
+import com.xatkit.core.recognition.processor.toxicity.detoxify.DetoxifyClient;
+import com.xatkit.core.recognition.processor.toxicity.detoxify.DetoxifyScore;
+import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiClient;
+import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiScore;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
+import lombok.Getter;
 import org.apache.commons.configuration2.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
+import static java.util.Objects.nonNull;
 
 /**
- * Analyzes the probability of a comment being toxic with different types of toxicity attributes
+ * Annotates {@link RecognizedIntent}s with toxicity scores.
+ * <p>
+ * This processor supports the following toxicity detection solutions:
+ * <ul>
+ *     <li>Perspective API</li>
+ *     <li>Detoxify</li>
+ * </ul>
+ * See {@link ToxicityPostProcessorConfiguration} to configure the solution(s) to use.
+ * <p>
+ * This processor can be configured to use multiple toxicity detection solution. Each solution's scores is associated
+ * to a dedicated key in {@link RecognizedIntent#getNlpData()}:
+ * <ul>
+ *     <li>Perspective API: {@link #PERSPECTIVEAPI_PARAMETER_KEY}</li>
+ *     <li>Detoxify: {@link #DETOXIFY_PARAMETER_KEY}</li>
+ * </ul>
  */
 public class ToxicityPostProcessor implements IntentPostProcessor {
 
     /**
-     * The PerspectiveAPI Client that will ask the requests to PerspectiveAPI
+     * The NLP-data key to access Perspective API scores.
+     *
+     * @see RecognizedIntent#getNlpData()
      */
-    private PerspectiveapiInterface perspectiveapiClient;
-    private DetoxifyInterface detoxifyClient;
+    protected final static String PERSPECTIVEAPI_PARAMETER_KEY = "nlp.perspectiveapi";
 
     /**
-     * The context parameter key used to store the toxicity attributes extracted from the user input.
+     * The NLP-data key to access Detoxify scores.
+     *
+     * @see RecognizedIntent#getNlpData()
      */
-    protected final static String PERSPECTIVEAPI_PARAMETER_KEY = "nlp.perspectiveapi.";
-    protected final static String DETOXIFY_PARAMETER_KEY = "nlp.detoxify.";
+    protected final static String DETOXIFY_PARAMETER_KEY = "nlp.detoxify";
+
 
     /**
-     * Instantiates a new Toxicity post processor.
+     * The client used to query PerspectiveAPI.
+     */
+    @Getter
+    private PerspectiveApiClient perspectiveapiClient;
+
+    /**
+     * The client used to query Detoxify.
+     */
+    @Getter
+    private DetoxifyClient detoxifyClient;
+
+
+    /**
+     * Initializes the {@link ToxicityPostProcessor} with the toxicity clients set in the {@code configuration}.
+     * <p>
+     * This processor supports multiple toxicity processors, and merges their results into the
+     * {@link RecognizedIntent#getNlpData()} map. See {@link #process(RecognizedIntent, StateContext)} for more
+     * information.
+     * <p>
+     * See {@link ToxicityPostProcessorConfiguration} to configure this processor.
      *
      * @param configuration the Xatkit bot configuration that contains the ToxicityPostProcessor parameters
+     * @see ToxicityPostProcessorConfiguration
      */
     public ToxicityPostProcessor(Configuration configuration) {
-        this.perspectiveapiClient = null;
-        this.detoxifyClient = null;
-        boolean xatkit_perspectiveapi = configuration.getBoolean("xatkit.perspectiveapi", false);
-        boolean xatkit_detoxify = configuration.getBoolean("xatkit.detoxify", false);
-        if (xatkit_perspectiveapi) {
-            this.perspectiveapiClient = new PerspectiveapiInterface(configuration);
+        ToxicityPostProcessorConfiguration processorConfiguration =
+                new ToxicityPostProcessorConfiguration(configuration);
+        if (processorConfiguration.usePerspectiveApi()) {
+            this.perspectiveapiClient = new PerspectiveApiClient(configuration);
         }
-        if (xatkit_detoxify) {
-            this.detoxifyClient = new DetoxifyInterface(configuration);
+        if (processorConfiguration.useDetoxifyApi()) {
+            this.detoxifyClient = new DetoxifyClient(configuration);
         }
     }
 
     /**
-     * Analyzes the comment from the {@code recognizedIntent} and computes the toxic attributes values for that
-     * comment. If an attribute can not be set, its value is -1
+     * Evaluates the toxicity of the {@code recognizedIntent} and stores it in the intent's data.
+     * <p>
+     * This method stores the toxicity evaluation in {@link RecognizedIntent#getNlpData()}. Each toxicity detection
+     * solution's score is defined in a specific class and associated to a specific key:
+     * <ul>
+     *     <li>Perspective API: score stored in {@link PerspectiveApiScore}, accessible with the key
+     *     {@link #PERSPECTIVEAPI_PARAMETER_KEY}</li>
+     *     <li>Detoxify: score stored in {@link DetoxifyScore}, accessible with the key {@link #DETOXIFY_PARAMETER_KEY}
+     *     </li>
+     * </ul>
      *
      * @param recognizedIntent the {@link RecognizedIntent} to process
      * @param context          the {@link StateContext} associated to the {@code recognizedIntent}
@@ -53,43 +100,14 @@ public class ToxicityPostProcessor implements IntentPostProcessor {
     @Override
     public RecognizedIntent process(RecognizedIntent recognizedIntent, StateContext context) {
 
-        Map<String, Double> results = new HashMap<>();
-        if (detoxifyClient != null) {
-            Map<String, Double> result = detoxifyClient.analyzeRequest(recognizedIntent.getMatchedInput());
-            results.putAll(adaptResult(result, DETOXIFY_PARAMETER_KEY));
+        if (nonNull(detoxifyClient)) {
+            DetoxifyScore score = detoxifyClient.analyzeRequest(recognizedIntent.getMatchedInput());
+            recognizedIntent.getNlpData().put(DETOXIFY_PARAMETER_KEY, score);
         }
-        if (perspectiveapiClient != null) {
-            Map<String, Double> result = perspectiveapiClient.analyzeRequest(recognizedIntent.getMatchedInput());
-            results.putAll(adaptResult(result, PERSPECTIVEAPI_PARAMETER_KEY));
+        if (nonNull(perspectiveapiClient)) {
+            PerspectiveApiScore score = perspectiveapiClient.analyzeRequest(recognizedIntent.getMatchedInput());
+            recognizedIntent.getNlpData().put(PERSPECTIVEAPI_PARAMETER_KEY, score);
         }
-        recognizedIntent.getNlpData().putAll(results);
         return recognizedIntent;
-    }
-
-    // TODO documentation
-    private Map<String, Double> adaptResult(Map<String, Double> from, String prefix) {
-        Map<String, Double> adaptedResult = new HashMap<>();
-        from.forEach((k, v) -> {
-            adaptedResult.put(prefix + k, v);
-        });
-        return adaptedResult;
-    }
-
-    /**
-     * Gets perspectiveapi client. For testing purposes
-     *
-     * @return the perspectiveapi client
-     */
-    public PerspectiveapiInterface getPerspectiveapiClient() {
-        return perspectiveapiClient;
-    }
-
-    /**
-     * Gets detoxify client. For testing purposes
-     *
-     * @return the detoxify client
-     */
-    public DetoxifyInterface getDetoxifyClient() {
-        return detoxifyClient;
     }
 }
