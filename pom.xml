@@ -28,6 +28,7 @@
         <retrofit.version>2.9.0</retrofit.version>
         <okhttp3.logging-interceptor.version>3.14.0</okhttp3.logging-interceptor.version>
         <influxdb-client.version>1.7.0</influxdb-client.version>
+        <unirest.version>1.4.9</unirest.version>
     </properties>
 
     <dependencies>
@@ -58,6 +59,12 @@
         <dependency>
             <groupId>com.influxdb</groupId>
             <artifactId>influxdb-client-java</artifactId>
+        </dependency>
+
+        <!-- Unirest -->
+        <dependency>
+            <groupId>com.mashape.unirest</groupId>
+            <artifactId>unirest-java</artifactId>
         </dependency>
 
         <!-- Utils -->
@@ -273,6 +280,12 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>logging-interceptor</artifactId>
                 <version>${okhttp3.logging-interceptor.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mashape.unirest</groupId>
+                <artifactId>unirest-java</artifactId>
+                <version>${unirest.version}</version>
             </dependency>
 
 
