@@ -8,7 +8,7 @@ e() {
 main() {
 	
     e "Decrypting CI/CD secrets"
-    gpg --quiet --batch --yes --decrypt --passphrase="$CI_CD_KEY" --output ./src/test/resources/xatkit-secrets.zip xatkit-secrets.zip.gpg
+    gpg --quiet --batch --yes --decrypt --passphrase="$CI_CD_KEY" --output ./src/test/resources/xatkit-secrets.zip ./src/test/resources/xatkit-secrets.zip.gpg
     unzip ./src/test/resources/xatkit-secrets.zip -d ./src/test/resources/
 }
 
