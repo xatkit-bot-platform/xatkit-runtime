@@ -43,6 +43,7 @@ target
 # Google App
 xatkit-secret.json
 xatkit-secrets.tar
+xatkit-secrets.zip
 gmail_secret.json
 credentials
 
