@@ -8,6 +8,7 @@ import com.xatkit.core.recognition.nlpjs.model.IntentExample;
 import com.xatkit.core.recognition.nlpjs.model.RecognitionResult;
 import com.xatkit.core.recognition.nlpjs.model.TrainingData;
 import com.xatkit.core.recognition.nlpjs.model.UserMessage;
+import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Before;
@@ -23,8 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Note: this class requires a local instance of the NLP.js server running on port 8080.
  */
 public class NlpjsClientTest extends AbstractXatkitTest {
-
-    private static final String VALID_URL = "http://localhost:8080";
 
     private static final String VALID_AGENT = "default";
 
@@ -136,8 +135,13 @@ public class NlpjsClientTest extends AbstractXatkitTest {
 
     private NlpjsConfiguration getValidConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_KEY, VALID_URL);
-        configuration.addProperty(NlpjsConfiguration.AGENT_ID_KEY, VALID_AGENT);
+        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_KEY, VariableLoaderHelper.getVariable(NlpjsConfiguration.NLPJS_SERVER_KEY));
+        configuration.addProperty(NlpjsConfiguration.AGENT_ID_KEY,
+                VariableLoaderHelper.getVariable(NlpjsConfiguration.AGENT_ID_KEY));
+        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_BASICAUTH_USERNAME_KEY,
+                VariableLoaderHelper.getVariable(NlpjsConfiguration.NLPJS_SERVER_BASICAUTH_USERNAME_KEY));
+        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_BASICAUTH_PASSWORD_KEY,
+                VariableLoaderHelper.getVariable(NlpjsConfiguration.NLPJS_SERVER_BASICAUTH_PASSWORD_KEY));
         return new NlpjsConfiguration(configuration);
     }
 
