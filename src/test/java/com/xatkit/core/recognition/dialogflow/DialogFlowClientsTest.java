@@ -21,9 +21,9 @@ public class DialogFlowClientsTest {
     public void setUp() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(DialogFlowConfiguration.PROJECT_ID_KEY,
-                VariableLoaderHelper.getXatkitDialogFlowProject());
+                VariableLoaderHelper.getVariable(DialogFlowConfiguration.PROJECT_ID_KEY));
         configuration.addProperty(DialogFlowConfiguration.GOOGLE_CREDENTIALS_PATH_KEY, VariableLoaderHelper
-                .getXatkitDialogflowCredentialsPath());
+                .getVariable(DialogFlowConfiguration.GOOGLE_CREDENTIALS_PATH_KEY));
         this.validConfiguration = new DialogFlowConfiguration(configuration);
     }
 

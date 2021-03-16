@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DialogFlowStateContextImplTest extends AbstractXatkitTest {
 
-    private static String VALID_PROJECT_ID = VariableLoaderHelper.getXatkitDialogFlowProject();
+    private static String VALID_PROJECT_ID = VariableLoaderHelper.getVariable(DialogFlowConfiguration.PROJECT_ID_KEY);
 
     private DialogFlowStateContext stateContext;
 

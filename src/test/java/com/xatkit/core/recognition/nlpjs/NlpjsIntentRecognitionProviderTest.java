@@ -5,6 +5,7 @@ import com.xatkit.core.recognition.IntentRecognitionProviderTest;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.library.core.CoreLibrary;
 import com.xatkit.stubs.TestingStateContext;
+import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
@@ -124,8 +125,14 @@ public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProvide
     @Override
     protected NlpjsIntentRecognitionProvider getIntentRecognitionProvider() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(NlpjsConfiguration.AGENT_ID_KEY, "default");
-        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_KEY, "http://localhost:8080");
+        configuration.addProperty(NlpjsConfiguration.AGENT_ID_KEY,
+                VariableLoaderHelper.getVariable(NlpjsConfiguration.AGENT_ID_KEY));
+        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_KEY,
+                VariableLoaderHelper.getVariable(NlpjsConfiguration.NLPJS_SERVER_KEY));
+        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_BASICAUTH_USERNAME_KEY,
+                VariableLoaderHelper.getVariable(NlpjsConfiguration.NLPJS_SERVER_BASICAUTH_USERNAME_KEY));
+        configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_BASICAUTH_PASSWORD_KEY,
+                VariableLoaderHelper.getVariable(NlpjsConfiguration.NLPJS_SERVER_BASICAUTH_PASSWORD_KEY));
         return new NlpjsIntentRecognitionProvider(eventRegistry, configuration, null);
     }
 }

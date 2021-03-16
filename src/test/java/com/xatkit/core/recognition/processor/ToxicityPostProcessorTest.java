@@ -2,17 +2,19 @@ package com.xatkit.core.recognition.processor;
 
 import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.recognition.processor.toxicity.detoxify.DetoxifyConfiguration;
-import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiLabel;
-import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiConfiguration;
 import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiClient;
+import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiConfiguration;
+import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiLabel;
 import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiScore;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Set;
@@ -28,7 +30,7 @@ public class ToxicityPostProcessorTest extends AbstractXatkitTest {
     @Before
     public void setUp() {
         this.processor = null;
-        this.perspectiveApiKey = "Your Perspective API Key";
+        this.perspectiveApiKey = VariableLoaderHelper.getVariable(PerspectiveApiConfiguration.API_KEY);
         this.context = ExecutionFactory.eINSTANCE.createStateContext();
         this.context.setContextId("contextId");
     }
@@ -56,6 +58,7 @@ public class ToxicityPostProcessorTest extends AbstractXatkitTest {
         }
     }
 
+    @Ignore
     @Test
     public void detoxifyProcessIntent() {
         Configuration botConfiguration = new BaseConfiguration();

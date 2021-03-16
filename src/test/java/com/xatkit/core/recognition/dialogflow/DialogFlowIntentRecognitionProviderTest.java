@@ -21,8 +21,8 @@ public class DialogFlowIntentRecognitionProviderTest extends IntentRecognitionPr
 
 
     public static Configuration buildConfiguration() {
-        return buildConfiguration(VariableLoaderHelper.getXatkitDialogFlowProject(), VariableLoaderHelper
-                .getXatkitDialogFlowLanguage());
+        return buildConfiguration(VariableLoaderHelper.getVariable(DialogFlowConfiguration.PROJECT_ID_KEY), VariableLoaderHelper
+                .getVariable(DialogFlowConfiguration.LANGUAGE_CODE_KEY));
     }
 
     private static Configuration buildConfiguration(String projectId, String languageCode) {
@@ -30,7 +30,7 @@ public class DialogFlowIntentRecognitionProviderTest extends IntentRecognitionPr
         configuration.addProperty(DialogFlowConfiguration.PROJECT_ID_KEY, projectId);
         configuration.addProperty(DialogFlowConfiguration.LANGUAGE_CODE_KEY, languageCode);
         configuration.addProperty(DialogFlowConfiguration.GOOGLE_CREDENTIALS_PATH_KEY, VariableLoaderHelper
-                .getXatkitDialogflowCredentialsPath());
+                .getVariable(DialogFlowConfiguration.GOOGLE_CREDENTIALS_PATH_KEY));
         /*
          * Disable Intent loading to avoid RESOURCE_EXHAUSTED exceptions from the DialogFlow API.
          */

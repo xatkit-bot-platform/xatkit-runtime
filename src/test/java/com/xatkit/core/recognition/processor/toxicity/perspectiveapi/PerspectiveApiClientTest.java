@@ -1,5 +1,6 @@
 package com.xatkit.core.recognition.processor.toxicity.perspectiveapi;
 
+import com.xatkit.test.util.VariableLoaderHelper;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.Before;
@@ -19,7 +20,8 @@ public class PerspectiveApiClientTest {
     @Before
     public void setUp() {
         this.configuration = new BaseConfiguration();
-        configuration.addProperty(PerspectiveApiConfiguration.API_KEY, "Your Perspective API Key");
+        configuration.addProperty(PerspectiveApiConfiguration.API_KEY,
+                VariableLoaderHelper.getVariable(PerspectiveApiConfiguration.API_KEY));
         this.client = new PerspectiveApiClient(configuration);
         this.languages = this.client.getLanguageLabels().keySet();
     }
@@ -33,7 +35,7 @@ public class PerspectiveApiClientTest {
             PerspectiveApiLabel[] languageAttributes = client.getLanguageLabels().get(language);
             for (PerspectiveApiLabel attribute : languageAttributes) {
                 Double score = scores.getScore(attribute);
-                assertThat(score).isBetween(0d,1d);
+                assertThat(score).isBetween(0d, 1d);
             }
         }
     }
