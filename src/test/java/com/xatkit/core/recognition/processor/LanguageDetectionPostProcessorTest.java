@@ -1,6 +1,5 @@
 package com.xatkit.core.recognition.processor;
 
-import com.xatkit.core.recognition.processor.toxicity.perspectiveapi.PerspectiveApiConfiguration;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.IntentFactory;
