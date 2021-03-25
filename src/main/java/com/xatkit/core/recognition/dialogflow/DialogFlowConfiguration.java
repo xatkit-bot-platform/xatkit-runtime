@@ -1,14 +1,11 @@
 package com.xatkit.core.recognition.dialogflow;
 
-import com.google.cloud.dialogflow.v2.EntityType;
-import com.google.cloud.dialogflow.v2.Intent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import lombok.Value;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 
@@ -26,12 +23,12 @@ public class DialogFlowConfiguration {
     /**
      * The {@link Configuration} key to store the unique identifier of the DialogFlow project.
      */
-    public static String PROJECT_ID_KEY = "xatkit.dialogflow.projectId";
+    public static final String PROJECT_ID_KEY = "xatkit.dialogflow.projectId";
 
     /**
      * The {@link Configuration} key to store the code of the language processed by DialogFlow.
      */
-    public static String LANGUAGE_CODE_KEY = "xatkit.dialogflow.language";
+    public static final String LANGUAGE_CODE_KEY = "xatkit.dialogflow.language";
 
     /**
      * The {@link Configuration} key to store the path of the {@code JSON} credential file for DialogFlow.
@@ -40,12 +37,12 @@ public class DialogFlowConfiguration {
      * GOOGLE_APPLICATION_CREDENTIALS}
      * environment variable to retrieve the credentials file.
      */
-    public static String GOOGLE_CREDENTIALS_PATH_KEY = "xatkit.dialogflow.credentials.path";
+    public static final String GOOGLE_CREDENTIALS_PATH_KEY = "xatkit.dialogflow.credentials.path";
 
     /**
      * The default language processed by DialogFlow.
      */
-    public static String DEFAULT_LANGUAGE_CODE = "en-US";
+    public static final String DEFAULT_LANGUAGE_CODE = "en-US";
 
     /**
      * The {@link Configuration} key to store whether to clean the registered intents and registered entity types
@@ -54,11 +51,11 @@ public class DialogFlowConfiguration {
      * This property is disabled by default. Enabling it allows to easily re-deploy chatbots under development, but
      * complete agent cleaning should not be done on production-ready bots (re-training such bots may take a long time).
      */
-    public static String CLEAN_AGENT_ON_STARTUP_KEY = "xatkit.dialogflow.clean_on_startup";
+    public static final String CLEAN_AGENT_ON_STARTUP_KEY = "xatkit.dialogflow.clean_on_startup";
 
     /**
-     * The {@link Configuration} key to store whether to initialize the registered intents {@link Map} with the
-     * {@link Intent}s already stored in the DialogFlow project.
+     * The {@link Configuration} key to store whether to initialize the DialogFlow client with the the list of intents
+     * already stored in the DialogFlow project.
      * <p>
      * Intent loading is enabled by default, and should not be an issue when using the
      * {@link DialogFlowIntentRecognitionProvider} in
@@ -67,14 +64,14 @@ public class DialogFlowConfiguration {
      * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
      * avoid Intent loading, limiting the number of queries to the DialogFlow API.
      * <p>
-     * Note that disabling {@link Intent} loading may create consistency issues between the DialogFlow agent and the
+     * Note that disabling intent loading may create consistency issues between the DialogFlow agent and the
      * local {@link DialogFlowIntentRecognitionProvider}, and is not recommended in development environment.
      */
-    public static String ENABLE_INTENT_LOADING_KEY = "xatkit.dialogflow.intent.loading";
+    public static final String ENABLE_INTENT_LOADING_KEY = "xatkit.dialogflow.intent.loading";
 
     /**
-     * The {@link Configuration} key to store whether to initialize the registered entity types {@link Map} with the
-     * {@link EntityType}s already stored in the DialogFlow project.
+     * The {@link Configuration} key to store whether to initialize the DialogFlow client with the list of entity types
+     * already stored in the DialogFlow project.
      * <p>
      * Entity loading is enabled by default, and should not be an issue when using the
      * {@link DialogFlowIntentRecognitionProvider} in
@@ -83,10 +80,10 @@ public class DialogFlowConfiguration {
      * Xatkit test suite) may throw <i>RESOURCE_EXHAUSTED</i> exceptions. This option can be set to {@code false} to
      * avoid Entity loading, limiting the number of queries to the DialogFlow API.
      * <p>
-     * Note that disabling {@link EntityType} loading may create consistency issues between the DialogFlow agent and
-     * the local {@link DialogFlowIntentRecognitionProvider}, and is not recommended in development environment.
+     * Note that disabling entity types loading may create consistency issues between the DialogFlow agent and the
+     * local {@link DialogFlowIntentRecognitionProvider}, and is not recommended in development environment.
      */
-    public static String ENABLE_ENTITY_LOADING_KEY = "xatkit.dialogflow.entity.loading";
+    public static final String ENABLE_ENTITY_LOADING_KEY = "xatkit.dialogflow.entity.loading";
 
     // TODO check if this is still needed?
     /**
@@ -100,7 +97,7 @@ public class DialogFlowConfiguration {
      * Note that disabling this option for a bot implementation that manipulates local contexts may generate
      * consistency issues and unexpected behaviors (such as unmatched intents and context value overwriting).
      */
-    public static String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "xatkit.dialogflow.context.merge";
+    public static final String ENABLE_LOCAL_CONTEXT_MERGE_KEY = "xatkit.dialogflow.context.merge";
 
     /**
      * The {@link Configuration} key to store the lifespan value to use when creating followup intents.
@@ -109,7 +106,7 @@ public class DialogFlowConfiguration {
      * a higher value allows to match followup intents after multiple inputs. Note that changing it to a smaller
      * value may result in unmatched intents.
      */
-    public static String CUSTOM_FOLLOWUP_LIFESPAN = "xatkit.dialogflow.followup.lifespan";
+    public static final String CUSTOM_FOLLOWUP_LIFESPAN = "xatkit.dialogflow.followup.lifespan";
 
     /**
      * The {@link Configuration} key to store the DialogFlow confidence threshold.
@@ -120,7 +117,7 @@ public class DialogFlowConfiguration {
      * <b>Note</b>: recognized intents that contain an {@code any} entity are never rejected based on the threshold,
      * these entities typically have a low confidence value.
      */
-    public static String CONFIDENCE_THRESHOLD_KEY = "xatkit.dialogflow.confidence.threshold";
+    public static final String CONFIDENCE_THRESHOLD_KEY = "xatkit.dialogflow.confidence.threshold";
 
     /**
      * The base {@link Configuration} used to initialized the {@link DialogFlowConfiguration}.
@@ -162,8 +159,8 @@ public class DialogFlowConfiguration {
     private boolean cleanAgentOnStartup;
 
     /**
-     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered {@link Intent}
-     * from the DialogFlow agent.
+     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered intents from the
+     * DialogFlow agent.
      * <p>
      * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
      * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
@@ -174,9 +171,8 @@ public class DialogFlowConfiguration {
     private boolean enableIntentLoader;
 
     /**
-     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered
-     * {@link EntityType}s from the
-     * DialogFlow agent.
+     * A flag allowing the {@link DialogFlowIntentRecognitionProvider} to load previously registered entity types from
+     * the DialogFlow agent.
      * <p>
      * This option is set to {@code true} by default. Setting it to {@code false} will reduce the number of queries
      * sent to the DialogFlow API, but may generate consistency issues between the DialogFlow agent and the local
@@ -215,8 +211,8 @@ public class DialogFlowConfiguration {
      */
     public DialogFlowConfiguration(@NonNull Configuration baseConfiguration) {
         this.baseConfiguration = baseConfiguration;
-        checkArgument(baseConfiguration.containsKey(PROJECT_ID_KEY), "The provided %s does not contain a value for " +
-                "the mandatory property %s", Configuration.class.getSimpleName(), PROJECT_ID_KEY);
+        checkArgument(baseConfiguration.containsKey(PROJECT_ID_KEY), "The provided %s does not contain a value for "
+                + "the mandatory property %s", Configuration.class.getSimpleName(), PROJECT_ID_KEY);
         this.projectId = baseConfiguration.getString(PROJECT_ID_KEY);
         if (baseConfiguration.containsKey(LANGUAGE_CODE_KEY)) {
             languageCode = baseConfiguration.getString(LANGUAGE_CODE_KEY);

@@ -1,9 +1,7 @@
 package com.xatkit.core.recognition.regex;
 
-import com.xatkit.core.XatkitBot;
 import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.EntityMapper;
-import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.recognition.RecognitionMonitor;
 import com.xatkit.execution.ExecutionFactory;
 import com.xatkit.execution.State;
@@ -16,7 +14,6 @@ import com.xatkit.intent.ContextParameterValue;
 import com.xatkit.intent.CustomEntityDefinition;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.EntityTextFragment;
-import com.xatkit.intent.EntityType;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.LiteralTextFragment;
@@ -52,15 +49,12 @@ import static java.util.Objects.nonNull;
  * {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support advanced features such as
  * partial matches.
  * <p>
- * <b>Note</b>: the {@link RegExIntentRecognitionProvider} translates {@link EntityType}s into single-word
+ * <b>Note</b>: the {@link RegExIntentRecognitionProvider} translates entity types into single-word
  * patterns. This means that the {@code any} entity will match "test", but not "test test", you can check
  * alternative {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support such features.
  * <p>
- * The {@link RegExIntentRecognitionProvider} will be used by Xatkit if the application's {@link Configuration}
- * file does not contain specific {@link com.xatkit.core.recognition.IntentRecognitionProvider} properties (see
- * {@link IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitBot, Configuration)}).
- *
- * @see IntentRecognitionProviderFactory
+ * This provider is used by Xatkit if the application's {@link Configuration} file does not contain specific
+ * {@link com.xatkit.core.recognition.IntentRecognitionProvider} properties.
  */
 public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionProvider {
 
@@ -182,7 +176,8 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
                         /*
                          * Add spaces around pure textual fragments, they are removed by the Xtext parser.
                          */
-                        sb.append(" " + escapeRegExpReservedCharacters(((LiteralTextFragment) fragment).getValue()) + " ");
+                        sb.append(" "
+                                + escapeRegExpReservedCharacters(((LiteralTextFragment) fragment).getValue()) + " ");
                     } else if (fragment instanceof EntityTextFragment) {
                         EntityDefinition fragmentEntity =
                                 ((EntityTextFragment) fragment).getEntityReference().getReferredEntity();
@@ -266,7 +261,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
             } else {
                 String preparedTrainingSentence = trainingSentence;
                 for (ContextParameter parameter : intentDefinition.getParameters()) {
-                    for(String textFragment : parameter.getTextFragments()) {
+                    for (String textFragment : parameter.getTextFragments()) {
                         if (preparedTrainingSentence.contains(textFragment)) {
                             /*
                              * only support single word for now
@@ -303,13 +298,13 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      */
     private String buildRegExpGroup(@NonNull ContextParameter parameter) {
         EntityDefinition parameterEntity = parameter.getEntity().getReferredEntity();
-        checkNotNull(parameterEntity, "Cannot construct a RegExp group for the provided parameter %s: the parameter's" +
-                " entity is null", parameter.getName());
-        String regExpGroup = "(?<" +
-                parameter.getName() +
-                ">" +
-                entityMapper.getMappingFor(parameterEntity) +
-                ")";
+        checkNotNull(parameterEntity, "Cannot construct a RegExp group for the provided parameter %s: the parameter's"
+                + " entity is null", parameter.getName());
+        String regExpGroup = "(?<"
+                + parameter.getName()
+                + ">"
+                + entityMapper.getMappingFor(parameterEntity)
+                + ")";
         return regExpGroup;
     }
 
@@ -411,7 +406,7 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support advanced features such
      * as partial matches.
      * <p>
-     * <b>Note</b>: the {@link RegExIntentRecognitionProvider} translates {@link EntityType}s into single-word
+     * <b>Note</b>: the {@link RegExIntentRecognitionProvider} translates entity types into single-word
      * patterns. This means that the {@code any} entity will match "test", but not "test test", you can check
      * alternative {@link com.xatkit.core.recognition.IntentRecognitionProvider}s if you need to support such features.
      *
@@ -515,8 +510,8 @@ public class RegExIntentRecognitionProvider extends AbstractIntentRecognitionPro
                  * The group with the name <parameter> does not exist (this can be the case if the intent
                  * contains multiple inputs setting different parameters).
                  */
-                Log.warn("Cannot set the value of the parameter {0}, the parameter hasn't been matched from the " +
-                        "provided input \"\"", contextParameter.getName());
+                Log.warn("Cannot set the value of the parameter {0}, the parameter hasn't been matched from the "
+                        + "provided input \"\"", contextParameter.getName());
                 continue;
             }
             ContextParameterValue contextParameterValue = createContextParameterValue(contextParameter,

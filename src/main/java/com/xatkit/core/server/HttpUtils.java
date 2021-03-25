@@ -14,7 +14,13 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 /**
  * Provides utility methods to manipulate Http-related objects.
  */
-public class HttpUtils {
+public final class HttpUtils {
+
+    /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private HttpUtils() {
+    }
 
     /**
      * Returns a {@link URIBuilder} from the provided {@code httpRequest}.
@@ -41,8 +47,8 @@ public class HttpUtils {
      * @throws URISyntaxException if the provided {@code httpRequest}'s URI is invalid
      */
     public static String getPath(@Nonnull HttpRequest httpRequest) throws URISyntaxException {
-        checkNotNull(httpRequest, "Cannot retrieve the path from the provided %s %s", HttpRequest.class.getSimpleName()
-                , httpRequest);
+        checkNotNull(httpRequest, "Cannot retrieve the path from the provided %s %s",
+                HttpRequest.class.getSimpleName(), httpRequest);
         URIBuilder uriBuilder = getURIBuilderFrom(httpRequest);
         return uriBuilder.getPath();
     }

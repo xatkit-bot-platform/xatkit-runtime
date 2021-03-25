@@ -22,22 +22,22 @@ public class NlpjsConfiguration {
     /**
      * The {@link Configuration} key to store the URL of the NLP.js server to connect to.
      */
-    public static String NLPJS_SERVER_KEY = "xatkit.nlpjs.server";
+    public static final String NLPJS_SERVER_KEY = "xatkit.nlpjs.server";
 
     /**
      * The {@link Configuration} key to store the Basic Authentication username to use to connect to the NLP.js server.
      */
-    public static String NLPJS_SERVER_BASICAUTH_USERNAME_KEY = "xatkit.nlpjs.basicauth.username";
+    public static final String NLPJS_SERVER_BASICAUTH_USERNAME_KEY = "xatkit.nlpjs.basicauth.username";
 
     /**
      * The {@link Configuration} key to store the Basic Authentication password to use to connect to the NLP.js server.
      */
-    public static String NLPJS_SERVER_BASICAUTH_PASSWORD_KEY = "xatkit.nlpjs.basicauth.password";
+    public static final String NLPJS_SERVER_BASICAUTH_PASSWORD_KEY = "xatkit.nlpjs.basicauth.password";
 
     /**
      * The {@link Configuration} key to store the identifier of the NLP.js agent to use.
      */
-    public static String AGENT_ID_KEY = "xatkit.nlpjs.agentId";
+    public static final String AGENT_ID_KEY = "xatkit.nlpjs.agentId";
 
     /**
      * The {@link Configuration} key to store the code of the language processed by the NLP.js agent.
@@ -46,7 +46,7 @@ public class NlpjsConfiguration {
      *
      * @see #DEFAULT_LANGUAGE_CODE
      */
-    public static String LANGUAGE_CODE_KEY = "xatkit.nlpjs.language";
+    public static final String LANGUAGE_CODE_KEY = "xatkit.nlpjs.language";
 
     /**
      * The default language processed by NLP.js.
@@ -56,14 +56,14 @@ public class NlpjsConfiguration {
      *
      * @see #LANGUAGE_CODE_KEY
      */
-    public static String DEFAULT_LANGUAGE_CODE = "en";
+    public static final String DEFAULT_LANGUAGE_CODE = "en";
 
     /**
      * The {@link Configuration} key to store whether to clean the NLP.js agent before training it.
      * <p>
      * This property is set to {@code true} if not provided in the {@link Configuration}.
      */
-    public static String CLEAN_AGENT_ON_STARTUP_KEY = "xatkit.nlpjs.clean_on_startup";
+    public static final String CLEAN_AGENT_ON_STARTUP_KEY = "xatkit.nlpjs.clean_on_startup";
 
     /**
      * The base {@link Configuration} used to initialize the {@link NlpjsConfiguration}.

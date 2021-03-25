@@ -1,9 +1,7 @@
 package com.xatkit.core.platform.action;
 
-import com.xatkit.core.ExecutionService;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.execution.StateContext;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -30,20 +28,20 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      *
      * @see #DEFAULT_MESSAGE_DELAY
      */
-    public static String MESSAGE_DELAY_KEY = "xatkit.message.delay";
+    public static final String MESSAGE_DELAY_KEY = "xatkit.message.delay";
 
     /**
      * The default value of the {@link #MESSAGE_DELAY_KEY} configuration key ({@code 0}).
      *
      * @see #MESSAGE_DELAY_KEY
      */
-    public static int DEFAULT_MESSAGE_DELAY = 0;
+    public static final int DEFAULT_MESSAGE_DELAY = 0;
 
     /**
      * The number of times the {@link RuntimeArtifactAction} tries to send the artifact if an {@link IOException}
      * occurred.
      */
-    private static int IO_ERROR_RETRIES = 3;
+    private static final int IO_ERROR_RETRIES = 3;
 
     /**
      * The delay (in ms) to wait before attempting to resend the artifact.
@@ -52,7 +50,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * resend it {@link #IO_ERROR_RETRIES} times. Each attempt will first wait for {@code RETRY_WAIT_TIME *
      * <number_of_attempts>} before trying to resend the artifact.
      */
-    private static int RETRY_WAIT_TIME = 500;
+    private static final int RETRY_WAIT_TIME = 500;
 
     /**
      * The message delay to apply for this specific {@link RuntimeArtifactAction}.
@@ -71,7 +69,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * <p>
      *
      * @param platform the {@link RuntimePlatform} containing this action
-     * @param context         the {@link StateContext} associated to this action
+     * @param context  the {@link StateContext} associated to this action
      * @throws NullPointerException if the provided {@code runtimePlatform} or {@code session} is {@code null}
      * @see StateContext
      */
@@ -86,11 +84,10 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * <p>
      * This method relies on {@link #getClientStateContext()} to retrieve the {@link StateContext} associated to the
      * client of the artifact, and merges the current {@code session} with the client one if they are different.
-     * This allows to pass client-independent context variables (e.g. from {@link RuntimeEventProvider}s)
-     * to new client sessions.
+     * This allows to pass client-independent context variables to new client sessions.
      *
-     * @throws XatkitException if the provided {@code session} is different from the {@link #getClientStateContext()} and
-     *                         the merge operation between the contexts failed
+     * @throws XatkitException if the provided {@code session} is different from the {@link #getClientStateContext()}
+     *                         and the merge operation between the contexts failed
      */
     @Override
     public void init() {
@@ -106,8 +103,8 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
                  */
                 this.context = clientSession;
             } catch (XatkitException e) {
-                throw new XatkitException("Cannot construct the action {0}, the action session cannot be merged in " +
-                        "the client one", e);
+                throw new XatkitException("Cannot construct the action {0}, the action session cannot be merged in "
+                        + "the client one", e);
             }
         }
     }
@@ -122,15 +119,14 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * <p>
      * The returned {@link RuntimeActionResult#getExecutionTime()} value includes all the attempts to send the artifact.
      * <p>
-     * This method should not be called manually, and is handled by the {@link ExecutionService} component that
-     * manages and executes {@link RuntimeAction}s.
+     * This method should not be called manually, it is handled by the execution service component that manages and
+     * executes {@link RuntimeAction}s.
      * <p>
      * This method does not throw any {@link Exception} if the underlying {@link RuntimeAction}'s computation does not
      * complete. Exceptions thrown during the {@link RuntimeArtifactAction}'s computation can be accessed through the
      * {@link RuntimeActionResult#getThrowable()} method.
      *
      * @return the {@link RuntimeActionResult} containing the raw result of the computation and monitoring information
-     * @see ExecutionService
      * @see RuntimeActionResult
      */
     @Override
@@ -177,8 +173,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
             } catch (IOException e) {
                 if (attempts < IO_ERROR_RETRIES + 1) {
                     Log.error("An {0} occurred when computing the action, trying to send the artifact again ({1}/{2})"
-                            , e
-                                    .getClass().getSimpleName(), attempts, IO_ERROR_RETRIES);
+                            , e.getClass().getSimpleName(), attempts, IO_ERROR_RETRIES);
                 } else {
                     Log.error("Could not compute the action: {0}", e.getClass().getSimpleName());
                 }
@@ -210,6 +205,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * <p>
      * This method can be extended by concrete sub-classes if an action must be performed before a potential delay (e
      * .g. notifying a client application to display writing dots).
+     *
      * @param delayValue the value of the delay (in ms)
      */
     protected void beforeDelay(int delayValue) {
@@ -232,7 +228,7 @@ public abstract class RuntimeArtifactAction<T extends RuntimePlatform> extends R
      * Returns the {@link StateContext} associated to the client of the artifact to send.
      * <p>
      * This method is used by the {@link RuntimeArtifactAction} constructor to pass client-independent context
-     * variables (e.g. from {@link RuntimeEventProvider}s) to the client session.
+     * variables.
      *
      * @return the {@link StateContext} associated to the client of the artifact to send
      */

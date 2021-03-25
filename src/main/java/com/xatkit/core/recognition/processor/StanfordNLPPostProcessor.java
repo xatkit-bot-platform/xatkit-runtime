@@ -21,7 +21,7 @@ public abstract class StanfordNLPPostProcessor implements IntentPostProcessor {
     /**
      * The context key used to store Stanford NLP information.
      */
-    protected final static String NLP_CONTEXT_KEY = "nlp.stanford";
+    protected static final String NLP_CONTEXT_KEY = "nlp.stanford";
 
     /**
      * The session key used to store the last annotated input.
@@ -29,7 +29,7 @@ public abstract class StanfordNLPPostProcessor implements IntentPostProcessor {
      * This value is stored in the {@link StateContext#getSession()} to let multiple post-processors access it to
      * compute specific metrics.
      */
-    protected final static String NLP_INPUT_SESSION_KEY = "xatkit.nlp.stanford.input";
+    protected static final String NLP_INPUT_SESSION_KEY = "xatkit.nlp.stanford.input";
 
     /**
      * The session key used to store the last annotation.
@@ -37,7 +37,7 @@ public abstract class StanfordNLPPostProcessor implements IntentPostProcessor {
      * This value is stored in the {@link StateContext#getSession()} to let multiple post-processors access it to
      * compute specific metrics.
      */
-    protected final static String NLP_ANNOTATION_SESSION_KEY = "xatkit.nlp.stanford.annotation";
+    protected static final String NLP_ANNOTATION_SESSION_KEY = "xatkit.nlp.stanford.annotation";
 
     /**
      * Initialize the underlying {@link StanfordNLPService} and performs a warm-up annotation on it.

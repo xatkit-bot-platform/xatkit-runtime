@@ -186,7 +186,8 @@ public class NlpjsEntityMapper {
         for (ContextParameter parameter : intentDefinition.getParameters()) {
             EntityDefinition parameterEntity = parameter.getEntity().getReferredEntity();
             if (parameterEntity instanceof BaseEntityDefinition
-                    && ((BaseEntityDefinition) parameterEntity).getEntityType().equals(com.xatkit.intent.EntityType.ANY)) {
+                    && ((BaseEntityDefinition) parameterEntity).getEntityType()
+                    .equals(com.xatkit.intent.EntityType.ANY)) {
                 for (String trainingSentence : intentDefinition.getTrainingSentences()) {
                     String entityName = intentDefinition.getName() + parameter.getName() + "Any";
                     /*

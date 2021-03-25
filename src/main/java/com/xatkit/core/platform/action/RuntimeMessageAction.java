@@ -29,18 +29,18 @@ public abstract class RuntimeMessageAction<T extends RuntimePlatform> extends Ru
      * {@code rawMessage}.
      * <p>
      *
-     * @param platform the {@link RuntimePlatform} containing this action
-     * @param context         the {@link StateContext} associated to this action
-     * @param rawMessage      the message to process
+     * @param platform   the {@link RuntimePlatform} containing this action
+     * @param context    the {@link StateContext} associated to this action
+     * @param rawMessage the message to process
      * @throws NullPointerException     if the provided {@code platform}, {@code context}, or {@code
-     * rawMessage} is {@code null}
+     *                                  rawMessage} is {@code null}
      * @throws IllegalArgumentException if the provided {@code rawMessage} is {@code null} or empty
      * @see StateContext
      */
     public RuntimeMessageAction(@NonNull T platform, @NonNull StateContext context, @NonNull String rawMessage) {
         super(platform, context);
-        checkArgument(!rawMessage.isEmpty(), "Cannot construct a %s action with the provided " +
-                "message %s, expected a non-null and not empty String", this.getClass().getSimpleName(), message);
+        checkArgument(!rawMessage.isEmpty(), "Cannot construct a %s action with the provided message %s, expected a "
+                + "non-null and not empty String", this.getClass().getSimpleName(), message);
         this.message = rawMessage;
     }
 }

@@ -169,6 +169,7 @@ public class CronEventProvider extends RuntimeEventProvider<CorePlatform> {
      * Note that this event may be emitted at any point in the bot's state machine. Designers need to take it into
      * account to ensure the event is properly handled (e.g. with multiple transitions checking for the event).
      */
-    public static EventDefinition CronTick = event("CronTick")
+    @SuppressWarnings({"checkstyle:VisibilityModifier", "checkstyle:ConstantName"})
+    public static final EventDefinition CronTick = event("CronTick")
             .getEventDefinition();
 }

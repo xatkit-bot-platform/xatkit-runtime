@@ -79,8 +79,8 @@ public class RuntimeActionResult {
      * @throws IllegalArgumentException if the provided {@code executionTime < 0}
      */
     public RuntimeActionResult(@Nullable Object partialResult, @Nullable Throwable throwable, long executionTime) {
-        checkArgument(executionTime >= 0, "Cannot construct a %s from the provided execution time: expected a " +
-                "positive value (in ms), found %s", this.getClass().getSimpleName(), executionTime);
+        checkArgument(executionTime >= 0, "Cannot construct a %s from the provided execution time: expected a "
+                + "positive value (in ms), found %s", this.getClass().getSimpleName(), executionTime);
         this.result = partialResult;
         this.throwable = throwable;
         this.executionTime = executionTime;

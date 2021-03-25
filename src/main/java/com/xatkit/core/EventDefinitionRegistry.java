@@ -105,8 +105,10 @@ public class EventDefinitionRegistry {
      * @return an unmodifiable {@link Collection} containing all the registered {@link IntentDefinition}s
      */
     public Collection<IntentDefinition> getAllIntentDefinitions() {
-        List<IntentDefinition> intentDefinitions = this.eventDefinitionMap.values().stream().filter(e -> e instanceof
-                IntentDefinition).map(i -> (IntentDefinition) i).collect(Collectors.toList());
+        List<IntentDefinition> intentDefinitions = this.eventDefinitionMap.values().stream()
+                .filter(e -> e instanceof IntentDefinition)
+                .map(i -> (IntentDefinition) i)
+                .collect(Collectors.toList());
         return Collections.unmodifiableCollection(intentDefinitions);
     }
 

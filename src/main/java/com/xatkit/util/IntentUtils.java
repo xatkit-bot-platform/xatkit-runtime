@@ -11,7 +11,12 @@ import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 /**
  * Utility methods to ease {@link IntentDefinition} manipulation.
  */
-public class IntentUtils {
+public final class IntentUtils {
+
+    /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private IntentUtils() { }
 
     /**
      * Returns {@code true} if the provided {@code parameter} refers to an {@link EntityType#ANY} entity.

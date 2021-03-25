@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class TrimPunctuationPostProcessor implements IntentPostProcessor {
 
-    private static String[] PUNCTUATION = {"?", ".", "!"};
+    private static final String[] PUNCTUATION = {"?", ".", "!"};
 
     private final String punctuationPattern;
 
@@ -26,10 +26,10 @@ public class TrimPunctuationPostProcessor implements IntentPostProcessor {
     public RecognizedIntent process(RecognizedIntent recognizedIntent, StateContext context) {
         recognizedIntent.getValues().forEach(v -> {
             EntityDefinition referredEntity = v.getContextParameter().getEntity().getReferredEntity();
-            if(referredEntity instanceof BaseEntityDefinition) {
+            if (referredEntity instanceof BaseEntityDefinition) {
                 BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) referredEntity;
-                if(baseEntityDefinition.getEntityType().equals(EntityType.ANY)) {
-                    if(v.getValue() instanceof String) {
+                if (baseEntityDefinition.getEntityType().equals(EntityType.ANY)) {
+                    if (v.getValue() instanceof String) {
                         String value = (String) v.getValue();
                         String trimmedValue = value.replaceAll(punctuationPattern, "");
                         v.setValue(trimmedValue);

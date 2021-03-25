@@ -6,7 +6,8 @@ import com.xatkit.intent.CompositeEntityDefinition;
 import com.xatkit.intent.IntentFactory;
 import lombok.NonNull;
 
-public class CompositeEntityDefinitionBuilder extends CustomEntityDefinitionProviderImpl<CompositeEntityDefinition> implements CompositeEntryStep {
+public class CompositeEntityDefinitionBuilder extends CustomEntityDefinitionProviderImpl<CompositeEntityDefinition>
+        implements CompositeEntryStep {
 
     public CompositeEntityDefinitionBuilder() {
         this.entity = IntentFactory.eINSTANCE.createCompositeEntityDefinition();

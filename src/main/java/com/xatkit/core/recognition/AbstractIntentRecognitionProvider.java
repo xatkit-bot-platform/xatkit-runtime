@@ -1,6 +1,5 @@
 package com.xatkit.core.recognition;
 
-import com.xatkit.core.XatkitBot;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.execution.State;
@@ -11,7 +10,6 @@ import com.xatkit.intent.IntentFactory;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
-import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -36,17 +34,11 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
 
     /**
      * The {@link List} of {@link InputPreProcessor}s set for this provider.
-     *
-     * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitBot, Configuration)
-     * @see #getIntent(String, StateContext)
      */
     private List<InputPreProcessor> preProcessors = new ArrayList<>();
 
     /**
      * The {@link List} of {@link IntentPostProcessor}s set for this provider.
-     *
-     * @see IntentRecognitionProviderFactory#getIntentRecognitionProvider(XatkitBot, Configuration)
-     * @see #getIntent(String, StateContext)
      */
     private List<IntentPostProcessor> postProcessors = new ArrayList<>();
 
@@ -104,25 +96,29 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public abstract void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException;
+    public abstract void registerEntityDefinition(@NonNull EntityDefinition entityDefinition)
+            throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public abstract void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException;
+    public abstract void registerIntentDefinition(@NonNull IntentDefinition intentDefinition)
+            throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public abstract void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException;
+    public abstract void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition)
+            throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public abstract void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException;
+    public abstract void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition)
+            throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
@@ -134,7 +130,8 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public abstract StateContext createContext(@NonNull String sessionId) throws IntentRecognitionProviderException;
+    public abstract StateContext createContext(@NonNull String sessionId)
+            throws IntentRecognitionProviderException;
 
     /**
      * {@inheritDoc}
@@ -152,7 +149,8 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * {@inheritDoc}
      */
     @Override
-    public final @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
+    public final @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull StateContext context)
+            throws IntentRecognitionProviderException {
         String preProcessedInput = input;
         for (InputPreProcessor preProcessor : this.preProcessors) {
             long preStart = System.currentTimeMillis();
@@ -190,7 +188,8 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      * @throws NullPointerException               if the provided {@code input} or {@code session} is {@code null}
      * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      */
-    protected abstract RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException;
+    protected abstract RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context)
+            throws IntentRecognitionProviderException;
 
     /**
      * Returns the {@link RecognizedIntent} that matches best the current {@code context}.
@@ -209,10 +208,11 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      */
     protected RecognizedIntent getBestCandidate(@NonNull Collection<RecognizedIntent> recognizedIntents,
                                                 @NonNull StateContext context) {
-        checkArgument(!recognizedIntents.isEmpty(), "Cannot get the best candidate from the provided collection: the " +
-                "collection is empty");
+        checkArgument(!recognizedIntents.isEmpty(), "Cannot get the best candidate from the provided collection: the "
+                + "collection is empty");
         RecognizedIntent bestCandidate =
-                recognizedIntents.stream().sorted(Comparator.comparingDouble(RecognizedIntent::getRecognitionConfidence).reversed())
+                recognizedIntents.stream()
+                        .sorted(Comparator.comparingDouble(RecognizedIntent::getRecognitionConfidence).reversed())
                         .filter(intent -> {
                             State state = context.getState();
                             /*

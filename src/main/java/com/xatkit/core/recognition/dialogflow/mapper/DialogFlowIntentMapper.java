@@ -44,7 +44,7 @@ public class DialogFlowIntentMapper {
 
     /**
      * Constructs a {@link DialogFlowIntentMapper} with the provided {@code configuration} and {@code
-     * dialogFlowEntityReferenceMapper}
+     * dialogFlowEntityReferenceMapper}.
      *
      * @param configuration                   the {@link DialogFlowConfiguration}
      * @param dialogFlowEntityReferenceMapper the {@link DialogFlowEntityReferenceMapper} used to map accesses to
@@ -71,7 +71,8 @@ public class DialogFlowIntentMapper {
      * @throws IntentRecognitionProviderException if the mapper could not create an {@link Intent} from the provided
      *                                            {@code intentDefinition}
      */
-    public Intent mapIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
+    public Intent mapIntentDefinition(@NonNull IntentDefinition intentDefinition)
+            throws IntentRecognitionProviderException {
         checkNotNull(intentDefinition.getName(), "Cannot map the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());
         Intent.Builder builder = Intent.newBuilder()
@@ -133,7 +134,7 @@ public class DialogFlowIntentMapper {
      * @param trainingSentence the {@link IntentDefinition}'s training sentence to create a
      *                         {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase} from
      * @param parameters       the {@link ContextParameter} containing the entities referenced in the {@code
-     * trainingSentence}
+     *                         trainingSentence}
      * @return the created DialogFlow's {@link com.google.cloud.dialogflow.v2.Intent.TrainingPhrase}
      * @throws NullPointerException if the provided {@code trainingSentence} or {@code outContexts} {@link List} is
      *                              {@code null}, or if one of the {@link ContextParameter}'s name from the provided
@@ -143,8 +144,8 @@ public class DialogFlowIntentMapper {
     private Intent.TrainingPhrase createTrainingPhrase(@NonNull String trainingSentence,
                                                        @NonNull List<ContextParameter> parameters) {
         if (parameters.isEmpty()) {
-            return Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part.newBuilder().setText
-                    (trainingSentence).build()).build();
+            return Intent.TrainingPhrase.newBuilder().addParts(Intent.TrainingPhrase.Part.newBuilder().setText(
+                    trainingSentence).build()).build();
         } else {
             /*
              * First mark all the context parameter literals with #<literal>#. This pre-processing allows to easily
@@ -169,16 +170,16 @@ public class DialogFlowIntentMapper {
             Intent.TrainingPhrase.Builder trainingPhraseBuilder = Intent.TrainingPhrase.newBuilder();
             for (int i = 0; i < splitTrainingSentence.length; i++) {
                 String sentencePart = splitTrainingSentence[i];
-                Intent.TrainingPhrase.Part.Builder partBuilder = Intent.TrainingPhrase.Part.newBuilder().setText
-                        (sentencePart);
+                Intent.TrainingPhrase.Part.Builder partBuilder = Intent.TrainingPhrase.Part.newBuilder().setText(
+                        sentencePart);
                 for (ContextParameter parameter : parameters) {
-                    if(parameter.getTextFragments().contains(sentencePart)) {
-                        checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the " +
-                                        "parameter for the fragment \"%s\" does not define a name",
-                                trainingSentence, sentencePart);
-                        checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the " +
-                                        "parameter for the fragment \"%s\" does not define an entity",
-                                trainingSentence, sentencePart);
+                    if (parameter.getTextFragments().contains(sentencePart)) {
+                        checkNotNull(parameter.getName(), "Cannot build the training sentence \"%s\", the parameter "
+                                        + "for the fragment \"%s\" does not define a name", trainingSentence,
+                                sentencePart);
+                        checkNotNull(parameter.getEntity(), "Cannot build the training sentence \"%s\", the parameter"
+                                        + " for the fragment \"%s\" does not define an entity", trainingSentence,
+                                sentencePart);
                         String dialogFlowEntity =
                                 dialogFlowEntityReferenceMapper.getMappingFor(parameter.getEntity()
                                         .getReferredEntity());
@@ -221,7 +222,8 @@ public class DialogFlowIntentMapper {
      * @throws IntentRecognitionProviderException if there is no training sentence containing a provided {@code
      *                                            intentDefinition}'s parameter fragment
      */
-    private List<Context> createOutContexts(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
+    private List<Context> createOutContexts(@NonNull IntentDefinition intentDefinition)
+            throws IntentRecognitionProviderException {
         DialogFlowCheckingUtils.checkParameters(intentDefinition);
         ContextName contextName = ContextName.of(this.configuration.getProjectId(),
                 SessionName.of(this.configuration.getProjectId(), "setup").getSession(), "Xatkit");
@@ -244,9 +246,9 @@ public class DialogFlowIntentMapper {
     private List<Intent.Parameter> createParameters(@NonNull IntentDefinition intentDefinition) {
         List<Intent.Parameter> results = new ArrayList<>();
         for (ContextParameter contextParameter : intentDefinition.getParameters()) {
-            checkNotNull(contextParameter.getName(), "Cannot create the %s from the provided %s %s, the" +
-                    " name %s is invalid", Intent.Parameter.class.getSimpleName(), ContextParameter.class
-                    .getSimpleName(), contextParameter, contextParameter.getName());
+            checkNotNull(contextParameter.getName(), "Cannot create the %s from the provided %s %s, the name %s is "
+                    + "invalid", Intent.Parameter.class.getSimpleName(), ContextParameter.class.getSimpleName(),
+                    contextParameter, contextParameter.getName());
             String dialogFlowEntity =
                     dialogFlowEntityReferenceMapper.getMappingFor(contextParameter.getEntity().getReferredEntity());
             /*

@@ -30,12 +30,12 @@ public class IsEnglishYesNoQuestionPostProcessor extends StanfordNLPPostProcesso
     /**
      * The context parameter key used to store whether the user input is a yes/no question.
      */
-    protected final static String IS_YES_NO_PARAMETER_KEY = NLP_CONTEXT_KEY + ".isYesNo";
+    protected static final String IS_YES_NO_PARAMETER_KEY = NLP_CONTEXT_KEY + ".isYesNo";
 
     /**
      * The default value of the {@link #IS_YES_NO_PARAMETER_KEY} parameter.
      */
-    protected final static boolean DEFAULT_IS_YES_NO_VALUE = false;
+    protected static final boolean DEFAULT_IS_YES_NO_VALUE = false;
 
     /**
      * Constructs an instance of this post-processor.
@@ -78,7 +78,9 @@ public class IsEnglishYesNoQuestionPostProcessor extends StanfordNLPPostProcesso
         Log.debug(tree.toString());
         Set<Constituent> treeConstituents = tree.constituents(new LabeledScoredConstituentFactory());
         List<Constituent> sqConstituents =
-                treeConstituents.stream().filter(c -> nonNull(c.label()) && c.label().toString().equals("SQ")).collect(Collectors.toList());
+                treeConstituents.stream()
+                        .filter(c -> nonNull(c.label()) && c.label().toString().equals("SQ"))
+                        .collect(Collectors.toList());
         for (Constituent sqConstituent : sqConstituents) {
             if (sqConstituent.start() == 0) {
                 recognizedIntent.getNlpData().put(IS_YES_NO_PARAMETER_KEY, true);

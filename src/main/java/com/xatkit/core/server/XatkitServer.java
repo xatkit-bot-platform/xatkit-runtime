@@ -1,6 +1,5 @@
 package com.xatkit.core.server;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.xatkit.core.XatkitException;
 import com.xatkit.core.platform.io.WebhookEventProvider;
@@ -207,9 +206,9 @@ public class XatkitServer {
         try {
             this.server.start();
         } catch (BindException e) {
-            throw new XatkitException(MessageFormat.format("Cannot start the {0}, the port {1} cannot be bound. This " +
-                    "may happen if another bot is started on the same port, if a previously started bot was not shut " +
-                    "down properly, or if another application is already using the port", this.getClass()
+            throw new XatkitException(MessageFormat.format("Cannot start the {0}, the port {1} cannot be bound. This "
+                    + "may happen if another bot is started on the same port, if a previously started bot was not "
+                    + "shut down properly, or if another application is already using the port", this.getClass()
                     .getSimpleName(), port), e);
         } catch (IOException e) {
             throw new XatkitException(MessageFormat.format("Cannot start the {0}, see attached exception", this
@@ -262,8 +261,8 @@ public class XatkitServer {
      */
     public void registerRestEndpoint(@NonNull HttpMethod httpMethod, @NonNull String uri,
                                      @NonNull RestHandler handler) {
-        checkArgument(uri.startsWith("/"), "Cannot register a REST endpoint for the provided URI %s, the URI must " +
-                "start with a \"/\"", uri);
+        checkArgument(uri.startsWith("/"), "Cannot register a REST endpoint for the provided URI %s, the URI must "
+                + "start with a \"/\"", uri);
         String normalizedUri = normalizeURI(uri);
         this.restEndpoints.put(EndpointEntry.of(httpMethod, normalizeURI(uri)), handler);
         Log.info("Registered REST handler {0} at URI {1} (method={2})", handler.getClass().getSimpleName(),
@@ -320,9 +319,8 @@ public class XatkitServer {
      * @param uri        the URI of the REST endpoint to notify
      * @param headers    the HTTP {@link Header}s of the request sent to the endpoint
      * @param params     the HTTP parameters of the request sent to the endpoint
-     * @param content    the {@link JsonElement} representing the content of the request sent to the endpoint
-     * @return the {@link JsonElement} returned by the endpoint, or {@code null} if the endpoint does not return
-     * anything
+     * @param content    the object representing the content of the request sent to the endpoint
+     * @return the object returned by the endpoint, or {@code null} if the endpoint does not return anything
      * @throws NullPointerException if the provided {@code uri}, {@code header}, or {@code params} is {@code null}
      * @throws XatkitException      if there is no REST endpoint registered for the provided {@code uri}
      * @throws RestHandlerException if an error occurred when processing the {@link RestHandler}'s logic
@@ -333,8 +331,8 @@ public class XatkitServer {
                                     String contentType) throws RestHandlerException {
         RestHandler handler = this.getRegisteredRestHandler(httpMethod, uri);
         if (isNull(handler)) {
-            throw new XatkitException(MessageFormat.format("Cannot notify the REST endpoint {0}, there is no handler " +
-                    "registered for this URI", uri));
+            throw new XatkitException(MessageFormat.format("Cannot notify the REST endpoint {0}, there is no handler "
+                    + "registered for this URI", uri));
         }
         /*
          * We can ignore the content type if we are dealing with a GET request, the HTTP/1.1 standard explicitly
@@ -463,8 +461,8 @@ public class XatkitServer {
         }
 
         if (!filePath.startsWith(this.contentDirectoryPath)) {
-            throw new XatkitException(MessageFormat.format("Cannot create a public file at the given location {0}, " +
-                            "forbidden access: the file is not contained in the public directory {1}", filePath,
+            throw new XatkitException(MessageFormat.format("Cannot create a public file at the given location {0}, "
+                            + "forbidden access: the file is not contained in the public directory {1}", filePath,
                     this.contentDirectoryPath));
         }
 
@@ -522,8 +520,8 @@ public class XatkitServer {
             }
             return this.baseURL + XatkitServerUtils.PUBLIC_CONTENT_URL_FRAGMENT + relativePathFragment;
         } else {
-            throw new XatkitException(MessageFormat.format("Cannot retrieve the public URL for the file {0}, " +
-                            "forbidden access: the file is not contained in the public directory {1}", filePath,
+            throw new XatkitException(MessageFormat.format("Cannot retrieve the public URL for the file {0}, "
+                            + "forbidden access: the file is not contained in the public directory {1}", filePath,
                     this.contentDirectoryPath));
         }
     }
@@ -574,8 +572,8 @@ public class XatkitServer {
              */
             return p.toFile();
         } else {
-            throw new XatkitException(MessageFormat.format("Forbidden access to file {0}, the file is not contained " +
-                    "in the public directory {1}", p, this.contentDirectoryPath));
+            throw new XatkitException(MessageFormat.format("Forbidden access to file {0}, the file is not contained "
+                    + "in the public directory {1}", p, this.contentDirectoryPath));
         }
     }
 
@@ -614,7 +612,7 @@ public class XatkitServer {
     /**
      * Uniquely identifies a registered REST endpoint.
      */
-    private static class EndpointEntry {
+    private static final class EndpointEntry {
 
         /**
          * Creates an {@link EndpointEntry} from the provided {@code httpMethod} and {@code uri}.

@@ -8,7 +8,8 @@ import lombok.NonNull;
 
 import java.util.Arrays;
 
-public class IntentDefinitionBuilder extends IntentDefinitionProviderImpl implements IntentMandatoryTrainingSentenceStep,
+public class IntentDefinitionBuilder extends IntentDefinitionProviderImpl implements
+        IntentMandatoryTrainingSentenceStep,
         IntentOptionalTrainingSentenceStep {
 
     public IntentDefinitionBuilder() {

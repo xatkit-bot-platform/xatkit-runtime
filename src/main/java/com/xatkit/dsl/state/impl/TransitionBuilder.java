@@ -35,7 +35,7 @@ public class TransitionBuilder extends StateBuilder implements
 
     @Override
     public OptionalWhenStep moveTo(@NonNull State state) {
-        if(isNull(this.transition)) {
+        if (isNull(this.transition)) {
             /*
              * The delegate didn't create a transition from a previous call, we are defining an AutoTransition.
              */
@@ -51,7 +51,7 @@ public class TransitionBuilder extends StateBuilder implements
 
     @Override
     public @NonNull MoveToStep when(@NonNull Predicate<StateContext> condition) {
-        if(isNull(this.transition)) {
+        if (isNull(this.transition)) {
             GuardedTransition guardedTransition = ExecutionFactory.eINSTANCE.createGuardedTransition();
             guardedTransition.setCondition(condition);
             this.transition = guardedTransition;

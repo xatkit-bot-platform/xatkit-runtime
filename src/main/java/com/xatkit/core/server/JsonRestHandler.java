@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.platform.RuntimePlatform;
 import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.entity.ContentType;
@@ -22,8 +21,8 @@ import static java.util.Objects.nonNull;
 /**
  * A handler that receives HTTP requests containing JSON and process them.
  * <p>
- * This class can be used to define REST endpoints from {@link RuntimePlatform}s. The endpoint can be registered
- * using the following code:
+ * This class can be used to define REST endpoints from platforms. The endpoint can be registered using the following
+ * code:
  * <pre>
  * {@code
  * XatkitServer xatkitServer = [...]
@@ -84,9 +83,9 @@ public abstract class JsonRestHandler extends RestHandler<JsonElement> {
         if (content instanceof JsonReader) {
             return jsonParser.parse((JsonReader) content);
         }
-        throw new XatkitException(MessageFormat.format("Cannot parse the provided content {0}, expected a {1}, {2}, " +
-                "or {3}, found {4}", content, String.class.getName(), Reader.class.getName(), JsonReader.class
-                .getName(), content.getClass().getName()));
+        throw new XatkitException(MessageFormat.format("Cannot parse the provided content {0}, expected a {1}, {2}, "
+                + "or {3}, found {4}", content, String.class.getName(), Reader.class.getName(),
+                JsonReader.class.getName(), content.getClass().getName()));
     }
 
     /**

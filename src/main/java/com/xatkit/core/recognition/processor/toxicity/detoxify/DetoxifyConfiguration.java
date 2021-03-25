@@ -17,7 +17,7 @@ public class DetoxifyConfiguration {
     /**
      * The {@link Configuration} key to store the Detoxify server URL.
      */
-    public static String DETOXIFY_SERVER_URL = "xatkit.detoxify.server.url";
+    public static final String DETOXIFY_SERVER_URL = "xatkit.detoxify.server.url";
 
     /**
      * The Detoxify server URL.

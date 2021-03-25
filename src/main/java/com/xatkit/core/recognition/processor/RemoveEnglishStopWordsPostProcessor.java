@@ -31,7 +31,7 @@ public class RemoveEnglishStopWordsPostProcessor implements IntentPostProcessor 
     /**
      * The name of the file containing the list of stop words.
      */
-    private static String STOP_WORDS_FILE = "en-stopwords.txt";
+    private static final String STOP_WORDS_FILE = "en-stopwords.txt";
 
     /**
      * The in-memory {@link List} of stop words parsed from the corresponding file.
@@ -56,8 +56,8 @@ public class RemoveEnglishStopWordsPostProcessor implements IntentPostProcessor 
             try {
                 stopWords = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                Log.error(e, "An error occurred when loading the stop word file {0}, this processors won't remove any" +
-                        " stop word. See attached exception:", STOP_WORDS_FILE);
+                Log.error(e, "An error occurred when loading the stop word file {0}, this processors won't remove any"
+                        + " stop word. See attached exception:", STOP_WORDS_FILE);
             } finally {
                 try {
                     inputStream.close();
@@ -89,7 +89,7 @@ public class RemoveEnglishStopWordsPostProcessor implements IntentPostProcessor 
             if (referredEntity instanceof BaseEntityDefinition) {
                 BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) referredEntity;
                 if (baseEntityDefinition.getEntityType().equals(EntityType.ANY)) {
-                    if(v.getValue() instanceof String) {
+                    if (v.getValue() instanceof String) {
                         String processedValue = removeStopWords((String) v.getValue());
                         v.setValue(processedValue);
                     } else {

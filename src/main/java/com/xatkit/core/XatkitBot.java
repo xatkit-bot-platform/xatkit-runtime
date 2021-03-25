@@ -1,7 +1,6 @@
 package com.xatkit.core;
 
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
@@ -11,11 +10,8 @@ import com.xatkit.dsl.model.ExecutionModelProvider;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.ContextParameter;
-import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.EventDefinition;
-import com.xatkit.intent.EventInstance;
 import com.xatkit.intent.IntentDefinition;
-import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
@@ -57,7 +53,7 @@ public class XatkitBot implements Runnable {
      * The {@link Configuration} key to store the configuration folder path.
      */
     @Deprecated
-    public static String CONFIGURATION_FOLDER_PATH_KEY = "xatkit.core.configuration.path";
+    public static final String CONFIGURATION_FOLDER_PATH_KEY = "xatkit.core.configuration.path";
 
     /**
      * The {@link ExecutionModel} representing the bot to deploy and execute.
@@ -195,8 +191,8 @@ public class XatkitBot implements Runnable {
      */
     private Configuration adaptConfiguration(Configuration baseConfiguration) {
         Properties systemProperties = System.getProperties();
-        systemProperties.forEach((k,v) -> {
-            if(k instanceof String) {
+        systemProperties.forEach((k, v) -> {
+            if (k instanceof String) {
                 /*
                  * Use setProperty here to make sure we remove existing values.
                  */
@@ -259,7 +255,7 @@ public class XatkitBot implements Runnable {
      * @param executionModel the {@link ExecutionModel} to start the {@link RuntimeEventProvider}s from
      */
     private void startEventProviders(ExecutionModel executionModel) {
-        if(executionModel.getUsedEvents().isEmpty()) {
+        if (executionModel.getUsedEvents().isEmpty()) {
             throw new IllegalStateException(MessageFormat.format("The provided bot does not listen to any {0}",
                     RuntimeEventProvider.class.getSimpleName()));
         }
@@ -429,7 +425,7 @@ public class XatkitBot implements Runnable {
     }
 
     /**
-     * Returns the {@link StateContext} associated to the provided {@code contextId}
+     * Returns the {@link StateContext} associated to the provided {@code contextId}.
      *
      * @param contextId the identifier of the context
      * @return the {@link StateContext} associated to the provided {@code contextId}, or {@code null} if it does not

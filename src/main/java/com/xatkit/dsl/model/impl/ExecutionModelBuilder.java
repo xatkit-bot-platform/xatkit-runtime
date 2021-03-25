@@ -98,7 +98,7 @@ public class ExecutionModelBuilder extends ExecutionModelProviderImpl implements
     @Override
     public @NonNull DefaultFallbackStateStep initState(@NonNull State state) {
         // TODO document that the state is added if it is not part of the specified states
-        if(!this.model.getStates().contains(state)) {
+        if (!this.model.getStates().contains(state)) {
             this.model.getStates().add(state);
         }
         this.model.setInitState(state);
@@ -113,7 +113,7 @@ public class ExecutionModelBuilder extends ExecutionModelProviderImpl implements
     @Override
     public @NonNull ExecutionModelProvider defaultFallbackState(@NonNull State state) {
         // TODO document that the state is added if it is not part of the specified states
-        if(!this.model.getStates().contains(state)) {
+        if (!this.model.getStates().contains(state)) {
             this.model.getStates().add(state);
         }
         this.model.setDefaultFallbackState(state);

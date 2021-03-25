@@ -227,7 +227,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
      */
     @SuppressWarnings("checkstyle:EmptyBlock")
     @Override
-    public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
+    public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition)
+            throws IntentRecognitionProviderException {
         checkNotShutdown();
         if (entityDefinition instanceof BaseEntityDefinition) {
             /*
@@ -269,7 +270,8 @@ public class NlpjsIntentRecognitionProvider extends AbstractIntentRecognitionPro
      * @throws IntentRecognitionProviderException if the provided {@code intentDefinition} is already registered
      */
     @Override
-    public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
+    public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition)
+            throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkNotNull(intentDefinition.getName(), "Cannot register the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName(), intentDefinition.getName());

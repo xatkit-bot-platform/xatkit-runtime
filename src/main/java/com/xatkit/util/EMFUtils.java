@@ -10,6 +10,11 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 public class EMFUtils {
 
     /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private EMFUtils() { }
+
+    /**
      * Computes the name of the provided {@code eObject}.
      * <p>
      * This method searches for a <i>name</i> attribute associated to the provided {@code eObject} and returns its

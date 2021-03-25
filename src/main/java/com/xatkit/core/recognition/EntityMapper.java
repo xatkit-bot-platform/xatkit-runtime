@@ -44,7 +44,7 @@ public class EntityMapper {
      *
      * @see #entities
      */
-    protected static String FALLBACK_ENTITY_KEY = "xatkit.core.recognition.entity.fallback";
+    protected static final String FALLBACK_ENTITY_KEY = "xatkit.core.recognition.entity.fallback";
 
     /**
      * The {@link Map} storing the abstract-to-concrete entity mappings.
@@ -77,10 +77,10 @@ public class EntityMapper {
      * @see #getMappingFor(EntityDefinition)
      */
     public void addEntityMapping(EntityType abstractEntityType, String concreteEntity) {
-        checkNotNull(abstractEntityType, "Cannot register a mapping for the abstract entity %s please provide a " +
-                "non-null %s", abstractEntityType, EntityType.class.getSimpleName());
-        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a " +
-                "non-null String", concreteEntity, EntityType.class.getSimpleName(), abstractEntityType);
+        checkNotNull(abstractEntityType, "Cannot register a mapping for the abstract entity %s please provide a "
+                + "non-null %s", abstractEntityType, EntityType.class.getSimpleName());
+        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a non-null "
+                + "String", concreteEntity, EntityType.class.getSimpleName(), abstractEntityType);
         String abstractEntityLiteral = abstractEntityType.getLiteral();
         addMapping(abstractEntityLiteral, concreteEntity);
     }
@@ -97,10 +97,11 @@ public class EntityMapper {
      * @see #getMappingFor(EntityDefinition)
      */
     public void addEntityMapping(EntityDefinition entityDefinition, String concreteEntity) {
-        checkNotNull(entityDefinition, "Cannot register a mapping for the provided %s (%s) please provide a non-null " +
-                "%s", EntityDefinition.class.getSimpleName(), entityDefinition, EntityDefinition.class.getSimpleName());
-        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a non-null " +
-                "mapping", concreteEntity, EntityDefinition.class.getSimpleName(), entityDefinition.getName());
+        checkNotNull(entityDefinition, "Cannot register a mapping for the provided %s (%s) please provide a non-null "
+                        + "%s", EntityDefinition.class.getSimpleName(), entityDefinition,
+                EntityDefinition.class.getSimpleName());
+        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a non-null "
+                + "mapping", concreteEntity, EntityDefinition.class.getSimpleName(), entityDefinition.getName());
         if (entityDefinition instanceof BaseEntityDefinition) {
             this.addEntityMapping(((BaseEntityDefinition) entityDefinition).getEntityType(), concreteEntity);
         } else if (entityDefinition instanceof CustomEntityDefinition) {
@@ -120,11 +121,11 @@ public class EntityMapper {
      * @see #getMappingFor(EntityDefinition)
      */
     public void addCustomEntityMapping(CustomEntityDefinition entityDefinition, String concreteEntity) {
-        checkNotNull(entityDefinition, "Cannot register a mapping for the provided %s (%s) please provide a non-null " +
-                        "%s", CustomEntityDefinition.class.getSimpleName(), entityDefinition,
+        checkNotNull(entityDefinition, "Cannot register a mapping for the provided %s (%s) please provide a non-null "
+                        + "%s", CustomEntityDefinition.class.getSimpleName(), entityDefinition,
                 CustomEntityDefinition.class.getSimpleName());
-        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a non-null " +
-                "mapping", concreteEntity, EntityDefinition.class.getSimpleName(), entityDefinition.getName());
+        checkNotNull(concreteEntity, "Cannot register %s as a mapping for the %s %s, please provide a non-null "
+                + "mapping", concreteEntity, EntityDefinition.class.getSimpleName(), entityDefinition.getName());
         addMapping(entityDefinition.getName(), concreteEntity);
     }
 
@@ -143,8 +144,7 @@ public class EntityMapper {
         String existingMapping = this.entities.get(key);
         if (nonNull(existingMapping)) {
             Log.warn("{0} already contains a mapping for {1} ({2}), overriding it with the given value {3}", this
-                    .getClass().getSimpleName(), key, this.entities.get
-                    (key), value);
+                    .getClass().getSimpleName(), key, this.entities.get(key), value);
         }
         this.entities.put(key, value);
     }
@@ -162,10 +162,10 @@ public class EntityMapper {
      * @see #getMappingFor(EntityType)
      */
     public void setFallbackEntityMapping(String concreteEntity) {
-        checkNotNull(concreteEntity, "Cannot register the concrete fallback entity %s, please provide a non-null " +
-                "String", concreteEntity);
-        checkArgument(!entities.containsKey(FALLBACK_ENTITY_KEY), "Cannot register the concrete fallback entity %s, " +
-                "fallback entity is already mapped to %s", concreteEntity, entities.get(FALLBACK_ENTITY_KEY));
+        checkNotNull(concreteEntity, "Cannot register the concrete fallback entity %s, please provide a non-null "
+                + "String", concreteEntity);
+        checkArgument(!entities.containsKey(FALLBACK_ENTITY_KEY), "Cannot register the concrete fallback entity %s, "
+                + "fallback entity is already mapped to %s", concreteEntity, entities.get(FALLBACK_ENTITY_KEY));
         this.entities.put(FALLBACK_ENTITY_KEY, concreteEntity);
     }
 
@@ -186,9 +186,8 @@ public class EntityMapper {
      * @see #setFallbackEntityMapping(String)
      */
     public String getMappingFor(EntityType abstractEntityType) {
-        checkNotNull(abstractEntityType, "Cannot retrieve the concrete mapping for the abstract entity %s, please " +
-                "provide" +
-                " a non-null %s", abstractEntityType, EntityType.class.getSimpleName());
+        checkNotNull(abstractEntityType, "Cannot retrieve the concrete mapping for the abstract entity %s, please "
+                + "provide a non-null %s", abstractEntityType, EntityType.class.getSimpleName());
         String abstractEntityTypeLiteral = abstractEntityType.getLiteral();
         String concreteEntity = this.entities.get(abstractEntityTypeLiteral);
         if (isNull(concreteEntity)) {
@@ -227,16 +226,16 @@ public class EntityMapper {
             /*
              * Should not be triggered, null enums are set with their default value in Ecore.
              */
-            checkArgument(nonNull(coreEntity.getEntityType()), "Cannot retrieve the concrete mapping for the provided" +
-                            " %s: %s needs to define a valid %s", BaseEntityDefinition.class.getSimpleName(),
+            checkArgument(nonNull(coreEntity.getEntityType()), "Cannot retrieve the concrete mapping for the provided"
+                            + " %s: %s needs to define a valid %s", BaseEntityDefinition.class.getSimpleName(),
                     BaseEntityDefinition.class.getSimpleName(), EntityType.class.getSimpleName());
             return this.getMappingFor(((BaseEntityDefinition) abstractEntity).getEntityType());
         } else if (abstractEntity instanceof CustomEntityDefinition) {
             return getMappingForCustomEntity((CustomEntityDefinition) abstractEntity);
         } else {
-            throw new XatkitException(MessageFormat.format("{0} does not support the provided {1} {2}", this.getClass
-                    ().getSimpleName(), EntityDefinition.class.getSimpleName(), abstractEntity.getClass()
-                    .getSimpleName()));
+            throw new XatkitException(MessageFormat.format("{0} does not support the provided {1} {2}",
+                    this.getClass().getSimpleName(), EntityDefinition.class.getSimpleName(), abstractEntity.getClass()
+                            .getSimpleName()));
         }
     }
 
@@ -274,8 +273,8 @@ public class EntityMapper {
             /*
              * Should not be triggered, null enums are set with their default value in Ecore.
              */
-            checkArgument(nonNull(coreEntity.getEntityType()), "Cannot remove the concrete mapping for the provided " +
-                            "%s: %s needs to define a valid %s", BaseEntityDefinition.class.getSimpleName(),
+            checkArgument(nonNull(coreEntity.getEntityType()), "Cannot remove the concrete mapping for the provided "
+                            + "%s: %s needs to define a valid %s", BaseEntityDefinition.class.getSimpleName(),
                     BaseEntityDefinition.class.getSimpleName(), EntityType.class.getSimpleName());
             this.entities.remove(coreEntity.getEntityType().getLiteral());
         } else if (abstractEntity instanceof CustomEntityDefinition) {

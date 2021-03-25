@@ -21,12 +21,12 @@ public class EnglishSentimentPostProcessor extends StanfordNLPPostProcessor {
     /**
      * The context parameter key used to store the sentiment extracted from the user input.
      */
-    protected final static String SENTIMENT_PARAMETER_KEY = NLP_CONTEXT_KEY + ".sentiment";
+    protected static final String SENTIMENT_PARAMETER_KEY = NLP_CONTEXT_KEY + ".sentiment";
 
     /**
      * The default value for the {@link #SENTIMENT_PARAMETER_KEY} parameter.
      */
-    protected final static String DEFAULT_SENTIMENT_VALUE = "Neutral";
+    protected static final String DEFAULT_SENTIMENT_VALUE = "Neutral";
 
     /**
      * Constructs an instance of this post-processor.
@@ -59,8 +59,8 @@ public class EnglishSentimentPostProcessor extends StanfordNLPPostProcessor {
          * whole corpus (or use some other API from the NLP pipeline).
          */
         List<CoreMap> sentenceAnnotations = annotation.get(CoreAnnotations.SentencesAnnotation.class);
-        String sentimentValue =
-                sentenceAnnotations.get(sentenceAnnotations.size() - 1).get(SentimentCoreAnnotations.SentimentClass.class);
+        String sentimentValue = sentenceAnnotations.get(sentenceAnnotations.size() - 1)
+                .get(SentimentCoreAnnotations.SentimentClass.class);
         recognizedIntent.getNlpData().put(SENTIMENT_PARAMETER_KEY, sentimentValue);
         return recognizedIntent;
     }

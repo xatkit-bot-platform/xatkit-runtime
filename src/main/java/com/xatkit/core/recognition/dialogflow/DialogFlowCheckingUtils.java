@@ -15,7 +15,7 @@ import java.util.Optional;
 /**
  * An utility class that provides checking methods for DialogFlow models.
  */
-public class DialogFlowCheckingUtils {
+public final class DialogFlowCheckingUtils {
 
     /**
      * Disables the default constructor, this class only provides static methods and should not be constructed.
@@ -55,17 +55,18 @@ public class DialogFlowCheckingUtils {
      * @param parameter the {@link ContextParameter} to check
      */
     private static void checkContextParameterFragmentsAreValidMappingEntityValues(ContextParameter parameter) {
-        for(String textFragment : parameter.getTextFragments()) {
+        for (String textFragment : parameter.getTextFragments()) {
             EntityDefinition referredEntity = parameter.getEntity().getReferredEntity();
             EventDefinition eventDefinition = (EventDefinition) parameter.eContainer();
             if (referredEntity instanceof MappingEntityDefinition) {
                 MappingEntityDefinition mappingEntityDefinition = (MappingEntityDefinition) referredEntity;
                 List<String> mappingValues = mappingEntityDefinition.getEntryValues();
                 if (!mappingValues.contains(textFragment)) {
-                    Log.warn("The text fragment {0} of intent {1} is not a valid value of its corresponding " +
-                            "mapping {2}, the intent will still be deployed, but inconsistencies may arise during" +
-                            " the recognition", textFragment, eventDefinition.getName(), mappingEntityDefinition
-                            .getName());
+                    Log.warn("The text fragment {0} of intent {1} is not a valid value of its corresponding mapping "
+                                    + "{2}, the intent will still be deployed, but inconsistencies may arise during "
+                                    + "the "
+                                    + "recognition", textFragment, eventDefinition.getName(),
+                            mappingEntityDefinition.getName());
                 }
             }
         }
@@ -83,16 +84,19 @@ public class DialogFlowCheckingUtils {
      * @throws IntentRecognitionProviderException if there is no training sentence containing the provided {@code
      *                                            parameter}'s fragment
      */
-    private static void checkContextParameterFragmentsAreInTrainingSentence(ContextParameter parameter) throws IntentRecognitionProviderException {
-        for(String textFragment : parameter.getTextFragments()) {
+    private static void checkContextParameterFragmentsAreInTrainingSentence(ContextParameter parameter)
+            throws IntentRecognitionProviderException {
+        for (String textFragment : parameter.getTextFragments()) {
             if (parameter.eContainer() instanceof IntentDefinition) {
                 IntentDefinition intentDefinition = (IntentDefinition) parameter.eContainer();
-                Optional<String> fragmentTrainingSentence = intentDefinition.getTrainingSentences().stream().filter
-                        (trainingSentence -> trainingSentence.contains(textFragment)).findAny();
+                Optional<String> fragmentTrainingSentence = intentDefinition.getTrainingSentences().stream()
+                        .filter(trainingSentence -> trainingSentence.contains(textFragment)).findAny();
                 if (!fragmentTrainingSentence.isPresent()) {
-                    throw new IntentRecognitionProviderException(MessageFormat.format("The text fragment {0} is not " +
-                            "contained in a training sentence of intent {1}, cannot deploy the bot, the context parameter" +
-                            " {2} will never be matched", textFragment, intentDefinition.getName(), parameter.getName()));
+                    throw new IntentRecognitionProviderException(MessageFormat.format("The text fragment {0} is not "
+                                    + "contained in a training sentence of intent {1}, cannot deploy the bot, the "
+                                    + "context "
+                                    + "parameter {2} will never be matched", textFragment, intentDefinition.getName(),
+                            parameter.getName()));
                 }
             }
         }

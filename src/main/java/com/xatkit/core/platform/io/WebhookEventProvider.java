@@ -1,16 +1,13 @@
 package com.xatkit.core.platform.io;
 
-import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.RuntimePlatform;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.RestHandler;
-import com.xatkit.core.server.XatkitServer;
-import com.xatkit.execution.ExecutionModel;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
 /**
- * A specialised {@link RuntimeEventProvider} that handles Rest requests sent by the {@link XatkitServer}.
+ * A specialised {@link RuntimeEventProvider} that handles Rest requests sent by the Xatkit server.
  * <p>
  * Concrete subclasses <b>must</b> implement the {@link #getEndpointURI()} that sets the URI to register the provider
  * to, and {@link #createRestHandler()} that creates the concrete {@link RestHandler} instance handling incoming Rest
@@ -21,7 +18,8 @@ import org.apache.commons.configuration2.Configuration;
  * @see RestHandler
  * @see com.xatkit.core.server.RestHandlerFactory
  */
-public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends RestHandler> extends RuntimeEventProvider<T> {
+public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends RestHandler>
+        extends RuntimeEventProvider<T> {
 
     /**
      * The {@link RestHandler} used to process incoming Rest requests.
@@ -31,10 +29,10 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends 
     /**
      * Creates an <b>unstarted</b> {@link WebhookEventProvider} managed by the provided {@code platform}.
      * <p>
-     * As for {@link RuntimeEventProvider}, this constructor does not have access to the
-     * {@link XatkitBot} nor the {@link Configuration}: it is typically called when defining a bot
-     * to have a usable reference to set in {@link ExecutionModel#getUsedProviders()}, but it is initialized during
-     * the bot deployment using the {@link WebhookEventProvider#start(Configuration)} method.
+     * As for {@link RuntimeEventProvider}, this constructor does not have access to the Xatkit bot nor the
+     * {@link Configuration}: it is typically called when defining a bot to have a usable reference to set in
+     * the bot execution model, but it is initialized during the bot deployment using the
+     * {@link WebhookEventProvider#start(Configuration)} method.
      *
      * @param platform the {@link RuntimePlatform} managing this provider
      */
@@ -59,7 +57,6 @@ public abstract class WebhookEventProvider<T extends RuntimePlatform, H extends 
      * The returned {@link String} must be prefixed by a {@code '/'}.
      *
      * @return the URI of the Rest endpoint to register the provider to
-     * @see XatkitServer#registerWebhookEventProvider(WebhookEventProvider)
      */
     public abstract String getEndpointURI();
 

@@ -11,7 +11,13 @@ import java.util.List;
 /**
  * A {@link RestHandler} factory providing utility methods to create specific {@link RestHandler} instances.
  */
-public class RestHandlerFactory {
+public final class RestHandlerFactory {
+
+    /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private RestHandlerFactory() {
+    }
 
     /**
      * A functional interface representing the handling function of {@link JsonRestHandler}.
@@ -71,8 +77,9 @@ public class RestHandlerFactory {
         return new JsonRestHandler() {
             @Nullable
             @Override
-            public JsonElement handleParsedContent(@Nonnull List<Header> headers, @Nonnull List<NameValuePair> params
-                    , @Nullable JsonElement content) throws RestHandlerException {
+            public JsonElement handleParsedContent(@Nonnull List<Header> headers,
+                                                   @Nonnull List<NameValuePair> params,
+                                                   @Nullable JsonElement content) throws RestHandlerException {
                 return function.handle(headers, params, content);
             }
         };

@@ -163,8 +163,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
         try {
             this.dialogFlowClients = new DialogFlowClients(this.configuration);
         } catch (IntentRecognitionProviderException e) {
-            throw new XatkitException("An error occurred when creating the DialogFlow clients, see attached " +
-                    "exception", e);
+            throw new XatkitException("An error occurred when creating the DialogFlow clients, see attached "
+                    + "exception", e);
         }
         this.projectName = ProjectName.of(this.configuration.getProjectId());
         this.dialogFlowEntityReferenceMapper = new DialogFlowEntityReferenceMapper();
@@ -196,14 +196,14 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
     private void cleanAgent() throws IntentRecognitionProviderException {
         if (this.configuration.isCleanAgentOnStartup()) {
             Log.info("Cleaning agent DialogFlow agent");
-            List<Intent> registeredIntents = getRegisteredIntents();
-            for (Intent intent : registeredIntents) {
+            List<Intent> intents = getRegisteredIntents();
+            for (Intent intent : intents) {
                 if (!intent.getDisplayName().equals(DEFAULT_FALLBACK_INTENT.getName())) {
                     this.dialogFlowClients.getIntentsClient().deleteIntent(intent.getName());
                 }
             }
-            List<EntityType> registeredEntityTypes = getRegisteredEntityTypes();
-            for (EntityType entityType : registeredEntityTypes) {
+            List<EntityType> entityTypes = getRegisteredEntityTypes();
+            for (EntityType entityType : entityTypes) {
                 this.dialogFlowClients.getEntityTypesClient().deleteEntityType(entityType.getName());
             }
         }
@@ -232,8 +232,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
                 registeredIntents.put(intent.getDisplayName(), intent);
             }
         } else {
-            Log.info("Intent loading is disabled, existing Intents in the DialogFlow project {0} will not be " +
-                    "imported", projectName.getProject());
+            Log.info("Intent loading is disabled, existing Intents in the DialogFlow project {0} will not be "
+                    + "imported", projectName.getProject());
         }
     }
 
@@ -259,8 +259,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
                 registeredEntityTypes.put(entityType.getDisplayName(), entityType);
             }
         } else {
-            Log.info("Entity loading is disabled, existing Entities in the DialogFlow project {0} will not be " +
-                    "imported", projectName.getProject());
+            Log.info("Entity loading is disabled, existing Entities in the DialogFlow project {0} will not be "
+                    + "imported", projectName.getProject());
         }
     }
 
@@ -272,12 +272,12 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      */
     private List<EntityType> getRegisteredEntityTypes() throws IntentRecognitionProviderException {
         checkNotShutdown();
-        List<EntityType> registeredEntityTypes = new ArrayList<>();
-        for (EntityType entityType :
-                this.dialogFlowClients.getEntityTypesClient().listEntityTypes(projectAgentName).iterateAll()) {
-            registeredEntityTypes.add(entityType);
+        List<EntityType> entityTypes = new ArrayList<>();
+        for (EntityType entityType
+                : this.dialogFlowClients.getEntityTypesClient().listEntityTypes(projectAgentName).iterateAll()) {
+            entityTypes.add(entityType);
         }
-        return registeredEntityTypes;
+        return entityTypes;
     }
 
     /**
@@ -290,11 +290,11 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      */
     private List<Intent> getRegisteredIntents() throws IntentRecognitionProviderException {
         checkNotShutdown();
-        List<Intent> registeredIntents = new ArrayList<>();
+        List<Intent> intents = new ArrayList<>();
         for (Intent intent : this.dialogFlowClients.getIntentsClient().listIntents(projectAgentName).iterateAll()) {
-            registeredIntents.add(intent);
+            intents.add(intent);
         }
-        return registeredIntents;
+        return intents;
     }
 
     /**
@@ -306,7 +306,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      * @param entityDefinition the {@link EntityDefinition} to register to the DialogFlow project
      * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
-    public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
+    public void registerEntityDefinition(@NonNull EntityDefinition entityDefinition)
+            throws IntentRecognitionProviderException {
         checkNotShutdown();
         if (entityDefinition instanceof BaseEntityDefinition) {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
@@ -331,16 +332,16 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
                                     entityType);
                     this.registeredEntityTypes.put(entityDefinition.getName(), createdEntityType);
                 } catch (FailedPreconditionException e) {
-                    throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity " +
-                            "{0}, the entity already exists", entityDefinition), e);
+                    throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the entity "
+                            + "{0}, the entity already exists", entityDefinition), e);
                 }
             } else {
                 Log.debug("{0} {1} is already registered", EntityType.class.getSimpleName(),
                         entityDefinition.getName());
             }
         } else {
-            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the provided {0}, " +
-                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot register the provided {0}, "
+                            + "unsupported {1}", entityDefinition.getClass().getSimpleName(),
                     EntityDefinition.class.getSimpleName()));
         }
     }
@@ -388,13 +389,14 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      * @see DialogFlowIntentMapper
      */
     @Override
-    public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
+    public void registerIntentDefinition(@NonNull IntentDefinition intentDefinition)
+            throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkNotNull(intentDefinition.getName(), "Cannot register the %s with the provided name %s",
                 IntentDefinition.class.getSimpleName());
         if (this.registeredIntents.containsKey(intentDefinition.getName())) {
-            throw new IntentRecognitionProviderException(MessageFormat.format("Intent {0} already exists in the agent" +
-                    " and will not be updated", intentDefinition.getName()));
+            throw new IntentRecognitionProviderException(MessageFormat.format("Intent {0} already exists in the agent"
+                    + " and will not be updated", intentDefinition.getName()));
         }
         Log.debug("Registering DialogFlow intent {0}", intentDefinition.getName());
         Intent intent = dialogFlowIntentMapper.mapIntentDefinition(intentDefinition);
@@ -404,8 +406,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
             Log.debug("Intent {0} successfully registered", response.getDisplayName());
         } catch (FailedPreconditionException | InvalidArgumentException e) {
             if (e.getMessage().contains("already exists")) {
-                throw new IntentRecognitionProviderException(MessageFormat.format("Intent {0} already exists in the " +
-                        "agent and will not be updated", intentDefinition.getName()), e);
+                throw new IntentRecognitionProviderException(MessageFormat.format("Intent {0} already exists in the "
+                        + "agent and will not be updated", intentDefinition.getName()), e);
             }
         }
     }
@@ -416,13 +418,14 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      * @throws NullPointerException if the provided {@code entityDefinition} is {@code null}
      */
     @Override
-    public void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException {
+    public void deleteEntityDefinition(@NonNull EntityDefinition entityDefinition)
+            throws IntentRecognitionProviderException {
         checkNotShutdown();
         if (entityDefinition instanceof BaseEntityDefinition) {
             BaseEntityDefinition baseEntityDefinition = (BaseEntityDefinition) entityDefinition;
-            Log.trace("Skipping deletion of {0} ({1}), {0} are natively supported by DialogFlow and cannot be " +
-                    "deleted", BaseEntityDefinition.class.getSimpleName(), baseEntityDefinition.getEntityType()
-                    .getLiteral());
+            Log.trace("Skipping deletion of {0} ({1}), {0} are natively supported by DialogFlow and cannot be "
+                            + "deleted", BaseEntityDefinition.class.getSimpleName(),
+                    baseEntityDefinition.getEntityType().getLiteral());
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             CustomEntityDefinition customEntityDefinition = (CustomEntityDefinition) entityDefinition;
             /*
@@ -433,9 +436,9 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
                 /*
                  * The EntityType is not in the local cache, loading it through a DialogFlow query.
                  */
-                Optional<EntityType> dialogFlowEntityType = getRegisteredEntityTypes().stream().filter
-                        (registeredEntityType -> registeredEntityType.getDisplayName().equals(customEntityDefinition
-                                .getName())).findAny();
+                Optional<EntityType> dialogFlowEntityType = getRegisteredEntityTypes().stream().filter(
+                        registeredEntityType -> registeredEntityType.getDisplayName()
+                                .equals(customEntityDefinition.getName())).findAny();
                 if (dialogFlowEntityType.isPresent()) {
                     entityType = dialogFlowEntityType.get();
                 } else {
@@ -447,8 +450,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
             try {
                 this.dialogFlowClients.getEntityTypesClient().deleteEntityType(entityType.getName());
             } catch (InvalidArgumentException e) {
-                throw new IntentRecognitionProviderException(MessageFormat.format("An error occurred while deleting " +
-                        "entity {0}", entityDefinition.getName()), e);
+                throw new IntentRecognitionProviderException(MessageFormat.format("An error occurred while deleting "
+                        + "entity {0}", entityDefinition.getName()), e);
             }
             Log.debug("{0} {1} successfully deleted", EntityType.class.getSimpleName(), entityType.getDisplayName());
             /*
@@ -456,8 +459,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
              */
             this.registeredEntityTypes.remove(entityType.getDisplayName());
         } else {
-            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot delete the provided {0}, " +
-                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+            throw new IntentRecognitionProviderException(MessageFormat.format("Cannot delete the provided {0}, "
+                            + "unsupported {1}", entityDefinition.getClass().getSimpleName(),
                     EntityDefinition.class.getSimpleName()));
         }
     }
@@ -468,7 +471,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      */
     @Override
-    public void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition) throws IntentRecognitionProviderException {
+    public void deleteIntentDefinition(@NonNull IntentDefinition intentDefinition)
+            throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkNotNull(intentDefinition.getName(), "Cannot delete the IntentDefinition with null as its name");
         /*
@@ -522,8 +526,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
             throw new IntentRecognitionProviderException("An error occurred during the DialogFlow agent training", e);
         }
         if (!isDone) {
-            throw new IntentRecognitionProviderException("Failed to train the DialogFlow agent, returned " +
-                    "Operation#getDone returned false");
+            throw new IntentRecognitionProviderException("Failed to train the DialogFlow agent, returned "
+                    + "Operation#getDone returned false");
         }
         Log.info("DialogFlow agent trained, intent matching will be available in a few seconds");
         try {
@@ -572,7 +576,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      * @throws IllegalArgumentException if the provided {@code input} is empty
      */
     @Override
-    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException {
+    protected RecognizedIntent getIntentInternal(@NonNull String input, @NonNull StateContext context)
+            throws IntentRecognitionProviderException {
         checkNotShutdown();
         checkArgument(!input.isEmpty(), "Cannot retrieve the intent from empty string");
         checkArgument(context instanceof DialogFlowStateContext, "Cannot handle the message, expected context type to"
@@ -633,8 +638,8 @@ public class DialogFlowIntentRecognitionProvider extends AbstractIntentRecogniti
      */
     private void checkNotShutdown() throws IntentRecognitionProviderException {
         if (this.isShutdown()) {
-            throw new IntentRecognitionProviderException("Cannot perform the operation, the DialogFlow API is " +
-                    "shutdown");
+            throw new IntentRecognitionProviderException("Cannot perform the operation, the DialogFlow API is "
+                    + "shutdown");
         }
     }
 

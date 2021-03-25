@@ -1,7 +1,6 @@
 package com.xatkit.core.platform;
 
 import com.xatkit.core.XatkitBot;
-import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.platform.io.WebhookEventProvider;
 import com.xatkit.core.server.XatkitServer;
@@ -18,7 +17,7 @@ import java.util.Map;
  * A convenience wrapper to store platform-specific data.
  * <p>
  * This class is typically used to store platform-level credentials, OAuth tokens, or database accesses.
- * {@link RuntimeAction}s bound to this platform have a direct reference to the platform, allowing to easily access
+ * Actions bound to this platform have a direct reference to the platform, allowing to easily access
  * and share information across actions.
  */
 public abstract class RuntimePlatform {
@@ -196,7 +195,7 @@ public abstract class RuntimePlatform {
         private RuntimeEventProvider runtimeEventProvider;
 
         /**
-         * Constructs a new {@link EventProviderThread} to run the provided {@code runtimeEventProvider}
+         * Constructs a new {@link EventProviderThread} to run the provided {@code runtimeEventProvider}.
          *
          * @param runtimeEventProvider the {@link RuntimeEventProvider} to run
          */

@@ -1,6 +1,5 @@
 package com.xatkit.core;
 
-import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.execution.AutoTransition;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.GuardedTransition;
@@ -171,7 +170,7 @@ public class ExecutionService {
      * @param state   the current {@link State} to compute the navigable {@link Transition}s from
      * @param context the {@link StateContext} holding the context information
      * @return the navigable {@link Transition} if it exists, {@code null} otherwise
-     * @throws IllegalStateException if more than 1 navigable transition is found
+     * @throws IllegalStateException    if more than 1 navigable transition is found
      * @throws IllegalArgumentException if the provided {@code state} contains an unsupported {@link Transition} type
      */
     private @Nullable
@@ -182,17 +181,17 @@ public class ExecutionService {
          */
         List<Transition> result = new ArrayList<>();
         for (Transition t : state.getTransitions()) {
-            if(t instanceof AutoTransition) {
+            if (t instanceof AutoTransition) {
                 result.add(t);
                 continue;
-            } else if(t instanceof GuardedTransition) {
+            } else if (t instanceof GuardedTransition) {
                 GuardedTransition guardedTransition = (GuardedTransition) t;
                 /*
                  * Create the context with the received EventInstance. This is the instance we want to use in the
                  * transition conditions.
                  */
                 try {
-                    if(guardedTransition.getCondition().test(context)) {
+                    if (guardedTransition.getCondition().test(context)) {
                         result.add(t);
                     }
                 } catch (Throwable throwable) {
@@ -201,13 +200,13 @@ public class ExecutionService {
                     continue;
                 }
             } else {
-                throw new IllegalArgumentException(MessageFormat.format("State {0} contains an unsupported transition" +
-                        " typed {1}", state.getName(), t.getClass().getSimpleName()));
+                throw new IllegalArgumentException(MessageFormat.format("State {0} contains an unsupported transition"
+                        + " typed {1}", state.getName(), t.getClass().getSimpleName()));
             }
         }
         if (result.size() > 1) {
-            throw new IllegalStateException(MessageFormat.format("Found several navigable transitions ({0}), cannot " +
-                    "decide which one to navigate", result.size()));
+            throw new IllegalStateException(MessageFormat.format("Found several navigable transitions ({0}), cannot "
+                    + "decide which one to navigate", result.size()));
         }
         if (result.isEmpty()) {
             return null;
@@ -223,8 +222,8 @@ public class ExecutionService {
      * This method creates an asynchronous task that looks for navigable transitions and moves the state machine to
      * the appropriate state.
      * <p>
-     * Exceptions thrown from the computed {@link RuntimeAction}s are logged and ignored to ensure the bot is not
-     * crashing because of an erroring action.
+     * Exceptions thrown from the computed actions are logged and ignored to ensure the bot is not crashing because
+     * of an erroring action.
      *
      * @param eventInstance the {@link EventInstance} to handle
      * @param context       the {@link StateContext} associated to the event to handle
@@ -249,8 +248,8 @@ public class ExecutionService {
                 executeBody(navigableTransition.getState(), context);
             }
         }, executorService).exceptionally((throwable) -> {
-            Log.error("An error occurred when running the actions associated to the event {0}. Check the logs for " +
-                    "additional information", eventInstance.getDefinition().getName());
+            Log.error("An error occurred when running the actions associated to the event {0}. Check the logs for "
+                    + "additional information", eventInstance.getDefinition().getName());
             /*
              * Print the stack trace even if it may have been printed before (e.g. in executeRuntimeAction): some
              * unexpected error may occur out of the executeRuntimeAction control flow (for example the creation of
@@ -277,8 +276,7 @@ public class ExecutionService {
     /**
      * Shuts down the underlying {@link ExecutorService}.
      * <p>
-     * Shutting down the {@link ExecutionService} invalidates it and does not allow to process new
-     * {@link RuntimeAction}s.
+     * Shutting down the {@link ExecutionService} invalidates it and does not allow to process new actions.
      */
     public void shutdown() {
         this.executorService.shutdownNow();

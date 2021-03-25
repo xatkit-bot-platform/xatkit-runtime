@@ -6,7 +6,57 @@ import com.xatkit.intent.EntityDefinition;
 
 import java.text.MessageFormat;
 
-import static com.xatkit.intent.EntityType.*;
+import static com.xatkit.intent.EntityType.ADDRESS;
+import static com.xatkit.intent.EntityType.AGE;
+import static com.xatkit.intent.EntityType.AIRPORT;
+import static com.xatkit.intent.EntityType.ANY;
+import static com.xatkit.intent.EntityType.CAPITAL;
+import static com.xatkit.intent.EntityType.CARDINAL;
+import static com.xatkit.intent.EntityType.CITY;
+import static com.xatkit.intent.EntityType.CITY_GB;
+import static com.xatkit.intent.EntityType.CITY_US;
+import static com.xatkit.intent.EntityType.COLOR;
+import static com.xatkit.intent.EntityType.COUNTRY;
+import static com.xatkit.intent.EntityType.COUNTRY_CODE;
+import static com.xatkit.intent.EntityType.COUNTY_GB;
+import static com.xatkit.intent.EntityType.COUNTY_US;
+import static com.xatkit.intent.EntityType.DATE;
+import static com.xatkit.intent.EntityType.DATE_PERIOD;
+import static com.xatkit.intent.EntityType.DATE_TIME;
+import static com.xatkit.intent.EntityType.DURATION;
+import static com.xatkit.intent.EntityType.EMAIL;
+import static com.xatkit.intent.EntityType.FLIGHT_NUMBER;
+import static com.xatkit.intent.EntityType.GIVEN_NAME;
+import static com.xatkit.intent.EntityType.INTEGER;
+import static com.xatkit.intent.EntityType.LANGUAGE;
+import static com.xatkit.intent.EntityType.LAST_NAME;
+import static com.xatkit.intent.EntityType.LOCATION;
+import static com.xatkit.intent.EntityType.MUSIC_ARTIST;
+import static com.xatkit.intent.EntityType.MUSIC_GENRE;
+import static com.xatkit.intent.EntityType.NUMBER;
+import static com.xatkit.intent.EntityType.NUMBER_SEQUENCE;
+import static com.xatkit.intent.EntityType.ORDINAL;
+import static com.xatkit.intent.EntityType.PERCENTAGE;
+import static com.xatkit.intent.EntityType.PHONE_NUMBER;
+import static com.xatkit.intent.EntityType.PLACE_ATTRACTION;
+import static com.xatkit.intent.EntityType.PLACE_ATTRACTION_GB;
+import static com.xatkit.intent.EntityType.PLACE_ATTRACTION_US;
+import static com.xatkit.intent.EntityType.STATE;
+import static com.xatkit.intent.EntityType.STATE_GB;
+import static com.xatkit.intent.EntityType.STATE_US;
+import static com.xatkit.intent.EntityType.STREET_ADDRESS;
+import static com.xatkit.intent.EntityType.TEMPERATURE;
+import static com.xatkit.intent.EntityType.TIME;
+import static com.xatkit.intent.EntityType.TIME_PERIOD;
+import static com.xatkit.intent.EntityType.UNIT_AREA;
+import static com.xatkit.intent.EntityType.UNIT_CURRENCY;
+import static com.xatkit.intent.EntityType.UNIT_INFORMATION;
+import static com.xatkit.intent.EntityType.UNIT_LENGTH;
+import static com.xatkit.intent.EntityType.UNIT_SPEED;
+import static com.xatkit.intent.EntityType.UNIT_VOLUME;
+import static com.xatkit.intent.EntityType.UNIT_WEIGHT;
+import static com.xatkit.intent.EntityType.URL;
+import static com.xatkit.intent.EntityType.ZIP_CODE;
 
 /**
  * An {@link EntityMapper} initialized with DialogFlow's system entities.
@@ -154,8 +204,8 @@ public class DialogFlowEntityReferenceMapper extends EntityMapper {
          * Supporting this would imply to populate the DialogFlowEntityMapper when loading an existing agent. There
          * is no need for such feature for now.
          */
-        throw new UnsupportedOperationException(MessageFormat.format("{0} does not allow to register custom entity " +
-                        "mappings, use getMappingFor(EntityDefinition) to get DialogFlow-compatible mapping of {1}",
+        throw new UnsupportedOperationException(MessageFormat.format("{0} does not allow to register custom entity "
+                        + "mappings, use getMappingFor(EntityDefinition) to get DialogFlow-compatible mapping of {1}",
                 this.getClass().getSimpleName(), CustomEntityDefinition.class.getSimpleName()));
     }
 

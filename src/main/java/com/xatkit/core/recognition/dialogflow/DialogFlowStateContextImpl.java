@@ -1,7 +1,6 @@
 package com.xatkit.core.recognition.dialogflow;
 
 import com.google.cloud.dialogflow.v2.SessionName;
-import com.xatkit.execution.StateContext;
 import com.xatkit.execution.impl.StateContextImpl;
 import lombok.NonNull;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -9,7 +8,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.ConfigurationConverter;
 
 /**
- * A DialogFlow {@link StateContext} implementation that relies on DialogFlow internal sessions.
+ * A DialogFlow context implementation that relies on DialogFlow internal sessions.
  * <p>
  * This class computes the unique identifier of the session by using the internal DialogFlow API. The raw session can
  * be accessed by calling {@link #getSessionName()}.
@@ -27,8 +26,8 @@ public class DialogFlowStateContextImpl extends StateContextImpl implements Dial
      * This constructor sets the {@code sessionId} value by calling {@link SessionName#toString()}, that may not be
      * unique in some rare cases. Use {@link #getSessionName()} to compare {@link DialogFlowStateContextImpl}s.
      * <p>
-     * See {@link #DialogFlowStateContextImpl(SessionName, Configuration)} to construct a {@link DialogFlowStateContextImpl} with a
-     * given {@link Configuration}.
+     * See {@link #DialogFlowStateContextImpl(SessionName, Configuration)} to construct a
+     * {@link DialogFlowStateContextImpl} with a given {@link Configuration}.
      *
      * @param sessionName the raw DialogFlow session
      */
@@ -37,14 +36,14 @@ public class DialogFlowStateContextImpl extends StateContextImpl implements Dial
     }
 
     /**
-     * Constructs a new {@link DialogFlowStateContextImpl} from the provided {@code sessionName} and {@code configuration}.
+     * Constructs a new {@link DialogFlowStateContextImpl} from the provided {@code sessionName} and {@code
+     * configuration}.
      * <p>
      * This constructor sets the {@code sessionId} value by calling {@link SessionName#toString()}, that may not be
      * unique in some rare cases? Use {@link #getSessionName()} to compare {@link DialogFlowStateContextImpl}s.
      *
      * @param sessionName   the raw DialogFlow session
      * @param configuration the {@link Configuration} parameterizing the {@link DialogFlowStateContextImpl}
-     * @see StateContext
      */
     public DialogFlowStateContextImpl(@NonNull SessionName sessionName, @NonNull Configuration configuration) {
         super();

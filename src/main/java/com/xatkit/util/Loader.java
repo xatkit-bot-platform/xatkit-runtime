@@ -21,7 +21,13 @@ import java.util.stream.Collectors;
  * The {@link Loader} wraps Java reflection API exceptions in {@link XatkitException}s, easing client code to handle
  * loading and construction errors.
  */
-public class Loader {
+public final class Loader {
+
+    /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private Loader() {
+    }
 
     /**
      * Loads the Class with the provided {@code qualifiedName}, and casts it to the provided {@code superClass}.
@@ -110,8 +116,8 @@ public class Loader {
         try {
             return clazz.newInstance();
         } catch (ReflectiveOperationException e) {
-            throw new XatkitException(MessageFormat.format("Cannot construct an instance of {0} with its default " +
-                    "constructor", clazz.getSimpleName()), e);
+            throw new XatkitException(MessageFormat.format("Cannot construct an instance of {0} with its default "
+                    + "constructor", clazz.getSimpleName()), e);
         }
     }
 
@@ -223,17 +229,17 @@ public class Loader {
             platform = Loader.construct(runtimePlatformClass, XatkitBot.class, Configuration.class, xatkitBot,
                     configuration);
         } catch (NoSuchMethodException e) {
-            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the platform with the its {0}({1})" +
-                    "constructor", runtimePlatformClass.getSimpleName(), XatkitBot.class.getSimpleName(), Configuration
-                    .class.getSimpleName());
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the platform with its {0}({1})"
+                            + "constructor", runtimePlatformClass.getSimpleName(), XatkitBot.class.getSimpleName(),
+                    Configuration.class.getSimpleName());
             try {
                 platform = Loader.construct(runtimePlatformClass, XatkitBot.class, xatkitBot);
-                Log.warn("{0} {1} loaded with its default constructor, the platform will not be initialized with " +
-                        "Xatkit configuration", RuntimePlatform.class.getSimpleName(), runtimePlatformClass
-                        .getSimpleName());
+                Log.warn("{0} {1} loaded with its default constructor, the platform will not be initialized with "
+                                + "Xatkit configuration", RuntimePlatform.class.getSimpleName(),
+                        runtimePlatformClass.getSimpleName());
             } catch (NoSuchMethodException e1) {
-                throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", runtimePlatformClass.getSimpleName(), XatkitBot.class.getSimpleName()), e1);
+                throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does "
+                        + "not exist", runtimePlatformClass.getSimpleName(), XatkitBot.class.getSimpleName()), e1);
             }
         }
         return platform;
@@ -260,24 +266,25 @@ public class Loader {
      * @see #construct(Class, Class, Class, Object, Object)
      * @see #loadClass(String, Class)
      */
-    public static RuntimeEventProvider constructRuntimeEventProvider(Class<? extends RuntimeEventProvider> eventProviderClass, RuntimePlatform
-            runtimePlatform, Configuration configuration) {
+    public static RuntimeEventProvider constructRuntimeEventProvider(
+            Class<? extends RuntimeEventProvider> eventProviderClass, RuntimePlatform runtimePlatform,
+            Configuration configuration) {
         RuntimeEventProvider runtimeEventProvider;
         try {
             runtimeEventProvider = Loader.construct(eventProviderClass, runtimePlatform.getClass(), Configuration.class,
                     runtimePlatform,
                     configuration);
         } catch (NoSuchMethodException e) {
-            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the RuntimeEventProvider using its " +
-                    "{0}({1}) constructor", eventProviderClass.getSimpleName(), runtimePlatform.getClass()
+            Log.warn("Cannot find the method {0}({1},{2}), trying to initialize the RuntimeEventProvider using its "
+                    + "{0}({1}) constructor", eventProviderClass.getSimpleName(), runtimePlatform.getClass()
                     .getSimpleName(), Configuration.class.getSimpleName());
             try {
                 runtimeEventProvider = Loader.construct(eventProviderClass, runtimePlatform.getClass(),
                         runtimePlatform);
             } catch (NoSuchMethodException e1) {
-                throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does " +
-                        "not exist", eventProviderClass.getSimpleName(), runtimePlatform.getClass().getSimpleName()),
-                        e1);
+                throw new XatkitException(MessageFormat.format("Cannot initialize {0}, the constructor {0}({1}) does "
+                                + "not exist", eventProviderClass.getSimpleName(),
+                        runtimePlatform.getClass().getSimpleName()), e1);
             }
         }
         return runtimeEventProvider;
@@ -294,8 +301,7 @@ public class Loader {
      * @return a {@link String} containing the formatted parameters
      */
     private static String printArray(Object[] array) {
-        List<String> toStringList = Arrays.stream(array).map(o ->
-        {
+        List<String> toStringList = Arrays.stream(array).map(o -> {
             if (o instanceof String) {
                 return "\"" + o.toString() + "\"";
             } else {

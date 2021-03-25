@@ -19,6 +19,11 @@ import java.util.stream.Collectors;
 public class IntentRecognitionHelper {
 
     /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private IntentRecognitionHelper() { }
+
+    /**
      * Returns the {@link RecognizedIntent} from the provided user {@code input} and {@code session}.
      * <p>
      * This uses the provided {@code xatkitBot} to wrap the access to the underlying
@@ -39,7 +44,8 @@ public class IntentRecognitionHelper {
      *                                            underlying intent recognition engine
      */
     public static RecognizedIntent getRecognizedIntent(@NonNull String input, @NonNull StateContext context,
-                                                       @NonNull XatkitBot xatkitBot) throws IntentRecognitionProviderException {
+                                                       @NonNull XatkitBot xatkitBot)
+            throws IntentRecognitionProviderException {
         RecognizedIntent recognizedIntent = xatkitBot.getIntentRecognitionProvider().getIntent(input, context);
         Log.info("Detected Intent {0} (confidence {1}) from query text \"{2}\"{3}",
                 recognizedIntent.getDefinition().getName(), recognizedIntent.getRecognitionConfidence(),

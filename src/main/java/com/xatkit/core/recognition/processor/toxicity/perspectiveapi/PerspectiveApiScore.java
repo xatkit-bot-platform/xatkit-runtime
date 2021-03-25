@@ -22,7 +22,7 @@ public class PerspectiveApiScore {
      * <p>
      * Accessing a specific score on this object always returns {@link #DEFAULT_SCORE}.
      */
-    public static PerspectiveApiScore UNSET_SCORE = new PerspectiveApiScore();
+    public static final PerspectiveApiScore UNSET_SCORE = new PerspectiveApiScore();
 
     /**
      * The default score.

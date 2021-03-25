@@ -36,8 +36,8 @@ public class CompositeEntityDefinitionEntryBuilder extends CompositeEntityDefini
     }
 
     @Override
-    public @NonNull CompositeEntryFragmentStep entity(@NonNull EntityDefinitionReferenceProvider entityReferenceProvider) {
-        return this.entity(entityReferenceProvider.getEntityReference());
+    public @NonNull CompositeEntryFragmentStep entity(@NonNull EntityDefinitionReferenceProvider entityReference) {
+        return this.entity(entityReference.getEntityReference());
     }
 
     @Override

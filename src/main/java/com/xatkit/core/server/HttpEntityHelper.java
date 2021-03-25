@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.xatkit.core.XatkitException;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HTTP;
@@ -26,7 +25,12 @@ import static java.util.Objects.nonNull;
 /**
  * Contains utility methods to manipulate and create {@link HttpEntity} instances.
  */
-public class HttpEntityHelper {
+public final class HttpEntityHelper {
+
+    /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private HttpEntityHelper() { }
 
     /**
      * The {@link Gson} instance used to translate {@link JsonElement}s to {@link String}s.
@@ -124,7 +128,7 @@ public class HttpEntityHelper {
      * Creates a {@link HttpEntity} from the provided {@code element}.
      * <p>
      * This method wraps the {@link String} representation of the provided {@code element} into an {@link HttpEntity}
-     * , allowing to embed it in {@link HttpResponse}.
+     * , allowing to embed it in the response.
      *
      * @param element the {@link JsonElement} to embed in a {@link HttpEntity}
      * @return the created {@link HttpEntity}

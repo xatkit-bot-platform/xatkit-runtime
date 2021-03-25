@@ -63,10 +63,10 @@ public class JsonEventMatcher {
                  * throw an exception: it is not possible to register specialized FieldValues along with the
                  * EMPTY_FIELD_VALUE: the engine will always match the EMPTY_FIELD_VALUE.
                  */
-                throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
-                        "empty FieldValue {1} is already registered for the HeaderValue {2}, and cannot be " +
-                        "overloaded with the specialized FieldValue {3}", eventDefinition.getName(), FieldValue
-                        .EMPTY_FIELD_VALUE, headerValue, fieldValue));
+                throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, the empty"
+                                + " FieldValue {1} is already registered for the HeaderValue {2}, and cannot be "
+                                + "overloaded with the specialized FieldValue {3}", eventDefinition.getName(),
+                        FieldValue.EMPTY_FIELD_VALUE, headerValue, fieldValue));
             } else if (!fields.keySet().isEmpty() && !fields.containsKey(FieldValue.EMPTY_FIELD_VALUE) && fieldValue
                     .equals(FieldValue.EMPTY_FIELD_VALUE)) {
                 /*
@@ -76,10 +76,10 @@ public class JsonEventMatcher {
                  * Note that this condition allows to register the same EventTypeName to EMPTY_FIELD_VALUE multiple
                  * times (the duplicate insertion is handled in the next conditions).
                  */
-                throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, a " +
-                                "specialized FieldValue {1} is already registered for the HeaderValue {2}, and cannot" +
-                                " be used along with the empty FieldValue {3}", eventDefinition.getName(), fieldValue
-                        , headerValue, FieldValue.EMPTY_FIELD_VALUE));
+                throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, a "
+                                + "specialized FieldValue {1} is already registered for the HeaderValue {2}, and "
+                                + "cannot be used along with the empty FieldValue {3}", eventDefinition.getName(),
+                        fieldValue, headerValue, FieldValue.EMPTY_FIELD_VALUE));
             }
             if (fields.containsKey(fieldValue)) {
                 if (fields.get(fieldValue).equals(eventDefinition)) {
@@ -87,19 +87,18 @@ public class JsonEventMatcher {
                             headerValue
                                     .toString(), fieldValue.toString());
                 } else {
-                    throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, the " +
-                                    "pair ({1}, {2}) is already matched to {3}", eventDefinition.getName(),
+                    throw new XatkitException(MessageFormat.format("Cannot register the provided EventType {0}, the "
+                                    + "pair ({1}, {2}) is already matched to {3}", eventDefinition.getName(),
                             headerValue.toString(), fieldValue.toString(), fields.get(fieldValue)));
                 }
             } else {
                 Log.info("Registering EventType {0} to the pair ({1}, {2})", eventDefinition.getName(),
-                        headerValue.toString
-                                (), fieldValue.toString());
+                        headerValue.toString(), fieldValue.toString());
                 fields.put(fieldValue, eventDefinition);
             }
         } else {
-            Log.info("Registering EventType {0} to the pair ({1}, {2})", eventDefinition.getName(), headerValue.toString
-                    (), fieldValue.toString());
+            Log.info("Registering EventType {0} to the pair ({1}, {2})", eventDefinition.getName(),
+                    headerValue.toString(), fieldValue.toString());
             Map<FieldValue, EventDefinition> fields = new HashMap<>();
             fields.put(fieldValue, eventDefinition);
             matchableEvents.put(headerValue, fields);
@@ -181,8 +180,8 @@ public class JsonEventMatcher {
     protected @NonNull EventInstance createEventInstance(@NonNull EventDefinition eventDefinition,
                                                          @NonNull JsonElement content) {
         ContextParameter jsonParameter = eventDefinition.getParameter("json");
-        checkArgument(nonNull(jsonParameter), "Cannot create the %s for the provided %s %s: the %s'json parameter " +
-                        "does not exist", EventInstance.class.getSimpleName(),
+        checkArgument(nonNull(jsonParameter), "Cannot create the %s for the provided %s %s: the %s'json parameter "
+                        + "does not exist", EventInstance.class.getSimpleName(),
                 EventDefinition.class.getSimpleName(), eventDefinition.getName(),
                 EventDefinition.class.getSimpleName());
 
@@ -350,7 +349,7 @@ public class JsonEventMatcher {
          * @see #addMatchableEvent(HeaderValue, FieldValue, EventDefinition)
          * @see #match(List, JsonElement)
          */
-        public static FieldValue EMPTY_FIELD_VALUE = of("", "");
+        public static final FieldValue EMPTY_FIELD_VALUE = of("", "");
 
         /**
          * Constructs a new {@link FieldValue} from the provided {@code key} and {@code value}.

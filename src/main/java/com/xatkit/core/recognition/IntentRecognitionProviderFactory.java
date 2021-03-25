@@ -9,8 +9,6 @@ import com.xatkit.core.recognition.nlpjs.NlpjsIntentRecognitionProvider;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
-import com.xatkit.intent.IntentDefinition;
-import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
@@ -29,15 +27,17 @@ import static java.util.Objects.nonNull;
  * This factory inspects the provided {@code configuration} and finds the concrete {@link IntentRecognitionProvider}
  * to construct. If the provided {@code configuration} does not define any {@link IntentRecognitionProvider}, a
  * {@link RegExIntentRecognitionProvider} is returned, providing minimal NLP support.
- * <p>
- * <b>Note:</b> {@link RegExIntentRecognitionProvider} does not handle {@link IntentDefinition} and
- * {@link RecognizedIntent} computation. If the bot application requires such features a valid
- * {@link IntentRecognitionProvider} must be specified in the provided configuration.
  *
  * @see IntentRecognitionProvider
  * @see RegExIntentRecognitionProvider
  */
-public class IntentRecognitionProviderFactory {
+public final class IntentRecognitionProviderFactory {
+
+    /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private IntentRecognitionProviderFactory() {
+    }
 
     /**
      * The database model that will be used for this instance of Xatkit.
@@ -165,7 +165,8 @@ public class IntentRecognitionProviderFactory {
          */
         RecognitionMonitor monitor = null;
         if (configuration.isEnableRecognitionAnalytics()) {
-            if (configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY, DEFAULT_DATABASE_MODEL).toLowerCase().equals(DATABASE_MODEL_INFLUXDB)) {
+            if (configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY, DEFAULT_DATABASE_MODEL)
+                    .toLowerCase().equals(DATABASE_MODEL_INFLUXDB)) {
                 Log.info("Using InfluxDB to store monitoring data");
                 monitor = new RecognitionMonitorInflux(xatkitBot.getXatkitServer(),
                         configuration.getBaseConfiguration());
@@ -178,12 +179,13 @@ public class IntentRecognitionProviderFactory {
         return monitor;
     }
 
-    private static List<InputPreProcessor> loadPreProcessors(IntentRecognitionProviderFactoryConfiguration configuration) {
+    private static List<InputPreProcessor> loadPreProcessors(
+            IntentRecognitionProviderFactoryConfiguration configuration) {
         return configuration.getPreProcessorNames().stream().map(preProcessorName -> {
             Class<? extends InputPreProcessor> processor;
             try {
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + preProcessorName +
-                                "PreProcessor",
+                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + preProcessorName
+                                + "PreProcessor",
                         InputPreProcessor.class);
             } catch (XatkitException e) {
                 /*
@@ -212,8 +214,8 @@ public class IntentRecognitionProviderFactory {
         return configuration.getPostProcessorNames().stream().map(postProcessorName -> {
             Class<? extends IntentPostProcessor> processor;
             try {
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + postProcessorName +
-                        "PostProcessor", IntentPostProcessor.class);
+                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + postProcessorName
+                        + "PostProcessor", IntentPostProcessor.class);
             } catch (XatkitException e) {
                 /*
                  * Try to load it without the suffix

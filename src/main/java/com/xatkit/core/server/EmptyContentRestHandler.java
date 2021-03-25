@@ -56,8 +56,8 @@ public abstract class EmptyContentRestHandler extends RestHandler<Object> {
     @Nullable
     @Override
     protected Object parseContent(@Nullable Object content) {
-        checkArgument(isNull(content), "Cannot parse the provided content %s, %s expects empty requests (with null " +
-                "content)", content, this.getClass().getSimpleName());
+        checkArgument(isNull(content), "Cannot parse the provided content %s, %s expects empty requests (with null "
+                + "content)", content, this.getClass().getSimpleName());
         return null;
     }
 

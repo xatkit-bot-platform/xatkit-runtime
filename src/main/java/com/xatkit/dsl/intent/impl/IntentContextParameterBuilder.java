@@ -12,7 +12,8 @@ import lombok.NonNull;
 
 import java.util.Arrays;
 
-public class IntentContextParameterBuilder extends IntentDefinitionProviderImpl implements IntentContextParameterFragmentStep,
+public class IntentContextParameterBuilder extends IntentDefinitionProviderImpl implements
+        IntentContextParameterFragmentStep,
         IntentContextParameterEntityStep,
         IntentContextParameterStep {
 
@@ -29,8 +30,8 @@ public class IntentContextParameterBuilder extends IntentDefinitionProviderImpl 
     }
 
     @Override
-    public @NonNull IntentContextParameterStep entity(@NonNull EntityDefinitionReferenceProvider entityReferenceProvider) {
-        return this.entity(entityReferenceProvider.getEntityReference());
+    public @NonNull IntentContextParameterStep entity(@NonNull EntityDefinitionReferenceProvider entityReference) {
+        return this.entity(entityReference.getEntityReference());
     }
 
     @Override

@@ -4,10 +4,8 @@ import com.google.cloud.dialogflow.v2.Context;
 import com.google.cloud.dialogflow.v2.ContextName;
 import com.google.cloud.dialogflow.v2.Intent;
 import com.google.cloud.dialogflow.v2.QueryResult;
-import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.xatkit.core.EventDefinitionRegistry;
-import com.xatkit.core.recognition.AbstractIntentRecognitionProvider;
 import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
 import com.xatkit.intent.BaseEntityDefinition;
 import com.xatkit.intent.ContextParameter;
@@ -102,27 +100,29 @@ public class RecognizedIntentMapper {
          * Handle the confidence threshold: if the matched intent's confidence is lower than the defined threshold we
          *  set its definition to DEFAULT_FALLBACK_INTENT and we skip context registration.
          */
-        if (!recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT) && recognizedIntent.getRecognitionConfidence() < this.configuration.getConfidenceThreshold()) {
+        if (!recognizedIntent.getDefinition().equals(DEFAULT_FALLBACK_INTENT)
+                && recognizedIntent.getRecognitionConfidence() < this.configuration.getConfidenceThreshold()) {
             boolean containsAnyEntity =
                     recognizedIntent.getDefinition().getParameters().stream().anyMatch(
-                            p -> p.getEntity().getReferredEntity() instanceof BaseEntityDefinition &&
-                                    ((BaseEntityDefinition) p.getEntity().getReferredEntity()).getEntityType().equals(com.xatkit.intent.EntityType.ANY)
+                            p -> p.getEntity().getReferredEntity() instanceof BaseEntityDefinition
+                                    && ((BaseEntityDefinition) p.getEntity().getReferredEntity()).getEntityType()
+                                    .equals(com.xatkit.intent.EntityType.ANY)
                     );
             /*
              * We should not reject a recognized intent if it contains an any entity, these intents typically have a
              * low confidence level.
              */
             if (!containsAnyEntity) {
-                Log.debug("Confidence for matched intent {0} (input = \"{1}\", confidence = {2}) is lower than the " +
-                                "configured threshold ({3}), overriding the matched intent with {4}",
+                Log.debug("Confidence for matched intent {0} (input = \"{1}\", confidence = {2}) is lower than the "
+                                + "configured threshold ({3}), overriding the matched intent with {4}",
                         recognizedIntent.getDefinition().getName(), recognizedIntent.getMatchedInput(),
                         recognizedIntent.getRecognitionConfidence(), this.configuration.getConfidenceThreshold(),
                         DEFAULT_FALLBACK_INTENT.getName());
                 recognizedIntent.setDefinition(DEFAULT_FALLBACK_INTENT);
                 return recognizedIntent;
             } else {
-                Log.debug("Detected a low-confidence value for the intent {0} (inputs = \"{1}\", confidence = {2}). " +
-                        "The intent has not been filtered out because it contains an any entity");
+                Log.debug("Detected a low-confidence value for the intent {0} (inputs = \"{1}\", confidence = {2}). "
+                        + "The intent has not been filtered out because it contains an any entity");
             }
         }
         /*
@@ -155,7 +155,7 @@ public class RecognizedIntentMapper {
      * <p>
      * This method looks in the {@link EventDefinitionRegistry} for an {@link IntentDefinition} associated to the
      * provided {@code intent}'s name and returns it. If there is no such {@link IntentDefinition} the
-     * {@link AbstractIntentRecognitionProvider#DEFAULT_FALLBACK_INTENT} is returned.
+     * {@code DEFAULT_FALLBACK_INTENT} is returned.
      *
      * @param intent the DialogFlow {@link Intent} to retrieve the Xatkit {@link IntentDefinition} from
      * @return the {@link IntentDefinition} associated to the provided {@code intent}
@@ -175,7 +175,7 @@ public class RecognizedIntentMapper {
      * Build a context parameter value from the provided protobuf {@link Value}.
      * <p>
      * The returned value is assignable to {@link ContextParameterValue#setValue(Object)}, and is either a
-     * {@link String}, or a {@link Map} for nested {@link Struct} {@link Value}s.
+     * {@link String}, or a {@link Map} for nested struct {@link Value}s.
      *
      * @param fromValue the protobuf {@link Value} to translate
      * @return the context parameter value

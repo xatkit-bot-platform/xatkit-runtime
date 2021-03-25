@@ -115,7 +115,9 @@ public class RecognitionMonitorMapDB implements RecognitionMonitor {
         File analyticsDbDirectory = FileUtils.getFile(dataDirectoryPath + File.separator + ANALYTICS_DIRECTORY,
                 configuration);
         analyticsDbDirectory.mkdirs();
-        db = DBMaker.fileDB(new File(analyticsDbDirectory.getAbsolutePath() + File.separator + ANALYTICS_DB_FILE)).make();
+        db = DBMaker.fileDB(
+                new File(analyticsDbDirectory.getAbsolutePath() + File.separator + ANALYTICS_DB_FILE))
+                .make();
 
         this.records = (Map<String, Map<Long, IntentRecord>>) db.hashMap("intent_records").createOrOpen();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -379,11 +381,12 @@ public class RecognitionMonitorMapDB implements RecognitionMonitor {
                             IntentRecord intentRecord = sessionRecordEntry.getValue();
                             if (!intentRecord.getIntentName().equals("Default_Fallback_Intent")) {
                                 JsonObject matchedUtteranceObject = new JsonObject();
-                                matchedUtteranceObject.addProperty("sessionId",     sessionId);
-                                matchedUtteranceObject.addProperty("timestamp",     timestamp);
-                                matchedUtteranceObject.addProperty("utterance",     intentRecord.getUtterance());
-                                matchedUtteranceObject.addProperty("intent",        intentRecord.getIntentName());
-                                matchedUtteranceObject.addProperty("confidence",    intentRecord.getRecognitionConfidence());
+                                matchedUtteranceObject.addProperty("sessionId", sessionId);
+                                matchedUtteranceObject.addProperty("timestamp", timestamp);
+                                matchedUtteranceObject.addProperty("utterance", intentRecord.getUtterance());
+                                matchedUtteranceObject.addProperty("intent", intentRecord.getIntentName());
+                                matchedUtteranceObject.addProperty("confidence",
+                                        intentRecord.getRecognitionConfidence());
                                 result.add(matchedUtteranceObject);
                             }
                         }
@@ -540,7 +543,7 @@ public class RecognitionMonitorMapDB implements RecognitionMonitor {
          */
         private Float recognitionConfidence;
 
-        public IntentRecord(RecognizedIntent recognizedIntent) {
+        IntentRecord(RecognizedIntent recognizedIntent) {
             this.utterance = recognizedIntent.getMatchedInput();
             this.intentName = recognizedIntent.getDefinition().getName();
             this.recognitionConfidence = recognizedIntent.getRecognitionConfidence();

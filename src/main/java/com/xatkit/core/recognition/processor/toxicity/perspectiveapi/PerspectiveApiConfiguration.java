@@ -17,27 +17,27 @@ public class PerspectiveApiConfiguration {
     /**
      * The {@link Configuration} key to store the Perspective API key.
      */
-    public static String API_KEY = "xatkit.perspectiveapi.apiKey";
+    public static final String API_KEY = "xatkit.perspectiveapi.apiKey";
 
     /**
      * The {@link Configuration} key to specify the language of the input to analyze.
      */
-    public static String LANGUAGE = "xatkit.perspectiveapi.language";
+    public static final String LANGUAGE = "xatkit.perspectiveapi.language";
 
     /**
      * The {@link Configuration} key to specify whether the data sent to Perspective API should be stored.
      */
-    public static String DO_NOT_STORE = "xatkit.perspectiveapi.doNotStore";
+    public static final String DO_NOT_STORE = "xatkit.perspectiveapi.doNotStore";
 
     /**
      * The {@link Configuration} key used to specify the Perspective API client token.
      */
-    public static String CLIENT_TOKEN = "xatkit.perspectiveapi.clientToken";
+    public static final String CLIENT_TOKEN = "xatkit.perspectiveapi.clientToken";
 
     /**
      * The {@link Configuration} key used to specify the Perspective API session identifier.
      */
-    public static String SESSION_ID = "xatkit.perspectiveapi.sessionId";
+    public static final String SESSION_ID = "xatkit.perspectiveapi.sessionId";
 
     /**
      * The Perspective API key.

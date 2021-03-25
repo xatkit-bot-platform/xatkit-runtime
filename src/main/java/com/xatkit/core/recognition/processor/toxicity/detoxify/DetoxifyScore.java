@@ -19,7 +19,7 @@ public class DetoxifyScore {
      * <p>
      * Accessing a specific score on this object always returns {@link #DEFAULT_SCORE}.
      */
-    public static DetoxifyScore UNSET_SCORE = new DetoxifyScore();
+    public static final DetoxifyScore UNSET_SCORE = new DetoxifyScore();
 
     /**
      * The default score.

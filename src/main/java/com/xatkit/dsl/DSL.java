@@ -31,7 +31,12 @@ import lombok.NonNull;
 
 import java.util.function.Predicate;
 
-public class DSL {
+public final class DSL {
+
+    /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private DSL() { }
 
     public static @NonNull UseEventStep model() {
         return new ExecutionModelBuilder();

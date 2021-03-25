@@ -29,7 +29,7 @@ public class IntentRecognitionProviderFactoryConfiguration {
      * folder. It can be disabled by explicitly setting this property to {@code false} in the {@link Configuration}
      * file.
      */
-    public static String ENABLE_RECOGNITION_ANALYTICS = "xatkit.recognition.enable_monitoring";
+    public static final String ENABLE_RECOGNITION_ANALYTICS = "xatkit.recognition.enable_monitoring";
 
     /**
      * The {@link Configuration} key used to specify the
@@ -39,7 +39,7 @@ public class IntentRecognitionProviderFactoryConfiguration {
      * {@link com.xatkit.core.recognition.processor.InputPreProcessor}s are specified as a comma-separated list of
      * processor's names.
      */
-    public static String RECOGNITION_PREPROCESSORS_KEY = "xatkit.recognition.preprocessors";
+    public static final String RECOGNITION_PREPROCESSORS_KEY = "xatkit.recognition.preprocessors";
 
     /**
      * The {@link Configuration} key used to specify the
@@ -49,7 +49,7 @@ public class IntentRecognitionProviderFactoryConfiguration {
      * {@link com.xatkit.core.recognition.processor.IntentPostProcessor}s are specified as a comma-separated list of
      * processor's names.
      */
-    public static String RECOGNITION_POSTPROCESSORS_KEY = "xatkit.recognition.postprocessors";
+    public static final String RECOGNITION_POSTPROCESSORS_KEY = "xatkit.recognition.postprocessors";
 
     /**
      * The base {@link Configuration} used to initialize the {@link IntentRecognitionProviderFactoryConfiguration}.

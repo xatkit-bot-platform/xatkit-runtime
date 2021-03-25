@@ -39,7 +39,7 @@ public class DialogFlowEntityMapper {
     private DialogFlowEntityReferenceMapper entityReferenceMapper;
 
     /**
-     * Constructs a {@link DialogFlowEntityMapper} with the provided {@code entityReferenceMapper}
+     * Constructs a {@link DialogFlowEntityMapper} with the provided {@code entityReferenceMapper}.
      *
      * @param entityReferenceMapper the {@link DialogFlowEntityReferenceMapper} used to map internal references to
      *                              other entities
@@ -64,14 +64,14 @@ public class DialogFlowEntityMapper {
      */
     public EntityType mapEntityDefinition(@NonNull EntityDefinition entityDefinition) {
         if (entityDefinition instanceof BaseEntityDefinition) {
-            throw new IllegalArgumentException(MessageFormat.format("Cannot map the provided {0} {1}, base entities " +
-                            "are already mapped in DialogFlow", EntityDefinition.class.getSimpleName(),
+            throw new IllegalArgumentException(MessageFormat.format("Cannot map the provided {0} {1}, base entities "
+                            + "are already mapped in DialogFlow", EntityDefinition.class.getSimpleName(),
                     entityDefinition.toString()));
         } else if (entityDefinition instanceof CustomEntityDefinition) {
             return mapCustomEntityDefinition((CustomEntityDefinition) entityDefinition);
         } else {
-            throw new IllegalArgumentException(MessageFormat.format("Cannot register the provided {0}, " +
-                            "unsupported {1}", entityDefinition.getClass().getSimpleName(),
+            throw new IllegalArgumentException(MessageFormat.format("Cannot register the provided {0}, unsupported "
+                            + "{1}", entityDefinition.getClass().getSimpleName(),
                     EntityDefinition.class.getSimpleName()));
         }
     }
@@ -129,7 +129,7 @@ public class DialogFlowEntityMapper {
     }
 
     /**
-     * Creates the DialogFlow {@link EntityType.Entity} instances from the provided {@code compositeEntityDefinition}.
+     * Creates the DialogFlow {@link EntityType.Entity} instances from the provided {@code compositeEntity}.
      * <p>
      * {@link EntityType.Entity} instances are created from the provided {@link CompositeEntityDefinition}'s entries,
      * and contain a valid String representation of their <i>value</i> (see
@@ -139,21 +139,21 @@ public class DialogFlowEntityMapper {
      * <p>
      * <b>Note</b>: this method does not check whether referred entities are deployed in the DialogFlow agent.
      *
-     * @param compositeEntityDefinition the {@link CompositeEntityDefinition} to create the {@link EntityType.Entity}
-     *                                  instances from
+     * @param compositeEntity the {@link CompositeEntityDefinition} to create the {@link EntityType.Entity}
+     *                        instances from
      * @return the create {@link List} of DialogFlow {@link EntityType.Entity} instances
-     * @throws NullPointerException if the provided {@code compositeEntityDefinition} is {@code null}
+     * @throws NullPointerException if the provided {@code compositeEntity} is {@code null}
      */
-    private List<EntityType.Entity> createEntitiesForComposite(@NonNull CompositeEntityDefinition compositeEntityDefinition) {
+    private List<EntityType.Entity> createEntitiesForComposite(@NonNull CompositeEntityDefinition compositeEntity) {
         List<EntityType.Entity> entities = new ArrayList<>();
-        for (CompositeEntityDefinitionEntry entry : compositeEntityDefinition.getEntries()) {
+        for (CompositeEntityDefinitionEntry entry : compositeEntity.getEntries()) {
             String valueString = createEntityValue(entry);
             /*
              * Add the created value as the only synonym for the created Entity: DialogFlow does not allow to create
              * Entities that does not contain their value in their synonym list.
              */
-            EntityType.Entity.Builder builder = EntityType.Entity.newBuilder().setValue(valueString).addSynonyms
-                    (valueString);
+            EntityType.Entity.Builder builder =
+                    EntityType.Entity.newBuilder().setValue(valueString).addSynonyms(valueString);
             entities.add(builder.build());
         }
         return entities;

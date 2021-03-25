@@ -12,7 +12,13 @@ import static java.util.Objects.isNull;
 /**
  * Utility methods to load Xatkit-related files.
  */
-public class FileUtils {
+public final class FileUtils {
+
+    /**
+     * Disables the default constructor, this class only provides static methods and should not be constructed.
+     */
+    private FileUtils() {
+    }
 
     /**
      * Retrieves the {@link File} corresponding to the provided {@code path}.
@@ -57,15 +63,15 @@ public class FileUtils {
     public static File getXatkitDirectory() throws FileNotFoundException {
         String xatkitDirectoryPath = System.getenv("XATKIT");
         if (isNull(xatkitDirectoryPath) || xatkitDirectoryPath.isEmpty()) {
-            throw new FileNotFoundException("Cannot find the Xatkit installation directory, please check this " +
-                    "tutorial article to see how to install Xatkit: https://github" +
-                    ".com/xatkit-bot-platform/xatkit-releases/wiki/Installation");
+            throw new FileNotFoundException("Cannot find the Xatkit installation directory, please check this "
+                    + "tutorial article to see how to install Xatkit: https://github"
+                    + ".com/xatkit-bot-platform/xatkit-releases/wiki/Installation");
         }
         File xatkitDirectoryFile = new File(xatkitDirectoryPath);
         if (!xatkitDirectoryFile.exists()) {
-            throw new FileNotFoundException(MessageFormat.format("Cannot find the Xatkit installation directory ({0})" +
-                    ", please check this tutorial article to see how to install Xatkit: https://github" +
-                    ".com/xatkit-bot-platform/xatkit-releases/wiki/Installation", xatkitDirectoryPath));
+            throw new FileNotFoundException(MessageFormat.format("Cannot find the Xatkit installation directory ({0})"
+                    + ", please check this tutorial article to see how to install Xatkit: https://github"
+                    + ".com/xatkit-bot-platform/xatkit-releases/wiki/Installation", xatkitDirectoryPath));
         }
         return xatkitDirectoryFile;
     }

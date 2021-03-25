@@ -21,7 +21,7 @@ import static java.util.Objects.nonNull;
  * This class should be used by all the pre/post processors relying on {@link StanfordCoreNLP} in order to optimize
  * the memory consumption and the execution time.
  */
-public class StanfordNLPService {
+public final class StanfordNLPService {
 
     /**
      * The singleton instance of this class.
@@ -99,8 +99,8 @@ public class StanfordNLPService {
      */
     public void addAnnotator(String annotator) {
         if (nonNull(nlpPipeline)) {
-            throw new IllegalArgumentException(MessageFormat.format("Cannot add annotator {0}: the NLP pipeline is " +
-                    "already created", annotator));
+            throw new IllegalArgumentException(MessageFormat.format("Cannot add annotator {0}: the NLP pipeline is "
+                    + "already created", annotator));
         }
         if (!annotators.contains(annotator)) {
             this.annotators.add(annotator);
@@ -136,8 +136,8 @@ public class StanfordNLPService {
     public Annotation annotate(String input) {
         if (isNull(nlpPipeline)) {
             // This first call takes too long (~2s to load everything, not acceptable)
-            Log.warn("The {0} hasn't been initialized correctly, doing it right now (this may take a few seconds). To" +
-                    " avoid this make sure to init the service before any intent is matched.");
+            Log.warn("The {0} hasn't been initialized correctly, doing it right now (this may take a few seconds). To"
+                    + " avoid this make sure to init the service before any intent is matched.");
             init();
         }
         Annotation annotation = new Annotation(input);

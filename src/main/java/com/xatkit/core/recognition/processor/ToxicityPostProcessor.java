@@ -35,14 +35,14 @@ public class ToxicityPostProcessor implements IntentPostProcessor {
      *
      * @see RecognizedIntent#getNlpData()
      */
-    protected final static String PERSPECTIVEAPI_PARAMETER_KEY = "nlp.perspectiveapi";
+    protected static final String PERSPECTIVEAPI_PARAMETER_KEY = "nlp.perspectiveapi";
 
     /**
      * The NLP-data key to access Detoxify scores.
      *
      * @see RecognizedIntent#getNlpData()
      */
-    protected final static String DETOXIFY_PARAMETER_KEY = "nlp.detoxify";
+    protected static final String DETOXIFY_PARAMETER_KEY = "nlp.detoxify";
 
 
     /**

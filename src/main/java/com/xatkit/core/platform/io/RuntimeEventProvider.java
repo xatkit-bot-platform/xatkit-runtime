@@ -2,9 +2,6 @@ package com.xatkit.core.platform.io;
 
 import com.xatkit.core.XatkitBot;
 import com.xatkit.core.platform.RuntimePlatform;
-import com.xatkit.core.server.HttpMethod;
-import com.xatkit.core.server.RestHandler;
-import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EventInstance;
 import lombok.NonNull;
@@ -36,8 +33,8 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * Creates an <b>unstarted</b> {@link RuntimeEventProvider} managed by the provided {@code platform}.
      * <p>
      * As for {@link RuntimePlatform}, this constructor does not have access to the {@link XatkitBot} nor the
-     * {@link Configuration}: it is typically called when defining a bot to have a usable reference to set in
-     * {@link ExecutionModel#getUsedProviders()}, but it is initialized during the bot deployment using the
+     * {@link Configuration}: it is typically called when defining a bot to have a usable reference to set in the bot
+     * execution model, but it is initialized during the bot deployment using the
      * {@link RuntimeEventProvider#start(Configuration)} method.
      *
      * @param platform the {@link RuntimePlatform} managing this provider
@@ -51,8 +48,7 @@ public abstract class RuntimeEventProvider<T extends RuntimePlatform> implements
      * <p>
      * This method takes as input the bot {@code configuration} that can contain specific properties to customize the
      * provider (e.g. to filter some input). Subclasses typically override this method to initialize their internal
-     * data structure and register REST handlers to receive push events (see
-     * {@link com.xatkit.core.server.XatkitServer#registerRestEndpoint(HttpMethod, String, RestHandler)}.
+     * data structure and register REST handlers to receive push events.
      * <p>
      * This method is automatically called bu Xatkit when a bot using this provider is starting.
      * <p>

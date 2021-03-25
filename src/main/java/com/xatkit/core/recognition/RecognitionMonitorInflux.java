@@ -12,7 +12,6 @@ import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import com.xatkit.core.server.HttpMethod;
 import com.xatkit.core.server.HttpUtils;
-import com.xatkit.core.server.RestHandler;
 import com.xatkit.core.server.RestHandlerException;
 import com.xatkit.core.server.RestHandlerFactory;
 import com.xatkit.core.server.XatkitServer;
@@ -92,7 +91,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     private String bucket;
 
     /**
-     * The default value for BUCKET
+     * The default value for BUCKET.
      */
     public static final String DEFAULT_BUCKET = "xatbot";
 
@@ -107,7 +106,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     private String organization;
 
     /**
-     * The default value for ORGANIZATION
+     * The default value for ORGANIZATION.
      */
     public static final String DEFAULT_ORGANIZATION = "Xatkit";
 
@@ -119,7 +118,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     public static final String INFLUX_URL_KEY = "xatkit.influx.url";
 
     /**
-     * The default value for the URL of influx instance
+     * The default value for the URL of influx instance.
      */
     public static final String DEFAULT_URL = "http://localhost:7777";
 
@@ -131,17 +130,17 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
     public static final String INFLUX_BOT_ID_KEY = "xatkit.influx.bot_id";
 
     /**
-     * The default ID of the bot
+     * The default ID of the bot.
      */
     public static final String DEFAULT_BOT_ID = "xatkitBot";
 
     /**
-     * The actual ID of the bot
+     * The actual ID of the bot.
      */
-    private String bot_Id;
+    private String botId;
 
     /**
-     * The database persistent client to make the petitions :)
+     * The database persistent client to make the petitions.
      */
     private InfluxDBClient db;
 
@@ -161,13 +160,13 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
      */
     public RecognitionMonitorInflux(XatkitServer xatkitServer, Configuration configuration) {
         Log.info("Starting new intent recognition monitoring with Influxdb");
-        checkArgument(configuration.containsKey(INFLUX_TOKEN_KEY), "Cannot connect to the InfluxDB database, please " +
-                "provide a valid token in the configuration (key: %s)", INFLUX_TOKEN_KEY);
+        checkArgument(configuration.containsKey(INFLUX_TOKEN_KEY), "Cannot connect to the InfluxDB database, please "
+                + "provide a valid token in the configuration (key: %s)", INFLUX_TOKEN_KEY);
         // Required for storing/querying data from influx:
         token = configuration.getString(INFLUX_TOKEN_KEY).toCharArray();
         bucket = configuration.getString(INFLUX_BUCKET_KEY, DEFAULT_BUCKET);
         organization = configuration.getString(INFLUX_ORG_KEY, DEFAULT_ORGANIZATION);
-        bot_Id = configuration.getString(INFLUX_BOT_ID_KEY, DEFAULT_BOT_ID);
+        botId = configuration.getString(INFLUX_BOT_ID_KEY, DEFAULT_BOT_ID);
         String url = configuration.getString(INFLUX_URL_KEY, DEFAULT_URL);
         Log.info("Bucket: {0}", bucket);
         Log.info("Organization: {0}", organization);
@@ -251,8 +250,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                     String fromDate = HttpUtils.getParameterValue("from", params);
                     if (isNull(fromDate)) {
                         res = basicQuery(filter, "");
-                    }
-                    else{
+                    } else {
                         res = basicQuery(filter, fromDate);
                     }
                     return res;
@@ -278,8 +276,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                     String fromDate = HttpUtils.getParameterValue("from", params);
                     if (isNull(fromDate)) {
                         res = basicQuery(aux, "");
-                    }
-                    else{
+                    } else {
                         res = basicQuery(aux, fromDate);
                     }
                     return res;
@@ -324,14 +321,14 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
 
                             List<FluxTable> tables = db.getQueryApi().query(query);
                             sessionCount = tables.size(); //Data is grouped by session_id, which means tables.size()
-                    // = nr sessions
+                            // = nr sessions
                             //iterating through each session table to calculate it's time
                             for (FluxTable table : tables) {
                                 //Assumption: Tables are ordered by time so pos 0 = older one and size()-1 contains
                                 // the most recent one
                                 List<FluxRecord> records = table.getRecords();
-                                long timeStart =
-                                        Instant.parse(String.valueOf(records.get(0).getValueByKey("_time"))).toEpochMilli();
+                                long timeStart = Instant.parse(String.valueOf(records.get(0).getValueByKey("_time")))
+                                                .toEpochMilli();
                                 long timeEnd =
                                         Instant.parse(String.valueOf(records.get(records.size() - 1).getValueByKey(
                                                 "_time"))).toEpochMilli();
@@ -353,7 +350,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                             result.addProperty("averageMatchedUtteranceCount", avgMatchedUtterances);
                             result.addProperty("averageUnmatchedUtteranceCount", avgUnmatchedUtterances);
                             result.addProperty("averageSessionTime", avgSessionTime / 1000); //divided by 1000 to get
-                    // value in seconds
+                            // value in seconds
                             return result;
                         })
                 ));
@@ -372,7 +369,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                             String[] filters = {"r.session_id == \"" + sessionId + "\""};
                             String query = queryBuilder("", filters, true, true);
                             //Tables will contain an unique table with all utterances/intents for that session,
-                    // should be ordered by timestamp
+                            // should be ordered by timestamp
                             List<FluxTable> tables = db.getQueryApi().query(query);
                             if (tables.size() == 0) {
                                 throw new RestHandlerException(404, "Session " + sessionId + " not found");
@@ -502,8 +499,11 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
                         originArray.add(aux);
                     }
                     double avgSessPerOrigin;
-                    if (numberOrigins > 0) avgSessPerOrigin = (double) totalSessions / (double) numberOrigins;
-                    else avgSessPerOrigin = 0; //Prevent nulls/negative numbers
+                    if (numberOrigins > 0) {
+                        avgSessPerOrigin = (double) totalSessions / (double) numberOrigins;
+                    } else {
+                        avgSessPerOrigin = 0; //Prevent nulls/negative numbers
+                    }
                     result.add("avgSessionsPerOrigin", new JsonPrimitive(avgSessPerOrigin));
                     result.add("nrOrigins", new JsonPrimitive(numberOrigins));
                     return result;
@@ -566,7 +566,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
         // Not sure if this is related to the intents or not for the session, but I am putting it just before the
         // session data
         obj.addProperty("parameters", String.valueOf(record.getValueByKey("matched_params")));
-        // Adding utterance/intent specific data 
+        // Adding utterance/intent specific data
         obj.addProperty("session_id", String.valueOf(record.getValueByKey("session_id")));
         obj.addProperty("timestamp", time);
         obj.addProperty("utterance", String.valueOf(record.getValueByKey("utterance")));
@@ -608,7 +608,7 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
         boolean isMatched = !intent.getDefinition().getName().equals(new DefaultFallbackIntent().getName());
 
         return Point.measurement("intent")
-                .addTag("bot_id", bot_Id)
+                .addTag("bot_id", botId)
                 .addTag("is_Matched", String.valueOf(isMatched))
                 .addTag("session_id", context.getContextId())
                 // Store an empty String if the origin is null (can't store null tags in InfluxDB)
@@ -639,16 +639,19 @@ public class RecognitionMonitorInflux implements RecognitionMonitor {
         } else { //Assuming the rfcStartTime is correct
             query = query.concat("|> range(start: " + rfcStartTime + ", stop: now()) ");
         }
-        //adding filters 
-        query = query.concat("|> filter(fn:(r) => r._measurement == \"intent\" and r.bot_id == \"" + bot_Id + "\"");
+        //adding filters
+        query = query.concat("|> filter(fn:(r) => r._measurement == \"intent\" and r.bot_id == \"" + botId + "\"");
         for (String s : filters) {
             query = query.concat(" and " + s);
         }
         query = query.concat(")");
-        if (pivot)
+        if (pivot) {
             query = query.concat("|> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\") ");
-        if (group) query = query.concat("|> group()");
+        }
+        if (group) {
+            query = query.concat("|> group()");
+        }
         query = query.concat("|> sort(columns: [\"_time\"])"); // Order results by timestamp, older data first
         return query;
     }
-}   
+}

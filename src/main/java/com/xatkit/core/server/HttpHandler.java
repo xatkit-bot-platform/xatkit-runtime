@@ -4,12 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.platform.io.WebhookEventProvider;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -29,16 +27,16 @@ import static fr.inria.atlanmod.commons.Preconditions.checkNotNull;
 import static java.util.Objects.nonNull;
 
 /**
- * Handles the input requests and notifies the {@link WebhookEventProvider}s.
+ * Handles the input requests and notifies the {@link XatkitServer}.
  */
 class HttpHandler implements HttpRequestHandler {
 
     /**
      * The HTTP header used to specify the CORS attribute.
      * <p>
-     * This header is not defined in the {@link HttpHeaders} class.
+     * This header is not defined in the {@code HttpHeaders} class.
      */
-    private static String CORS_HEADER = "Access-Control-Allow-Origin";
+    private static final String CORS_HEADER = "Access-Control-Allow-Origin";
 
     /**
      * The value of the CORS HTTP header.
@@ -46,7 +44,7 @@ class HttpHandler implements HttpRequestHandler {
      * The CORS attribute accept all queries by default, this is required to allow in-browser calls to the Xatkit
      * server.
      */
-    private static String CORS_VALUE = "*";
+    private static final String CORS_VALUE = "*";
 
     /**
      * The HTTP header used to specify allowed headers.
@@ -54,13 +52,12 @@ class HttpHandler implements HttpRequestHandler {
      * This header is set to allow cross-origin calls from applications using the browser. It is initialized with the
      * {@link RestHandler#getAccessControlAllowHeaders()} method.
      */
-    private static String ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
+    private static final String ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
 
     /**
      * The {@link XatkitServer} managing this handler.
      * <p>
-     * The {@link XatkitServer} is used to notify the {@link WebhookEventProvider}s when a new
-     * request is received.
+     * The {@link XatkitServer} is used to notify the {@link XatkitServer}s when a new request is received.
      *
      * @see XatkitServer#notifyRestHandler(HttpMethod, String, List, List, Object, String)
      */
@@ -82,10 +79,10 @@ class HttpHandler implements HttpRequestHandler {
      * @param xatkitServer the {@link XatkitServer} managing this handler
      * @throws NullPointerException if the provided {@code xatkitServer} is {@code null}
      */
-    public HttpHandler(XatkitServer xatkitServer) {
+    HttpHandler(XatkitServer xatkitServer) {
         super();
-        checkNotNull(xatkitServer, "Cannot construct a %s with the provided %s: %s", HttpHandler.class.getSimpleName
-                (), XatkitServer.class.getSimpleName(), xatkitServer);
+        checkNotNull(xatkitServer, "Cannot construct a %s with the provided %s: %s",
+                HttpHandler.class.getSimpleName(), XatkitServer.class.getSimpleName(), xatkitServer);
         this.xatkitServer = xatkitServer;
         this.parser = new JsonParser();
         this.gsonPrinter = new GsonBuilder().setPrettyPrinting().create();
@@ -94,8 +91,7 @@ class HttpHandler implements HttpRequestHandler {
     /**
      * Handles the received {@code request} and fill the provided {@code response}.
      * <p>
-     * This method parses the received {@code request} headers and content and notifies the {@link XatkitServer}'s
-     * registered {@link WebhookEventProvider}s.
+     * This method parses the received {@code request} headers and content and notifies the {@link XatkitServer}.
      *
      * @param request  the received {@link HttpRequest}
      * @param response the {@link HttpResponse} to send to the caller
@@ -161,7 +157,7 @@ class HttpHandler implements HttpRequestHandler {
             try {
                 result = xatkitServer.notifyRestHandler(httpMethod, path, headers, parameters,
                         content, contentType);
-            } catch(RestHandlerException e) {
+            } catch (RestHandlerException e) {
                 Log.error(e, "An error occurred when notifying the Rest handler, see attached exception");
                 HttpEntity errorEntity = HttpEntityHelper.createErrorEntity(e);
                 response.setEntity(errorEntity);
@@ -172,7 +168,7 @@ class HttpHandler implements HttpRequestHandler {
                 return;
             }
             if (nonNull(result)) {
-                if(result instanceof HttpEntity) {
+                if (result instanceof HttpEntity) {
                     /*
                      * Handle RestHandlers that directly return a HttpEntity. This is for example the case for
                      * RestHandlers that return plain HTML, JS, or CSS.

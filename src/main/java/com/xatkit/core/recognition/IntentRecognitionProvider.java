@@ -165,7 +165,8 @@ public interface IntentRecognitionProvider {
      * @throws IntentRecognitionProviderException if an error occurred when accessing the intent provider
      * @see #DEFAULT_FALLBACK_INTENT
      */
-    @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull StateContext context) throws IntentRecognitionProviderException;
+    @NonNull RecognizedIntent getIntent(@NonNull String input, @NonNull StateContext context)
+            throws IntentRecognitionProviderException;
 
     /**
      * Returns the {@link RecognitionMonitor} associated to this intent recognition provider.

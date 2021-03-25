@@ -101,8 +101,8 @@ public class DialogFlowContextMapper {
                 structBuilder.putFields(entry.getKey(), Value.newBuilder().setStructValue(buildStruct((Map<String,
                         Object>) entry.getValue())).build());
             } else {
-                throw new IllegalArgumentException(MessageFormat.format("Cannot build a protobuf struct " +
-                        "from {0}, unsupported data type", fromMap));
+                throw new IllegalArgumentException(MessageFormat.format("Cannot build a protobuf struct from {0}, "
+                        + "unsupported data type", fromMap));
             }
         }
         return structBuilder.build();
