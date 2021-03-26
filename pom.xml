@@ -29,6 +29,7 @@
         <okhttp3.logging-interceptor.version>3.14.0</okhttp3.logging-interceptor.version>
         <influxdb-client.version>1.7.0</influxdb-client.version>
         <unirest.version>1.4.9</unirest.version>
+        <opennlp-tools.version>1.9.3</opennlp-tools.version>
     </properties>
 
     <dependencies>
@@ -39,6 +40,13 @@
         <dependency>
             <groupId>edu.stanford.nlp</groupId>
             <artifactId>stanford-corenlp</artifactId>
+        </dependency>
+
+        <!-- OpenNLP Tools -->
+
+        <dependency>
+            <groupId>org.apache.opennlp</groupId>
+            <artifactId>opennlp-tools</artifactId>
         </dependency>
 
         <!-- DialogFlow -->
@@ -208,6 +216,14 @@
                         <artifactId>protobuf-java</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <!-- OpenNLP Tools -->
+
+            <dependency>
+                <groupId>org.apache.opennlp</groupId>
+                <artifactId>opennlp-tools</artifactId>
+                <version>${opennlp-tools.version}</version>
             </dependency>
 
             <!-- DialogFlow -->
