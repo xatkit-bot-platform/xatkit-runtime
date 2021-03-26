@@ -3,7 +3,9 @@ package com.xatkit.core.recognition.processor;
 
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
+import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
+import lombok.NonNull;
 import opennlp.tools.langdetect.Language;
 import opennlp.tools.langdetect.LanguageDetector;
 import opennlp.tools.langdetect.LanguageDetectorME;
@@ -17,54 +19,97 @@ import java.util.Queue;
 import static java.util.Objects.isNull;
 
 /**
- * Annotates {@link RecognizedIntent}s with language predictions and {@link StateContext}'s session with language
- * predictions on the last N matched inputs.
- *
- * Each of the scores can be accessed with a dedicated key:
+ * Detects the language(s) of the provided {@link RecognizedIntent}.
+ * <p>
+ * This processor stores two information:
  * <ul>
- *     <li>Langauge prediction of the last user message: {@link #OPENNLP_LAST_INPUT_SCORE_PARAMETER_KEY} in
- *     {@link RecognizedIntent#getNlpData()}</li>
- *     <li>Language prediction of the last N user messages: {@link #OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY} in
- *     {@link StateContext#getSession()} (because it id session dependant rather than intent dependant)
+ *     <li>The detected language(s) for the last message, stored in a {@link LanguageDetectionScore} object in
+ *     {@link RecognizedIntent#getNlpData()}, that can be accessed through the
+ *     {@link #OPENNLP_LAST_INPUT_SCORE_PARAMETER_KEY} key</li>
+ *     <li>The detected language(s) for the aggregation of the last {@link #MAX_NUM_USER_MESSAGES} messages, stored
+ *     in a {@link LanguageDetectionScore} object in {@link StateContext#getSession()}, that can be accessed through
+ *     the {@link #OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY}.
+ *     </li>
  * </ul>
+ * The score stored in the {@link RecognizedIntent} is not impacted by previous messages, this is useful in the
+ * context of multi-lingual bots, or for users mixing multiple languages in the same conversation. The score stored
+ * in the {@link StateContext} is typically more accurate (because it is computed over a larger corpus), but
+ * represents the dominant language in the last {@link #MAX_NUM_USER_MESSAGES} messages and may not match the
+ * language of the last message.
+ *
+ * @see #process(RecognizedIntent, StateContext)
+ * @see LanguageDetectionScore
  */
 public class LanguageDetectionPostProcessor implements IntentPostProcessor {
 
     /**
-     * The {@link Configuration} parameter key to set {@link #lastNInputsMaxSize}.
+     * The {@link Configuration} parameter key to set the number of user messages to consider for language recognition.
+     * <p>
+     * Language detection produces more accurate results on large texts. Since a bot typically deals with short
+     * messages, the processor collects the last {@code MAX_NUM_USER_MESSAGES} to create a larger corpus to extract
+     * the language from.
+     * <p>
+     * This property is set to {@link #DEFAULT_MAX_NUM_USER_MESSAGES} by default.
      */
-    public final static String MAX_NUM_USER_MESSAGES = "xatkit.opennlp.langdetect.lastNInputsMaxSize";
+    public static final String MAX_NUM_USER_MESSAGES = "xatkit.opennlp.langdetect.lastNInputsMaxSize";
 
     /**
-     * The {@link Configuration} parameter key to set {@link #lastNInputsMaxSize}.
+     * The default value for {@link #MAX_NUM_USER_MESSAGES}.
      */
-    public final static String MAX_NUM_LANGUAGES_IN_SCORE = "xatkit.opennlp.langdetect.maxLanguagesInScore";
+    public static final int DEFAULT_MAX_NUM_USER_MESSAGES = 10;
 
     /**
-     * The {@link Configuration} parameter key to set {@link #modelPath}.
+     * The {@link Configuration} parameter key to set the number of languages to include in the detection result.
+     * <p>
+     * Language detection returns a list of languages ranked by probability. This property allows to reduce the
+     * result size and retain only the {@code MAX_NUM_LANGUAGES_IN_SCORE} candidates.
+     * <p>
+     * This property is set to {@link #DEFAULT_MAX_NUM_LANGUAGES_IN_SCORE} by default.
      */
-    public final static String OPENNLP_MODEL_PATH_PARAMETER_KEY = "xatkit.opennlp.langdetect.modelPath";
+    public static final String MAX_NUM_LANGUAGES_IN_SCORE = "xatkit.opennlp.langdetect.maxLanguagesInScore";
 
     /**
-     * The NLP-data key to access last input score.
+     * The default value for {@link #MAX_NUM_LANGUAGES_IN_SCORE}.
+     */
+    public static final int DEFAULT_MAX_NUM_LANGUAGES_IN_SCORE = 3;
+
+    /**
+     * The {@link Configuration} parameter key to set the path to the language model.
+     * <p>
+     * This processor requires an external language model to compute the language of a given input. This property
+     * must be set with a path to the model binary file.
+     * <p>
+     * You can download the model from the <a href="https://opennlp.apache.org/models.html">Apache OpenNLP website</a>.
+     */
+    public static final String OPENNLP_MODEL_PATH_PARAMETER_KEY = "xatkit.opennlp.langdetect.modelPath";
+
+    /**
+     * The NLP-data key to access the detected language for the last user input.
      *
+     * @see LanguageDetectionScore
      * @see RecognizedIntent#getNlpData()
      */
-    protected final static String OPENNLP_LAST_INPUT_SCORE_PARAMETER_KEY = "nlp.opennlp.langdetect.lastInput";
+    public static final String OPENNLP_LAST_INPUT_SCORE_PARAMETER_KEY = "nlp.opennlp.langdetect.lastInput";
 
     /**
-     * The session key to access the {@link #lastNInputsMaxSize} last inputs score.
+     * The session key to access the detected language for the last {@link #MAX_NUM_USER_MESSAGES} user inputs.
+     * <p>
+     * This score is more accurate than {@link #OPENNLP_LAST_INPUT_SCORE_PARAMETER_KEY} since it evaluates the
+     * language on the aggregation of the last {@link #MAX_NUM_USER_MESSAGES}.
+     *
+     * @see LanguageDetectionScore
+     * @see StateContext#getSession()
+     */
+    public static final String OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY = "nlp.opennlp.langdetect.lastNInputs";
+
+    /**
+     * The session key to access the message queue used to aggregate user messages.
+     * <p>
+     * This attribute is private: client code should not manipulate the message queue directly.
      *
      * @see StateContext#getSession()
      */
-    protected final static String OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY = "nlp.opennlp.langdetect.lastNInputs";
-
-    /**
-     * The session key to access the {@link #lastNInputsMaxSize} last inputs.
-     *
-     * @see StateContext#getSession()
-     */
-    protected final static String OPENNLP_LAST_N_INPUTS_QUEUE_PARAMETER_KEY = "nlp.opennlp.langdetect.queue";
+    private static final String OPENNLP_LAST_N_INPUTS_QUEUE_PARAMETER_KEY = "nlp.opennlp.langdetect.queue";
 
     /**
      * The path of the binary file containing the language model.
@@ -72,87 +117,105 @@ public class LanguageDetectionPostProcessor implements IntentPostProcessor {
     private String modelPath;
 
     /**
-     * The Language detector.
+     * The underlying language detector.
      */
     @Getter
-    LanguageDetector languageDetector;
+    private LanguageDetector languageDetector;
 
     /**
-     * The maximum number of inputs to store in {@link StateContext#getSession()}'s
-     * {@link #OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY}.
+     * The number of user messages to consider for language recognition.
+     *
+     * @see #MAX_NUM_USER_MESSAGES
      */
-    int lastNInputsMaxSize;
+    private int lastNInputsMaxSize;
 
     /**
-     * The maximum number of languages to be added to the prediction score
-     * {@link #OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY}.
+     * The number of languages to include in the detection result.
+     *
+     * @see #MAX_NUM_LANGUAGES_IN_SCORE
      */
-    int maxLanguagesInScore;
+    private int maxLanguagesInScore;
 
 
     /**
      * Initializes the {@link LanguageDetectionPostProcessor}.
+     * <p>
+     * The provided {@code configuration} needs to contain a valid path to the language model file used to detect
+     * language (see {@link #OPENNLP_MODEL_PATH_PARAMETER_KEY}).
      *
-     * @param configuration the Xatkit bot configuration that contains the {@link LanguageDetectionPostProcessor}
-     * parameters
+     * @param configuration the configuration used to initialize this processor
      */
-    public LanguageDetectionPostProcessor(Configuration configuration) {
+    public LanguageDetectionPostProcessor(@NonNull Configuration configuration) {
         modelPath = configuration.getString(OPENNLP_MODEL_PATH_PARAMETER_KEY);
-        LanguageDetectorModel trainedModel = null;
+        LanguageDetectorModel trainedModel;
         try {
             File modelFile = new File(modelPath);
             trainedModel = new LanguageDetectorModel(modelFile);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.error(e, "An error occurred while initializing the {0}, this processor won't perform language "
+                    + "detection. See the attached exception for more information.", this.getClass().getSimpleName());
+            return;
         }
-        assert trainedModel != null;
         languageDetector = new LanguageDetectorME(trainedModel);
-        lastNInputsMaxSize = configuration.getInt(MAX_NUM_USER_MESSAGES, 10);
-        if (lastNInputsMaxSize < 2) {
-            lastNInputsMaxSize = 10;
+        lastNInputsMaxSize = configuration.getInt(MAX_NUM_USER_MESSAGES, DEFAULT_MAX_NUM_USER_MESSAGES);
+        if (lastNInputsMaxSize < DEFAULT_MAX_NUM_USER_MESSAGES) {
+            Log.warn("The specified number of messages to use to detect user language ({0}) is too small and may "
+                    + "produce inaccurate results. It is recommended to select a value higher than {1} to improve the"
+                    + " quality of the detection.", lastNInputsMaxSize, DEFAULT_MAX_NUM_USER_MESSAGES);
         }
-        maxLanguagesInScore = configuration.getInt(MAX_NUM_LANGUAGES_IN_SCORE, 3);
-        if (maxLanguagesInScore < 1) {
-            maxLanguagesInScore = 3;
-        }
-        if (maxLanguagesInScore > languageDetector.getSupportedLanguages().length) {
-            maxLanguagesInScore = languageDetector.getSupportedLanguages().length;
+        maxLanguagesInScore = configuration.getInt(MAX_NUM_LANGUAGES_IN_SCORE, DEFAULT_MAX_NUM_LANGUAGES_IN_SCORE);
+        int supportedLanguageCount = languageDetector.getSupportedLanguages().length;
+        if (maxLanguagesInScore > supportedLanguageCount) {
+            Log.warn("Cannot compute the {0} best candidates, the language model only supports {1}. Results will "
+                    + "include all the languages from the model.", maxLanguagesInScore, supportedLanguageCount);
+            maxLanguagesInScore = supportedLanguageCount;
         }
     }
 
     /**
-     * Predicts the language used in the {@code recognizedIntent} and pushes the {@code recognizedIntent} into a
-     * queue located in {@link StateContext#getSession()} to predict the language of the concatenation of the
-     * queue's messages, which is also stored in {@link StateContext#getSession()}.
-     *
-     * The prediction is wrapped into a {@link LanguageDetectionScore} that contains the confidence for the
-     * {@link #maxLanguagesInScore} best scored languages
+     * Detects the user language from the provided {@code recognizedIntent}.
+     * <p>
+     * The detected language(s) is stored in a {@link LanguageDetectionScore} object in
+     * {@link RecognizedIntent#getNlpData()}, and can be accessed through the
+     * {@link #OPENNLP_LAST_INPUT_SCORE_PARAMETER_KEY} key.
+     * <p>
+     * This method also updates the detected language(s) for the aggregation of the last
+     * {@link #MAX_NUM_USER_MESSAGES} messages. This score is stored in a {@link LanguageDetectionScore} object in
+     * {@link StateContext#getSession()}, and can be accessed through the
+     * {@link #OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY} key.
      *
      * @param recognizedIntent the {@link RecognizedIntent} to process
      * @param context          the {@link StateContext} associated to the {@code recognizedIntent}
      * @return the updated {@code recognizedIntent}
      * @see LanguageDetectionScore
+     * @see #OPENNLP_LAST_INPUT_SCORE_PARAMETER_KEY
+     * @see #OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY
      */
     @Override
     public RecognizedIntent process(RecognizedIntent recognizedIntent, StateContext context) {
+        if (isNull(languageDetector)) {
+            /*
+             * Skip language detection if the language detector was not initialized properly.
+             * We don't have to log anything: the constructor already logged an error when trying to initialize the
+             * language detector.
+             */
+            return recognizedIntent;
+        }
         String lastInputText = recognizedIntent.getMatchedInput();
         Language[] langsLast = languageDetector.predictLanguages(lastInputText);
         LanguageDetectionScore scoreLast = new LanguageDetectionScore(langsLast, maxLanguagesInScore);
         recognizedIntent.getNlpData().put(OPENNLP_LAST_INPUT_SCORE_PARAMETER_KEY, scoreLast);
 
-        Queue<String> lastNInputs = (Queue<String>) context.getSession().get(OPENNLP_LAST_N_INPUTS_QUEUE_PARAMETER_KEY);
-        if (isNull(lastNInputs)) {
-            lastNInputs = new LinkedList<>();
-            context.getSession().put(OPENNLP_LAST_N_INPUTS_QUEUE_PARAMETER_KEY, lastNInputs);
-        }
+        @SuppressWarnings("unchecked")
+        Queue<String> lastNInputs =
+                (Queue<String>) context.getSession().computeIfAbsent(OPENNLP_LAST_N_INPUTS_QUEUE_PARAMETER_KEY,
+                        k -> new LinkedList<>());
+
         lastNInputs.add(lastInputText);
         if (lastNInputs.size() > lastNInputsMaxSize) {
             lastNInputs.remove();
         }
-        String lastInputsText = "";
-        for (String message : lastNInputs) {
-            lastInputsText += message + "\n";
-        }
+        String lastInputsText = String.join("\n", lastNInputs);
         Language[] langsLastN = languageDetector.predictLanguages(lastInputsText);
         LanguageDetectionScore scoreLastN = new LanguageDetectionScore(langsLastN, maxLanguagesInScore);
         context.getSession().put(OPENNLP_LAST_N_INPUTS_SCORE_PARAMETER_KEY, scoreLastN);

@@ -4,61 +4,80 @@ import lombok.Getter;
 import lombok.NonNull;
 import opennlp.tools.langdetect.Language;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
- * The scores returned by the {@link LanguageDetectionPostProcessor}.
+ * Stores the languages detected by the {@link LanguageDetectionPostProcessor} and their confidence.
  * <p>
- * This class defines getters for the complete list of predicted languages and their respective confidences, as well
- * as a method for getting a specific language confidence.
+ * This class exposes two lists:
+ * <ul>
+ *     <li>{@link #getLanguageNames()}: the names of the detected languages (ISO_639-3 standard), sorted by
+ *     decreasing confidence</li>
+ *     <li>{@link #getLanguageConfidences()}: the confidence score associated to each language</li>
+ * </ul>
+ * <p>
+ * This class also provides the {@link #getConfidence(String)} utility method to retrieve the confidence associated
+ * to a specific language.
+ *
+ * @see LanguageDetectionPostProcessor
  */
 public class LanguageDetectionScore {
 
     /**
      * The default score.
      * <p>
-     * This score is used as a placeholder when the {@code LanguageDetectionScore} does not have a defined score for
-     * a given language.
+     * This score is returned by {@link #getConfidence(String)} when there is no score associated to a given language.
      */
     public static final Double DEFAULT_SCORE = -1d;
 
     /**
-     * The name of the predicted languages for a given text, sorted decreasingly by confidence and matching the
-     * confidences in {@link #languageConfidences}. Names are in ISO_639-3 standard.
+     * The immutable list of detected languages, sorted by decreasing confidence.
+     * <p>
+     * Languages in this list are formatted according to the ISO_639-3 standard.
      */
     @Getter
-    private String[] languageNames;
+    private final List<String> languageNames;
 
     /**
-     * The confidences (or scores) of the predicted languages for a given text, sorted decreasingly and matching their
-     * language names in {@link #languageNames}.
+     * The immutable list of confidence score associated to the languages stored in {@link #languageNames}.
      */
     @Getter
-    private Double[] languageConfidences;
+    private final List<Double> languageConfidences;
 
 
     /**
-     * Initializes the {@link LanguageDetectionScore} with the provided {@code Language[]} and {@code maxLanguages}.
+     * Initializes the {@link LanguageDetectionScore} with the provided {@code languages} and {@code maxLanguages}.
+     * <p>
+     * The created {@link LanguageDetectionScore} contains the languages and the confidence score of the first {@code
+     * maxLanguages} elements in the provided {@code languages}.
      *
-     * @param langs the {@link Language[]} representing the complete list of languages with their respective confidences
-     * @param maxLanguages the number of languages to store in the {@code score} object (a subset of {@code langs})
+     * @param languages    the list of languages to create the score from
+     * @param maxLanguages the number of languages to store in the created score
      */
-    public LanguageDetectionScore(@NonNull Language[] langs, int maxLanguages) {
-        languageNames = new String[maxLanguages];
-        languageConfidences = new Double[maxLanguages];
+    public LanguageDetectionScore(@NonNull Language[] languages, int maxLanguages) {
+        List<String> tmpLanguageNames = new ArrayList<>();
+        List<Double> tmpLanguageConfidences = new ArrayList<>();
         for (int i = 0; i < maxLanguages; i++) {
-            languageNames[i] = langs[i].getLang();
-            languageConfidences[i] = langs[i].getConfidence();
+            tmpLanguageNames.add(languages[i].getLang());
+            tmpLanguageConfidences.add(languages[i].getConfidence());
         }
+        this.languageNames = Collections.unmodifiableList(tmpLanguageNames);
+        this.languageConfidences = Collections.unmodifiableList(tmpLanguageConfidences);
     }
+
     /**
-     * Returns the score associated to the provided {@code lang}.
+     * Returns the confidence associated to the provided {@code language}.
      *
-     * @param lang the language name in ISO_639-3 standard to retrieve the score from
-     * @return the score. If {@code lang} is not available, {@code DEFAULT_SCORE} is returned.
+     * @param language the language name (ISO_639-3 standard) to retrieve the confidence from
+     * @return the confidence, or {@link #DEFAULT_SCORE} if there is no confidence associated to the provided {@code
+     * language}
      */
-    public final Double getScore(String lang) {
-        for (int i = 0; i < languageNames.length; i++) {
-            if (languageNames[i].equals(lang)) {
-                return languageConfidences[i];
+    public final Double getConfidence(String language) {
+        for (int i = 0; i < languageNames.size(); i++) {
+            if (languageNames.get(i).equals(language)) {
+                return languageConfidences.get(i);
             }
         }
         return DEFAULT_SCORE;
