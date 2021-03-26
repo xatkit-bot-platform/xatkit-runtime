@@ -24,15 +24,10 @@
                 </Route>
             </Routes>
         </Routing>
-        <List name="List">
-            <PatternLayout
-                    pattern="%-7level{WARN=[WARN], DEBUG=[DEBUG], ERROR=[ERROR], TRACE=[TRACE], INFO=[INFO]} %d{ABSOLUTE} - %msg%n%ex{full}" />
-        </List>
     </Appenders>
     <Loggers>
         <Root level="DEBUG">
             <AppenderRef ref="Console" />
-            <AppenderRef ref="List" />
             <AppenderRef ref="rollingFile" />
         </Root>
         <Logger name="org.apache.commons" level="OFF" additivity="false">
