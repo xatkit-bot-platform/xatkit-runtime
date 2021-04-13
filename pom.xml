@@ -30,6 +30,7 @@
         <influxdb-client.version>1.7.0</influxdb-client.version>
         <unirest.version>1.4.9</unirest.version>
         <opennlp-tools.version>1.9.3</opennlp-tools.version>
+        <emoji-java.version>5.1.1</emoji-java.version>
     </properties>
 
     <dependencies>
@@ -40,6 +41,13 @@
         <dependency>
             <groupId>edu.stanford.nlp</groupId>
             <artifactId>stanford-corenlp</artifactId>
+        </dependency>
+
+        <!-- emoji-java -->
+
+        <dependency>
+            <groupId>com.vdurmont</groupId>
+            <artifactId>emoji-java</artifactId>
         </dependency>
 
         <!-- OpenNLP Tools -->
@@ -205,6 +213,14 @@
                         <artifactId>protobuf-java</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <!-- emoji-java -->
+
+            <dependency>
+                <groupId>com.vdurmont</groupId>
+                <artifactId>emoji-java</artifactId>
+                <version>${emoji-java.version}</version>
             </dependency>
 
             <!-- OpenNLP Tools -->
