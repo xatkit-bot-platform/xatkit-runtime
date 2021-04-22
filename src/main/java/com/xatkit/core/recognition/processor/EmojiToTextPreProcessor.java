@@ -2,6 +2,7 @@ package com.xatkit.core.recognition.processor;
 
 import com.vdurmont.emoji.EmojiParser;
 import com.xatkit.execution.StateContext;
+import org.apache.commons.configuration2.Configuration;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -17,6 +18,23 @@ import java.util.TreeSet;
  */
 public class EmojiToTextPreProcessor implements InputPreProcessor {
 
+    /**
+     * The {@link Configuration} flag to specify whether the emojis should be removed or replaced.
+     */
+    public static final String REMOVE_EMOJIS = "xatkit.emojis.remove";
+
+    /**
+     * {@code true} if emojis should be removed, {code false} if emojis should be replaced by text.
+     */
+    private final boolean removeEmojis;
+
+
+    /**
+     * Initializes the {@link EmojiToTextPreProcessor}.
+     */
+    public EmojiToTextPreProcessor(Configuration configuration) {
+        removeEmojis = configuration.getBoolean(REMOVE_EMOJIS, true);
+    }
 
     /**
      * Processes the provided {@code input}, replacing its emojis by their respective aliases.
@@ -32,6 +50,21 @@ public class EmojiToTextPreProcessor implements InputPreProcessor {
      */
     @Override
     public String process(String input, StateContext context) {
+        String output;
+        if (this.removeEmojis) {
+            output = removeEmojis(input);
+        }
+        else {
+            output = replaceEmojis(input);
+        }
+        return output;
+    }
+
+    private String removeEmojis(String input) {
+        return EmojiParser.removeAllEmojis(input);
+    }
+
+    private String replaceEmojis(String input) {
         Set<String> emojisInInput = new TreeSet<>(EmojiParser.extractEmojis(input)).descendingSet();
         for (String emoji : emojisInInput) {
             while (input.contains(emoji)) {

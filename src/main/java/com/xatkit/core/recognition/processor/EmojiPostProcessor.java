@@ -46,21 +46,21 @@ public class EmojiPostProcessor implements IntentPostProcessor {
      * <p>
      * This value is used as a placeholder when an emoji doesn't have skin tone (even if it can have it).
      */
-    protected static final String NULL_STRING = "";
+    public static final String NULL_STRING = "";
 
     /**
      * The default value for negative, neutral and positive sentiments.
      * <p>
      * This value is used as a placeholder when an emoji is not present in the Emoji Sentiment Ranking.
      */
-    protected static final Double UNSET_SENTIMENT = -1d;
+    public static final Double UNSET_SENTIMENT = -1d;
 
     /**
      * The default value for frequency in sentiment ranking.
      * <p>
      * This value is used as a placeholder when an emoji is not present in the Emoji Sentiment Ranking.
      */
-    protected static final int UNSET_FREQUENCY = -1;
+    public static final int UNSET_FREQUENCY = -1;
 
     /**
      * The NLP-data key to access the set containing all EmojiData objects.
@@ -68,7 +68,7 @@ public class EmojiPostProcessor implements IntentPostProcessor {
      * @see EmojiData
      * @see RecognizedIntent#getNlpData()
      */
-    protected static final String EMOJI_DATA_SET_PARAMETER_KEY = "nlp.emoji.emojiDataSet";
+    public static final String EMOJI_DATA_SET_PARAMETER_KEY = "nlp.emoji.emojiDataSet";
 
     /**
      * The name of the file containing the entries of the Emoji Sentiment Ranking.
