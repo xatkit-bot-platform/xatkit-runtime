@@ -34,16 +34,16 @@ public class EmojiPostProcessorTest {
         aliases.add("hugging");
         Set<String> tags = new HashSet<String>();
         boolean supportsSkinTone = false;
-        String skinTone = EmojiPostProcessor.NULL_STRING;
+        String skinTone = EmojiPostProcessor.UNSET_STRING;
         String description = "hugging face";
-        String unicodeBlock = EmojiPostProcessor.NULL_STRING;
+        String unicodeBlock = EmojiPostProcessor.UNSET_STRING;
         int frequencyInSentimentRanking = EmojiPostProcessor.UNSET_FREQUENCY;
         double negativeSentiment = EmojiPostProcessor.UNSET_SENTIMENT;
         double neutralSentiment = EmojiPostProcessor.UNSET_SENTIMENT;
         double positiveSentiment = EmojiPostProcessor.UNSET_SENTIMENT;
         int occurrences = 1;
         List<Integer> positionsInText = new ArrayList<Integer>();
-        positionsInText.add(25);
+        positionsInText.add(39);
 
         emojiDataHug = new EmojiData(unicode, aliases, tags, supportsSkinTone, skinTone, description,
                 unicodeBlock, frequencyInSentimentRanking, negativeSentiment, neutralSentiment, positiveSentiment,
@@ -56,7 +56,7 @@ public class EmojiPostProcessorTest {
         tags = new HashSet<>();
         tags.add("hooray");
         supportsSkinTone = true;
-        skinTone = EmojiPostProcessor.NULL_STRING;
+        skinTone = EmojiPostProcessor.UNSET_STRING;
         description = "person raising both hands in celebration";
         unicodeBlock = "emoticons";
         frequencyInSentimentRanking = 1506;
@@ -66,7 +66,7 @@ public class EmojiPostProcessorTest {
         occurrences = 2;
         positionsInText = new ArrayList<>();
         positionsInText.add(6);
-        positionsInText.add(12);
+        positionsInText.add(19);
 
         emojiDataHands = new EmojiData(unicode, aliases, tags, supportsSkinTone, skinTone, description,
                 unicodeBlock, frequencyInSentimentRanking, negativeSentiment, neutralSentiment, positiveSentiment,
@@ -88,8 +88,8 @@ public class EmojiPostProcessorTest {
         positiveSentiment = 0.6613545816733067;
         occurrences = 2;
         positionsInText = new ArrayList<>();
-        positionsInText.add(10);
-        positionsInText.add(16);
+        positionsInText.add(14);
+        positionsInText.add(27);
 
         emojiDataHandsDark = new EmojiData(unicode, aliases, tags, supportsSkinTone, skinTone, description,
                 unicodeBlock, frequencyInSentimentRanking, negativeSentiment, neutralSentiment, positiveSentiment,
@@ -111,8 +111,8 @@ public class EmojiPostProcessorTest {
         positiveSentiment = 0.6613545816733067;
         occurrences = 2;
         positionsInText = new ArrayList<>();
-        positionsInText.add(8);
-        positionsInText.add(14);
+        positionsInText.add(9);
+        positionsInText.add(22);
 
         emojiDataHandsLight = new EmojiData(unicode, aliases, tags, supportsSkinTone, skinTone, description,
                 unicodeBlock, frequencyInSentimentRanking, negativeSentiment, neutralSentiment, positiveSentiment,
