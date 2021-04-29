@@ -1,6 +1,9 @@
 package com.xatkit.core.recognition.processor;
 
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -13,6 +16,8 @@ import java.util.Set;
  *
  * @see EmojiPostProcessor
  */
+@Builder
+@EqualsAndHashCode
 public class EmojiData {
 
     /**
@@ -24,12 +29,14 @@ public class EmojiData {
     /**
      * The aliases of the emoji
      */
+    @Singular
     @Getter
     private Set<String> aliases = new HashSet<>();
 
     /**
      * The tags of the emoji
      */
+    @Singular
     @Getter
     private Set<String> tags = new HashSet<>();
 
@@ -106,8 +113,9 @@ public class EmojiData {
     /**
      * The positions of the emoji in the given text
      */
+    @Singular
     @Getter
-    private List<Integer> positionsInText = new ArrayList<>();
+    private List<Integer> positions = new ArrayList<>();
 
     /**
      * Instantiates a new EmojiData.
@@ -124,11 +132,11 @@ public class EmojiData {
      * @param neutralSentiment            the neutral sentiment of the emoji
      * @param positiveSentiment           the positive sentiment of the emoji
      * @param occurrences                 the number of occurrences of the emoji in the text
-     * @param positionsInText             the positions of the emoji in the text
+     * @param positions                   the positions of the emoji in the text
      */
     public EmojiData(String unicode, Set<String> aliases, Set<String> tags, boolean supportsSkinTone, String skinTone,
                      String description, String unicodeBlock, int frequencyInSentimentRanking, double negativeSentiment,
-                     double neutralSentiment, double positiveSentiment, int occurrences, List<Integer> positionsInText){
+                     double neutralSentiment, double positiveSentiment, int occurrences, List<Integer> positions) {
         this.unicode = unicode;
         this.aliases = aliases;
         this.tags = tags;
@@ -141,6 +149,6 @@ public class EmojiData {
         this.neutralSentiment = neutralSentiment;
         this.positiveSentiment = positiveSentiment;
         this.occurrences = occurrences;
-        this.positionsInText = positionsInText;
+        this.positions = positions;
     }
 }
