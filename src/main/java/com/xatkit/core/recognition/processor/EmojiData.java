@@ -46,7 +46,7 @@ public class EmojiData {
     private Set<String> tags;
 
     /**
-     * {@code true} if the emoji supports skin tone. Otherwise {@code false}
+     * Whether the emoji supports skin tone.
      */
     @Getter
     private boolean supportsSkinTone;
@@ -82,31 +82,34 @@ public class EmojiData {
     private int frequencyInSentimentRanking;
 
     /**
-     * The negative sentiment of the emoji in the Emoji Sentiment Ranking, which is in the [0,1] interval, being 0 the
-     * lowest negative sentiment value and 1 the highest one.
+     * The negative sentiment of the emoji in the Emoji Sentiment Ranking, which is in the [0,1] interval.
      * <p>
-     * If the emoji is not present in the file {@link EmojiPostProcessor#EMOJI_SENTIMENT_RANKING_FILE}, its value is
-     * {@code 0}
+     * A score of 0 means that the emoji is not likely negative. It doesn't say anything on the other scores.
+     * Conversely, a score of 1 means that the emoji is likely to be negative.
+     * <p>
+     * This score is set by default to {@code 0}.
      */
     @Getter
     private double negativeSentiment;
 
     /**
-     * The neutral sentiment of the emoji in the Emoji Sentiment Ranking, which is in the [0,1] interval, being 0 the
-     * lowest neutral sentiment value and 1 the highest one.
+     * The neutral sentiment of the emoji in the Emoji Sentiment Ranking, which is in the [0,1] interval.
      * <p>
-     * If the emoji is not present in the file {@link EmojiPostProcessor#EMOJI_SENTIMENT_RANKING_FILE}, its value is
-     * {@code 0}
+     * A score of 0 means that the emoji is not likely neutral. It doesn't say anything on the other scores.
+     * Conversely, a score of 1 means that the emoji is likely to be neutral.
+     * <p>
+     * This score is set by default to {@code 0}.
      */
     @Getter
     private double neutralSentiment;
 
     /**
-     * The positive sentiment of the emoji in the Emoji Sentiment Ranking, which is in the [0,1] interval, being 0 the
-     * lowest positive sentiment value and 1 the highest one.
+     * The positive sentiment of the emoji in the Emoji Sentiment Ranking, which is in the [0,1] interval.
      * <p>
-     * If the emoji is not present in the file {@link EmojiPostProcessor#EMOJI_SENTIMENT_RANKING_FILE}, its value is
-     * {@code 0}
+     * A score of 0 means that the emoji is not likely positive. It doesn't say anything on the other scores.
+     * Conversely, a score of 1 means that the emoji is likely to be positive.
+     * <p>
+     * This score is set by default to {@code 0}.
      */
     @Getter
     private double positiveSentiment;
