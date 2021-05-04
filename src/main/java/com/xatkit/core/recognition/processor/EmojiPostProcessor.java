@@ -61,7 +61,7 @@ public class EmojiPostProcessor implements IntentPostProcessor {
      *
      * @see #EMOJI_SENTIMENT_RANKING_FILE
      */
-    private Map<String,String>  emojiSentimentRanking;
+    private Map<String, String>  emojiSentimentRanking;
 
     /**
      * Initializes the {@link EmojiPostProcessor}.
@@ -114,7 +114,7 @@ public class EmojiPostProcessor implements IntentPostProcessor {
                 String alias = EmojiParser.parseToAliases(e, EmojiParser.FitzpatrickAction.IGNORE);
                 EmojiData.EmojiDataBuilder emojiDataBuilder = EmojiData.builder();
                 if (alias.lastIndexOf(":") != alias.length() - 1) {
-                    String skinTone = alias.substring(alias.length()-2);
+                    String skinTone = alias.substring(alias.length() - 2);
                     emojiDataBuilder.skinTone(skinTone);
                 }
                 String aliasWithoutSkinTone = alias.substring(0, alias.indexOf(":", 1))
@@ -148,7 +148,7 @@ public class EmojiPostProcessor implements IntentPostProcessor {
                     double positiveSentiment = (double) positiveCount / frequencyInSentimentRanking;
                     emojiDataBuilder.positiveSentiment(positiveSentiment);
                     String unicodeBlock = columns[7].toLowerCase();
-                    unicodeBlock = unicodeBlock.substring(0, unicodeBlock.length()-1);
+                    unicodeBlock = unicodeBlock.substring(0, unicodeBlock.length() - 1);
                     emojiDataBuilder.unicodeBlock(unicodeBlock);
                 }
                 emojis.add(emojiDataBuilder.build());
