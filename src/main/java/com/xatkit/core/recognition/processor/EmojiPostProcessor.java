@@ -178,6 +178,11 @@ public class EmojiPostProcessor implements IntentPostProcessor {
      * @return the list containing the positions of all {@code targetEmoji} in {@code text}
      */
     private List<Integer> getEmojiPositionsInText(String text, String targetEmoji, Set<String> emojisInTextSet) {
+        /*
+         * This method is more complicated than it looks because some emojis with skin tones are composed of multiple
+         * code points. This means that we cannot search for the targetEmoji directly, otherwise we may catch some
+         * emojis that are variations of the provided one.
+         */
         List<Integer> positions = new ArrayList<>();
         for (String emoji : emojisInTextSet) {
             while (text.contains(emoji)) {
