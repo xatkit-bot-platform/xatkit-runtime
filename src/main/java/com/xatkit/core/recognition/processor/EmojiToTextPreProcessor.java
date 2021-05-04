@@ -31,6 +31,8 @@ public class EmojiToTextPreProcessor implements InputPreProcessor {
 
     /**
      * Initializes the {@link EmojiToTextPreProcessor}.
+     *
+     * @param configuration the Xatkit bot configuration.
      */
     public EmojiToTextPreProcessor(Configuration configuration) {
         removeEmojis = configuration.getBoolean(REMOVE_EMOJIS, true);
@@ -53,8 +55,7 @@ public class EmojiToTextPreProcessor implements InputPreProcessor {
         String output;
         if (this.removeEmojis) {
             output = removeEmojis(input);
-        }
-        else {
+        } else {
             output = replaceEmojis(input);
         }
         return output;
@@ -70,7 +71,7 @@ public class EmojiToTextPreProcessor implements InputPreProcessor {
             while (input.contains(emoji)) {
                 int index = input.indexOf(emoji);
                 String alias = EmojiParser.parseToAliases(emoji, EmojiParser.FitzpatrickAction.REMOVE);
-                alias = alias.substring(1, alias.length()-1).replaceAll("_", " ").replaceAll("[0-9]","");
+                alias = alias.substring(1, alias.length() - 1).replaceAll("_", " ").replaceAll("[0-9]", "");
                 int aliasLength = alias.length();
                 input = input.replaceFirst(emoji, alias);
                 if ((index + aliasLength < input.length()) && (input.charAt(index + aliasLength) != ' ')) {

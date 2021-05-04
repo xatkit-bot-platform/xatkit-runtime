@@ -34,6 +34,7 @@ public class EmojiToTextPreProcessorTest {
         processedInput = processor.process(input, context);
         assertThat(processedInput).isEqualTo("hello person hello person person person person");
     }
+
     @Test
     public void testRemoveEmojis() {
         Configuration botConfiguration = new BaseConfiguration();
