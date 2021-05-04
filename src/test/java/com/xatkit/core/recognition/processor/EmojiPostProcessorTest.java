@@ -32,13 +32,7 @@ public class EmojiPostProcessorTest {
                 .alias("hug")
                 .alias("hugging")
                 .supportsSkinTone(false)
-                .skinTone(EmojiPostProcessor.NULL_STRING)
-                .description("hugging face")
-                .unicodeBlock(EmojiPostProcessor.NULL_STRING)
-                .frequencyInSentimentRanking(EmojiPostProcessor.UNSET_FREQUENCY)
-                .negativeSentiment(EmojiPostProcessor.UNSET_SENTIMENT)
-                .neutralSentiment(EmojiPostProcessor.UNSET_SENTIMENT)
-                .positiveSentiment(EmojiPostProcessor.UNSET_SENTIMENT);
+                .description("hugging face");
 
 
         // Attributes of 🙌
@@ -47,7 +41,6 @@ public class EmojiPostProcessorTest {
                 .alias("raised_hands")
                 .tag("hooray")
                 .supportsSkinTone(true)
-                .skinTone(EmojiPostProcessor.NULL_STRING)
                 .description("person raising both hands in celebration")
                 .unicodeBlock("emoticons")
                 .frequencyInSentimentRanking(1506)
@@ -105,7 +98,6 @@ public class EmojiPostProcessorTest {
         assertThat(emojiDataSet.size()).isEqualTo(1);
         EmojiData e = emojiDataSet.iterator().next();
         EmojiData expectedEmojiData = emojiDataHandsLightBuilder
-                .occurrences(1)
                 .position(0)
                 .build();
         assertThat(e).isEqualTo(expectedEmojiData);
@@ -136,26 +128,22 @@ public class EmojiPostProcessorTest {
         assertThat(emojiDataSet).hasSize(4);
 
         EmojiData handsEmoji = emojiDataHandsBuilder
-                .occurrences(2)
                 .position(6)
-                .position(12)
+                .position(19)
                 .build();
 
         EmojiData handsLightEmoji = emojiDataHandsLightBuilder
-                .occurrences(2)
-                .position(8)
-                .position(14)
+                .position(9)
+                .position(22)
                 .build();
 
         EmojiData handsDarkEmoji = emojiDataHandsDarkBuilder
-                .occurrences(2)
-                .position(10)
-                .position(16)
+                .position(14)
+                .position(27)
                 .build();
 
         EmojiData hugEmoji = emojiDataHugBuilder
-                .occurrences(1)
-                .position(25)
+                .position(39)
                 .build();
 
         assertThat(emojiDataSet).anyMatch(e -> e.equals(handsEmoji));

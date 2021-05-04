@@ -43,27 +43,6 @@ import static java.util.Objects.nonNull;
 public class EmojiPostProcessor implements IntentPostProcessor {
 
     /**
-     * The default value for an emoji without skin tone
-     * <p>
-     * This value is used as a placeholder when an emoji doesn't have skin tone (even if it can have it).
-     */
-    public static final String UNSET_STRING = "";
-
-    /**
-     * The default value for negative, neutral and positive sentiments.
-     * <p>
-     * This value is used as a placeholder when an emoji is not present in the Emoji Sentiment Ranking.
-     */
-    public static final Double UNSET_SENTIMENT = -1d;
-
-    /**
-     * The default value for frequency in sentiment ranking.
-     * <p>
-     * This value is used as a placeholder when an emoji is not present in the Emoji Sentiment Ranking.
-     */
-    public static final int UNSET_FREQUENCY = -1;
-
-    /**
      * The NLP-data key to access the set containing all EmojiData objects.
      *
      * @see EmojiData
@@ -141,42 +120,46 @@ public class EmojiPostProcessor implements IntentPostProcessor {
             Set<String> emojisInTextSet = new TreeSet<>(EmojiParser.extractEmojis(text)).descendingSet();
             for (String e : emojisInTextSet) {
                 String alias = EmojiParser.parseToAliases(e, EmojiParser.FitzpatrickAction.IGNORE);
-                String skinTone = UNSET_STRING;
+                EmojiData.EmojiDataBuilder emojiDataBuilder = EmojiData.builder();
                 if (alias.lastIndexOf(":") != alias.length() - 1) {
-                    skinTone = alias.substring(alias.length()-2);
+                    String skinTone = alias.substring(alias.length()-2);
+                    emojiDataBuilder.skinTone(skinTone);
                 }
-                String aliasWithoutSkinTone = alias.substring(0,alias.indexOf(":", 1))
+                String aliasWithoutSkinTone = alias.substring(0, alias.indexOf(":", 1))
                         .substring(alias.indexOf(":", 0) + 1);
                 Emoji emoji = EmojiManager.getForAlias(aliasWithoutSkinTone);
                 String unicode = emoji.getUnicode();
-                Set<String> aliases = new HashSet<>(emoji.getAliases());
-                Set<String> tags = new HashSet<>(emoji.getTags());
-                boolean supportsSkinTone = emoji.supportsFitzpatrick();
-                String description = emoji.getDescription();
+                emojiDataBuilder.unicode(unicode);
+                emojiDataBuilder.aliases(emoji.getAliases());
+                emojiDataBuilder.tags(emoji.getTags());
+                emojiDataBuilder.supportsSkinTone(emoji.supportsFitzpatrick());
+                emojiDataBuilder.description(emoji.getDescription());
                 List<Integer> positionsInText = getEmojiPositionsInText(text, e, emojisInTextSet);
-                int occurrences = positionsInText.size();
-                String unicodeBlock = UNSET_STRING;
-                int frequencyInSentimentRanking = UNSET_FREQUENCY;
-                double negativeSentiment = UNSET_SENTIMENT;
-                double neutralSentiment = UNSET_SENTIMENT;
-                double positiveSentiment = UNSET_SENTIMENT;
+                emojiDataBuilder.positions(positionsInText);
+
                 String line = emojiSentimentRanking.get(unicode);
                 if (nonNull(line)) {
+                    /*
+                     * Add sentiment analysis information if there is an entry corresponding to the current emoji in
+                     * the EMOJI_SENTIMENT_RANKING_FILE.
+                     */
                     String[] columns = line.split(",");
-                    frequencyInSentimentRanking = Integer.parseInt(columns[1]);
+                    int frequencyInSentimentRanking = Integer.parseInt(columns[1]);
+                    emojiDataBuilder.frequencyInSentimentRanking(frequencyInSentimentRanking);
                     int negativeCount = Integer.parseInt(columns[3]);
                     int neutralCount = Integer.parseInt(columns[4]);
                     int positiveCount = Integer.parseInt(columns[5]);
-                    negativeSentiment = (double) negativeCount / frequencyInSentimentRanking;
-                    neutralSentiment = (double) neutralCount / frequencyInSentimentRanking;
-                    positiveSentiment = (double) positiveCount / frequencyInSentimentRanking;
-                    unicodeBlock = columns[7].toLowerCase();
+                    double negativeSentiment = (double) negativeCount / frequencyInSentimentRanking;
+                    emojiDataBuilder.negativeSentiment(negativeSentiment);
+                    double neutralSentiment = (double) neutralCount / frequencyInSentimentRanking;
+                    emojiDataBuilder.neutralSentiment(neutralSentiment);
+                    double positiveSentiment = (double) positiveCount / frequencyInSentimentRanking;
+                    emojiDataBuilder.positiveSentiment(positiveSentiment);
+                    String unicodeBlock = columns[7].toLowerCase();
                     unicodeBlock = unicodeBlock.substring(0, unicodeBlock.length()-1);
+                    emojiDataBuilder.unicodeBlock(unicodeBlock);
                 }
-                EmojiData emojiData = new EmojiData(unicode, aliases, tags, supportsSkinTone, skinTone,
-                        description, unicodeBlock, frequencyInSentimentRanking, negativeSentiment,
-                        neutralSentiment, positiveSentiment, occurrences, positionsInText);
-                emojis.add(emojiData);
+                emojis.add(emojiDataBuilder.build());
             }
         }
         recognizedIntent.getNlpData().put(EMOJI_DATA_SET_PARAMETER_KEY, emojis);
