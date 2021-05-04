@@ -7,6 +7,7 @@ import com.xatkit.execution.StateContext;
 import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +47,7 @@ public class EmojiPostProcessor implements IntentPostProcessor {
      * <p>
      * This value is used as a placeholder when an emoji doesn't have skin tone (even if it can have it).
      */
-    public static final String NULL_STRING = "";
+    public static final String UNSET_STRING = "";
 
     /**
      * The default value for negative, neutral and positive sentiments.
@@ -137,48 +138,45 @@ public class EmojiPostProcessor implements IntentPostProcessor {
         String text = recognizedIntent.getMatchedInput();
         Set<EmojiData> emojis = new HashSet<>();
         if (EmojiManager.containsEmoji(text)) {
-            Set<String> visitedEmojis = new HashSet<>();
             Set<String> emojisInTextSet = new TreeSet<>(EmojiParser.extractEmojis(text)).descendingSet();
             for (String e : emojisInTextSet) {
                 String alias = EmojiParser.parseToAliases(e, EmojiParser.FitzpatrickAction.IGNORE);
-                if (visitedEmojis.add(alias)) {
-                    String skinTone = NULL_STRING;
-                    if (alias.lastIndexOf(":") != alias.length() - 1) {
-                        skinTone = alias.substring(alias.length()-2);
-                    }
-                    String aliasWithoutSkinTone = alias.substring(0,alias.indexOf(":", 1))
-                            .substring(alias.indexOf(":", 0) + 1);
-                    Emoji emoji = EmojiManager.getForAlias(aliasWithoutSkinTone);
-                    String unicode = emoji.getUnicode();
-                    Set<String> aliases = new HashSet<>(emoji.getAliases());
-                    Set<String> tags = new HashSet<>(emoji.getTags());
-                    boolean supportsSkinTone = emoji.supportsFitzpatrick();
-                    String description = emoji.getDescription();
-                    List<Integer> positionsInText = getEmojiPositionsInText(text, e, emojisInTextSet);
-                    int occurrences = positionsInText.size();
-                    String unicodeBlock = NULL_STRING;
-                    int frequencyInSentimentRanking = UNSET_FREQUENCY;
-                    double negativeSentiment = UNSET_SENTIMENT;
-                    double neutralSentiment = UNSET_SENTIMENT;
-                    double positiveSentiment = UNSET_SENTIMENT;
-                    String line = emojiSentimentRanking.get(unicode);
-                    if (nonNull(line)) {
-                        String[] columns = line.split(",");
-                        frequencyInSentimentRanking = Integer.parseInt(columns[1]);
-                        int negativeCount = Integer.parseInt(columns[3]);
-                        int neutralCount = Integer.parseInt(columns[4]);
-                        int positiveCount = Integer.parseInt(columns[5]);
-                        negativeSentiment = (double) negativeCount / frequencyInSentimentRanking;
-                        neutralSentiment = (double) neutralCount / frequencyInSentimentRanking;
-                        positiveSentiment = (double) positiveCount / frequencyInSentimentRanking;
-                        unicodeBlock = columns[7].toLowerCase();
-                        unicodeBlock = unicodeBlock.substring(0, unicodeBlock.length()-1);
-                    }
-                    EmojiData emojiData = new EmojiData(unicode, aliases, tags, supportsSkinTone, skinTone,
-                            description, unicodeBlock, frequencyInSentimentRanking, negativeSentiment,
-                            neutralSentiment, positiveSentiment, occurrences, positionsInText);
-                    emojis.add(emojiData);
+                String skinTone = UNSET_STRING;
+                if (alias.lastIndexOf(":") != alias.length() - 1) {
+                    skinTone = alias.substring(alias.length()-2);
                 }
+                String aliasWithoutSkinTone = alias.substring(0,alias.indexOf(":", 1))
+                        .substring(alias.indexOf(":", 0) + 1);
+                Emoji emoji = EmojiManager.getForAlias(aliasWithoutSkinTone);
+                String unicode = emoji.getUnicode();
+                Set<String> aliases = new HashSet<>(emoji.getAliases());
+                Set<String> tags = new HashSet<>(emoji.getTags());
+                boolean supportsSkinTone = emoji.supportsFitzpatrick();
+                String description = emoji.getDescription();
+                List<Integer> positionsInText = getEmojiPositionsInText(text, e, emojisInTextSet);
+                int occurrences = positionsInText.size();
+                String unicodeBlock = UNSET_STRING;
+                int frequencyInSentimentRanking = UNSET_FREQUENCY;
+                double negativeSentiment = UNSET_SENTIMENT;
+                double neutralSentiment = UNSET_SENTIMENT;
+                double positiveSentiment = UNSET_SENTIMENT;
+                String line = emojiSentimentRanking.get(unicode);
+                if (nonNull(line)) {
+                    String[] columns = line.split(",");
+                    frequencyInSentimentRanking = Integer.parseInt(columns[1]);
+                    int negativeCount = Integer.parseInt(columns[3]);
+                    int neutralCount = Integer.parseInt(columns[4]);
+                    int positiveCount = Integer.parseInt(columns[5]);
+                    negativeSentiment = (double) negativeCount / frequencyInSentimentRanking;
+                    neutralSentiment = (double) neutralCount / frequencyInSentimentRanking;
+                    positiveSentiment = (double) positiveCount / frequencyInSentimentRanking;
+                    unicodeBlock = columns[7].toLowerCase();
+                    unicodeBlock = unicodeBlock.substring(0, unicodeBlock.length()-1);
+                }
+                EmojiData emojiData = new EmojiData(unicode, aliases, tags, supportsSkinTone, skinTone,
+                        description, unicodeBlock, frequencyInSentimentRanking, negativeSentiment,
+                        neutralSentiment, positiveSentiment, occurrences, positionsInText);
+                emojis.add(emojiData);
             }
         }
         recognizedIntent.getNlpData().put(EMOJI_DATA_SET_PARAMETER_KEY, emojis);
@@ -187,6 +185,9 @@ public class EmojiPostProcessor implements IntentPostProcessor {
 
     /**
      * Gets the positions of a target emoji in a given text
+     * <p>
+     * Note that most emojis occupy more than 1 character size (i.e. an emoji length can be > 1). So positions are the
+     * ones that you can get doing {@code stringValue.indexOf(emoji)}
      *
      * @param text            the {@link String} from which to extract the emoji positions
      * @param targetEmoji     the unicode of the emoji from which to get the positions in the {@code text}
@@ -195,36 +196,17 @@ public class EmojiPostProcessor implements IntentPostProcessor {
      */
     private List<Integer> getEmojiPositionsInText(String text, String targetEmoji, Set<String> emojisInTextSet) {
         List<Integer> positions = new ArrayList<>();
-        int targetOccurrences = 0;
-        boolean targetRead = false;
         for (String emoji : emojisInTextSet) {
-            if (emoji.equals(targetEmoji)) {
-                while (text.contains(emoji)) {
+            while (text.contains(emoji)) {
+                if (emoji.equals(targetEmoji)) {
                     positions.add(text.indexOf(emoji));
-                    text = text.replaceFirst(emoji, ".");
                 }
-                targetRead = true;
-                targetOccurrences = positions.size();
+                int emojiLength = emoji.length();
+                String replacement = StringUtils.repeat(".", emojiLength);
+                text = text.replaceFirst(emoji, replacement);
             }
-            else {
-                if (targetRead) {
-                    int eLength = emoji.length();
-                    while (text.contains(emoji)) {
-                        int index = text.indexOf(emoji);
-                        if (index < positions.get(targetOccurrences-1)) {
-                            for (int i = 0; i < positions.size(); i++) {
-                                int pos = positions.get(i);
-                                if (pos > index) {
-                                    positions.set(i, pos - eLength + 1);
-                                }
-                            }
-                        }
-                        text = text.replaceFirst(emoji, ".");
-                    }
-                }
-                else {
-                    text = text.replaceAll(emoji, ".");
-                }
+            if (emoji.equals(targetEmoji)) {
+                break;
             }
         }
         return positions;
