@@ -67,26 +67,18 @@ public class EmojiPostProcessor implements IntentPostProcessor {
      * Initializes the {@link EmojiPostProcessor}.
      */
     public EmojiPostProcessor() {
-        InputStream inputStream =
-                EmojiPostProcessor.class.getClassLoader().getResourceAsStream(EMOJI_SENTIMENT_RANKING_FILE);
         String emojisData = "";
-        if (isNull(inputStream)) {
-            Log.error("Cannot find the file {0}, this processor won't get any emoji sentiment data",
-                    EMOJI_SENTIMENT_RANKING_FILE);
-        } else {
-            try {
+        try (InputStream inputStream =
+                this.getClass().getClassLoader().getResourceAsStream(EMOJI_SENTIMENT_RANKING_FILE)) {
+            if (isNull(inputStream)) {
+                Log.error("Cannot find the file {0}, this processor won't get any emoji sentiment data",
+                        EMOJI_SENTIMENT_RANKING_FILE);
+            } else {
                 emojisData = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                Log.error(e, "An error occurred when loading the file {0}, this processors won't get any emoji "
-                        + "sentiment data. See attached exception:", EMOJI_SENTIMENT_RANKING_FILE);
-            } finally {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    Log.error(e, "An error occurred when closing the file {0}, see attached exception",
-                            EMOJI_SENTIMENT_RANKING_FILE);
-                }
             }
+        } catch (IOException e) {
+            Log.error("An error occurred when processing the emoji database {0}, this processor may produce "
+                    + "unexpected behavior. Check the logs for more information.", EMOJI_SENTIMENT_RANKING_FILE);
         }
         emojiSentimentRanking = new HashMap<>();
         List<String> emojisLines = Arrays.asList(emojisData.split("\n"));
