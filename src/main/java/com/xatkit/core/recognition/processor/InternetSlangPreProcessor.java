@@ -100,26 +100,17 @@ public class InternetSlangPreProcessor implements InputPreProcessor {
         if (getSlangDictionary) {
             getNoslangDictionary();
         }
-        InputStream inputStream =
-                InternetSlangPreProcessor.class.getClassLoader().getResourceAsStream(SLANG_DICTIONARY_FILE);
         String dictionaryAsString = "";
-        if (isNull(inputStream)) {
-            Log.error("Cannot find the file {0}, this processor won't get the slang dictionary",
-                    SLANG_DICTIONARY_FILE);
-        } else {
-            try {
+        try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(SLANG_DICTIONARY_FILE);) {
+            if (isNull(inputStream)) {
+                Log.error("Cannot find the file {0}, this processor won't get get the slang dictionary",
+                        SLANG_DICTIONARY_FILE);
+            } else {
                 dictionaryAsString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                Log.error(e, "An error occurred when loading the file {0}, this processor won't get the slang "
-                        + "dictionary. See attached exception", SLANG_DICTIONARY_FILE);
-            } finally {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    Log.error(e, "An error occurred when closing the file {0}, see attached exception",
-                            SLANG_DICTIONARY_FILE);
-                }
             }
+        } catch (IOException e) {
+            Log.error("An error occurred when processing the slang database {0}, this processor may produce "
+                    + "unexpected behavior. Check the logs for more information.", SLANG_DICTIONARY_FILE);
         }
         slangDictionary = new Gson().fromJson(dictionaryAsString, new TypeToken<HashMap<String, String>>() {}.getType());
         Log.debug("Loaded {0} dictionary entries from {1}", slangDictionary.size(), SLANG_DICTIONARY_FILE);
@@ -187,11 +178,12 @@ public class InternetSlangPreProcessor implements InputPreProcessor {
             Log.error(e, "An error occurred while getting the slang dictionary from {0}, see attached exception",
                     fullUrl);
         }
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(SLANG_DICTIONARY_PATH + SLANG_DICTIONARY_FILE)))) {
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new
+                FileOutputStream(SLANG_DICTIONARY_PATH + SLANG_DICTIONARY_FILE)))) {
             writer.write(dictionary.toString());
             Log.debug("Saved {0} successfully", SLANG_DICTIONARY_PATH + SLANG_DICTIONARY_FILE);
         } catch (IOException e) {
-            Log.error(e, "An error occurred when writting the slang dictionary in {0}, see attached exception",
+            Log.error(e, "An error occurred when writing the slang dictionary in {0}, see attached exception",
                     SLANG_DICTIONARY_PATH + SLANG_DICTIONARY_FILE);
         }
     }
