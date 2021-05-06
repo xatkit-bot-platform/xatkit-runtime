@@ -7,18 +7,11 @@ import com.xatkit.execution.StateContext;
 import fr.inria.atlanmod.commons.log.Log;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,37 +22,42 @@ import static java.util.Objects.isNull;
 /**
  * Translates internet slang terms by standard-language forms.
  * <p>
- * It uses a dictionary of slang terms {@link InternetSlangPreProcessor#SLANG_DICTIONARY_FILE} to perform the
- * translations, which is obtained from {@link InternetSlangPreProcessor#NOSLANG_URL}
+ * It uses a dictionary of slang terms to perform the translations.
+ * <p>
+ * The dictionary can be obtained from the default Xatkit-embedded file
+ * {@link InternetSlangPreProcessor#EMBEDDED_SLANG_DICTIONARY_FILE} or from an external file
+ * {@link InternetSlangPreProcessor#SLANG_DICTIONARY_FILE}, setting the configuration parameter
+ * {@link InternetSlangPreProcessor#SLANG_DICTIONARY_SOURCE} with its corresponding (absolute) path
  *
  * @see #process(String, StateContext)
- * @see #getNoslangDictionary()
  */
 public class InternetSlangPreProcessor implements InputPreProcessor {
 
     /**
-     * The {@link Configuration} flag to specify whether the slang dictionary should be gotten from the Internet or
-     * not (i.e. it is already saved in a file).
+     * The {@link Configuration} flag to specify whether the slang dictionary should be gotten from the embedded file
+     * in the resources directory or from an external location.
+     * <p>
+     * If you want to use de default embedded file in Xatkit, do not set this configuration property.
+     * <p>
+     * The property value must be an absolute path.
      */
-    public static final String GET_SLANG_DICTIONARY = "xatkit.slang.getSlangDictionary";
+    public static final String SLANG_DICTIONARY_SOURCE = "xatkit.slang.readExternalSlangDictionary";
 
     /**
-     * The local path to the directory containing the slang dictionary, i.e.
-     * {@link InternetSlangPreProcessor#SLANG_DICTIONARY_FILE}
+     * The name of the Xatkit-embedded file containing the entries of the slang dictionary.
      */
-    protected static final String SLANG_DICTIONARY_PATH = "src/main/resources/";
+    protected static final String EMBEDDED_SLANG_DICTIONARY_FILE = "noslang_english_dictionary.json";
 
     /**
-     * The name of the file containing the entries of the slang dictionary.
+     * The absolute path of the file containing a slang dictionary.
+     * <p>
+     * When the default dictionary is used, this has {@code null} value.
      */
-    protected static final String SLANG_DICTIONARY_FILE = "noslang_english_dictionary.json";
-
+    protected static String SLANG_DICTIONARY_FILE;
 
     /**
      * The in-memory {@link Map} containing the slang dictionary obtained from the corresponding file.
      * Keys are the slang terms and values are their corresponding translations to standard language.
-     *
-     * @see #SLANG_DICTIONARY_FILE
      */
     protected static Map<String,String>  slangDictionary;
 
@@ -69,51 +67,50 @@ public class InternetSlangPreProcessor implements InputPreProcessor {
     protected static final String[] PUNCTUATION = {"?", "!", ".", ","};
 
     /**
-     * The URL of the online source of the slang dictionary
-     */
-    protected static final String NOSLANG_URL = "https://www.noslang.com/dictionary/";
-
-    /**
-     * The list containing all the available letters of the different dictionary pages. Each letter refers to
-     * the {@link InternetSlangPreProcessor#NOSLANG_URL} page that contains all slang terms starting by this
-     * character. Note that the "1" page refers to the slang terms starting by non-alphabetic characters.
-     */
-    protected static final String[] letters = "1abcdefghijklmnopqrstuvwxyz".split("");
-
-    /**
-     * {@code true} if this processor needs to get the slang dictionary from
-     * {@link InternetSlangPreProcessor#NOSLANG_URL}, {code false} otherwise (i.e.
-     * {@link InternetSlangPreProcessor#SLANG_DICTIONARY_FILE} is already stored)
-     */
-    protected final boolean getSlangDictionary;
-
-    /**
      * Initializes the {@link InternetSlangPreProcessor}.
      * <p>
-     * If the {@link InternetSlangPreProcessor#GET_SLANG_DICTIONARY} configuration option is set to {@code true},
-     * {@link InternetSlangPreProcessor#getNoslangDictionary()} is called. Then, the
-     * {@link InternetSlangPreProcessor#SLANG_DICTIONARY_FILE} file is read and stored in
+     * If the {@link InternetSlangPreProcessor#SLANG_DICTIONARY_SOURCE} configuration option is set,
+     * {@link InternetSlangPreProcessor#SLANG_DICTIONARY_FILE} is read. Else,
+     * {@link InternetSlangPreProcessor#EMBEDDED_SLANG_DICTIONARY_FILE} is read. Then, the read content is stored in
      * {@link InternetSlangPreProcessor#slangDictionary}
      */
     public InternetSlangPreProcessor(Configuration configuration) {
-        getSlangDictionary = configuration.getBoolean(GET_SLANG_DICTIONARY, false);
-        if (getSlangDictionary) {
-            getNoslangDictionary();
-        }
         String dictionaryAsString = "";
-        try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(SLANG_DICTIONARY_FILE);) {
-            if (isNull(inputStream)) {
-                Log.error("Cannot find the file {0}, this processor won't get get the slang dictionary",
-                        SLANG_DICTIONARY_FILE);
-            } else {
-                dictionaryAsString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        SLANG_DICTIONARY_FILE = configuration.getString(SLANG_DICTIONARY_SOURCE, null);
+        if (isNull(SLANG_DICTIONARY_FILE)) {
+            try (InputStream inputStream =
+                         InternetSlangPreProcessor.class.getClassLoader().getResourceAsStream(EMBEDDED_SLANG_DICTIONARY_FILE)) {
+                if (isNull(inputStream)) {
+                    Log.error("Cannot find the file {0}, this processor won't get get the slang dictionary",
+                            EMBEDDED_SLANG_DICTIONARY_FILE);
+                } else {
+                    dictionaryAsString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+                }
+            } catch (IOException e) {
+                Log.error("An error occurred when processing the slang database {0}, this processor may produce "
+                        + "unexpected behavior. Check the logs for more information.", EMBEDDED_SLANG_DICTIONARY_FILE);
             }
-        } catch (IOException e) {
-            Log.error("An error occurred when processing the slang database {0}, this processor may produce "
-                    + "unexpected behavior. Check the logs for more information.", SLANG_DICTIONARY_FILE);
+        } else {
+            File slangDictionaryFile = new File(SLANG_DICTIONARY_FILE);
+            try (InputStream inputStream = new FileInputStream(slangDictionaryFile)) {
+                if (isNull(inputStream)) {
+                    Log.error("Cannot find the file {0}, this processor won't get get the slang dictionary",
+                            SLANG_DICTIONARY_FILE);
+                } else {
+                    dictionaryAsString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+                }
+            } catch (IOException e) {
+                Log.error("An error occurred when processing the slang database {0}, this processor may produce "
+                        + "unexpected behavior. Check the logs for more information.", SLANG_DICTIONARY_FILE);
+            }
         }
-        slangDictionary = new Gson().fromJson(dictionaryAsString, new TypeToken<HashMap<String, String>>() {}.getType());
-        Log.debug("Loaded {0} dictionary entries from {1}", slangDictionary.size(), SLANG_DICTIONARY_FILE);
+
+        slangDictionary = new Gson().fromJson(dictionaryAsString, new TypeToken<HashMap<String, String>>(){}.getType());
+        if (isNull(SLANG_DICTIONARY_FILE)) {
+            Log.info("Loaded {0} dictionary entries from {1}", slangDictionary.size(), EMBEDDED_SLANG_DICTIONARY_FILE);
+        } else {
+            Log.info("Loaded {0} dictionary entries from {1}", slangDictionary.size(), SLANG_DICTIONARY_FILE);
+        }
     }
 
     /**
@@ -146,45 +143,5 @@ public class InternetSlangPreProcessor implements InputPreProcessor {
             }
         }
         return String.join(" ", inputWords);
-    }
-
-    /**
-     * Gets the Internet Slang Dictionary from {@link InternetSlangPreProcessor#NOSLANG_URL} and stores it in
-     * {@link InternetSlangPreProcessor#SLANG_DICTIONARY_FILE}, located in
-     * {@link InternetSlangPreProcessor#SLANG_DICTIONARY_PATH}.
-     * <p>
-     * This method is specific for {@link InternetSlangPreProcessor#NOSLANG_URL} since its implementation depends on
-     * the structure of the html code of the web page (i.e. it will probably not work for another source)
-     */
-    protected static void getNoslangDictionary () {
-        String fullUrl = null;
-        JSONObject dictionary = new JSONObject();
-        try {
-            for (String letter : letters) {
-                fullUrl = NOSLANG_URL + letter;
-                Document doc = Jsoup.connect(fullUrl).get();
-                Elements dictionaryWords = doc.select("div.dictionary-word");
-                for (Element dictionaryWord : dictionaryWords) {
-                    String slang = dictionaryWord.select("dt").html();
-                    // Remove the " :" characters at the end
-                    slang = slang.substring(0, slang.length()-2);
-                    if (!dictionary.has(slang)) {
-                        String meaning = dictionaryWord.select("dd").html();
-                        dictionary.accumulate(slang, meaning);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            Log.error(e, "An error occurred while getting the slang dictionary from {0}, see attached exception",
-                    fullUrl);
-        }
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new
-                FileOutputStream(SLANG_DICTIONARY_PATH + SLANG_DICTIONARY_FILE)))) {
-            writer.write(dictionary.toString());
-            Log.debug("Saved {0} successfully", SLANG_DICTIONARY_PATH + SLANG_DICTIONARY_FILE);
-        } catch (IOException e) {
-            Log.error(e, "An error occurred when writing the slang dictionary in {0}, see attached exception",
-                    SLANG_DICTIONARY_PATH + SLANG_DICTIONARY_FILE);
-        }
     }
 }

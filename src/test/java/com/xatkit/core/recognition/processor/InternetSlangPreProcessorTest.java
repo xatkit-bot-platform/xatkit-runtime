@@ -7,19 +7,12 @@ import org.apache.commons.configuration2.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class InternetSlangPreProcessorTest {
 
     private InternetSlangPreProcessor processor;
     private StateContext context;
-    private boolean getSlangDictionary = true;
 
     @Before
     public void setUp() {
@@ -31,7 +24,8 @@ public class InternetSlangPreProcessorTest {
     @Test
     public void testSlangWords() {
         Configuration botConfiguration = new BaseConfiguration();
-        botConfiguration.setProperty(InternetSlangPreProcessor.GET_SLANG_DICTIONARY, getSlangDictionary);
+        // Uncomment next line and set the property value to test external dictionary
+        //botConfiguration.setProperty(InternetSlangPreProcessor.SLANG_DICTIONARY_SOURCE, "<Path to json file>");
         processor = new InternetSlangPreProcessor(botConfiguration);
         // A single slang term
         String input = "omg";
@@ -48,14 +42,5 @@ public class InternetSlangPreProcessorTest {
 
     }
 
-    @Test
-    public void testGetSlangDictionaryFile() throws IOException, NullPointerException {
-        Path slangDictionaryFilePath = Paths
-                .get(InternetSlangPreProcessor.SLANG_DICTIONARY_PATH + InternetSlangPreProcessor.SLANG_DICTIONARY_FILE);
-        Files.deleteIfExists(slangDictionaryFilePath);
-        InternetSlangPreProcessor.getNoslangDictionary();
-        File file = new File(InternetSlangPreProcessor.class.getClassLoader()
-                .getResource(InternetSlangPreProcessor.SLANG_DICTIONARY_FILE).getFile());
-        assertThat(file).exists();
-    }
+
 }
