@@ -64,6 +64,10 @@ public class NlpjsConfigurationTest extends AbstractXatkitTest {
         this.baseConfiguration.addProperty(NlpjsConfiguration.LANGUAGE_CODE_KEY, "es");
         this.configuration = new NlpjsConfiguration(this.baseConfiguration);
         assertThat(configuration.getLanguageCode()).isEqualTo("es");
+
+        this.baseConfiguration.addProperty(NlpjsConfiguration.LANGUAGE_CODE_KEY, "es_ES");
+        this.configuration = new NlpjsConfiguration(this.baseConfiguration);
+        assertThat(configuration.getLanguageCode()).isEqualTo("es");
     }
 
     @Test

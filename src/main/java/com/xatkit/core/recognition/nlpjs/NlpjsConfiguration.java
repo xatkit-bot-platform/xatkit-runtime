@@ -5,6 +5,8 @@ import lombok.NonNull;
 import lombok.Value;
 import org.apache.commons.configuration2.Configuration;
 
+import java.util.Locale;
+
 import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 
 
@@ -119,6 +121,7 @@ public class NlpjsConfiguration {
 
     /**
      * Initializes the {@link NlpjsConfiguration} with the provided {@code baseConfiguration}.
+     * For compound language codes (e.g. "es_ES") we just take the first component as otherwise nlp.js gets confused
      *
      * @param baseConfiguration the {@link Configuration} to load the values from
      * @throws NullPointerException     if the provided {@code baseConfiguration} is {@code null}
@@ -136,7 +139,8 @@ public class NlpjsConfiguration {
         this.nlpjsServerBasicAuthPassword = baseConfiguration.getString(NLPJS_SERVER_BASICAUTH_PASSWORD_KEY);
         this.agentId = baseConfiguration.getString(AGENT_ID_KEY);
         if (baseConfiguration.containsKey(LANGUAGE_CODE_KEY)) {
-            languageCode = baseConfiguration.getString(LANGUAGE_CODE_KEY);
+            String[] splitLocale = baseConfiguration.getString(LANGUAGE_CODE_KEY).split("_");
+            languageCode = splitLocale[0];
         } else {
             Log.warn("No language code provided, using the default one ({0})", DEFAULT_LANGUAGE_CODE);
             languageCode = DEFAULT_LANGUAGE_CODE;
