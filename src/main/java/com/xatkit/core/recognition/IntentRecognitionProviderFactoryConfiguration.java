@@ -80,10 +80,9 @@ public class IntentRecognitionProviderFactoryConfiguration {
      */
     public IntentRecognitionProviderFactoryConfiguration(@NonNull Configuration baseConfiguration) {
         this.baseConfiguration = baseConfiguration;
-        this.enableRecognitionAnalytics = baseConfiguration.getBoolean(ENABLE_RECOGNITION_ANALYTICS, true);
+        this.enableRecognitionAnalytics = baseConfiguration.getBoolean(ENABLE_RECOGNITION_ANALYTICS, false);
         this.preProcessorNames = getList(baseConfiguration, RECOGNITION_PREPROCESSORS_KEY);
         this.postProcessorNames = getList(baseConfiguration, RECOGNITION_POSTPROCESSORS_KEY);
-
     }
 
     /**

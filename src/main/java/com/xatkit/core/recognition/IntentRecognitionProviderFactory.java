@@ -53,6 +53,8 @@ public final class IntentRecognitionProviderFactory {
 
     public static final String DATABASE_MODEL_INFLUXDB = "influxdb";
 
+    public static final String DATABASE_MODEL_POSTGRESDB = "postgresdb";
+
     public static final String DEFAULT_DATABASE_MODEL = DATABASE_MODEL_MAPDB;
 
     /**
