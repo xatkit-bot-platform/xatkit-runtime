@@ -31,6 +31,7 @@
         <unirest.version>1.4.9</unirest.version>
         <opennlp-tools.version>1.9.3</opennlp-tools.version>
         <emoji-java.version>5.1.1</emoji-java.version>
+        <postgresql.version>42.3.1</postgresql.version>
     </properties>
 
     <dependencies>
@@ -161,6 +162,13 @@
             <groupId>org.eclipse.collections</groupId>
             <artifactId>eclipse-collections-forkjoin</artifactId>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+
 
         <!-- Xatkit Internal -->
 
@@ -343,6 +351,14 @@
                 <artifactId>eclipse-collections-forkjoin</artifactId>
                 <version>${eclipse-collections.version}</version>
             </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+            </dependency>
+
 
         </dependencies>
 
