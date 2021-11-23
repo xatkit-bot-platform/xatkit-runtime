@@ -170,7 +170,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
             int sessionId = registerSession(context.getContextId(), botId);
             //Timestamp value for the entry is automatically assigned by postgres when inserting
             PreparedStatement st = conn.prepareStatement("INSERT INTO monitoring_entry (session_id, utterance,"
-                    + "intent, origin, confidence) VALUES (?,?,?,?,?,?)");
+                    + "intent, origin, confidence) VALUES (?,?,?,?,?)");
             st.setInt(1, sessionId);
             st.setString(2, intent.getMatchedInput());
             st.setString(3, intent.getDefinition().getName());
@@ -206,12 +206,12 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
      */
     private int getSessionFromUUID(String UUID) throws SQLException {
         int sessionId = -1;
-        PreparedStatement st = conn.prepareStatement("SELECT session_id FROM monitoring_session WHERE session_uuid = "
+        PreparedStatement st = conn.prepareStatement("SELECT id FROM monitoring_session WHERE session_uuid = "
                 + "?");
         st.setString(1, UUID);
         ResultSet rs = st.executeQuery();
         if (rs.next()) {
-            sessionId = rs.getInt("session_id");
+            sessionId = rs.getInt("id");
         }
         st.close();
         return sessionId;
@@ -222,7 +222,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
      *
      */
     private void insertNewSession(String UUID, int botId) throws SQLException {
-        PreparedStatement st = conn.prepareStatement("INSERT INTO monitoring_session (session_uuid,bot_id) VALUES (?,?"
+        PreparedStatement st = conn.prepareStatement("INSERT INTO monitoring_session (session_uuid, bot_id) VALUES (?,?"
                 + ")");
         st.setString(1, UUID);
         st.setInt(2, botId);
