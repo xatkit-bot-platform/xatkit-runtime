@@ -1,6 +1,9 @@
 package com.xatkit.core.recognition;
 
+import com.mashape.unirest.http.Unirest;
 import com.xatkit.AbstractXatkitTest;
+import com.xatkit.core.server.HttpMethod;
+import com.xatkit.core.server.RestHandler;
 import com.xatkit.core.server.XatkitServer;
 import com.xatkit.core.server.XatkitServerUtils;
 import com.xatkit.execution.ExecutionFactory;
@@ -11,8 +14,7 @@ import com.xatkit.library.core.CoreLibrary;
 import lombok.SneakyThrows;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.http.HttpRequest;
-import org.apache.http.message.BasicHttpRequest;
+import org.json.JSONArray;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,8 +23,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
@@ -115,6 +119,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
         greetings.setMatchedInput("Hello");
 
         try {
+            deleteTestData();
             monitor = new RecognitionMonitorPostgreSQL(server,baseConfiguration);
             monitor.logRecognizedIntent(context, greetings);
             PreparedStatement st = conn.prepareStatement("SELECT * FROM monitoring_session WHERE session_uuid"
@@ -161,6 +166,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
 
 
         try {
+            deleteTestData();
             monitor = new RecognitionMonitorPostgreSQL(server,baseConfiguration);
             monitor.logRecognizedIntent(context, greetings);
             monitor.logRecognizedIntent(context, greetings2);
@@ -189,24 +195,56 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void checkRegisteredEndPoints()
+    public void checkRegistrationEndPoints()
     {
         try {
             monitor = new RecognitionMonitorPostgreSQL(server,baseConfiguration);
-            HttpRequest VALID_HTTP_REQUEST;
-            VALID_HTTP_REQUEST = new BasicHttpRequest("GET", "/analytics/monitoring/matched");
-            VALID_HTTP_REQUEST = new BasicHttpRequest("GET", "/analytics/monitoring/unmatched");
-            VALID_HTTP_REQUEST = new BasicHttpRequest("GET", "/analytics/monitoring/");
-            VALID_HTTP_REQUEST = new BasicHttpRequest("GET", "/analytics/monitoring/sessions/stats");
-            VALID_HTTP_REQUEST = new BasicHttpRequest("GET", "/analytics/monitoring/session");
-
         } catch (Exception e) {
             throw new RuntimeException("Error when testing the registered endpoints for PostgreSQL monitoring, "
                     + "see the attached "
                     + "exception", e);
         }
+            RestHandler VALID_HTTP_REQUEST;
+            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET,
+                    "/analytics/monitoring/matched");
+            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/unmatched");
+            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/");
+            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/sessions/stats");
+            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/session");
+
     }
 
+    @Test
+    public void checkMatched()
+    {
+        deleteTestData();
+        JSONArray result;
+
+        try {
+            greetings = IntentFactory.eINSTANCE.createRecognizedIntent();
+            greetings.setDefinition(CoreLibrary.Greetings);
+            greetings.setRecognitionConfidence(.5f);
+            greetings.setMatchedInput("Hello");
+            monitor = new RecognitionMonitorPostgreSQL(server, baseConfiguration);
+            monitor.logRecognizedIntent(context, greetings);
+
+            result = Unirest.get("http://127.0.0.1:1234/analytics/monitoring/matched")
+                .asJson()
+                .getBody()
+                .getObject()
+                .getJSONArray("");
+
+
+
+        }  catch (Exception e) {
+            throw new RuntimeException("Error when testing the matched endpoint for PostgreSQL monitoring, "
+                    + "see the attached "
+                    + "exception", e);
+        }
+        assertTrue(result.length() == 1);
+        assertTrue(result.getJSONObject(0).getString("utterance").equals("Hello"));
+
+    }
 
 
 
@@ -220,15 +258,24 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
                 //Cleaning the tables after the test
             }
         }
-        PreparedStatement st = conn.prepareStatement("DELETE FROM monitoring_entry");
-        st.executeUpdate();
-        PreparedStatement st2 = conn.prepareStatement("DELETE FROM monitoring_session");
-        st.executeUpdate();
-        conn.commit();
+        deleteTestData();
         conn.close();
 
     }
 
+    private void deleteTestData() {
+        try {
+            PreparedStatement st = conn.prepareStatement("DELETE FROM monitoring_entry");
+            st.executeUpdate();
+            PreparedStatement st2 = conn.prepareStatement("DELETE FROM monitoring_session");
+            st.executeUpdate();
+            conn.commit();
+        } catch(SQLException e) {
+            throw new RuntimeException("Error when deleting the test data for PostgreSQL monitoring, "
+                    + "see the attached "
+                    + "exception", e);
+        }
 
+    }
 
 }

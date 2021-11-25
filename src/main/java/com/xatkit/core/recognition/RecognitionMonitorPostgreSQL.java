@@ -136,7 +136,6 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 if (!this.conn.isClosed()) {
-                    conn.commit();
                     conn.close();
                 }
             } catch (SQLException e) {
@@ -297,7 +296,8 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
 
     private JsonArray getUtterances(boolean matched) throws SQLException {
         JsonArray result = new JsonArray();
-        String sql = "SELECT s.UUID, m.utterance, m.intent, m.instant, m.confidence from monitoring_session s, monitoring_entry "
+        String sql = "SELECT s.session_uuid, m.utterance, m.intent, m.instant, m.confidence from monitoring_session "
+                + "s, monitoring_entry "
                 + "m where s.id=m.session_id and s.bot_id = ? ";
         if (matched) {
             sql = sql + " AND intent <> 'Default_Fallback_Intent'";
@@ -310,7 +310,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
         ResultSet rs = st.executeQuery();
         while (rs.next()) {
             JsonObject matchedUtteranceObject = new JsonObject();
-            matchedUtteranceObject.addProperty("sessionId", rs.getString("UUID"));
+            matchedUtteranceObject.addProperty("sessionId", rs.getString("session_uuid"));
             matchedUtteranceObject.addProperty("timestamp", rs.getObject("instant", LocalDateTime.class).toInstant(OffsetDateTime.now().getOffset()).toEpochMilli());
             matchedUtteranceObject.addProperty("utterance", rs.getString("utterance"));
             matchedUtteranceObject.addProperty("intent", rs.getString("intent"));
@@ -387,7 +387,8 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
                     int nSessions = 0;
                     try
                     {
-                        PreparedStatement st = conn.prepareStatement("SELECT * FROM monitoring_session WHERE bot_id = ?");
+                        PreparedStatement st = conn.prepareStatement("SELECT id FROM monitoring_session WHERE bot_id ="
+                                + " ?");
                         st.setInt(1, botId);
                         ResultSet rs = st.executeQuery();
 
@@ -483,6 +484,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
                                     + "WHERE session_id = ? ");
                             stCount.setInt(1, sessionId);
                             ResultSet rsCount = stCount.executeQuery();
+                            rsCount.next();
                             count = rsCount.getInt(1);
                             stCount.close();
 
@@ -490,6 +492,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
                                     + "monitoring_entry WHERE session_id = ?  AND intent <> 'Default_Fallback_Intent' ");
                             stCountMatched.setInt(1, sessionId);
                             ResultSet rsCountMatched = stCountMatched.executeQuery();
+                            rsCountMatched.next();
                             matched = rsCountMatched.getInt(1);
                             stCountMatched.close();
 
@@ -497,6 +500,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
                                     + "monitoring_entry WHERE session_id = ?  AND intent = 'Default_Fallback_Intent' ");
                             stCountUnMatched.setInt(1, sessionId);
                             ResultSet rsCountUnMatched = stCountUnMatched.executeQuery();
+                            rsCountUnMatched.next();
                             unmatched = rsCountUnMatched.getInt(1);
                             stCountUnMatched.close();
 
@@ -504,6 +508,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
                                     + "maxTime  FROM monitoring_entry WHERE session_id = ? ");
                             stTime.setInt(1, sessionId);
                             ResultSet rsTime = stTime.executeQuery();
+                            rsTime.next();
                             minTime = rsTime.getObject("mintime", LocalDateTime.class).toEpochSecond(OffsetDateTime.now().getOffset());
                             maxTime = rsTime.getObject("mintime", LocalDateTime.class).toEpochSecond(OffsetDateTime.now().getOffset());
                             stTime.close();
@@ -621,7 +626,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
         double accConfidence = 0.0;
 
         PreparedStatement st = conn.prepareStatement("SELECT * from monitoring_entry where session_id = ?");
-        st.setInt(1, botId);
+        st.setInt(1, sessionId);
         ResultSet rs = st.executeQuery();
         while (rs.next()) {
             JsonObject entryObject = new JsonObject();
@@ -658,8 +663,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
      */
     public void shutdown() {
         try {
-            this.conn.commit();
-            this.conn.close();
+           this.conn.close();
         } catch (SQLException e) {
             throw new RuntimeException("Error when shutting down the PostgreSQL monitoring, see the attached "
                     + "exception", e);
