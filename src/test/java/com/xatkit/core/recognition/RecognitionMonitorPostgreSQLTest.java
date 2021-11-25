@@ -75,11 +75,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
         try {
             conn = DriverManager.getConnection(url, user, password);
             conn.setAutoCommit(false);
-            //Cleaning the tables for the test
-            PreparedStatement st = conn.prepareStatement("DELETE FROM monitoring_entry");
-            st.executeUpdate();
-            PreparedStatement st2 = conn.prepareStatement("DELETE FROM monitoring_session");
-            st.executeUpdate();
+            deleteTestData();
         } catch (Exception e) {
             throw new RuntimeException("Error when connecting to the PostgreSQL monitoring, see the attached "
                     + "exception", e);
@@ -268,7 +264,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             PreparedStatement st = conn.prepareStatement("DELETE FROM monitoring_entry");
             st.executeUpdate();
             PreparedStatement st2 = conn.prepareStatement("DELETE FROM monitoring_session");
-            st.executeUpdate();
+            st2.executeUpdate();
             conn.commit();
         } catch(SQLException e) {
             throw new RuntimeException("Error when deleting the test data for PostgreSQL monitoring, "

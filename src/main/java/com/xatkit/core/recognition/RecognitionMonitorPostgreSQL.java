@@ -504,13 +504,29 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
                             unmatched = rsCountUnMatched.getInt(1);
                             stCountUnMatched.close();
 
-                            PreparedStatement stTime = conn.prepareStatement("SELECT MIN(instant) minTime, MAX(instant) "
-                                    + "maxTime  FROM monitoring_entry WHERE session_id = ? ");
+                            PreparedStatement stTime = conn.prepareStatement("SELECT MIN(instant), MAX(instant) "
+                                    + "  FROM monitoring_entry WHERE session_id = ? ");
                             stTime.setInt(1, sessionId);
                             ResultSet rsTime = stTime.executeQuery();
-                            rsTime.next();
-                            minTime = rsTime.getObject("mintime", LocalDateTime.class).toEpochSecond(OffsetDateTime.now().getOffset());
-                            maxTime = rsTime.getObject("mintime", LocalDateTime.class).toEpochSecond(OffsetDateTime.now().getOffset());
+                            //We calculate the session data if the session has entries
+                            if (rsTime.next()) {
+                                try {
+                                    minTime =
+                                            rsTime.getObject(1, LocalDateTime.class).toEpochSecond(OffsetDateTime.now().getOffset());
+                                    maxTime =
+                                            rsTime.getObject(2, LocalDateTime.class).toEpochSecond(OffsetDateTime.now().getOffset());
+                                } catch (Exception e)
+                                {
+                                    Log.warn("Instant data cannot be properly converted for session data reports, see"
+                                            + " the exception for details", e);
+                                    minTime = 0;
+                                    maxTime = 0;
+                                }
+                            } else {
+                                minTime = 0;
+                                maxTime = 0;
+                            }
+
                             stTime.close();
 
                             totalMatched = totalMatched + matched;
