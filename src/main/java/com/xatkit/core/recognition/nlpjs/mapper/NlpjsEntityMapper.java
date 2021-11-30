@@ -18,10 +18,11 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -179,7 +180,7 @@ public class NlpjsEntityMapper {
      *
      * @param intentDefinition the {@link IntentDefinition} containing the {@link ContextParameter}s to map
      * @return the created {@link Entity} instances
-     * @throws NullPointerException  if the provided {@code intentDefinition} is {@code null}
+     * @throws NullPointerException if the provided {@code intentDefinition} is {@code null}
      */
     public Collection<Entity> mapAnyEntityDefinition(@NonNull IntentDefinition intentDefinition) {
         Map<String, Entity> createdEntities = new HashMap<>();
@@ -194,9 +195,9 @@ public class NlpjsEntityMapper {
                      * TODO handle multiple text fragments
                      */
                     if (trainingSentence.contains(parameter.getTextFragments().get(0))) {
-                        Optional<String> beforeLast = getBeforeLast(trainingSentence, parameter);
-                        Optional<String> afterLast = getAfterLast(trainingSentence, parameter);
-                        if (beforeLast.isPresent() || afterLast.isPresent()) {
+                        Collection<String> beforeLast = getBeforeLast(trainingSentence, parameter, intentDefinition);
+                        Collection<String> afterLast = getAfterLast(trainingSentence, parameter, intentDefinition);
+                        if (!beforeLast.isEmpty() || !afterLast.isEmpty()) {
                             /*
                              * There are words before and/or after the parameter text fragment. We will use them to
                              * configure a TRIM entity.
@@ -212,21 +213,21 @@ public class NlpjsEntityMapper {
                              * These complex (and redundant) conditions are somehow necessary, because we don't call
                              * the same methods if there is 1 or 2 values set.
                              */
-                            if (beforeLast.isPresent() && afterLast.isPresent()) {
+                            if (!beforeLast.isEmpty() && !afterLast.isEmpty()) {
                                 BetweenCondition betweenCondition = entity.getBetween();
                                 if (isNull(betweenCondition)) {
                                     betweenCondition = new BetweenCondition();
                                     entity.setBetween(betweenCondition);
                                 }
-                                betweenCondition.getLeft().add(afterLast.get());
-                                betweenCondition.getRight().add(beforeLast.get());
-                            } else if (beforeLast.isPresent()) {
-                                entity.getBeforeLast().add(beforeLast.get());
+                                betweenCondition.getLeft().addAll(afterLast);
+                                betweenCondition.getRight().addAll(beforeLast);
+                            } else if (!beforeLast.isEmpty()) {
+                                entity.getBeforeLast().addAll(beforeLast);
                             } else {
                                 /*
                                  * afterLast.isPresent()
                                  */
-                                entity.getAfterLast().add(afterLast.get());
+                                entity.getAfterLast().addAll(afterLast);
                             }
                             /*
                              * Register the created entity in the NlpjsEntityReferenceMapper. We need to access it to
@@ -261,14 +262,20 @@ public class NlpjsEntityMapper {
     /**
      * Retrieves the word following the {@code parameter}'s text fragment in {@code trainingSentence}.
      * <p>
+     * This method replaces other parameter's text fragment with their possible values (when possible). This
+     * ensures that parameters preceding each others in the training sentence are correctly matched (e.g. an any
+     * entity before a mapping).
+     * <p>
      * This method is called by {@link #mapAnyEntityDefinition(IntentDefinition)} to configure NLP.js trim entities.
      *
      * @param trainingSentence the training sentence to inspect
      * @param parameter        the {@link ContextParameter} containing the text fragment to look for
+     * @param intentDefinition the {@link IntentDefinition} containing the parameter
      * @return the word following the {@code parameter}'s text fragment in {@code trainingSentence}
      * @throws NullPointerException if {@code trainingSentence} or {@code parameter} is {@code null}
      */
-    private Optional<String> getBeforeLast(@NonNull String trainingSentence, @NonNull ContextParameter parameter) {
+    private Collection<String> getBeforeLast(@NonNull String trainingSentence, @NonNull ContextParameter parameter,
+                                           IntentDefinition intentDefinition) {
         // TODO handle multiple text fragments
         String textFragment = parameter.getTextFragments().get(0);
         int textFragmentStartIndex = trainingSentence.indexOf(textFragment);
@@ -282,33 +289,86 @@ public class NlpjsEntityMapper {
                      * NLP.js requires to escape "?" in regex.
                      */
                     beforeLast = "\\?";
+                    return Collections.singletonList(beforeLast);
+                } else {
+                    for (ContextParameter otherParameter : intentDefinition.getParameters()) {
+                        if (otherParameter.getTextFragments().contains(beforeLast) && otherParameter.getEntity().getReferredEntity() instanceof MappingEntityDefinition) {
+                            MappingEntityDefinition mapping =
+                                    (MappingEntityDefinition) otherParameter.getEntity().getReferredEntity();
+                            return mapping.getEntryValues().stream().map(this::firstWordOf).collect(Collectors.toSet());
+                        }
+                    }
+                    return Collections.singletonList(beforeLast);
                 }
-                return Optional.of(beforeLast);
             }
         }
-        return Optional.empty();
+        return Collections.emptyList();
     }
 
     /**
-     * Retrieves the word preceding the {@code parameter}'s text fragment in {@code trainingSentence}.
+     * Retrieves the words preceding the {@code parameter}'s text fragment in {@code trainingSentence}.
+     * <p>
+     * This method replaces other parameter's text fragment with their possible values (when possible). This ensures
+     * that parameters following each others in the training sentences are correctly matched (e.g. an any entity
+     * after a mapping).
      * <p>
      * This method is called by {@link #mapAnyEntityDefinition(IntentDefinition)} to configure NLP.js trim entities.
      *
      * @param trainingSentence the training sentence to inspect
      * @param parameter        the {@link ContextParameter} containing the text fragment to look for
+     * @param intentDefinition the {@link IntentDefinition} containing the parameter
      * @return the word preceding the {@code parameter}'s text fragment in {@code trainingSentence}
      * @throws NullPointerException if the {@code trainingSentence} or {@code parameter} is {@code null}
      */
-    private Optional<String> getAfterLast(@NonNull String trainingSentence, @NonNull ContextParameter parameter) {
+    private Collection<String> getAfterLast(@NonNull String trainingSentence, @NonNull ContextParameter parameter,
+                                            IntentDefinition intentDefinition) {
         // TODO handle multiple text fragments
         String textFragment = parameter.getTextFragments().get(0);
         int textFragmentStartIndex = trainingSentence.indexOf(textFragment);
         if (textFragmentStartIndex != 0) {
             String[] preFragments = trainingSentence.substring(0, textFragmentStartIndex).split(" ");
             if (preFragments.length > 0) {
-                return Optional.of(preFragments[preFragments.length - 1]);
+                String preFragment = preFragments[preFragments.length - 1];
+                for (ContextParameter otherParameter : intentDefinition.getParameters()) {
+                    if (otherParameter.getTextFragments().contains(preFragment) && otherParameter.getEntity().getReferredEntity() instanceof MappingEntityDefinition) {
+                        MappingEntityDefinition mapping =
+                                (MappingEntityDefinition) otherParameter.getEntity().getReferredEntity();
+                        return mapping.getEntryValues().stream().map(this::lastWordOf).collect(Collectors.toSet());
+                    }
+                }
+                return Collections.singletonList(preFragments[preFragments.length - 1]);
             }
         }
-        return Optional.empty();
+        return Collections.emptyList();
+    }
+
+    /**
+     * Returns the first word from {@code from}.
+     *
+     * @param from the {@link String} to return the first word from
+     * @return the first word
+     */
+    private String firstWordOf(@NonNull String from) {
+        String[] splitted = from.split(" ");
+        if (splitted.length > 0) {
+            return splitted[0];
+        } else {
+            return from;
+        }
+    }
+
+    /**
+     * Returns the last word from {@code from}.
+     *
+     * @param from the {@link String} to return the last word from
+     * @return the last word
+     */
+    private String lastWordOf(@NonNull String from) {
+        String[] splitted = from.split(" ");
+        if (splitted.length > 0) {
+            return splitted[splitted.length - 1];
+        } else {
+            return from;
+        }
     }
 }
