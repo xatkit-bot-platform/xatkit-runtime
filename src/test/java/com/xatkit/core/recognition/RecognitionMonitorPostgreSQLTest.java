@@ -14,6 +14,7 @@ import com.xatkit.library.core.CoreLibrary;
 import lombok.SneakyThrows;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.assertj.core.data.Offset;
 import org.json.JSONArray;
 import org.junit.After;
 import org.junit.Before;
@@ -27,7 +28,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 /**
  * These tests are ignored because we don't have a PostgreSQL database available for our CI/CD pipelines.
@@ -130,8 +130,8 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             int sessionId = rs.getInt("id");
             String UUID = rs.getString("session_uuid");
             int sessionBotId = rs.getInt("bot_id");
-            assertEquals(context.getContextId(), UUID);
-            assertEquals(this.botId, sessionBotId);
+            assertThat(context.getContextId()).isEqualTo(UUID);
+            assertThat(this.botId).isEqualTo(sessionBotId);
             st.close();
 
             PreparedStatement st2 = conn.prepareStatement("SELECT intent, utterance, confidence FROM monitoring_entry "
@@ -139,9 +139,9 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             st2.setInt(1, sessionId);
             ResultSet rs2 = st2.executeQuery();
             rs2.next();
-            assertEquals(greetings.getMatchedInput(), rs2.getString("utterance"));
-            assertEquals(greetings.getRecognitionConfidence(), rs2.getFloat("confidence"), 0.2);
-            assertEquals(greetings.getDefinition().getName(), rs2.getString("intent"));
+            assertThat(greetings.getMatchedInput()).isEqualTo(rs2.getString("utterance"));
+            assertThat(greetings.getRecognitionConfidence()).isEqualTo(rs2.getFloat("confidence"), Offset.offset(0.2f));
+            assertThat(greetings.getDefinition().getName()).isEqualTo(rs2.getString("intent"));
             st2.close();
 
         } catch (Exception e) {
@@ -183,7 +183,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             ResultSet rs2 = st2.executeQuery();
             rs2.next();
             int count = rs2.getInt(1);
-            assertEquals(2, count);
+            assertThat(count).isEqualTo(2);
 
         } catch (Exception e) {
             throw new RuntimeException("Error when testing the log of a two intents with PostgreSQL monitoring, "
