@@ -68,7 +68,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
                 DialogFlowIntentRecognitionProviderTest.buildConfiguration());
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a DialogFlowIntentRecognitionProvider").isInstanceOf(DialogFlowIntentRecognitionProvider.class);
-        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNotNull();
+        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNull();
         assertThat(provider.getPreProcessors()).as("PreProcessor list is empty").isEmpty();
         assertThat(provider.getPostProcessors()).as("PostProcessor list is empty").isEmpty();
     }
@@ -96,7 +96,7 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
         assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
         assertThat(provider).as("IntentRecognitionProvider is a RegExIntentRecognitionProvider").isInstanceOf
                 (RegExIntentRecognitionProvider.class);
-        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNotNull();
+        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNull();
         assertThat(provider.getPreProcessors()).as("PreProcessor list is empty").isEmpty();
         assertThat(provider.getPostProcessors()).as("PostProcessor list is empty").isEmpty();
     }
