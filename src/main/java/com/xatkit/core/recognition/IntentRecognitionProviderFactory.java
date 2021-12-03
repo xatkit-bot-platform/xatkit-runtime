@@ -53,6 +53,8 @@ public final class IntentRecognitionProviderFactory {
 
     public static final String DATABASE_MODEL_INFLUXDB = "influxdb";
 
+    public static final String DATABASE_MODEL_POSTGRESQL = "postgresql";
+
     public static final String DEFAULT_DATABASE_MODEL = DATABASE_MODEL_MAPDB;
 
     /**
@@ -170,6 +172,17 @@ public final class IntentRecognitionProviderFactory {
                 Log.info("Using InfluxDB to store monitoring data");
                 monitor = new RecognitionMonitorInflux(xatkitBot.getXatkitServer(),
                         configuration.getBaseConfiguration());
+            } else if (configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY)
+                    .toLowerCase().equals(DATABASE_MODEL_POSTGRESQL)) {
+                try {
+                    monitor = new RecognitionMonitorPostgreSQL(xatkitBot.getXatkitServer(),
+                            configuration.getBaseConfiguration());
+                } catch (Exception e) {
+                    throw new RuntimeException("Error creating the PostgreSQL monitoring, see the exception for "
+                            + "details ", e);
+                }
+
+
             } else {
                 Log.info("Using MapDB to store monitoring data");
                 monitor = new RecognitionMonitorMapDB(xatkitBot.getXatkitServer(),
