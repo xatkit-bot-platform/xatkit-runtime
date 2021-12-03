@@ -17,6 +17,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.json.JSONArray;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.Connection;
@@ -25,10 +26,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-
+/**
+ * These tests are ignored because we don't have a PostgreSQL database available for our CI/CD pipelines.
+ */
+@Ignore
 public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
 
     private int botId = 1;
@@ -62,10 +66,10 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
         /*
          * Create a minimal configuration
          */
-        botId=1;
+        botId = 1;
         this.baseConfiguration = new BaseConfiguration();
-        this.baseConfiguration.addProperty(RecognitionMonitorPostgreSQL.BOT_ID_KEY, botId );
-        this.baseConfiguration.addProperty(RecognitionMonitorPostgreSQL.URL, url );
+        this.baseConfiguration.addProperty(RecognitionMonitorPostgreSQL.BOT_ID_KEY, botId);
+        this.baseConfiguration.addProperty(RecognitionMonitorPostgreSQL.URL, url);
         this.baseConfiguration.addProperty(RecognitionMonitorPostgreSQL.USER, user);
         this.baseConfiguration.addProperty(RecognitionMonitorPostgreSQL.PASSWORD, password);
         this.baseConfiguration.setProperty(XatkitServerUtils.SERVER_PORT_KEY, 1234);
@@ -86,7 +90,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
     @Test
     public void successfulConnection() {
         try {
-            monitor = new RecognitionMonitorPostgreSQL(server,baseConfiguration);
+            monitor = new RecognitionMonitorPostgreSQL(server, baseConfiguration);
         } catch (Exception e) {
             throw new RuntimeException("Error when testing the connection to PostgreSQL monitoring, "
                     + "see the attached "
@@ -116,7 +120,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
 
         try {
             deleteTestData();
-            monitor = new RecognitionMonitorPostgreSQL(server,baseConfiguration);
+            monitor = new RecognitionMonitorPostgreSQL(server, baseConfiguration);
             monitor.logRecognizedIntent(context, greetings);
             PreparedStatement st = conn.prepareStatement("SELECT * FROM monitoring_session WHERE session_uuid"
                     + " = ?");
@@ -126,8 +130,8 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             int sessionId = rs.getInt("id");
             String UUID = rs.getString("session_uuid");
             int sessionBotId = rs.getInt("bot_id");
-            assertEquals(context.getContextId(),UUID);
-            assertEquals(this.botId,sessionBotId);
+            assertEquals(context.getContextId(), UUID);
+            assertEquals(this.botId, sessionBotId);
             st.close();
 
             PreparedStatement st2 = conn.prepareStatement("SELECT intent, utterance, confidence FROM monitoring_entry "
@@ -136,12 +140,11 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             ResultSet rs2 = st2.executeQuery();
             rs2.next();
             assertEquals(greetings.getMatchedInput(), rs2.getString("utterance"));
-            assertEquals(greetings.getRecognitionConfidence(), rs2.getFloat("confidence"),0.2);
+            assertEquals(greetings.getRecognitionConfidence(), rs2.getFloat("confidence"), 0.2);
             assertEquals(greetings.getDefinition().getName(), rs2.getString("intent"));
             st2.close();
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Error when testing the log of a new intent with PostgreSQL monitoring, "
                     + "see the attached exception", e);
         }
@@ -163,7 +166,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
 
         try {
             deleteTestData();
-            monitor = new RecognitionMonitorPostgreSQL(server,baseConfiguration);
+            monitor = new RecognitionMonitorPostgreSQL(server, baseConfiguration);
             monitor.logRecognizedIntent(context, greetings);
             monitor.logRecognizedIntent(context, greetings2);
             PreparedStatement st = conn.prepareStatement("SELECT id FROM monitoring_session WHERE session_uuid"
@@ -180,10 +183,9 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             ResultSet rs2 = st2.executeQuery();
             rs2.next();
             int count = rs2.getInt(1);
-            assertEquals(2,count);
+            assertEquals(2, count);
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException("Error when testing the log of a two intents with PostgreSQL monitoring, "
                     + "see the attached exception", e);
         }
@@ -191,28 +193,26 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void checkRegistrationEndPoints()
-    {
+    public void checkRegistrationEndPoints() {
         try {
-            monitor = new RecognitionMonitorPostgreSQL(server,baseConfiguration);
+            monitor = new RecognitionMonitorPostgreSQL(server, baseConfiguration);
         } catch (Exception e) {
             throw new RuntimeException("Error when testing the registered endpoints for PostgreSQL monitoring, "
                     + "see the attached "
                     + "exception", e);
         }
-            RestHandler VALID_HTTP_REQUEST;
-            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET,
-                    "/analytics/monitoring/matched");
-            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/unmatched");
-            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/");
-            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/sessions/stats");
-            VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/session");
+        RestHandler VALID_HTTP_REQUEST;
+        VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET,
+                "/analytics/monitoring/matched");
+        VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/unmatched");
+        VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/");
+        VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/sessions/stats");
+        VALID_HTTP_REQUEST = server.getRegisteredRestHandler(HttpMethod.GET, "/analytics/monitoring/session");
 
     }
 
     @Test
-    public void checkMatched()
-    {
+    public void checkMatched() {
         deleteTestData();
         JSONArray result;
 
@@ -224,24 +224,24 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             monitor = new RecognitionMonitorPostgreSQL(server, baseConfiguration);
             monitor.logRecognizedIntent(context, greetings);
 
-            result = Unirest.get("http://127.0.0.1:1234/analytics/monitoring/matched")
-                .asJson()
-                .getBody()
-                .getObject()
-                .getJSONArray("");
+            /*
+             * We need to start the server in order to test the REST API.
+             */
+            server.start();
+            result = Unirest.get("http://localhost:5000/analytics/monitoring/matched")
+                    .asJson()
+                    .getBody()
+                    .getArray();
 
-
-
-        }  catch (Exception e) {
+            server.stop();
+        } catch (Exception e) {
             throw new RuntimeException("Error when testing the matched endpoint for PostgreSQL monitoring, "
                     + "see the attached "
                     + "exception", e);
         }
-        assertTrue(result.length() == 1);
-        assertTrue(result.getJSONObject(0).getString("utterance").equals("Hello"));
-
+        assertThat(result).hasSize(1);
+        assertThat(result.getJSONObject(0).getString("utterance")).isEqualTo("Hello");
     }
-
 
 
     @SneakyThrows
@@ -250,7 +250,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
 
         if (monitor != null) {
             if (monitor.getConn() != null && !monitor.getConn().isClosed()) {
-               monitor.getConn().close();
+                monitor.getConn().close();
                 //Cleaning the tables after the test
             }
         }
@@ -266,7 +266,7 @@ public class RecognitionMonitorPostgreSQLTest extends AbstractXatkitTest {
             PreparedStatement st2 = conn.prepareStatement("DELETE FROM monitoring_session");
             st2.executeUpdate();
             conn.commit();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Error when deleting the test data for PostgreSQL monitoring, "
                     + "see the attached "
                     + "exception", e);
