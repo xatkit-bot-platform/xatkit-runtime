@@ -178,8 +178,7 @@ public class RecognitionMonitorPostgreSQL implements RecognitionMonitor {
             st.executeUpdate();
             st.close();
         } catch (Exception e) {
-            throw new RuntimeException("Error when registering PostgreSQL monitoring data, see the "
-                    + "attached exception", e);
+            Log.debug("Error when registering PostgreSQL monitoring data, see {0}", e.getMessage());
         }
     }
 
