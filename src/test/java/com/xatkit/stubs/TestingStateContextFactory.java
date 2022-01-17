@@ -1,6 +1,5 @@
 package com.xatkit.stubs;
 
-import com.xatkit.core.recognition.dialogflow.DialogFlowStateContext;
 import com.xatkit.execution.StateContext;
 import lombok.NonNull;
 
@@ -29,6 +28,10 @@ import lombok.NonNull;
  */
 public class TestingStateContextFactory {
 
+    public TestingStateContextFactory() {
+
+    }
+
     /**
      * Wraps the provided {@code stateContext} into a {@link TestingStateContext}.
      *
@@ -36,10 +39,7 @@ public class TestingStateContextFactory {
      * @return the created {@link TestingStateContext}
      * @throws NullPointerException if the provided {@code stateContext} is {@code null}
      */
-    public static TestingStateContext wrap(@NonNull StateContext stateContext) {
-        if(stateContext instanceof DialogFlowStateContext) {
-            return new DialogFlowTestingStateContext((DialogFlowStateContext) stateContext);
-        }
+    public TestingStateContext wrap(@NonNull StateContext stateContext) {
         return new TestingStateContext(stateContext);
     }
 }

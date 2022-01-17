@@ -22,6 +22,14 @@ import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 public class NlpjsConfiguration {
 
     /**
+     * The {@link Configuration} value to set to specify that your bot is using NLP.js.
+     * <p>
+     * This value should be affected to
+     * {@link com.xatkit.core.recognition.IntentRecognitionProviderFactory#INTENT_PROVIDER_KEY}.
+     */
+    public static final String NLPJS_INTENT_PROVIDER = NlpjsIntentRecognitionProvider.class.getName();
+
+    /**
      * The {@link Configuration} key to store the URL of the NLP.js server to connect to.
      */
     public static final String NLPJS_SERVER_KEY = "xatkit.nlpjs.server";

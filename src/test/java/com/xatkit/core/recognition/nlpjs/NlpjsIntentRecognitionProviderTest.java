@@ -1,6 +1,7 @@
 package com.xatkit.core.recognition.nlpjs;
 
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
+import com.xatkit.core.recognition.IntentRecognitionProviderFactory;
 import com.xatkit.core.recognition.IntentRecognitionProviderTest;
 import com.xatkit.intent.RecognizedIntent;
 import com.xatkit.library.core.CoreLibrary;
@@ -11,7 +12,6 @@ import org.apache.commons.configuration2.Configuration;
 import org.junit.Test;
 
 import static com.xatkit.dsl.DSL.countyGb;
-import static com.xatkit.stubs.TestingStateContextFactory.wrap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProviderTest<NlpjsIntentRecognitionProvider> {
@@ -50,7 +50,7 @@ public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProvide
         this.intentRecognitionProvider = getIntentRecognitionProvider();
         this.intentRecognitionProvider.registerIntentDefinition(CoreLibrary.CountyGBValue);
         this.intentRecognitionProvider.trainMLEngine();
-        TestingStateContext context = wrap(this.intentRecognitionProvider.createContext("contextId"));
+        TestingStateContext context = contextFactory.wrap(this.intentRecognitionProvider.createContext("contextId"));
         context.enableIntents(CoreLibrary.CountyGBValue);
         RecognizedIntent recognizedIntent = this.intentRecognitionProvider.getIntent("London", context);
         assertThat(recognizedIntent.getDefinition().getName()).isEqualTo(CoreLibrary.CountyGBValue.getName());
@@ -69,7 +69,7 @@ public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProvide
         this.intentRecognitionProvider = getIntentRecognitionProvider();
         this.intentRecognitionProvider.registerIntentDefinition(CoreLibrary.AnyValue);
         this.intentRecognitionProvider.trainMLEngine();
-        TestingStateContext context = wrap(this.intentRecognitionProvider.createContext("contextId"));
+        TestingStateContext context = contextFactory.wrap(this.intentRecognitionProvider.createContext("contextId"));
         context.enableIntents(CoreLibrary.AnyValue);
         RecognizedIntent recognizedIntent = this.intentRecognitionProvider.getIntent("This is an example", context);
         assertThat(recognizedIntent.getDefinition().getName()).isEqualTo(CoreLibrary.AnyValue.getName());
@@ -125,6 +125,7 @@ public class NlpjsIntentRecognitionProviderTest extends IntentRecognitionProvide
     @Override
     protected NlpjsIntentRecognitionProvider getIntentRecognitionProvider() {
         Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(IntentRecognitionProviderFactory.INTENT_PROVIDER_KEY, NlpjsConfiguration.NLPJS_INTENT_PROVIDER);
         configuration.addProperty(NlpjsConfiguration.AGENT_ID_KEY,
                 VariableLoaderHelper.getVariable(NlpjsConfiguration.AGENT_ID_KEY));
         configuration.addProperty(NlpjsConfiguration.NLPJS_SERVER_KEY,
