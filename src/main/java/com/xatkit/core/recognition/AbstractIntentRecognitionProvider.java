@@ -208,8 +208,9 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
      */
     protected RecognizedIntent getBestCandidate(@NonNull Collection<RecognizedIntent> recognizedIntents,
                                                 @NonNull StateContext context) {
-        checkArgument(!recognizedIntents.isEmpty(), "Cannot get the best candidate from the provided collection: the "
-                + "collection is empty");
+        //This checkArgument seems unnecessary as the stream filter already includes and else that can cover this
+        // scenario
+        //checkArgument(!recognizedIntents.isEmpty(), "Cannot get the best candidate from the provided collection: the collection is empty");
         RecognizedIntent bestCandidate =
                 recognizedIntents.stream()
                         .sorted(Comparator.comparingDouble(RecognizedIntent::getRecognitionConfidence).reversed())
