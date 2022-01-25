@@ -17,7 +17,6 @@
     <name>Xatkit core infrastructure</name>
 
     <properties>
-        <dialogflow.version>1.0.0</dialogflow.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <httpcomponents.version>4.4.10</httpcomponents.version>
         <mapdb.version>3.0.7</mapdb.version>
@@ -31,6 +30,7 @@
         <opennlp-tools.version>1.9.3</opennlp-tools.version>
         <emoji-java.version>5.1.1</emoji-java.version>
         <postgresql.version>42.3.1</postgresql.version>
+        <jsr305.version>3.0.2</jsr305.version>
     </properties>
 
     <dependencies>
@@ -57,13 +57,6 @@
             <artifactId>opennlp-tools</artifactId>
         </dependency>
 
-        <!-- DialogFlow -->
-
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-dialogflow</artifactId>
-        </dependency>
-
         <!-- EMF -->
 
         <dependency>
@@ -78,6 +71,11 @@
         </dependency>
 
         <!-- Utils -->
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -232,15 +230,14 @@
                 <version>${opennlp-tools.version}</version>
             </dependency>
 
-            <!-- DialogFlow -->
-
-            <dependency>
-                <groupId>com.google.cloud</groupId>
-                <artifactId>google-cloud-dialogflow</artifactId>
-                <version>${dialogflow.version}</version>
-            </dependency>
-
             <!-- Utils -->
+
+            <!-- Provides javax.annotation.Nullable -->
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${jsr305.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.projectlombok</groupId>
