@@ -25,34 +25,10 @@
         <retrofit.version>2.9.0</retrofit.version>
         <okhttp3.logging-interceptor.version>3.14.0</okhttp3.logging-interceptor.version>
         <unirest.version>1.4.9</unirest.version>
-        <opennlp-tools.version>1.9.3</opennlp-tools.version>
-        <emoji-java.version>5.1.1</emoji-java.version>
         <jsr305.version>3.0.2</jsr305.version>
     </properties>
 
     <dependencies>
-
-        <!-- Stanford NLP -->
-        <!-- This dependency has the provided scope because it is only required by some pre/post processors, see the
-        documentation to setup Stanford NLP in Xatkit. -->
-        <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-        </dependency>
-
-        <!-- emoji-java -->
-
-        <dependency>
-            <groupId>com.vdurmont</groupId>
-            <artifactId>emoji-java</artifactId>
-        </dependency>
-
-        <!-- OpenNLP Tools -->
-
-        <dependency>
-            <groupId>org.apache.opennlp</groupId>
-            <artifactId>opennlp-tools</artifactId>
-        </dependency>
 
         <!-- EMF -->
 
@@ -165,38 +141,6 @@
     <dependencyManagement>
 
         <dependencies>
-
-            <!-- Stanford NLP -->
-            <!-- This dependency has the provided scope because it is only required by some pre/post processors, see the
-            documentation to setup Stanford NLP in Xatkit. -->
-            <dependency>
-                <groupId>edu.stanford.nlp</groupId>
-                <artifactId>stanford-corenlp</artifactId>
-                <version>3.9.2</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.protobuf</groupId>
-                        <artifactId>protobuf-java</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <!-- emoji-java -->
-
-            <dependency>
-                <groupId>com.vdurmont</groupId>
-                <artifactId>emoji-java</artifactId>
-                <version>${emoji-java.version}</version>
-            </dependency>
-
-            <!-- OpenNLP Tools -->
-
-            <dependency>
-                <groupId>org.apache.opennlp</groupId>
-                <artifactId>opennlp-tools</artifactId>
-                <version>${opennlp-tools.version}</version>
-            </dependency>
 
             <!-- Utils -->
 

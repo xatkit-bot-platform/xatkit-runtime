@@ -207,15 +207,9 @@ public final class IntentRecognitionProviderFactory {
         return configuration.getPreProcessorNames().stream().map(preProcessorName -> {
             Class<? extends InputPreProcessor> processor;
             try {
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + preProcessorName
-                                + "PreProcessor",
-                        InputPreProcessor.class);
+                processor = Loader.loadClass(preProcessorName, InputPreProcessor.class);
             } catch (XatkitException e) {
-                /*
-                 * Try to load it without the suffix
-                 */
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + preProcessorName,
-                        InputPreProcessor.class);
+                throw new XatkitException(e);
             }
             try {
                 return Loader.construct(processor, new Object[]{configuration.getBaseConfiguration()});
@@ -237,14 +231,9 @@ public final class IntentRecognitionProviderFactory {
         return configuration.getPostProcessorNames().stream().map(postProcessorName -> {
             Class<? extends IntentPostProcessor> processor;
             try {
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + postProcessorName
-                        + "PostProcessor", IntentPostProcessor.class);
+                processor = Loader.loadClass(postProcessorName, IntentPostProcessor.class);
             } catch (XatkitException e) {
-                /*
-                 * Try to load it without the suffix
-                 */
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + postProcessorName,
-                        IntentPostProcessor.class);
+                throw new XatkitException(e);
             }
             try {
                 return Loader.construct(processor, new Object[]{configuration.getBaseConfiguration()});

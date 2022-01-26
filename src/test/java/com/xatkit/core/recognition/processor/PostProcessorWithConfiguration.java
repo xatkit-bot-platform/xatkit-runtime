@@ -8,9 +8,6 @@ import org.apache.commons.configuration2.Configuration;
 /**
  * Stub class for
  * {@link com.xatkit.core.recognition.IntentRecognitionProviderFactoryTest#getIntentRecognitionProviderWithPostProcessorConstructedWithConfiguration()}.
- * <p>
- * This class needs to be located in {@code com.xatkit.core.recognition.processor} because the processor loader looks
- * for processors in this specific package.
  */
 public class PostProcessorWithConfiguration implements IntentPostProcessor {
 
