@@ -49,15 +49,6 @@ public final class IntentRecognitionProviderFactory {
     public static final String LOGS_DATABASE = "xatkit.logs.database";
 
     /**
-     * The default value for xatkit.database.model in case it's not specified in the properties file.
-     */
-    public static final String DATABASE_MODEL_MAPDB = "mapdb";
-
-    public static final String DATABASE_MODEL_POSTGRESQL = "postgresql";
-
-    public static final String DEFAULT_DATABASE_MODEL = DATABASE_MODEL_MAPDB;
-
-    /**
      * The intent provider that will be used for this instance of Xatkit.
      * <p>
      * If this property isn't set the {@link RegExIntentRecognitionProvider} will be used.
