@@ -4,8 +4,7 @@ import com.xatkit.AbstractXatkitTest;
 import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitBot;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
-import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProviderTest;
+import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.recognition.processor.PostProcessorWithConfiguration;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
@@ -59,33 +58,6 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
     }
 
     @Test
-    public void getIntentRecognitionProviderDialogFlowProperties() {
-        /*
-         * Use DialogFlowIntentRecognitionProviderTest.buildConfiguration to get a valid configuration (with a valid
-         * path to a credentials file)
-         */
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot,
-                DialogFlowIntentRecognitionProviderTest.buildConfiguration());
-        assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
-        assertThat(provider).as("IntentRecognitionProvider is a DialogFlowIntentRecognitionProvider").isInstanceOf(DialogFlowIntentRecognitionProvider.class);
-        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is not null").isNull();
-        assertThat(provider.getPreProcessors()).as("PreProcessor list is empty").isEmpty();
-        assertThat(provider.getPostProcessors()).as("PostProcessor list is empty").isEmpty();
-    }
-
-    @Test
-    public void getIntentRecognitionProviderDialogFlowPropertiesDisabledAnalytics() {
-        Configuration configuration = DialogFlowIntentRecognitionProviderTest.buildConfiguration();
-        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.ENABLE_RECOGNITION_ANALYTICS, false);
-        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
-        assertThat(provider).as("Not null IntentRecognitionProvider").isNotNull();
-        assertThat(provider).as("IntentRecognitionProvider is a DialogFlowIntentRecognitionProvider").isInstanceOf(DialogFlowIntentRecognitionProvider.class);
-        assertThat(provider.getRecognitionMonitor()).as("Recognition monitor is null").isNull();
-        assertThat(provider.getPreProcessors()).as("PreProcessor list is empty").isEmpty();
-        assertThat(provider.getPostProcessors()).as("PostProcessor list is empty").isEmpty();
-    }
-
-    @Test
     public void getIntentRecognitionProviderEmptyConfiguration() {
         /*
          * The factory should return a RegExIntentRecognitionProvider if the provided configuration does not
@@ -111,33 +83,53 @@ public class IntentRecognitionProviderFactoryTest extends AbstractXatkitTest {
         assertThat(provider.getPostProcessors()).as("PostProcessor list is empty").isEmpty();
     }
 
-    @Ignore
     @Test
     public void getIntentRecognitionProviderWithPreProcessor() {
-        // TODO when at least one pre-processor is implemented in xatkit-runtime
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_PREPROCESSORS_KEY, "com"
+                + ".xatkit.core.recognition.processor.PreProcessorNoConfiguration");
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
+        assertThat(provider.getPreProcessors()).hasSize(1);
+        InputPreProcessor preProcessor = provider.getPreProcessors().get(0);
+        assertThat(preProcessor.getClass().getSimpleName()).isEqualTo("PreProcessorNoConfiguration");
     }
 
     @Test
     public void getIntentRecognitionProviderWithPostProcessor() {
         Configuration configuration = new BaseConfiguration();
         configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_POSTPROCESSORS_KEY,
-                "RemoveEnglishStopWords");
+                "com.xatkit.core.recognition.processor.PostProcessorNoConfiguration");
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
         assertThat(provider.getPostProcessors()).as("PostProcessor list contains 1 element").hasSize(1);
         IntentPostProcessor postProcessor = provider.getPostProcessors().get(0);
         assertThat(postProcessor.getClass().getSimpleName()).as("Valid PostProcessor").isEqualTo(
-                "RemoveEnglishStopWordsPostProcessor");
+                "PostProcessorNoConfiguration");
     }
 
     @Test
     public void getIntentRecognitionProviderWithPostProcessorConstructedWithConfiguration() {
         Configuration configuration = new BaseConfiguration();
-        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_POSTPROCESSORS_KEY, "PostProcessorWithConfiguration");
+        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_POSTPROCESSORS_KEY,
+                "com.xatkit.core.recognition.processor.PostProcessorWithConfiguration");
         provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
         assertThat(provider.getPostProcessors()).hasSize(1);
         assertThat(provider.getPostProcessors().get(0)).isInstanceOf(PostProcessorWithConfiguration.class);
         PostProcessorWithConfiguration processor = (PostProcessorWithConfiguration) provider.getPostProcessors().get(0);
         assertThat(processor.getConfiguration()).isEqualTo(configuration);
+    }
+
+    @Test
+    public void getIntentRecognitionProviderWith2PostProcessors() {
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty(IntentRecognitionProviderFactoryConfiguration.RECOGNITION_POSTPROCESSORS_KEY,
+                "com.xatkit.core.recognition.processor.PostProcessorNoConfiguration,"
+                        + "com.xatkit.core.recognition.processor.PostProcessorWithConfiguration");
+        provider = IntentRecognitionProviderFactory.getIntentRecognitionProvider(xatkitBot, configuration);
+        assertThat(provider.getPostProcessors()).hasSize(2);
+        assertThat(provider.getPostProcessors()).anyMatch(p -> p.getClass().getSimpleName().equals(
+                "PostProcessorNoConfiguration"));
+        assertThat(provider.getPostProcessors()).anyMatch(p -> p.getClass().getSimpleName().equals(
+                "PostProcessorWithConfiguration"));
     }
 
     @Test(expected = XatkitException.class)

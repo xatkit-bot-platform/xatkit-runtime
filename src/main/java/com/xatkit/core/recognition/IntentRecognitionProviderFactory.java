@@ -1,20 +1,19 @@
 package com.xatkit.core.recognition;
 
+import com.xatkit.core.EventDefinitionRegistry;
 import com.xatkit.core.XatkitBot;
 import com.xatkit.core.XatkitException;
-import com.xatkit.core.recognition.dialogflow.DialogFlowConfiguration;
-import com.xatkit.core.recognition.dialogflow.DialogFlowIntentRecognitionProvider;
-import com.xatkit.core.recognition.nlpjs.NlpjsConfiguration;
-import com.xatkit.core.recognition.nlpjs.NlpjsIntentRecognitionProvider;
 import com.xatkit.core.recognition.processor.InputPreProcessor;
 import com.xatkit.core.recognition.processor.IntentPostProcessor;
 import com.xatkit.core.recognition.regex.RegExIntentRecognitionProvider;
+import com.xatkit.core.server.XatkitServer;
 import com.xatkit.util.Loader;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.NonNull;
 import org.apache.commons.configuration2.Configuration;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,22 +39,25 @@ public final class IntentRecognitionProviderFactory {
     }
 
     /**
-     * The database model that will be used for this instance of Xatkit.
+     * The database that will be used by this instance of Xatkit to store logs.
      * <p>
-     * This property is optional, and it's default value is set to "MAPDB" if not specified
+     * If this property is not set the bot won't use logging.
+     * <p>
+     * The value of this property is the fully-qualified name of the {@link RecognitionMonitor} subclass to
+     * instantiate. Libraries providing such implementations typically provide a constant value for that.
      */
-    public static final String DATABASE_MODEL_KEY = "xatkit.database.model";
+    public static final String LOGS_DATABASE = "xatkit.logs.database";
 
     /**
-     * The default value for xatkit.database.model in case it's not specified in the properties file.
+     * The intent provider that will be used for this instance of Xatkit.
+     * <p>
+     * If this property isn't set the {@link RegExIntentRecognitionProvider} will be used.
+     * <p>
+     * The value of this property is the fully-qualified name of the {@link IntentRecognitionProvider} subclass to
+     * instantiate. Libraries providing such implementations typically provide a constant value for that in their
+     * configuration.
      */
-    public static final String DATABASE_MODEL_MAPDB = "mapdb";
-
-    public static final String DATABASE_MODEL_INFLUXDB = "influxdb";
-
-    public static final String DATABASE_MODEL_POSTGRESQL = "postgresql";
-
-    public static final String DEFAULT_DATABASE_MODEL = DATABASE_MODEL_MAPDB;
+    public static final String INTENT_PROVIDER_KEY = "xatkit.intent.provider";
 
     /**
      * Returns the {@link AbstractIntentRecognitionProvider} matching the provided {@code configuration}.
@@ -111,19 +113,20 @@ public final class IntentRecognitionProviderFactory {
 
         IntentRecognitionProvider provider;
 
-        if (baseConfiguration.containsKey(DialogFlowConfiguration.PROJECT_ID_KEY)) {
-            /*
-             * The provided configuration contains DialogFlow-related information.
-             */
-            provider = new DialogFlowIntentRecognitionProvider(xatkitBot.getEventDefinitionRegistry(),
-                    baseConfiguration,
-                    recognitionMonitor);
-        } else if (baseConfiguration.containsKey(NlpjsConfiguration.AGENT_ID_KEY)) {
-            /*
-             * The provided configuration contains NLP.js-related information.
-             */
-            provider = new NlpjsIntentRecognitionProvider(xatkitBot.getEventDefinitionRegistry(), baseConfiguration,
-                    recognitionMonitor);
+        if (baseConfiguration.containsKey(INTENT_PROVIDER_KEY)) {
+            try {
+                String providerClassName = baseConfiguration.getString(INTENT_PROVIDER_KEY);
+                Class<? extends IntentRecognitionProvider> providerClass =
+                        (Class<? extends IntentRecognitionProvider>) Class.forName(providerClassName);
+                Constructor<? extends IntentRecognitionProvider> providerConstructor =
+                        providerClass.getConstructor(EventDefinitionRegistry.class, Configuration.class,
+                                RecognitionMonitor.class);
+                provider = providerConstructor.newInstance(xatkitBot.getEventDefinitionRegistry(), baseConfiguration,
+                        recognitionMonitor);
+            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
+                    IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         } else {
             /*
              * The provided configuration does not contain any IntentRecognitionProvider information, returning a
@@ -167,27 +170,25 @@ public final class IntentRecognitionProviderFactory {
          */
         RecognitionMonitor monitor = null;
         if (configuration.isEnableRecognitionAnalytics()) {
-            if (configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY, DEFAULT_DATABASE_MODEL)
-                    .toLowerCase().equals(DATABASE_MODEL_INFLUXDB)) {
-                Log.info("Using InfluxDB to store monitoring data");
-                monitor = new RecognitionMonitorInflux(xatkitBot.getXatkitServer(),
-                        configuration.getBaseConfiguration());
-            } else if (configuration.getBaseConfiguration().getString(DATABASE_MODEL_KEY)
-                    .toLowerCase().equals(DATABASE_MODEL_POSTGRESQL)) {
+            if (configuration.getBaseConfiguration().containsKey(LOGS_DATABASE)) {
                 try {
-                    monitor = new RecognitionMonitorPostgreSQL(xatkitBot.getXatkitServer(),
+                    String databaseClassName = configuration.getBaseConfiguration().getString(LOGS_DATABASE);
+                    Class<? extends RecognitionMonitor> databaseClass =
+                            (Class<? extends RecognitionMonitor>) Class.forName(databaseClassName);
+                    Constructor<? extends RecognitionMonitor> databaseConstructor =
+                            databaseClass.getConstructor(XatkitServer.class, Configuration.class);
+                    monitor = databaseConstructor.newInstance(xatkitBot.getXatkitServer(),
                             configuration.getBaseConfiguration());
-                } catch (Exception e) {
-                    throw new RuntimeException("Error creating the PostgreSQL monitoring, see the exception for "
-                            + "details ", e);
+                } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
+                        IllegalAccessException e) {
+                    throw new RuntimeException(e);
                 }
-
-
             } else {
-                Log.info("Using MapDB to store monitoring data");
-                monitor = new RecognitionMonitorMapDB(xatkitBot.getXatkitServer(),
-                        configuration.getBaseConfiguration());
+                Log.error("Analytics are enabled but no database provided for storing logs. Please provide a value "
+                        + "for {0}", LOGS_DATABASE);
             }
+        } else {
+            Log.debug("Analytics are disabled");
         }
         return monitor;
     }
@@ -197,15 +198,9 @@ public final class IntentRecognitionProviderFactory {
         return configuration.getPreProcessorNames().stream().map(preProcessorName -> {
             Class<? extends InputPreProcessor> processor;
             try {
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + preProcessorName
-                                + "PreProcessor",
-                        InputPreProcessor.class);
+                processor = Loader.loadClass(preProcessorName, InputPreProcessor.class);
             } catch (XatkitException e) {
-                /*
-                 * Try to load it without the suffix
-                 */
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + preProcessorName,
-                        InputPreProcessor.class);
+                throw new XatkitException(e);
             }
             try {
                 return Loader.construct(processor, new Object[]{configuration.getBaseConfiguration()});
@@ -227,14 +222,9 @@ public final class IntentRecognitionProviderFactory {
         return configuration.getPostProcessorNames().stream().map(postProcessorName -> {
             Class<? extends IntentPostProcessor> processor;
             try {
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + postProcessorName
-                        + "PostProcessor", IntentPostProcessor.class);
+                processor = Loader.loadClass(postProcessorName, IntentPostProcessor.class);
             } catch (XatkitException e) {
-                /*
-                 * Try to load it without the suffix
-                 */
-                processor = Loader.loadClass("com.xatkit.core.recognition.processor." + postProcessorName,
-                        IntentPostProcessor.class);
+                throw new XatkitException(e);
             }
             try {
                 return Loader.construct(processor, new Object[]{configuration.getBaseConfiguration()});

@@ -17,65 +17,22 @@
     <name>Xatkit core infrastructure</name>
 
     <properties>
-        <dialogflow.version>1.0.0</dialogflow.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <httpcomponents.version>4.4.10</httpcomponents.version>
-        <mapdb.version>3.0.7</mapdb.version>
         <gson.version>2.8.5</gson.version>
         <commons-io.version>2.4</commons-io.version>
-        <eclipse-collections.version>9.2.0</eclipse-collections.version>
         <lombok.version>1.18.12</lombok.version>
-        <retrofit.version>2.9.0</retrofit.version>
-        <okhttp3.logging-interceptor.version>3.14.0</okhttp3.logging-interceptor.version>
-        <influxdb-client.version>1.7.0</influxdb-client.version>
         <unirest.version>1.4.9</unirest.version>
-        <opennlp-tools.version>1.9.3</opennlp-tools.version>
-        <emoji-java.version>5.1.1</emoji-java.version>
-        <postgresql.version>42.3.1</postgresql.version>
+        <jsr305.version>3.0.2</jsr305.version>
     </properties>
 
     <dependencies>
-
-        <!-- Stanford NLP -->
-        <!-- This dependency has the provided scope because it is only required by some pre/post processors, see the
-        documentation to setup Stanford NLP in Xatkit. -->
-        <dependency>
-            <groupId>edu.stanford.nlp</groupId>
-            <artifactId>stanford-corenlp</artifactId>
-        </dependency>
-
-        <!-- emoji-java -->
-
-        <dependency>
-            <groupId>com.vdurmont</groupId>
-            <artifactId>emoji-java</artifactId>
-        </dependency>
-
-        <!-- OpenNLP Tools -->
-
-        <dependency>
-            <groupId>org.apache.opennlp</groupId>
-            <artifactId>opennlp-tools</artifactId>
-        </dependency>
-
-        <!-- DialogFlow -->
-
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-dialogflow</artifactId>
-        </dependency>
 
         <!-- EMF -->
 
         <dependency>
             <groupId>org.eclipse.emf</groupId>
             <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
-        </dependency>
-
-        <!-- InfluxDB -->
-        <dependency>
-            <groupId>com.influxdb</groupId>
-            <artifactId>influxdb-client-java</artifactId>
         </dependency>
 
         <!-- Unirest -->
@@ -85,6 +42,11 @@
         </dependency>
 
         <!-- Utils -->
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -126,50 +88,6 @@
             <artifactId>commons-io</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.squareup.retrofit2</groupId>
-            <artifactId>retrofit</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.squareup.retrofit2</groupId>
-            <artifactId>converter-gson</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>logging-interceptor</artifactId>
-        </dependency>
-
-        <!-- Analytics -->
-
-        <dependency>
-            <groupId>org.mapdb</groupId>
-            <artifactId>mapdb</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.collections</groupId>
-            <artifactId>eclipse-collections</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.collections</groupId>
-            <artifactId>eclipse-collections-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.collections</groupId>
-            <artifactId>eclipse-collections-forkjoin</artifactId>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-
-
         <!-- Xatkit Internal -->
 
         <dependency>
@@ -207,54 +125,14 @@
 
         <dependencies>
 
-            <!-- Stanford NLP -->
-            <!-- This dependency has the provided scope because it is only required by some pre/post processors, see the
-            documentation to setup Stanford NLP in Xatkit. -->
-            <dependency>
-                <groupId>edu.stanford.nlp</groupId>
-                <artifactId>stanford-corenlp</artifactId>
-                <version>3.9.2</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.protobuf</groupId>
-                        <artifactId>protobuf-java</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <!-- emoji-java -->
-
-            <dependency>
-                <groupId>com.vdurmont</groupId>
-                <artifactId>emoji-java</artifactId>
-                <version>${emoji-java.version}</version>
-            </dependency>
-
-            <!-- OpenNLP Tools -->
-
-            <dependency>
-                <groupId>org.apache.opennlp</groupId>
-                <artifactId>opennlp-tools</artifactId>
-                <version>${opennlp-tools.version}</version>
-            </dependency>
-
-            <!-- DialogFlow -->
-
-            <dependency>
-                <groupId>com.google.cloud</groupId>
-                <artifactId>google-cloud-dialogflow</artifactId>
-                <version>${dialogflow.version}</version>
-            </dependency>
-
-            <!-- InfluxDB -->
-            <dependency>
-                <groupId>com.influxdb</groupId>
-                <artifactId>influxdb-client-java</artifactId>
-                <version>${influxdb-client.version}</version>
-            </dependency>
-
             <!-- Utils -->
+
+            <!-- Provides javax.annotation.Nullable -->
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${jsr305.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -294,71 +172,10 @@
             </dependency>
 
             <dependency>
-                <groupId>com.squareup.retrofit2</groupId>
-                <artifactId>retrofit</artifactId>
-                <version>${retrofit.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.squareup.retrofit2</groupId>
-                <artifactId>converter-gson</artifactId>
-                <version>${retrofit.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>logging-interceptor</artifactId>
-                <version>${okhttp3.logging-interceptor.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.mashape.unirest</groupId>
                 <artifactId>unirest-java</artifactId>
                 <version>${unirest.version}</version>
             </dependency>
-
-
-            <!-- Analytics -->
-
-            <dependency>
-                <groupId>org.mapdb</groupId>
-                <artifactId>mapdb</artifactId>
-                <version>${mapdb.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <!-- Fix the Eclipse collections version, MapDB uses the latest one by default -->
-            <!-- This version is compatible with the Neo4jPlatform -->
-            <dependency>
-                <groupId>org.eclipse.collections</groupId>
-                <artifactId>eclipse-collections</artifactId>
-                <version>${eclipse-collections.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.eclipse.collections</groupId>
-                <artifactId>eclipse-collections-api</artifactId>
-                <version>${eclipse-collections.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.eclipse.collections</groupId>
-                <artifactId>eclipse-collections-forkjoin</artifactId>
-                <version>${eclipse-collections.version}</version>
-            </dependency>
-
-            <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${postgresql.version}</version>
-            </dependency>
-
 
         </dependencies>
 

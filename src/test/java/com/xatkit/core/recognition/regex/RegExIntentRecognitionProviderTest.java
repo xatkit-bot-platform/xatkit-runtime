@@ -12,7 +12,6 @@ import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.xatkit.stubs.TestingStateContextFactory.wrap;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 public class RegExIntentRecognitionProviderTest extends IntentRecognitionProviderTest<RegExIntentRecognitionProvider> {
@@ -51,7 +50,7 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
     public void getIntentValidIntentDefinitionNoOutContextUpperCase() throws IntentRecognitionProviderException {
         intentRecognitionProvider = getIntentRecognitionProvider();
         intentRecognitionProvider.registerIntentDefinition(intentProviderTestBot.getSimpleIntent());
-        TestingStateContext context = wrap(intentRecognitionProvider.createContext("contextId"));
+        TestingStateContext context = contextFactory.wrap(intentRecognitionProvider.createContext("contextId"));
         context.enableIntents(intentProviderTestBot.getSimpleIntent());
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("Greetings".toUpperCase(),
                 context);
@@ -65,7 +64,7 @@ public class RegExIntentRecognitionProviderTest extends IntentRecognitionProvide
         intentDefinition.setName("TestReservedRegExpCharacters");
         intentDefinition.getTrainingSentences().add("$test");
         intentRecognitionProvider.registerIntentDefinition(intentDefinition);
-        TestingStateContext context = wrap(intentRecognitionProvider.createContext("contextId"));
+        TestingStateContext context = contextFactory.wrap(intentRecognitionProvider.createContext("contextId"));
         context.enableIntents(intentDefinition);
         RecognizedIntent recognizedIntent = intentRecognitionProvider.getIntent("$test", context);
         assertThatRecognizedIntentHasDefinition(recognizedIntent, intentDefinition.getName());
