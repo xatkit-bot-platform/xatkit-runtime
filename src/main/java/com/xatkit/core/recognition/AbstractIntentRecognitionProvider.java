@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-
-import static fr.inria.atlanmod.commons.Preconditions.checkArgument;
 import static java.util.Objects.isNull;
 
 /**
@@ -98,6 +96,17 @@ public abstract class AbstractIntentRecognitionProvider implements IntentRecogni
     @Override
     public abstract void registerEntityDefinition(@NonNull EntityDefinition entityDefinition)
             throws IntentRecognitionProviderException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void registerState(@NonNull State state)
+            throws IntentRecognitionProviderException {
+        /* Not all intent recognition providers use states information for intent recognition so we just provide
+           an empty implementation by default.
+         */
+    }
 
     /**
      * {@inheritDoc}

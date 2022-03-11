@@ -1,6 +1,7 @@
 package com.xatkit.core;
 
 import com.xatkit.core.platform.RuntimePlatform;
+import com.xatkit.core.platform.action.RuntimeAction;
 import com.xatkit.core.platform.io.RuntimeEventProvider;
 import com.xatkit.core.recognition.IntentRecognitionProvider;
 import com.xatkit.core.recognition.IntentRecognitionProviderException;
@@ -10,8 +11,10 @@ import com.xatkit.dsl.model.ExecutionModelProvider;
 import com.xatkit.execution.ExecutionModel;
 import com.xatkit.execution.StateContext;
 import com.xatkit.intent.ContextParameter;
+import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.EventDefinition;
 import com.xatkit.intent.IntentDefinition;
+import com.xatkit.intent.RecognizedIntent;
 import fr.inria.atlanmod.commons.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
@@ -89,7 +92,6 @@ public class XatkitBot implements Runnable {
      * The {@link ExecutionService} manages the states of the bot and executes their body/fallback, and checks
      * whether state's transition are navigable.
      *
-     * @see ExecutionService#handleEventInstance(EventInstance, StateContext)
      */
     @Getter
     private ExecutionService executionService;
@@ -216,6 +218,9 @@ public class XatkitBot implements Runnable {
         this.startPlatforms(executionModel);
         this.startEventProviders(executionModel);
         Log.info("Registering execution rule events");
+
+
+
 
         Iterable<EventDefinition> accessedEvents = executionModel.getAllAccessedEvents();
         for (EventDefinition e : accessedEvents) {
