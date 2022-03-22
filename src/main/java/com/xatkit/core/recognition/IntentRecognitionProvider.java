@@ -6,6 +6,7 @@ import com.xatkit.execution.StateContext;
 import com.xatkit.intent.EntityDefinition;
 import com.xatkit.intent.IntentDefinition;
 import com.xatkit.intent.RecognizedIntent;
+import com.xatkit.execution.State;
 import lombok.NonNull;
 
 import javax.annotation.Nullable;
@@ -14,7 +15,7 @@ import java.util.List;
 /**
  * A unified wrapper to configure and query an intent recognition service.
  * <p>
- * This interface allows to specify pre/post processors, register intents and entities to the intent recognition
+ * This interface allows to specify pre/post processors, register intents, states and entities to the intent recognition
  * service, and retrieve {@link RecognizedIntent} instances from input text.
  */
 public interface IntentRecognitionProvider {
@@ -68,6 +69,20 @@ public interface IntentRecognitionProvider {
      * @see #trainMLEngine()
      */
     void registerEntityDefinition(@NonNull EntityDefinition entityDefinition) throws IntentRecognitionProviderException;
+
+    /**
+     * Registers the provided {@code State} in the underlying intent recognition provider.
+     * <p>
+     * <b>Note:</b> unless explicitly stated in subclasses, this method does not train the underlying machine
+     * learning engine, so multiple entity registrations does not generate multiple training calls. Once all the
+     * {@link EntityDefinition}s have been registered in the underlying intent recognition provider use
+     * {@link #trainMLEngine()} to train the ML engine.
+     *
+     * @param state the {@link State} to register in the InentRecognitionProvider
+     * @see #trainMLEngine()
+     */
+    void registerState(@NonNull State state) throws IntentRecognitionProviderException;
+
 
     /**
      * Registers the provided {@code intentDefinition} in the underlying intent recognition provider.
